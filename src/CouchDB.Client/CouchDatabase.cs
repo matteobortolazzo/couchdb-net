@@ -8,7 +8,7 @@ using Flurl.Http;
 
 namespace CouchDB.Client
 {
-    public class CouchDatabase<T>
+    public class CouchDatabase<T> where T : class
     {
         private readonly CouchClient _client;
         private bool _documentsLoaded;
@@ -20,7 +20,7 @@ namespace CouchDB.Client
             get
             {
                 if (!_documentsLoaded)
-                    LoadDocumentsAsync().Wait();
+                    Sync().Wait();
                 return _documents;
             }
         }
@@ -35,7 +35,7 @@ namespace CouchDB.Client
             _documentsRefs = new List<DocumentRef<T>>();
         }
 
-        internal async Task LoadDocumentsAsync()
+        public async Task Sync()
         {
             var docs = await _client.BaseRequest
                 .AppendPathSegment(Name)
@@ -68,15 +68,32 @@ namespace CouchDB.Client
 
         public async Task<IEnumerable<TResult>> FindAsync<TResult>(string jsonFilter)
         {
-            var requst = _client.BaseRequest
+            var request = _client.BaseRequest
                 .AppendPathSegment(Name)
                 .AppendPathSegment("_find")
                 .WithHeader("Content-Type", "application/json")
                 .PostStringAsync(jsonFilter)
                 .ReceiveJson<FindResult<TResult>>();
 
-            var result = await RequestsHelper.SendAsync(requst);
+            var result = await RequestsHelper.SendAsync(request);
             return result.Docs;
+        }
+
+        public T GetDocument(string key)
+        {
+            var docRef = _documentsRefs.SingleOrDefault(r => r.Key == key);
+            return docRef?.Entity;
+        }
+
+        public async Task<T> GetDocumentAsync(string key)
+        {
+            var request = _client.BaseRequest
+                .AppendPathSegment(Name)
+                .AppendPathSegment(key)
+                .GetJsonAsync<T>();
+
+            var result = await RequestsHelper.SendAsync(request);
+            return result;
         }
 
         public DocumentInfo GetDocumentInfo(T document)
@@ -90,11 +107,11 @@ namespace CouchDB.Client
             };
         }
 
-        public async Task AddDocumentAsync(string docId, T document)
+        public async Task AddDocumentAsync(string key, T document)
         {
             var request = _client.BaseRequest
                 .AppendPathSegment(Name)
-                .AppendPathSegment(docId)
+                .AppendPathSegment(key)
                 .PutJsonAsync(document);
 
             await RequestsHelper.SendAsync(request);
