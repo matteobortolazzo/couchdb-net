@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace CouchDB.Client.Query.Selector
 {
-    internal static class SelectorNodesBuilder<T> where T : class
+    internal static class SelectorNodesBuilder<T> where T : CouchEntity
     {
         internal static ICouchNode GetQueryNodes(Expression<Func<T, bool>> predicate)
         {

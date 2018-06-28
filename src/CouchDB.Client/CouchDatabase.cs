@@ -9,10 +9,11 @@ using CouchDB.Client.Query.Selector;
 using CouchDB.Client.Responses;
 using Flurl;
 using Flurl.Http;
+using Newtonsoft.Json;
 
 namespace CouchDB.Client
 {
-    public class CouchDatabase<T> where T : class
+    public class CouchDatabase<T> where T : CouchEntity
     {
         private readonly IFlurlRequest _request;
         private bool _documentsLoaded;
@@ -67,6 +68,7 @@ namespace CouchDB.Client
         // ReSharper disable once ClassNeverInstantiated.Local
         private class FindResult<TResult>
         {
+            [JsonProperty("docs")]
             public IEnumerable<TResult> Docs { get; set; }
         }
 
@@ -83,7 +85,7 @@ namespace CouchDB.Client
             return result.Docs;
         }
 
-        public CouchQueryable<T> Find(Expression<Func<T, bool>> predicate)
+        public ICouchQueryable<T> Find(Expression<Func<T, bool>> predicate)
         {
             var selector = SelectorObjectBuilder.Serialize(predicate);
             var expandoDict = selector as IDictionary<string, object>;

@@ -10,7 +10,6 @@ using Flurl.Http;
 
 namespace CouchDB.Client
 {
-
     public class CouchClient
     {
         private class AuthorizationData
@@ -96,7 +95,7 @@ namespace CouchDB.Client
             return await RequestsHelper.SendAsync(request);
         }
 
-        public async Task<CouchDatabase<T>> GetDatabaseAsync<T>(string dbName) where T : class
+        public async Task<CouchDatabase<T>> GetDatabaseAsync<T>(string dbName) where T : CouchEntity
         {
             var request = GetDatabaseInfoAsync(dbName);
             var info = await RequestsHelper.SendAsync(request);

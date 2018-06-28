@@ -10,7 +10,7 @@ namespace CouchDB.Client.Query.Selector
 {
     internal static class SelectorObjectBuilder
     {
-        internal static dynamic Serialize<T>(Expression<Func<T, bool>> predicate) where T : class
+        internal static dynamic Serialize<T>(Expression<Func<T, bool>> predicate) where T : CouchEntity
         {
             var node = SelectorNodesBuilder<T>.GetQueryNodes(predicate);
             return BuildObjectNode(node);
