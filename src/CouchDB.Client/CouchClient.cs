@@ -30,7 +30,7 @@ namespace CouchDB.Client
         {
             get
             {
-                if (_authData.AuthToken == null || _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) >= DateTime.Now)
+                if (_authData.NeedAuthentication && (_authData.AuthToken == null || _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) >= DateTime.Now))
                     Login().Wait();
         
                 var request = _serverUrl.EnableCookies();
@@ -101,7 +101,7 @@ namespace CouchDB.Client
             var request = GetDatabaseInfoAsync(dbName);
             var info = await RequestsHelper.SendAsync(request);
 
-            return new CouchDatabase<T>(info.DbName, this);
+            return new CouchDatabase<T>(info.DbName, BaseRequest);
         }
 
         public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
