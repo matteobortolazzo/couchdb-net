@@ -12,20 +12,24 @@ namespace CouchDB.Client.Query
 {
     public interface ICouchQueryable<TSource> where TSource : CouchEntity
     {
-        IOrderedCouchQueryable<TSource> OrderBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
-        IOrderedCouchQueryable<TSource> OrderByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
+        IAscendingOrderedCouchQueryable<TSource> OrderBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
+        IDescendingOrderedCouchQueryable<TSource> OrderByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
         ICouchQueryable<TSource> Skip(int count);
         ICouchQueryable<TSource> Take(int count);
         Task<List<TSource>> ToListAsync();
     }
 
-    public interface IOrderedCouchQueryable<TSource> : ICouchQueryable<TSource> where TSource : CouchEntity
+    public interface IAscendingOrderedCouchQueryable<TSource> : ICouchQueryable<TSource> where TSource : CouchEntity
     {
-        IOrderedCouchQueryable<TSource> ThenBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
-        IOrderedCouchQueryable<TSource> ThenByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
+        IAscendingOrderedCouchQueryable<TSource> ThenBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
     }
-    
-    internal class CouchQueryable<TSource> : IOrderedCouchQueryable<TSource> where TSource : CouchEntity
+
+    public interface IDescendingOrderedCouchQueryable<TSource> : ICouchQueryable<TSource> where TSource : CouchEntity
+    {
+        IDescendingOrderedCouchQueryable<TSource> ThenByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
+    }
+
+    internal class CouchQueryable<TSource> : IAscendingOrderedCouchQueryable<TSource>, IDescendingOrderedCouchQueryable<TSource> where TSource : CouchEntity
     {
         private readonly IDictionary<string, object> _selector;
         private readonly IFlurlRequest _baseRequest;
@@ -44,20 +48,6 @@ namespace CouchDB.Client.Query
             _dbName = dbName;
         }
 
-        public IOrderedCouchQueryable<TSource> OrderBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
-        {
-            var propName = GetJsonPropertyName(keySelector);
-            _sortProperties = new List<SortProperty>{ new SortProperty(propName, true) };
-            return this;
-        }
-
-        public IOrderedCouchQueryable<TSource> OrderByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
-        {
-            var propName = GetJsonPropertyName(keySelector);
-            _sortProperties = new List<SortProperty> { new SortProperty(propName, false) };
-            return this;
-        }
-
         public ICouchQueryable<TSource> Skip(int count)
         {
             _skipCount = count;
@@ -72,15 +62,18 @@ namespace CouchDB.Client.Query
 
         public async Task<List<TSource>> ToListAsync()
         {
-            var j = JsonConvert.SerializeObject(_selector);
+            // var jsonSelector = JsonConvert.SerializeObject(_selector);
 
             var findQuery = new Dictionary<string, object> {{"selector", _selector}};
             if (_takeCount.HasValue)
                 findQuery.Add("limit", _takeCount.Value);
             if (_skipCount.HasValue)
                 findQuery.Add("skip", _skipCount.Value);
-            if(_sortProperties != null)
-                findQuery.Add("sort", _sortProperties);
+            if (_sortProperties != null)
+                findQuery.Add("sort",
+                    _sortProperties.Select(s => new Dictionary<string, string> {{s.Name, s.Direction}}));
+
+            var jsonRequest = JsonConvert.SerializeObject(findQuery);
 
             var result = await _baseRequest
                 .AppendPathSegment(_dbName)
@@ -90,7 +83,7 @@ namespace CouchDB.Client.Query
 
             return result.Docs;
         }
-        
+
         private class FindResult
         {
             [JsonProperty("docs")]
@@ -123,14 +116,28 @@ namespace CouchDB.Client.Query
             return propName;
         }
 
-        public IOrderedCouchQueryable<TSource> ThenBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
+        public IAscendingOrderedCouchQueryable<TSource> OrderBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
+        {
+            var propName = GetJsonPropertyName(keySelector);
+            _sortProperties = new List<SortProperty> { new SortProperty(propName, true) };
+            return this;
+        }
+
+        public IAscendingOrderedCouchQueryable<TSource> ThenBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
         {
             var propName = GetJsonPropertyName(keySelector);
             _sortProperties.Add(new SortProperty(propName, true));
             return this;
         }
 
-        public IOrderedCouchQueryable<TSource> ThenByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
+        public IDescendingOrderedCouchQueryable<TSource> OrderByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
+        {
+            var propName = GetJsonPropertyName(keySelector);
+            _sortProperties = new List<SortProperty> { new SortProperty(propName, false) };
+            return this;
+        }
+
+        public IDescendingOrderedCouchQueryable<TSource> ThenByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
         {
             var propName = GetJsonPropertyName(keySelector);
             _sortProperties.Add(new SortProperty(propName, false));
