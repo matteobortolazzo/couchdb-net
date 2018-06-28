@@ -14,7 +14,6 @@ namespace CouchDB.Client.Query
     {
         IOrderedCouchQueryable<TSource> OrderBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
         IOrderedCouchQueryable<TSource> OrderByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector);
-        ICouchQueryable<TSource> Select<TProperty>(params Func<TSource, TProperty>[] selectors);
         ICouchQueryable<TSource> Skip(int count);
         ICouchQueryable<TSource> Take(int count);
         Task<List<TSource>> ToListAsync();
@@ -32,10 +31,11 @@ namespace CouchDB.Client.Query
         private readonly IFlurlRequest _baseRequest;
         private readonly string _dbName;
 
-        private int _takeCount = 25;
-        private int _skipCount;
+        private int? _takeCount;
+        private int? _skipCount;
 
-        protected List<SortProperty> SortProperties = null;
+        private List<SortProperty> _sortProperties;
+        private List<string> _selectFields;
 
         internal CouchQueryable(IDictionary<string, object> selector, IFlurlRequest baseRequest, string dbName)
         {
@@ -46,20 +46,15 @@ namespace CouchDB.Client.Query
 
         public IOrderedCouchQueryable<TSource> OrderBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
         {
-            var propName = GetPropertyInfo(keySelector);
-            SortProperties = new List<SortProperty>{ new SortProperty(propName, true) };
+            var propName = GetJsonPropertyName(keySelector);
+            _sortProperties = new List<SortProperty>{ new SortProperty(propName, true) };
             return this;
         }
 
         public IOrderedCouchQueryable<TSource> OrderByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
         {
-            var propName = GetPropertyInfo(keySelector);
-            SortProperties = new List<SortProperty> { new SortProperty(propName, false) };
-            return this;
-        }
-
-        public ICouchQueryable<TSource> Select<TProperty>(params Func<TSource, TProperty>[] selectors)
-        {
+            var propName = GetJsonPropertyName(keySelector);
+            _sortProperties = new List<SortProperty> { new SortProperty(propName, false) };
             return this;
         }
 
@@ -79,15 +74,18 @@ namespace CouchDB.Client.Query
         {
             var j = JsonConvert.SerializeObject(_selector);
 
+            var findQuery = new Dictionary<string, object> {{"selector", _selector}};
+            if (_takeCount.HasValue)
+                findQuery.Add("limit", _takeCount.Value);
+            if (_skipCount.HasValue)
+                findQuery.Add("skip", _skipCount.Value);
+            if(_sortProperties != null)
+                findQuery.Add("sort", _sortProperties);
+
             var result = await _baseRequest
                 .AppendPathSegment(_dbName)
                 .AppendPathSegment("_find")
-                .PostJsonAsync(new
-                {
-                    selector = _selector,
-                    limit = _takeCount,
-                    skip = _skipCount
-                })
+                .PostJsonAsync(findQuery)
                 .ReceiveJson<FindResult>();
 
             return result.Docs;
@@ -99,7 +97,7 @@ namespace CouchDB.Client.Query
             public List<TSource> Docs { get; set; }
         }
 
-        public string GetPropertyInfo<TProperty>(Expression<Func<TSource, TProperty>> propertyLambda)
+        public string GetJsonPropertyName<TProperty>(Expression<Func<TSource, TProperty>> propertyLambda)
         {
             var type = typeof(TSource);
 
@@ -127,15 +125,15 @@ namespace CouchDB.Client.Query
 
         public IOrderedCouchQueryable<TSource> ThenBy<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
         {
-            var propName = GetPropertyInfo(keySelector);
-            SortProperties.Add(new SortProperty(propName, true));
+            var propName = GetJsonPropertyName(keySelector);
+            _sortProperties.Add(new SortProperty(propName, true));
             return this;
         }
 
         public IOrderedCouchQueryable<TSource> ThenByDescending<TProperty>(Expression<Func<TSource, TProperty>> keySelector)
         {
-            var propName = GetPropertyInfo(keySelector);
-            SortProperties.Add(new SortProperty(propName, false));
+            var propName = GetJsonPropertyName(keySelector);
+            _sortProperties.Add(new SortProperty(propName, false));
             return this;
         }
     }
