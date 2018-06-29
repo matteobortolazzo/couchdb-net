@@ -22,13 +22,20 @@ namespace CouchDB.Client.Query.Selector
             {
                 case ConditionNode conditionNode:
                 {
+                    if (conditionNode.Type == ConditionNodeType.Equal)
+                    {
+                        var condition = new ExpandoObject();
+                        AddProperty(condition, conditionNode.PropertyNode.Name, conditionNode.ValueNode.Value);
+                        return condition;
+                    }
+
                     var symbol = GetConditionSymbol(conditionNode);
-                
+
                     var rightConditionObject = new ExpandoObject();
                     AddProperty(rightConditionObject, symbol, conditionNode.ValueNode.Value);
 
                     var conditionObject = new ExpandoObject();
-                    AddProperty(conditionObject, conditionNode.PropertyNode.Name, rightConditionObject);                
+                    AddProperty(conditionObject, conditionNode.PropertyNode.Name, rightConditionObject);
 
                     return conditionObject;
                 }
@@ -62,8 +69,6 @@ namespace CouchDB.Client.Query.Selector
         {
             switch (c.Type)
             {
-                case ConditionNodeType.Equal:
-                    return "$eq";
                 case ConditionNodeType.NotEqual:
                     return "$ne";
                 case ConditionNodeType.GreaterThan:
