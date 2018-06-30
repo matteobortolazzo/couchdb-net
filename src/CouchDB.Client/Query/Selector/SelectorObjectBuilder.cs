@@ -4,7 +4,6 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using CouchDB.Client.Query.Selector.Nodes;
-using Newtonsoft.Json;
 
 namespace CouchDB.Client.Query.Selector
 {
@@ -13,7 +12,8 @@ namespace CouchDB.Client.Query.Selector
         internal static dynamic Serialize<T>(Expression<Func<T, bool>> predicate) where T : CouchEntity
         {
             var node = SelectorNodesBuilder<T>.GetQueryNodes(predicate);
-            return BuildObjectNode(node);
+            var optimizedNodde = SelectorNodesOptimizer.Optimize(node);
+            return BuildObjectNode(optimizedNodde);
         }
 
         private static dynamic BuildObjectNode(ICouchNode node)
