@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using CouchDB.Client.Query.Selector.Nodes;
 using Newtonsoft.Json;
 
@@ -17,10 +19,25 @@ namespace CouchDB.Client.Query.Selector
         {
             if (expr is MemberExpression m)
             {
-                var jsonPropertyAttributes = m.Member.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
-                var jsonProperty = jsonPropertyAttributes.Length > 0 ? jsonPropertyAttributes[0] as JsonPropertyAttribute : null;
+                string GetPropertyName(MemberInfo memberInfo)
+                {
+                    var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
+                    var jsonProperty = jsonPropertyAttributes.Length > 0 ? jsonPropertyAttributes[0] as JsonPropertyAttribute : null;
 
-                var propName = jsonProperty != null ? jsonProperty.PropertyName : m.Member.Name;
+                    return jsonProperty != null ? jsonProperty.PropertyName : memberInfo.Name;
+                }
+
+                var members = new List<string> {GetPropertyName(m.Member)};
+
+                var currentExpression = m.Expression;
+
+                while (currentExpression is MemberExpression cm) { 
+                    members.Add(GetPropertyName(cm.Member));
+                    currentExpression = cm.Expression;
+                }
+
+                members.Reverse();
+                var propName = string.Join(".", members.ToArray());
 
                 return new MemberNode { Name = propName };
             }
