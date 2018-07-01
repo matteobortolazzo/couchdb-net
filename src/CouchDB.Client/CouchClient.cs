@@ -100,7 +100,7 @@ namespace CouchDB.Client
             var request = GetDatabaseInfoAsync(dbName);
             var info = await RequestsHelper.SendAsync(request);
 
-            return new CouchDatabase<T>(info.DbName, BaseRequest);
+            return new CouchDatabase<T>(BaseRequest, info.DbName);
         }
 
         public async Task<IEnumerable<string>> GetDatabasesNamesAsync()

@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
+using CouchDB.Client.Query.Extensions;
 using CouchDB.Client.Query.Selector.Nodes;
 
 namespace CouchDB.Client.Query.Selector
 {
     internal static class SelectorObjectBuilder
     {
-        internal static dynamic Serialize<T>(Expression<Func<T, bool>> predicate) where T : CouchEntity
+        internal static ExpandoObject Serialize<T>(Expression<Func<T, bool>> predicate) where T : CouchEntity
         {
             var node = SelectorNodesBuilder<T>.GetQueryNodes(predicate);
             var optimizedNode = SelectorNodesOptimizer.Optimize(node);
             return BuildObjectNode(optimizedNode);
         }
 
-        private static dynamic BuildObjectNode(ICouchNode node)
+        private static ExpandoObject BuildObjectNode(ICouchNode node)
         {
             switch (node)
             {
@@ -25,17 +26,17 @@ namespace CouchDB.Client.Query.Selector
                     if (conditionNode.Type == ConditionNodeType.Equal)
                     {
                         var condition = new ExpandoObject();
-                        AddProperty(condition, conditionNode.PropertyNode.Name, conditionNode.ValueNode.Value);
+                        condition.AddProperty(conditionNode.PropertyNode.Name, conditionNode.ValueNode.Value);
                         return condition;
                     }
 
                     var symbol = GetConditionSymbol(conditionNode);
 
                     var rightConditionObject = new ExpandoObject();
-                    AddProperty(rightConditionObject, symbol, conditionNode.ValueNode.Value);
+                    rightConditionObject.AddProperty(symbol, conditionNode.ValueNode.Value);
 
                     var conditionObject = new ExpandoObject();
-                    AddProperty(conditionObject, conditionNode.PropertyNode.Name, rightConditionObject);
+                    conditionObject.AddProperty(conditionNode.PropertyNode.Name, rightConditionObject);
 
                     return conditionObject;
                 }
@@ -46,7 +47,7 @@ namespace CouchDB.Client.Query.Selector
                     var symbol = GetUnitarySymbol(unitaryNode.Type);
 
                     var unitaryObject = new ExpandoObject();
-                    AddProperty(unitaryObject, symbol, childObject);
+                    unitaryObject.AddProperty(symbol, childObject);
 
                     return unitaryObject;
                 }
@@ -57,7 +58,7 @@ namespace CouchDB.Client.Query.Selector
                     var childrenObjects = combinationNode.Children.Select(c => BuildObjectNode(c)).ToList();
 
                     var combinationObject = new ExpandoObject();
-                    AddProperty(combinationObject, symbol, childrenObjects);
+                    combinationObject.AddProperty(symbol, childrenObjects);
 
                     return combinationObject;
                 }
@@ -68,10 +69,10 @@ namespace CouchDB.Client.Query.Selector
                     var arraySelectorNode = BuildObjectNode(arrayMatchNode.ArraySelectorNode);
 
                     var arraySelectorObject = new ExpandoObject();
-                    AddProperty(arraySelectorObject, symbol, arraySelectorNode);
+                    arraySelectorObject.AddProperty(symbol, arraySelectorNode);
 
                     var arrayMatchObject = new ExpandoObject();
-                    AddProperty(arrayMatchObject, arrayMatchNode.PropertyNode.Name, arraySelectorObject);
+                    arrayMatchObject.AddProperty(arrayMatchNode.PropertyNode.Name, arraySelectorObject);
 
                     return arrayMatchObject;
                 }
@@ -129,16 +130,6 @@ namespace CouchDB.Client.Query.Selector
                     return "$elemMatch";
             }
             throw new IndexOutOfRangeException();
-        }
-
-        private static void AddProperty(ExpandoObject expando, string propertyName, object propertyValue)
-        {
-            // ExpandoObject supports IDictionary so we can extend it like this
-            var expandoDict = expando as IDictionary<string, object>;
-            if (expandoDict.ContainsKey(propertyName))
-                expandoDict[propertyName] = propertyValue;
-            else
-                expandoDict.Add(propertyName, propertyValue);
         }
     }
 }
