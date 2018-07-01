@@ -50,12 +50,14 @@ namespace CouchDB.Client.Query
 
         public ICouchQueryable<TSource> Skip(int count)
         {
+            if(count < 0) throw new ArgumentException("Cannot skip a negative number of documents,");
             _skipCount = count;
             return this;
         }
 
         public ICouchQueryable<TSource> Take(int count)
         {
+            if (count <= 0) throw new ArgumentException("Cannot take a not positive number of documents.");
             _takeCount = count;
             return this;
         }

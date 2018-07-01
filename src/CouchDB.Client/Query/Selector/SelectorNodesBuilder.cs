@@ -17,7 +17,7 @@ namespace CouchDB.Client.Query.Selector
 
         private static ICouchNode NewCouchNode(Expression expr)
         {
-            if (expr is MemberExpression m)
+            if (expr is MemberExpression memberExpr)
             {
                 string GetPropertyName(MemberInfo memberInfo)
                 {
@@ -27,9 +27,9 @@ namespace CouchDB.Client.Query.Selector
                     return jsonProperty != null ? jsonProperty.PropertyName : memberInfo.Name;
                 }
 
-                var members = new List<string> {GetPropertyName(m.Member)};
+                var members = new List<string> {GetPropertyName(memberExpr.Member)};
 
-                var currentExpression = m.Expression;
+                var currentExpression = memberExpr.Expression;
 
                 while (currentExpression is MemberExpression cm) { 
                     members.Add(GetPropertyName(cm.Member));
@@ -41,34 +41,65 @@ namespace CouchDB.Client.Query.Selector
 
                 return new MemberNode { Name = propName };
             }
-            if (expr is ConstantExpression s)
+            if (expr is ConstantExpression constantExpr)
             {
-                return new ConstantNode { Value = s.Value };
+                return new ConstantNode { Value = constantExpr.Value };
             }
-            if (expr is BinaryExpression b)
+            if (expr is BinaryExpression binaryExpr)
             {
-                var right = NewCouchNode(b.Right);
-                var left = NewCouchNode(b.Left);
+                var right = NewCouchNode(binaryExpr.Right);
+                var left = NewCouchNode(binaryExpr.Left);
 
-                if (IsCombinationNode(b.NodeType))
-                    return NewCombinationNode(b.NodeType, right, left);
+                if (IsCombinationNode(binaryExpr.NodeType))
+                    return NewCombinationNode(binaryExpr.NodeType, right, left);
 
-                if (IsConditionNode(b.NodeType))
-                    return NewConditionNode(b.NodeType, (MemberNode)left, (ConstantNode)right);
+                if (IsConditionNode(binaryExpr.NodeType))
+                    return NewConditionNode(binaryExpr.NodeType, (MemberNode)left, (ConstantNode)right);
 
                 throw new NotImplementedException();
             }
-            if (expr is UnaryExpression u)
+            if (expr is UnaryExpression unaryExpr)
             {
-                if(u.NodeType == ExpressionType.Not)
+                if(unaryExpr.NodeType == ExpressionType.Not)
                 {
-                    var op = NewCouchNode(u.Operand);
-                    return NewUnitaryNoder(u.NodeType, op);
+                    var op = NewCouchNode(unaryExpr.Operand);
+                    return NewUnitaryNoder(unaryExpr.NodeType, op);
                 }
+                throw new NotImplementedException();
             }
             //else if (expr is ParameterExpression p) { }
-            //else if (expr is MethodCallExpression c) { }
-            //else if (expr is LambdaExpression l) { }
+            if (expr is LambdaExpression lambdaExpr)
+            {
+                var lamdaNode = NewCouchNode(lambdaExpr.Body);
+                return lamdaNode;
+            }
+
+            if (expr is MethodCallExpression methodExpr)
+            {
+                var argumentsNode = methodExpr.Arguments.Select(NewCouchNode).ToList();
+
+                ArrayMatchNodeType type;
+                switch (methodExpr.Method.Name)
+                {
+                    case "All":
+                        type = ArrayMatchNodeType.All;
+                        break;
+                    case "Any":
+                        type = ArrayMatchNodeType.Any;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+
+                var arrayMatchNode = new ArrayMatchNode
+                {
+                    Type = type,
+                    PropertyNode = (MemberNode) argumentsNode[0],
+                    ArraySelectorNode = argumentsNode[1]
+                };
+                return arrayMatchNode;
+            }
+
             throw new NotSupportedException($"Invalid Expression type: {expr.GetType()}");
         }
 

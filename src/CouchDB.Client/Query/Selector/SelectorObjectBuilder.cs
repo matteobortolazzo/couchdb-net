@@ -12,8 +12,8 @@ namespace CouchDB.Client.Query.Selector
         internal static dynamic Serialize<T>(Expression<Func<T, bool>> predicate) where T : CouchEntity
         {
             var node = SelectorNodesBuilder<T>.GetQueryNodes(predicate);
-            var optimizedNodde = SelectorNodesOptimizer.Optimize(node);
-            return BuildObjectNode(optimizedNodde);
+            var optimizedNode = SelectorNodesOptimizer.Optimize(node);
+            return BuildObjectNode(optimizedNode);
         }
 
         private static dynamic BuildObjectNode(ICouchNode node)
@@ -61,6 +61,20 @@ namespace CouchDB.Client.Query.Selector
 
                     return combinationObject;
                 }
+                case ArrayMatchNode arrayMatchNode:
+                {
+                    var symbol = GetArrayMatchSymbol(arrayMatchNode.Type);
+
+                    var arraySelectorNode = BuildObjectNode(arrayMatchNode.ArraySelectorNode);
+
+                    var arraySelectorObject = new ExpandoObject();
+                    AddProperty(arraySelectorObject, symbol, arraySelectorNode);
+
+                    var arrayMatchObject = new ExpandoObject();
+                    AddProperty(arrayMatchObject, arrayMatchNode.PropertyNode.Name, arraySelectorObject);
+
+                    return arrayMatchObject;
+                }
             }
             throw new InvalidOperationException();
         }
@@ -101,6 +115,18 @@ namespace CouchDB.Client.Query.Selector
                     return "$and";
                 case CombinationNodeType.Or:
                     return "$or";
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        private static string GetArrayMatchSymbol(ArrayMatchNodeType type)
+        {
+            switch (type)
+            {
+                case ArrayMatchNodeType.All:
+                    return "$allMatch";
+                case ArrayMatchNodeType.Any:
+                    return "$elemMatch";
             }
             throw new IndexOutOfRangeException();
         }
