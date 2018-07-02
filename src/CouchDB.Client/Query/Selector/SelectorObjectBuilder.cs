@@ -14,7 +14,31 @@ namespace CouchDB.Client.Query.Selector
         {
             var node = SelectorNodesBuilder<T>.GetQueryNodes(predicate);
             var optimizedNode = SelectorNodesOptimizer.Optimize(node);
-            return BuildObjectNode(optimizedNode);
+            var nodeObject = BuildObjectNode(optimizedNode);
+            return OptimizeAndOperators(nodeObject);
+        }
+
+        private static ExpandoObject OptimizeAndOperators(ExpandoObject node)
+        {
+            var nodeDictioray = (IDictionary<string, object>) node;
+            var andChildren = nodeDictioray.Where(n => n.Key == "$and").ToList();
+            if (!andChildren.Any())
+                return (ExpandoObject)nodeDictioray;
+
+            foreach (var andChild in andChildren)
+            {
+                var andSubChildren = andChild.Value as IEnumerable<IDictionary<string, object>>;
+
+                if(andSubChildren == null) continue;;
+
+                nodeDictioray.Remove(andChild);
+                foreach (var andSubChild in andSubChildren)
+                {
+                    nodeDictioray.Add(andSubChild.First().Key, andSubChild.First().Value);
+                }
+            }
+
+            return (ExpandoObject) nodeDictioray;
         }
 
         private static ExpandoObject BuildObjectNode(ICouchNode node)

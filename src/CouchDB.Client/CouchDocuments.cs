@@ -152,7 +152,7 @@ namespace CouchDB.Client
         #region Stable
 
         private bool? _fromStable;
-        public ICouchQueryable<TSource> ReturnStable()
+        public ICouchQueryable<TSource> FromStable()
         {
             _fromStable = true;
             return this;

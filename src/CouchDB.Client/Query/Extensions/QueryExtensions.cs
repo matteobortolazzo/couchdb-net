@@ -22,11 +22,20 @@ namespace CouchDB.Client.Query.Extensions
 
         internal static string GetJsonPropertyName<TSource, TProperty>(this Expression<Func<TSource, TProperty>> propertyLambda)
         {
-            if (!(propertyLambda.Body is MemberExpression member))
+            MemberExpression GetInfo()
+            {
+                if (!(propertyLambda.Body is UnaryExpression unaryExpression))
+                    return propertyLambda.Body as MemberExpression;
+
+                if (unaryExpression.NodeType == ExpressionType.Convert)
+                    return unaryExpression.Operand as MemberExpression;
+                
                 throw new ArgumentException(
                     $"Expression '{propertyLambda}' refers to a method, not a property.");
+            }
 
-            var propInfo = member.Member as PropertyInfo;
+            var member = GetInfo();
+            var propInfo = member.Member;
             if (propInfo == null)
                 throw new ArgumentException(
                     $"Expression '{propertyLambda}' refers to a field, not a property.");

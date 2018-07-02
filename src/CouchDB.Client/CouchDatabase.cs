@@ -37,14 +37,21 @@ namespace CouchDB.Client
             var fields = selector.IndexFields;
 
             var indexObject = fields.Select(f => new Dictionary<string, string>{{ f.Name, f.Direction}});
+            
+            var fieldObject = new ExpandoObject();
+            fieldObject.AddProperty("fields", indexObject);
 
             var requestObject = new ExpandoObject();
-            requestObject.AddProperty("index", indexObject);
-            
-            if(name != null)
+            requestObject.AddProperty("index", fieldObject);
+
+            if (name != null)
                 requestObject.AddProperty("name", name);
             if(designDocumentName != null)
                 requestObject.AddProperty("ddoc", designDocumentName);
+
+            requestObject.AddProperty("type", "json");
+
+            var json = JsonConvert.SerializeObject(requestObject);
 
             await BaseRequest
                 .AppendPathSegment("_index")

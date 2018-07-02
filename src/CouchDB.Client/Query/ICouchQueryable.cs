@@ -20,7 +20,7 @@ namespace CouchDB.Client.Query
         ICouchQueryable<TSource> WithReadQuorum(int quorum);
         ICouchQueryable<TSource> UseBookmark(string bookmark);
         ICouchQueryable<TSource> UpdateIndex();
-        ICouchQueryable<TSource> ReturnStable();
+        ICouchQueryable<TSource> FromStable();
         Task<List<TSource>> ToListAsync();
     }
 
