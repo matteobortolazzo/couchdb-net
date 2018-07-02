@@ -1,6 +1,6 @@
 # CouchDB.NET
 
-A .NET driver for CouchDB. * **Very alpha** *
+A .NET driver for CouchDB. * **Still in development** *
 
 ## LINQ-like queries
 
