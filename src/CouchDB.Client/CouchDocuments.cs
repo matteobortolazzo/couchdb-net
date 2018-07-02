@@ -191,8 +191,7 @@ namespace CouchDB.Client
             if (_skipCount.HasValue)
                 findQuery.Add("skip", _skipCount.Value);
             if (_sortProperties != null)
-                findQuery.Add("sort",
-                    _sortProperties.Select(s => new Dictionary<string, string> {{s.Name, s.Direction}}));
+                findQuery.Add("sort", _sortProperties.Select(s => new Dictionary<string, string> {{s.Name, s.Direction}}));
             if (_fields != null)
                 findQuery.Add("fields", _fields);
             if (_quorum.HasValue)
