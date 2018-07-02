@@ -5,6 +5,16 @@
     <Version>0.0.4-pre-alpha</Version>
     <Authors>Matteo Bortolazzo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>CouchDB.NET</PackageId>
+    <Product>CouchDB.NET</Product>
+    <Description>A .NET driver for CouchDB.</Description>
+    <PackageLicenseUrl>https://github.com/matteobortolazzo/couchdb-net/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-net</PackageProjectUrl>
+    <PackageIconUrl>http://couchdb.apache.org/image/couch@2x.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
+    <RepositoryType>Couchdb.NET</RepositoryType>
+    <PackageTags>couchdb driver .net javascript mango</PackageTags>
+    <PackageReleaseNotes>Pre-Alpha</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
