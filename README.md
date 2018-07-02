@@ -32,9 +32,9 @@ The produced Mango JSON:
 {
     "selector":{ 
         "owner.name":"Bobby",
-	    "$or":[
-    		{"floors":{"$allMatch":{"area":{"$lt":120}}}},
-         	{"floors":{"$elemMatch":{"area":{"$gt":500}}}}
+	"$or":[
+    	    {"floors":{"$allMatch":{"area":{"$lt":120}}}},
+            {"floors":{"$elemMatch":{"area":{"$gt":500}}}}
     	]
     },
     "limit":50,
