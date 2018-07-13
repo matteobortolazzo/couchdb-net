@@ -92,9 +92,12 @@ await client.RemoveDatabaseAsync("dbName");
 await housesDb.Documents.AddAsync(house);
 await housesDb.Documents.UpdateAsync(house);
 await housesDb.Documents.RemoveAsync(house);
+var house = await housesDb.Documents.FindAsync(houseId);
 // Bulk
 await housesDb.Documents.AddRangeAsync(houses);
 await housesDb.Documents.UpdateRangeAsync(houses);
+var houses = await housesDb.Documents.FindAsync(houseId1, houseId2, houseId3);
+var houses = await housesDb.Documents.FindAsync(houseIdArray);
 // Enebles stats in queries
 housesDb.Documents.EnableStats();
 var stats = housesDb.Documents.LastExecutionStats;

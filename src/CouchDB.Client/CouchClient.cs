@@ -7,6 +7,8 @@ using CouchDB.Client.Helpers;
 using CouchDB.Client.Responses;
 using Flurl;
 using Flurl.Http;
+using Flurl.Http.Configuration;
+using Newtonsoft.Json;
 
 namespace CouchDB.Client
 {
@@ -25,24 +27,26 @@ namespace CouchDB.Client
         private readonly AuthorizationData _authData;
         private readonly string _serverUrl;
 
-        internal IFlurlRequest BaseRequest
+        internal IFlurlRequest NewRequest()
         {
-            get
-            {
-                if (_authData.NeedAuthentication && (_authData.AuthToken == null || _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) >= DateTime.Now))
-                    Login().Wait();
-        
-                var request = _serverUrl.EnableCookies();
-                return _authData.NeedAuthentication ? 
-                    request.WithCookie("AuthSession", _authData.AuthToken) : 
-                    request;
-            }
+            if (_authData.NeedAuthentication && (_authData.AuthToken == null ||
+                                                 _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) >=
+                                                 DateTime.Now))
+                Login().Wait();
+
+            var request = _serverUrl.EnableCookies();
+            return _authData.NeedAuthentication ? request.WithCookie("AuthSession", _authData.AuthToken) : request;
         }
-        
+
         public CouchClient(string serverUrl)
         {
             _serverUrl = serverUrl;
             _authData = new AuthorizationData();
+
+            FlurlHttp.Configure(c =>
+            {
+                c.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore });
+            });
         }
 
         #region Authentication
@@ -88,7 +92,7 @@ namespace CouchDB.Client
 
         public async Task<DbInfo> GetDatabaseInfoAsync(string dbName)
         {
-            var request = BaseRequest
+            var request = NewRequest()
                 .AppendPathSegment(dbName)
                 .GetJsonAsync<DbInfo>();
 
@@ -100,12 +104,12 @@ namespace CouchDB.Client
             var request = GetDatabaseInfoAsync(dbName);
             var info = await RequestsHelper.SendAsync(request);
 
-            return new CouchDatabase<T>(BaseRequest, info.DbName);
+            return new CouchDatabase<T>(this, info.DbName);
         }
 
         public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
         {
-            var request = BaseRequest
+            var request = NewRequest()
                 .AppendPathSegment("_all_dbs")
                 .GetJsonAsync<IEnumerable<string>>();
 
@@ -114,7 +118,7 @@ namespace CouchDB.Client
 
         public async Task AddDatabaseAsync(string dbName)
         {
-            var request = BaseRequest
+            var request = NewRequest()
                 .AppendPathSegment(dbName)
                 .PutAsync(null);
 
@@ -123,7 +127,7 @@ namespace CouchDB.Client
 
         public async Task RemoveDatabaseAsync(string dbName)
         {
-            var request = BaseRequest
+            var request = NewRequest()
                 .AppendPathSegment(dbName)
                 .DeleteAsync();
 

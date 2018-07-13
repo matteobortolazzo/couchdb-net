@@ -2,29 +2,27 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
-using CouchDB.Client.Helpers;
 using CouchDB.Client.Query;
 using CouchDB.Client.Query.Extensions;
-using CouchDB.Client.Query.Selector;
-using CouchDB.Client.Query.Sort;
-using CouchDB.Client.Responses;
-using Flurl;
 using Flurl.Http;
-using Newtonsoft.Json;
 
 namespace CouchDB.Client
 {
     public class CouchDatabase<T> where T : CouchEntity
     {
-        internal IFlurlRequest BaseRequest { get; }
+        private readonly CouchClient _client;
         public string Name { get; }
 
-        internal CouchDatabase(IFlurlRequest baseUrl, string name)
+        internal IFlurlRequest NewDbRequest()
         {
+            return _client.NewRequest().AppendPathSegment(Name);
+        }
+
+        internal CouchDatabase(CouchClient client, string name)
+        {
+            _client = client;
             Name = name;
-            BaseRequest = baseUrl.AppendPathSegment(name);
             Documents = new CouchDocuments<T>(this);
         }
 
@@ -50,10 +48,8 @@ namespace CouchDB.Client
                 requestObject.AddProperty("ddoc", designDocumentName);
 
             requestObject.AddProperty("type", "json");
-
-            var json = JsonConvert.SerializeObject(requestObject);
-
-            await BaseRequest
+            
+            await NewDbRequest()
                 .AppendPathSegment("_index")
                 .PostJsonAsync(requestObject);
         }

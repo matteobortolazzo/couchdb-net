@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using CouchDB.Client.Helpers;
 using CouchDB.Client.Query;
@@ -11,7 +12,6 @@ using CouchDB.Client.Query.Selector;
 using CouchDB.Client.Query.Sort;
 using Flurl.Http;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace CouchDB.Client
 {
@@ -25,7 +25,55 @@ namespace CouchDB.Client
         }
 
         #region Find
-        
+
+        public async Task<TSource> FindAsync(string id)
+        {
+            var request = _db.NewDbRequest()
+                .AppendPathSegment(id)
+                .GetJsonAsync<TSource>();
+
+            return await RequestsHelper.SendAsync(request);
+        }
+
+        #region Results
+
+        private class FindResult
+        {
+            [JsonProperty("results")]
+            public List<FindResultDoc> Results { get; set; }
+        }
+
+        private class FindResultDoc
+        {
+            [JsonProperty("docs")]
+            public List<FindResultItem> Docs { get; set; }
+        }
+
+        private class FindResultItem
+        {
+            [JsonProperty("ok")]
+            public TSource Item { get; set; }
+        }
+
+        #endregion
+
+        public async Task<List<TSource>> FindAsync(params string[] ids)
+        {
+            var request = _db.NewDbRequest()
+                .AppendPathSegment("_bulk_get")
+                .PostJsonAsync(new
+                {
+                    docs = ids.Select(id => new { id })
+                }).ReceiveJson<FindResult>();
+
+            var result = await RequestsHelper.SendAsync(request);
+            return result.Results.SelectMany(r => r.Docs).Select(d => d.Item).ToList();
+        }
+
+        #endregion
+
+        #region Where
+
         public bool StatsEnabled { get; private set; }
         public string LastBookmark { get; private set; }
         public ExecutionStats LastExecutionStats { get; private set; }
@@ -207,10 +255,10 @@ namespace CouchDB.Client
 
             var jsonRequest = JsonConvert.SerializeObject(findQuery);
 
-            var result = await _db.BaseRequest
+            var result = await _db.NewDbRequest()
                 .AppendPathSegment("_find")
                 .PostJsonAsync(findQuery)
-                .ReceiveJson<FindResult>();
+                .ReceiveJson<ListResult>();
 
             ResetQueryParameters();
             LastBookmark = result.Bookmark;
@@ -219,7 +267,7 @@ namespace CouchDB.Client
             return result.Docs;
         }
 
-        private class FindResult
+        private class ListResult
         {
             [JsonProperty("docs")]
             public List<TSource> Docs { get; set; }
@@ -253,7 +301,7 @@ namespace CouchDB.Client
 
         public async Task AddAsync(TSource document)
         {
-            var request = _db.BaseRequest
+            var request = _db.NewDbRequest()
                 .AppendPathSegment(document.Id)
                 .PutJsonAsync(document);
 
@@ -262,8 +310,8 @@ namespace CouchDB.Client
 
         public async Task AddRangeAsync(List<TSource> documents)
         {
-            var request = _db.BaseRequest
-                .AppendPathSegment("_buld_docs")
+            var request = _db.NewDbRequest()
+                .AppendPathSegment("_bulk_docs")
                 .PostJsonAsync(new { docs = documents });
 
             await RequestsHelper.SendAsync(request);
@@ -275,7 +323,7 @@ namespace CouchDB.Client
 
         public async Task UpdateAsync(TSource document)
         {
-            var request = _db.BaseRequest
+            var request = _db.NewDbRequest()
                 .AppendPathSegment(document.Id)
                 .PutJsonAsync(document);
 
@@ -284,7 +332,7 @@ namespace CouchDB.Client
 
         public async Task UpdateRangeAsync(IEnumerable<TSource> documents)
         {
-            var request = _db.BaseRequest
+            var request = _db.NewDbRequest()
                 .AppendPathSegment("_buld_docs")
                 .PostJsonAsync(new { docs = documents });
 
@@ -297,7 +345,7 @@ namespace CouchDB.Client
 
         public async Task RemoveAsync(TSource document)
         {
-            var request = _db.BaseRequest
+            var request = _db.NewDbRequest()
                 .AppendPathSegment(document.Id)
                 .SetQueryParam("rev", document.Rev)
                 .DeleteAsync();
