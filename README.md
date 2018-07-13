@@ -80,7 +80,7 @@ The produced Mango JSON:
 ```csharp
 var allDbs = await client.GetDatabasesNamesAsync();
 var info = await client.GetDatabaseInfoAsync("dbName");
-var db = await client.GetDatabaseAsync<House>("dbName");
+var db = client.GetDatabase<House>("dbName");
 
 await client.AddDatabaseAsync("dbName");
 await client.RemoveDatabaseAsync("dbName");

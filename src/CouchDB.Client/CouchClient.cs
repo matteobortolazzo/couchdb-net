@@ -99,12 +99,9 @@ namespace CouchDB.Client
             return await RequestsHelper.SendAsync(request);
         }
 
-        public async Task<CouchDatabase<T>> GetDatabaseAsync<T>(string dbName) where T : CouchEntity
+        public CouchDatabase<T> GetDatabase<T>(string dbName) where T : CouchEntity
         {
-            var request = GetDatabaseInfoAsync(dbName);
-            var info = await RequestsHelper.SendAsync(request);
-
-            return new CouchDatabase<T>(this, info.DbName);
+            return new CouchDatabase<T>(this, dbName);
         }
 
         public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
