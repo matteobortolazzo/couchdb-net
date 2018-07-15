@@ -30,7 +30,7 @@ namespace CouchDB.Client.Responses
         public int R { get; internal set; }
     }
 
-    public class DbInfo
+    public class CouchDatabaseInfo
     {
         [JsonProperty("db_name")]
         public string DbName { get; internal set; }

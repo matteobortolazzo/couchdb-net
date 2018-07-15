@@ -88,15 +88,14 @@ namespace CouchDB.Client
 
         #endregion
 
-        #region Database operation
+        #region Databases
 
-        public async Task<DbInfo> GetDatabaseInfoAsync(string dbName)
+        public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
         {
-            var request = NewRequest()
-                .AppendPathSegment(dbName)
-                .GetJsonAsync<DbInfo>();
-
-            return await RequestsHelper.SendAsync(request);
+            return await NewRequest()
+                .AppendPathSegment("_all_dbs")
+                .GetJsonAsync<IEnumerable<string>>()
+                .SendAsync();
         }
 
         public CouchDatabase<T> GetDatabase<T>(string dbName) where T : CouchEntity
@@ -104,33 +103,30 @@ namespace CouchDB.Client
             return new CouchDatabase<T>(this, dbName);
         }
 
-        public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
-        {
-            var request = NewRequest()
-                .AppendPathSegment("_all_dbs")
-                .GetJsonAsync<IEnumerable<string>>();
-
-            return await RequestsHelper.SendAsync(request);
-        }
-
         public async Task AddDatabaseAsync(string dbName)
         {
-            var request = NewRequest()
+            await NewRequest()
                 .AppendPathSegment(dbName)
-                .PutAsync(null);
-
-            await RequestsHelper.SendAsync(request);
+                .PutAsync(null)
+                .SendAsync();
         }
 
         public async Task RemoveDatabaseAsync(string dbName)
         {
-            var request = NewRequest()
+            await NewRequest()
                 .AppendPathSegment(dbName)
-                .DeleteAsync();
-
-            await RequestsHelper.SendAsync(request);
+                .DeleteAsync()
+                .SendAsync();
         }
 
         #endregion
+
+        public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync()
+        {
+            return await NewRequest()
+                .AppendPathSegment("_active_tasks")
+                .GetJsonAsync<IEnumerable<CouchActiveTask>>()
+                .SendAsync();
+        }
     }
 }

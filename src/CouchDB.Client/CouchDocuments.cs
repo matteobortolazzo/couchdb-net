@@ -28,11 +28,10 @@ namespace CouchDB.Client
 
         public async Task<TSource> FindAsync(string id)
         {
-            var request = _db.NewDbRequest()
+            return await _db.NewDbRequest()
                 .AppendPathSegment(id)
-                .GetJsonAsync<TSource>();
-
-            return await RequestsHelper.SendAsync(request);
+                .GetJsonAsync<TSource>()
+                .SendAsync();
         }
 
         #region Results
@@ -59,14 +58,13 @@ namespace CouchDB.Client
 
         public async Task<List<TSource>> FindAsync(params string[] ids)
         {
-            var request = _db.NewDbRequest()
+            var result = await _db.NewDbRequest()
                 .AppendPathSegment("_bulk_get")
                 .PostJsonAsync(new
                 {
                     docs = ids.Select(id => new { id })
-                }).ReceiveJson<FindResult>();
-
-            var result = await RequestsHelper.SendAsync(request);
+                }).ReceiveJson<FindResult>()
+                .SendAsync();
             return result.Results.SelectMany(r => r.Docs).Select(d => d.Item).ToList();
         }
 
@@ -301,20 +299,18 @@ namespace CouchDB.Client
 
         public async Task AddAsync(TSource document)
         {
-            var request = _db.NewDbRequest()
+            await _db.NewDbRequest()
                 .AppendPathSegment(document.Id)
-                .PutJsonAsync(document);
-
-            await RequestsHelper.SendAsync(request);
+                .PutJsonAsync(document)
+                .SendAsync();
         }
 
         public async Task AddRangeAsync(List<TSource> documents)
         {
-            var request = _db.NewDbRequest()
+            await _db.NewDbRequest()
                 .AppendPathSegment("_bulk_docs")
-                .PostJsonAsync(new { docs = documents });
-
-            await RequestsHelper.SendAsync(request);
+                .PostJsonAsync(new { docs = documents })
+                .SendAsync();
         }
 
         #endregion
@@ -323,20 +319,18 @@ namespace CouchDB.Client
 
         public async Task UpdateAsync(TSource document)
         {
-            var request = _db.NewDbRequest()
+            await _db.NewDbRequest()
                 .AppendPathSegment(document.Id)
-                .PutJsonAsync(document);
-
-            await RequestsHelper.SendAsync(request);
+                .PutJsonAsync(document)
+                .SendAsync();
         }
 
         public async Task UpdateRangeAsync(IEnumerable<TSource> documents)
         {
-            var request = _db.NewDbRequest()
+            await _db.NewDbRequest()
                 .AppendPathSegment("_buld_docs")
-                .PostJsonAsync(new { docs = documents });
-
-            await RequestsHelper.SendAsync(request);
+                .PostJsonAsync(new { docs = documents })
+                .SendAsync();
         }
 
         #endregion
@@ -345,12 +339,11 @@ namespace CouchDB.Client
 
         public async Task RemoveAsync(TSource document)
         {
-            var request = _db.NewDbRequest()
+            await _db.NewDbRequest()
                 .AppendPathSegment(document.Id)
                 .SetQueryParam("rev", document.Rev)
-                .DeleteAsync();
-
-            await RequestsHelper.SendAsync(request);
+                .DeleteAsync()
+                .SendAsync();
         }
 
         #endregion

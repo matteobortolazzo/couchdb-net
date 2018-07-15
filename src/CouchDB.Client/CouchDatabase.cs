@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
+using CouchDB.Client.Helpers;
 using CouchDB.Client.Query;
 using CouchDB.Client.Query.Extensions;
+using CouchDB.Client.Responses;
 using Flurl.Http;
 
 namespace CouchDB.Client
@@ -24,9 +26,13 @@ namespace CouchDB.Client
             _client = client;
             Name = name;
             Documents = new CouchDocuments<T>(this);
+            Views = new CouchViews<T>(this);
         }
 
         public CouchDocuments<T> Documents { get; }
+        public CouchViews<T> Views { get; }
+
+        #region Indexes
 
         public async Task NewIndexAsync(Func<ICouchIndexSelector<T>, object> selectorFunc, string name = null, string designDocumentName = null)
         {
@@ -51,7 +57,26 @@ namespace CouchDB.Client
             
             await NewDbRequest()
                 .AppendPathSegment("_index")
-                .PostJsonAsync(requestObject);
+                .PostJsonAsync(requestObject)
+                .SendAsync();
+        }
+
+        #endregion
+
+        public async Task CompactAsync()
+        {
+            await NewDbRequest()
+                .AppendPathSegment("_compact")
+                .PostJsonAsync(null)
+                .SendAsync();
+        }
+
+        public async Task<CouchDatabaseInfo> GetInfoAsync()
+        {
+            return await NewDbRequest()
+                .AppendPathSegment("_compact")
+                .GetJsonAsync<CouchDatabaseInfo>()
+                .SendAsync();
         }
     }
 }

@@ -5,7 +5,7 @@ namespace CouchDB.Client.Helpers
 {
     internal static class RequestsHelper
     {
-        internal static async Task<T> SendAsync<T>(Task<T> asyncRequest)
+        internal static async Task<T> SendAsync<T>(this Task<T> asyncRequest)
         {
             try
             {
