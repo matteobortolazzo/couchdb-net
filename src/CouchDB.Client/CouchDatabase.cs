@@ -26,11 +26,9 @@ namespace CouchDB.Client
             _client = client;
             Name = name;
             Documents = new CouchDocuments<T>(this);
-            Views = new CouchViews<T>(this);
         }
 
         public CouchDocuments<T> Documents { get; }
-        public CouchViews<T> Views { get; }
 
         #region Indexes
 
@@ -74,7 +72,6 @@ namespace CouchDB.Client
         public async Task<CouchDatabaseInfo> GetInfoAsync()
         {
             return await NewDbRequest()
-                .AppendPathSegment("_compact")
                 .GetJsonAsync<CouchDatabaseInfo>()
                 .SendAsync();
         }

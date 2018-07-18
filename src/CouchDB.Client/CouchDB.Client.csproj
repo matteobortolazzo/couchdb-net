@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.5.1-pre-alpha</Version>
+    <Version>0.5.2-pre-alpha</Version>
     <Authors>Matteo Bortolazzo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>CouchDB.NET</PackageId>
@@ -14,12 +14,7 @@
     <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
     <RepositoryType>Couchdb.NET</RepositoryType>
     <PackageTags>couchdb driver .net javascript mango</PackageTags>
-    <PackageReleaseNotes>v0.5.*
-- added: FindAsync(string id)
- -added: FindAsync(params string[] ids)
-
-v0.5.1
-- getDatabase&lt;T&gt;(string name) is not async anymore</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

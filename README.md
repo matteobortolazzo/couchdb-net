@@ -76,14 +76,21 @@ The produced Mango JSON:
     public DateTime ConstructionDate { get; set; }
     ```
 
-## Database operations
+## Client operations
 ```csharp
 var allDbs = await client.GetDatabasesNamesAsync();
-var info = await client.GetDatabaseInfoAsync("dbName");
+var tasks = await client.GetActiveTasksAsync();
+// CRUD
 var db = client.GetDatabase<House>("dbName");
-
 await client.AddDatabaseAsync("dbName");
 await client.RemoveDatabaseAsync("dbName");
+```
+
+## Database operations
+```csharp
+await db.CompactAsync();
+await housesDb.NewIndexAsync(...) // Late in the README
+var info = await db.GetInfoAsync();
 ```
 
 ## Documents operations
