@@ -1,6 +1,7 @@
 # CouchDB.NET
+## A .NET Standard driver for CouchDB databases.
 
-A .NET driver for CouchDB. * **Still in development** *
+** **Still in development** **
 
 ## LINQ-like queries
 
