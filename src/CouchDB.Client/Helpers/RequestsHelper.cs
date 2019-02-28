@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Flurl.Http;
 
 namespace CouchDB.Client.Helpers
@@ -14,7 +15,14 @@ namespace CouchDB.Client.Helpers
             catch (FlurlHttpException ex)
             {
                 var e = await ex.GetResponseJsonAsync();
-                throw new CouchException(e.error, e.reason);
+                if (ex.Call.HttpStatus == HttpStatusCode.Conflict)
+                {
+                    throw new CouchConflictException(e.error, e.reason);
+                }
+                else
+                {
+                    throw new CouchException(e.error, e.reason);
+                }
             }
         }
     }
