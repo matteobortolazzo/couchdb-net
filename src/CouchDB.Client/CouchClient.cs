@@ -74,7 +74,7 @@ namespace CouchDB.Client
             if (response.Headers.TryGetValues("Set-Cookie", out var values))
             {
                 var dirtyToken = values.First();
-                var regex = new Regex(@"^AuthSession=(.+); Version=1; Path=/; HttpOnly$");
+                var regex = new Regex(@"^AuthSession=(.+); Version=1; (.+)Path=/; HttpOnly$");
                 var match = regex.Match(dirtyToken);
                 if (match.Success)
                 {
