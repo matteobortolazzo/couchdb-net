@@ -31,6 +31,8 @@ namespace CouchDB.Client
         private readonly string _serverUrl;
         private IFlurlClient _flurlClient;
 
+        public string ServerUrl => _serverUrl;
+
         internal IFlurlRequest NewRequest()
         {
             if (_authData.NeedAuthentication && (_authData.AuthToken == null ||
