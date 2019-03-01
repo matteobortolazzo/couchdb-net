@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CouchDB.Client.Helpers;
@@ -26,15 +29,19 @@ namespace CouchDB.Client
 
         private readonly AuthorizationData _authData;
         private readonly string _serverUrl;
+        private IFlurlClient _flurlClient;
 
         internal IFlurlRequest NewRequest()
         {
             if (_authData.NeedAuthentication && (_authData.AuthToken == null ||
                                                  _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) >=
                                                  DateTime.Now))
+            {
                 Login().Wait();
+            }
 
-            var request = _serverUrl.EnableCookies();
+            var request = _flurlClient.Request(_serverUrl);
+            request = request.EnableCookies();
             return _authData.NeedAuthentication ? request.WithCookie("AuthSession", _authData.AuthToken) : request;
         }
 
@@ -47,10 +54,23 @@ namespace CouchDB.Client
             {
                 c.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore });
             });
+
+            _flurlClient = FlurlHttp.GlobalSettings.FlurlClientFactory.Get(_serverUrl);
+        }
+
+        public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback
+        {
+            set
+            {
+                if (_flurlClient.HttpMessageHandler is HttpClientHandler httpClientHandler)
+                {
+                    httpClientHandler.ServerCertificateCustomValidationCallback = value;
+                }
+            }
         }
 
         #region Authentication
-        
+
         public void ConfigureAuthentication(string name, string password, int tokenDurationMinutes = 10)
         {
             _authData.NeedAuthentication = true;
@@ -61,7 +81,7 @@ namespace CouchDB.Client
 
         private async Task Login()
         {
-            var response = await _serverUrl
+            var response = await _flurlClient.Request(_serverUrl)
                 .AppendPathSegment("_session")
                 .PostJsonAsync(new
                 {
