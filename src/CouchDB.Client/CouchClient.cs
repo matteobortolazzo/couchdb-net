@@ -30,7 +30,7 @@ namespace CouchDB.Client
         internal IFlurlRequest NewRequest()
         {
             if (_authData.NeedAuthentication && (_authData.AuthToken == null ||
-                                                 _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) >=
+                                                 _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) <
                                                  DateTime.Now))
                 Login().Wait();
 
@@ -50,7 +50,7 @@ namespace CouchDB.Client
         }
 
         #region Authentication
-        
+
         public void ConfigureAuthentication(string name, string password, int tokenDurationMinutes = 10)
         {
             _authData.NeedAuthentication = true;
