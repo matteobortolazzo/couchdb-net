@@ -10,6 +10,7 @@ using CouchDB.Client.Query;
 using CouchDB.Client.Query.Extensions;
 using CouchDB.Client.Query.Selector;
 using CouchDB.Client.Query.Sort;
+using CouchDB.Client.Responses;
 using Flurl.Http;
 using Newtonsoft.Json;
 
@@ -188,40 +189,64 @@ namespace CouchDB.Client
 
         #region Add
 
-        public async Task AddAsync(TSource document)
+        public async Task<TSource> AddAsync(TSource document)
         {
-            await _db.NewDbRequest()
-                .AppendPathSegment(document.Id)
-                .PutJsonAsync(document)
+            var response = await _db.NewDbRequest()
+                .PostJsonAsync(document)
+                .ReceiveJson<DocumentSaveResponse>()
                 .SendAsync();
+
+            ProcessSaveResponse(document, response);
+
+            return document;
         }
 
-        public async Task AddRangeAsync(List<TSource> documents)
-        {
-            await _db.NewDbRequest()
-                .AppendPathSegment("_bulk_docs")
-                .PostJsonAsync(new { docs = documents })
-                .SendAsync();
-        }
+        public async Task<IEnumerable<TSource>> AddRangeAsync(IEnumerable<TSource> documents) => await UpdateRangeAsync(documents);
 
         #endregion
 
         #region Update
 
-        public async Task UpdateAsync(TSource document)
+        public async Task<TSource> UpdateAsync(TSource document)
         {
-            await _db.NewDbRequest()
+            var response = await _db.NewDbRequest()
                 .AppendPathSegment(document.Id)
                 .PutJsonAsync(document)
+                .ReceiveJson<DocumentSaveResponse>()
                 .SendAsync();
+
+            ProcessSaveResponse(document, response);
+
+            return document;
         }
 
-        public async Task UpdateRangeAsync(IEnumerable<TSource> documents)
+        private static void ProcessSaveResponse(TSource document, DocumentSaveResponse response)
         {
-            await _db.NewDbRequest()
+            if (!response.Ok)
+            {
+                throw new CouchException(response.Error, response.Reason);
+            }
+
+            document.Id = response.Id;
+            document.Rev = response.Rev;
+        }
+
+        public async Task<IEnumerable<TSource>> UpdateRangeAsync(IEnumerable<TSource> documents)
+        {
+            var response = await _db.NewDbRequest()
                 .AppendPathSegment("_bulk_docs")
                 .PostJsonAsync(new { docs = documents })
+                .ReceiveJson<DocumentSaveResponse[]>()
                 .SendAsync();
+
+            var zipped = documents.Zip(response, (doc, saveResponse) => (Document: doc, SaveResponse: saveResponse));
+
+            foreach (var (document, saveResponse) in zipped)
+            {
+                ProcessSaveResponse(document, saveResponse);
+            }
+
+            return documents;
         }
 
         #endregion
