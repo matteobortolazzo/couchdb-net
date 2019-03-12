@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
+using CouchDB.Client.Exceptions;
 using CouchDB.Client.Helpers;
 using CouchDB.Client.Query;
 using CouchDB.Client.Query.Extensions;
