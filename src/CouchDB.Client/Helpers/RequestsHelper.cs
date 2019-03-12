@@ -16,6 +16,12 @@ namespace CouchDB.Client.Helpers
             catch (FlurlHttpException ex)
             {
                 var e = await ex.GetResponseJsonAsync();
+
+                if (e == null)
+                {
+                    throw;
+                }
+
                 switch (ex.Call.HttpStatus)
                 {
                     case HttpStatusCode.Conflict:
