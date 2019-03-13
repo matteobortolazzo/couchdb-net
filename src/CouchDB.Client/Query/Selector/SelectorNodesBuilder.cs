@@ -27,19 +27,52 @@ namespace CouchDB.Client.Query.Selector
                     return jsonProperty != null ? jsonProperty.PropertyName : memberInfo.Name;
                 }
 
-                var members = new List<string> {GetPropertyName(memberExpr.Member)};
+                var members = new List<string>();
 
-                var currentExpression = memberExpr.Expression;
-
-                while (currentExpression is MemberExpression cm) { 
+                Expression currentExpression = memberExpr;
+                while (currentExpression is MemberExpression cm)
+                {
                     members.Add(GetPropertyName(cm.Member));
                     currentExpression = cm.Expression;
                 }
+                if (currentExpression.NodeType == ExpressionType.Parameter)
+                {
+                    members.Reverse();
+                    var propName = string.Join(".", members.ToArray());
 
-                members.Reverse();
-                var propName = string.Join(".", members.ToArray());
+                    return new MemberNode { Name = propName };
+                }
+                else if (currentExpression.NodeType == ExpressionType.Constant)
+                {
+                    var value = Expression.Lambda(memberExpr).Compile().DynamicInvoke();
+                    return new ConstantNode() { Value = value };
+                }
+                else
+                {
+                    throw new NotImplementedException($"Expression.NodeType {currentExpression.NodeType} is not implemented");
+                }
 
-                return new MemberNode { Name = propName };
+                //var nextExpression = memberExpr.Expression;
+
+                //if (nextExpression is ParameterExpression)
+                //{
+                //    return new MemberNode { Name = GetPropertyName(memberExpr.Member) };
+                //}
+                //else if (nextExpression is ConstantExpression)
+                //{
+                //    var value = Expression.Lambda(memberExpr).Compile().DynamicInvoke();
+                //    return new ConstantNode() { Value = value };
+                //}
+                //else
+                //{
+                //    var node = NewCouchNode(nextExpression);
+
+                //    if (node is MemberNode memberNode)
+                //    {
+                //        memberNode.Name += "." + GetPropertyName(memberExpr.Member);
+                //    }
+                //    return node;
+                //}
             }
             if (expr is ConstantExpression constantExpr)
             {
@@ -47,8 +80,8 @@ namespace CouchDB.Client.Query.Selector
             }
             if (expr is BinaryExpression binaryExpr)
             {
-                var right = NewCouchNode(binaryExpr.Right);
                 var left = NewCouchNode(binaryExpr.Left);
+                var right = NewCouchNode(binaryExpr.Right);
 
                 if (IsCombinationNode(binaryExpr.NodeType))
                     return NewCombinationNode(binaryExpr.NodeType, right, left);
@@ -60,10 +93,10 @@ namespace CouchDB.Client.Query.Selector
             }
             if (expr is UnaryExpression unaryExpr)
             {
-                if(unaryExpr.NodeType == ExpressionType.Not)
+                if (unaryExpr.NodeType == ExpressionType.Not)
                 {
                     var op = NewCouchNode(unaryExpr.Operand);
-                    return NewUnitaryNoder(unaryExpr.NodeType, op);
+                    return NewUnitaryNode(unaryExpr.NodeType, op);
                 }
                 throw new NotImplementedException();
             }
@@ -94,7 +127,7 @@ namespace CouchDB.Client.Query.Selector
                 var arrayMatchNode = new ArrayMatchNode
                 {
                     Type = type,
-                    PropertyNode = (MemberNode) argumentsNode[0],
+                    PropertyNode = (MemberNode)argumentsNode[0],
                     ArraySelectorNode = argumentsNode[1]
                 };
                 return arrayMatchNode;
@@ -117,7 +150,7 @@ namespace CouchDB.Client.Query.Selector
         {
             ConditionNodeType GetType()
             {
-                switch(type)
+                switch (type)
                 {
                     case ExpressionType.Equal:
                         return ConditionNodeType.Equal;
@@ -181,7 +214,7 @@ namespace CouchDB.Client.Query.Selector
         private static bool IsUnitartyNode(ExpressionType type) =>
             type == ExpressionType.Not;
 
-        private static ICouchNode NewUnitaryNoder(ExpressionType type, ICouchNode childOperator)
+        private static ICouchNode NewUnitaryNode(ExpressionType type, ICouchNode childOperator)
         {
             UnitaryNodeType GetType()
             {
