@@ -78,6 +78,18 @@ namespace CouchDB.Client.Tests
         }
 
         [TestMethod]
+        public void NotEqualConstantTest()
+        {
+            Expression<Func<MyDocument, bool>> query = t => t.MyInt != 1;
+
+            var selector = SelectorObjectBuilder.Serialize<MyDocument>(query);
+
+            var jsonRequest = JsonConvert.SerializeObject(selector);
+
+            jsonRequest.Should().Be("{\"MyInt\":{\"$ne\":1}}");
+        }
+
+        [TestMethod]
         public void NestedEqualsConstantTest()
         {
             Expression<Func<MyDocument, bool>> query = t => t.MyDoc.MyInt == 1;
@@ -135,6 +147,18 @@ namespace CouchDB.Client.Tests
             var jsonRequest = JsonConvert.SerializeObject(selector);
 
             jsonRequest.Should().Be("{\"MyDoc.MyInt\":{\"$lte\":1}}");
+        }
+
+        [TestMethod]
+        public void NestedNotEqualConstantTest()
+        {
+            Expression<Func<MyDocument, bool>> query = t => t.MyDoc.MyInt != 1;
+
+            var selector = SelectorObjectBuilder.Serialize<MyDocument>(query);
+
+            var jsonRequest = JsonConvert.SerializeObject(selector);
+
+            jsonRequest.Should().Be("{\"MyDoc.MyInt\":{\"$ne\":1}}");
         }
 
         int one = 1;
@@ -197,6 +221,18 @@ namespace CouchDB.Client.Tests
             var jsonRequest = JsonConvert.SerializeObject(selector);
 
             jsonRequest.Should().Be("{\"MyInt\":{\"$lte\":1}}");
+        }
+
+        [TestMethod]
+        public void NotEqualVariableTest()
+        {
+            Expression<Func<MyDocument, bool>> query = t => t.MyInt != one;
+
+            var selector = SelectorObjectBuilder.Serialize<MyDocument>(query);
+
+            var jsonRequest = JsonConvert.SerializeObject(selector);
+
+            jsonRequest.Should().Be("{\"MyInt\":{\"$ne\":1}}");
         }
 
         MyDocument comparisonDoc = new MyDocument()
@@ -262,6 +298,18 @@ namespace CouchDB.Client.Tests
             var jsonRequest = JsonConvert.SerializeObject(selector);
 
             jsonRequest.Should().Be("{\"MyInt\":{\"$lte\":1}}");
+        }
+
+        [TestMethod]
+        public void NotEqualObjectPropertyTest()
+        {
+            Expression<Func<MyDocument, bool>> query = t => t.MyInt != comparisonDoc.MyInt;
+
+            var selector = SelectorObjectBuilder.Serialize<MyDocument>(query);
+
+            var jsonRequest = JsonConvert.SerializeObject(selector);
+
+            jsonRequest.Should().Be("{\"MyInt\":{\"$ne\":1}}");
         }
 
         [TestMethod]
