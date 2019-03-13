@@ -29,7 +29,14 @@ namespace CouchDB.Client.Query.Selector
             {
                 var andSubChildren = andChild.Value as IEnumerable<IDictionary<string, object>>;
 
-                if (andSubChildren == null) continue; ;
+                if (andSubChildren == null) continue;
+
+                // If both conditions are off the same property, don't combine them
+                var keys = andSubChildren.SelectMany(list => list.Select(kvp => kvp.Key)).ToArray();
+                if (keys.Length != keys.Distinct().Count())
+                {
+                    continue;
+                }
 
                 nodeDictioray.Remove(andChild);
                 foreach (var andSubChild in andSubChildren)

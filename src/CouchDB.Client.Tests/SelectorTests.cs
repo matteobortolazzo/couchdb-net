@@ -324,5 +324,53 @@ namespace CouchDB.Client.Tests
 
             jsonRequest.Should().Be("{\"MyInt\":{\"$lte\":1}}");
         }
+
+        [TestMethod]
+        public void NotGreaterThanTest()
+        {
+            Expression<Func<MyDocument, bool>> query = t => !(t.MyInt > comparisonDoc.MyInt);
+
+            var selector = SelectorObjectBuilder.Serialize<MyDocument>(query);
+
+            var jsonRequest = JsonConvert.SerializeObject(selector);
+
+            jsonRequest.Should().Be("{\"$not\":{\"MyInt\":{\"$gt\":1}}}");
+        }
+
+        [TestMethod]
+        public void OrTest()
+        {
+            Expression<Func<MyDocument, bool>> query = t => t.MyInt > 100 || t.MyInt < 10;
+
+            var selector = SelectorObjectBuilder.Serialize<MyDocument>(query);
+
+            var jsonRequest = JsonConvert.SerializeObject(selector);
+
+            jsonRequest.Should().Be("{\"$or\":[{\"MyInt\":{\"$gt\":100}},{\"MyInt\":{\"$lt\":10}}]}");
+        }
+
+        [TestMethod]
+        public void AndDifferentFieldsTest()
+        {
+            Expression<Func<MyDocument, bool>> query = t => t.MyInt > 100 && t.MyDoc.MyInt < 10;
+
+            var selector = SelectorObjectBuilder.Serialize<MyDocument>(query);
+
+            var jsonRequest = JsonConvert.SerializeObject(selector);
+
+            jsonRequest.Should().Be("{\"MyInt\":{\"$gt\":100},\"MyDoc.MyInt\":{\"$lt\":10}}");
+        }
+
+        [TestMethod]
+        public void AndSameFieldTest()
+        {
+            Expression<Func<MyDocument, bool>> query = t => t.MyInt > 10 && t.MyInt < 100;
+
+            var selector = SelectorObjectBuilder.Serialize<MyDocument>(query);
+
+            var jsonRequest = JsonConvert.SerializeObject(selector);
+
+            jsonRequest.Should().Be("{\"$and\":[{\"MyInt\":{\"$gt\":10}},{\"MyInt\":{\"$lt\":100}}]}");
+        }
     }
 }
