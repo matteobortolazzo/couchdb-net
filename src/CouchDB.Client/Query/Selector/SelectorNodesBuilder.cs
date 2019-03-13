@@ -51,28 +51,6 @@ namespace CouchDB.Client.Query.Selector
                 {
                     throw new NotImplementedException($"Expression.NodeType {currentExpression.NodeType} is not implemented");
                 }
-
-                //var nextExpression = memberExpr.Expression;
-
-                //if (nextExpression is ParameterExpression)
-                //{
-                //    return new MemberNode { Name = GetPropertyName(memberExpr.Member) };
-                //}
-                //else if (nextExpression is ConstantExpression)
-                //{
-                //    var value = Expression.Lambda(memberExpr).Compile().DynamicInvoke();
-                //    return new ConstantNode() { Value = value };
-                //}
-                //else
-                //{
-                //    var node = NewCouchNode(nextExpression);
-
-                //    if (node is MemberNode memberNode)
-                //    {
-                //        memberNode.Name += "." + GetPropertyName(memberExpr.Member);
-                //    }
-                //    return node;
-                //}
             }
             if (expr is ConstantExpression constantExpr)
             {
