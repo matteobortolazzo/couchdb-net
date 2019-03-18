@@ -17,6 +17,7 @@ namespace CouchDB.Client.Query
         ICouchQueryable<TSource> Select(params Expression<Func<TSource, object>>[] fieldSelectors);
         ICouchQueryable<TSource> Skip(int count);
         ICouchQueryable<TSource> Take(int count);
+        ICouchQueryable<TSource> WithExecutionStats();
         ICouchQueryable<TSource> WithReadQuorum(int quorum);
         ICouchQueryable<TSource> UseBookmark(string bookmark);
         ICouchQueryable<TSource> UpdateIndex();
