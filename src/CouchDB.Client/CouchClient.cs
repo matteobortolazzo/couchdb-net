@@ -36,7 +36,7 @@ namespace CouchDB.Client
         internal IFlurlRequest NewRequest()
         {
             if (_authData.NeedAuthentication && (_authData.AuthToken == null ||
-                                                 _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) >=
+                                                 _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) <
                                                  DateTime.Now))
             {
                 Login().Wait();
