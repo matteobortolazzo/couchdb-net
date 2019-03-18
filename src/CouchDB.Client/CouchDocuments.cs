@@ -75,7 +75,7 @@ namespace CouchDB.Client
         public bool StatsEnabled { get; private set; }
         public string LastBookmark { get; private set; }
         public ExecutionStats LastExecutionStats { get; private set; }
-        
+
         #region Selector
 
         private IDictionary<string, object> _selector;
@@ -86,7 +86,7 @@ namespace CouchDB.Client
         }
 
         #endregion
-       
+
         #region Limit
 
         private int? _takeCount;
@@ -110,7 +110,7 @@ namespace CouchDB.Client
         }
 
         #endregion
-       
+
         #region Sort
 
         private List<SortProperty> _sortProperties;
@@ -237,7 +237,7 @@ namespace CouchDB.Client
             if (_skipCount.HasValue)
                 findQuery.Add("skip", _skipCount.Value);
             if (_sortProperties != null)
-                findQuery.Add("sort", _sortProperties.Select(s => new Dictionary<string, string> {{s.Name, s.Direction}}));
+                findQuery.Add("sort", _sortProperties.Select(s => new Dictionary<string, string> { { s.Name, s.Direction } }));
             if (_fields != null)
                 findQuery.Add("fields", _fields);
             if (_quorum.HasValue)
@@ -328,7 +328,7 @@ namespace CouchDB.Client
         public async Task UpdateRangeAsync(IEnumerable<TSource> documents)
         {
             await _db.NewDbRequest()
-                .AppendPathSegment("_buld_docs")
+                .AppendPathSegment("_bulk_docs")
                 .PostJsonAsync(new { docs = documents })
                 .SendAsync();
         }
