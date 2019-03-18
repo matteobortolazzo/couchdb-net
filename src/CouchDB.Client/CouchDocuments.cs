@@ -76,6 +76,8 @@ namespace CouchDB.Client
         public string LastBookmark { get; private set; }
         public ExecutionStats LastExecutionStats { get; private set; }
 
+        #endregion
+
         #region Selector
 
         public ICouchQueryable<TSource> Where(Expression<Func<TSource, bool>> predicate)

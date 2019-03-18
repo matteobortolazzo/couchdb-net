@@ -2,6 +2,7 @@
 ## A .NET Standard driver for CouchDB databases.
 
 ** **Still in development** **
+TODO: implement IQueryable!
 
 ## LINQ-like queries
 
@@ -58,7 +59,7 @@ The produced Mango JSON:
 
 ## Getting started
 
-* Install it from NuGet: https://www.nuget.org/packages/CouchDB.NET
+* Install it from NuGet: [https://www.nuget.org/packages/CouchDB.NET](https://www.nuget.org/packages/CouchDB.NET)
 * Create a client:
     ```csharp
     var client = new CouchClient("http://127.0.0.1:5984");
@@ -141,3 +142,7 @@ To JSON:
     "type":"json"
 }
 ```
+
+## Contributors
+
+[Ben Origas](https://github.com/borigas) for features like SSL certs and multi queryable, plus bug fixes.

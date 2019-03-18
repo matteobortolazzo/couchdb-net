@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.5.2-pre-alpha</Version>
+    <Version>0.6.0-beta</Version>
     <Authors>Matteo Bortolazzo</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>CouchDB.NET</PackageId>
@@ -14,7 +14,12 @@
     <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
     <RepositoryType>Couchdb.NET</RepositoryType>
     <PackageTags>couchdb driver .net javascript mango</PackageTags>
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>SSL certificates,
+Multiple queryable.
+Bug fixes.
+
+Thanks Ben Origas!</PackageReleaseNotes>
+    <AssemblyVersion>0.6.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
