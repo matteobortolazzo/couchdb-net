@@ -72,6 +72,10 @@ namespace CouchDB.Client
 
         #region Where
 
+        public bool StatsEnabled { get; private set; }
+        public string LastBookmark { get; private set; }
+        public ExecutionStats LastExecutionStats { get; private set; }
+
         #region Selector
 
         public ICouchQueryable<TSource> Where(Expression<Func<TSource, bool>> predicate)
@@ -98,6 +102,8 @@ namespace CouchDB.Client
         }
 
         #endregion
+
+        #region Sort
 
         #region Sort
 
