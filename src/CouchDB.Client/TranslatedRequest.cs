@@ -10,6 +10,6 @@ namespace CouchDB.Client
     {
         public string Path { get; set; }
         public HttpMethod Method { get; set; }
-        public ExpandoObject Body { get; set; }
+        public Dictionary<string, object> Body { get; set; }
     }
 }

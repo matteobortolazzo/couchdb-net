@@ -30,15 +30,17 @@ namespace CouchDB.Client
 
             cmd.Request = this.Translate(expression);
 
-            Type elementType = TypeSystem.GetElementType(expression.Type);
+            //Type elementType = TypeSystem.GetElementType(expression.Type);
 
-            MethodInfo method = typeof(CouchCommand).GetMethod("ExecuteReader");
-            MethodInfo generic = method.MakeGenericMethod(elementType);
-            return generic.Invoke(this, null);
+            //MethodInfo method = typeof(CouchCommand).GetMethod("ExecuteReader");
+            //MethodInfo generic = method.MakeGenericMethod(elementType);
+            //return generic.Invoke(this, null);
+            return null;
         }
 
         private TranslatedRequest Translate(Expression expression)
         {
+            expression = Evaluator.PartialEval(expression);
             return new QueryTranslator().Translate(expression);
         }
     }

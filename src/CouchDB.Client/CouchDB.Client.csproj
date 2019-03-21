@@ -8,7 +8,7 @@
     <PackageId>CouchDB.NET</PackageId>
     <Product>CouchDB.NET</Product>
     <Description>A .NET driver for CouchDB.</Description>
-    <PackageLicenseUrl>https://github.com/matteobortolazzo/couchdb-net/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-net</PackageProjectUrl>
     <PackageIconUrl>http://couchdb.apache.org/image/couch@2x.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
@@ -20,12 +20,13 @@ Bug fixes.
 
 Thanks Ben Origas!</PackageReleaseNotes>
     <AssemblyVersion>0.6.0.0</AssemblyVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Flurl.Http" Version="2.3.1" />
+    <PackageReference Include="Flurl.Http" Version="2.4.1" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
 
 </Project>

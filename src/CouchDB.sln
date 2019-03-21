@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2035
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28714.193
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Client", "CouchDB.Client\CouchDB.Client.csproj", "{B3700668-9B25-4351-BEBC-2058711E2648}"
 EndProject
@@ -9,6 +9,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 	ProjectSection(SolutionItems) = preProject
 		..\README.md = ..\README.md
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{17AFFCE7-6EA4-4036-9885-4448FC315C57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Test", "..\tests\CouchDB.Test\CouchDB.Test.csproj", "{73C195D3-3F44-4050-B2D1-DC3DCBCFEED0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,9 +24,16 @@ Global
 		{B3700668-9B25-4351-BEBC-2058711E2648}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3700668-9B25-4351-BEBC-2058711E2648}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3700668-9B25-4351-BEBC-2058711E2648}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73C195D3-3F44-4050-B2D1-DC3DCBCFEED0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73C195D3-3F44-4050-B2D1-DC3DCBCFEED0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73C195D3-3F44-4050-B2D1-DC3DCBCFEED0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73C195D3-3F44-4050-B2D1-DC3DCBCFEED0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{73C195D3-3F44-4050-B2D1-DC3DCBCFEED0} = {17AFFCE7-6EA4-4036-9885-4448FC315C57}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B6B9CD2D-85AC-498B-9ED4-38F20AC234C5}
