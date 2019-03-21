@@ -17,7 +17,7 @@ namespace CouchDB.Test
                 var customers = new Query<Customer>(provider);
 
                 var query = customers.Where(c => 
-                c.Card.Number == "0000");
+                c.Card.Number == "0000" && c.Points.All(d => d == 0));
 
                 var list = query.ToList();
 

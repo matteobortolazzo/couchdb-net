@@ -18,5 +18,11 @@ namespace CouchDB.Client
             var result = sb.ToString();
             return new TranslatedRequest();
         }
+
+        protected override Expression VisitLambda<T>(Expression<T> l)
+        {
+            this.Visit(l.Body);
+            return l;
+        }
     }
 }

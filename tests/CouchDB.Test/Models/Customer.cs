@@ -10,5 +10,6 @@ namespace CouchDB.Test.Models
         public string Surname { get; set; }
         public int Age { get; set; }
         public Card Card { get; set; }
+        public List<int> Points { get; set; } = new List<int>();
     }
 }
