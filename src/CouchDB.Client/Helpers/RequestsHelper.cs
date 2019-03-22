@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using CouchDB.Client.Exceptions;
 using Flurl.Http;
 
 namespace CouchDB.Client.Helpers
@@ -15,13 +16,20 @@ namespace CouchDB.Client.Helpers
             catch (FlurlHttpException ex)
             {
                 var e = await ex.GetResponseJsonAsync();
-                if (ex.Call.HttpStatus == HttpStatusCode.Conflict)
+
+                if (e == null)
                 {
-                    throw new CouchConflictException(e.error, e.reason);
+                    throw;
                 }
-                else
+
+                switch (ex.Call.HttpStatus)
                 {
-                    throw new CouchException(e.error, e.reason);
+                    case HttpStatusCode.Conflict:
+                        throw new CouchConflictException(e.error, e.reason);
+                    case HttpStatusCode.NotFound:
+                        throw new CouchNotFoundException(e.error, e.reason);
+                    default:
+                        throw new CouchException(e.error, e.reason);
                 }
             }
         }

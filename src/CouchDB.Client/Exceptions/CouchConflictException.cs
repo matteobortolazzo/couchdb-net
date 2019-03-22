@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CouchDB.Client
+namespace CouchDB.Client.Exceptions
 {
     public class CouchConflictException : CouchException
     {

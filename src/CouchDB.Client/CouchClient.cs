@@ -19,7 +19,8 @@ namespace CouchDB.Client
     {
         private class AuthorizationData
         {
-            public bool NeedAuthentication { get; set; }
+            public bool UseCookieAuthentication { get; set; }
+            public bool UseBasicAuthentication { get; set; }
             public string AuthName { get; set; }
             public string AuthPassword { get; set; }
             public string AuthToken { get; set; }
@@ -35,7 +36,7 @@ namespace CouchDB.Client
 
         internal IFlurlRequest NewRequest()
         {
-            if (_authData.NeedAuthentication && (_authData.AuthToken == null ||
+            if (_authData.UseCookieAuthentication && (_authData.AuthToken == null ||
                                                  _authData.AuthTokenDate.AddMinutes(_authData.AuthTokenDuration) <
                                                  DateTime.Now))
             {
@@ -43,19 +44,28 @@ namespace CouchDB.Client
             }
 
             var request = _flurlClient.Request(_serverUrl);
-            request = request.EnableCookies();
-            return _authData.NeedAuthentication ? request.WithCookie("AuthSession", _authData.AuthToken) : request;
+
+            if (_authData.UseBasicAuthentication)
+            {
+                request = request.WithBasicAuth(_authData.AuthName, _authData.AuthPassword);
+            }
+            else if (_authData.UseCookieAuthentication)
+            {
+                request = request.EnableCookies().WithCookie("AuthSession", _authData.AuthToken);
+            }
+
+            return request;
+        }
+
+        public static string ToBase64Encoded(string value)
+        {
+            return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(value));
         }
 
         public CouchClient(string serverUrl)
         {
             _serverUrl = serverUrl;
             _authData = new AuthorizationData();
-
-            FlurlHttp.Configure(c =>
-            {
-                c.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore });
-            });
 
             _flurlClient = FlurlHttp.GlobalSettings.FlurlClientFactory.Get(_serverUrl);
         }
@@ -64,10 +74,19 @@ namespace CouchDB.Client
 
         public void ConfigureAuthentication(string name, string password, int tokenDurationMinutes = 10)
         {
-            _authData.NeedAuthentication = true;
+            _authData.UseCookieAuthentication = true;
+            _authData.UseBasicAuthentication = false;
             _authData.AuthName = name;
             _authData.AuthPassword = password;
             _authData.AuthTokenDuration = tokenDurationMinutes;
+        }
+
+        public void ConfigureBasicAuthentication(string name, string password)
+        {
+            _authData.UseCookieAuthentication = false;
+            _authData.UseBasicAuthentication = true;
+            _authData.AuthName = name;
+            _authData.AuthPassword = password;
         }
 
         private async Task Login()
