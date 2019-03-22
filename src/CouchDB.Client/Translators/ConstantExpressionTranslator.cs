@@ -33,8 +33,20 @@ namespace CouchDB.Client
                         sb.Append($"\"{c.Value}\"");
                         break;
                     case TypeCode.Object:
-                        if (c.Value is IList<string>)
-                            this.VisitStringIEnumerable(c.Value as IList<string>);
+                        if (c.Value is IList<bool>)
+                            this.VisitIEnumerable(c.Value as IList<bool>);
+                        else if (c.Value is IList<int>)
+                            this.VisitIEnumerable(c.Value as IList<int>);
+                        else if (c.Value is IList<long>)
+                            this.VisitIEnumerable(c.Value as IList<long>);
+                        else if(c.Value is IList<decimal>)
+                            this.VisitIEnumerable(c.Value as IList<decimal>);
+                        else if (c.Value is IList<float>)
+                            this.VisitIEnumerable(c.Value as IList<float>);
+                        else if (c.Value is IList<double>)
+                            this.VisitIEnumerable(c.Value as IList<double>);
+                        else if(c.Value is IList<string>)
+                            this.VisitIEnumerable(c.Value as IList<string>);
                         else
                             throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", c.Value));
                         break;
@@ -47,19 +59,34 @@ namespace CouchDB.Client
             return c;
         }
 
-        private void VisitStringIEnumerable(IList<string> enumerable)
+        private void VisitIEnumerable<T>(IList<T> list)
         {
-            if (enumerable.Count < 1)
+            if (list.Count < 1)
                 return;
-            if (enumerable.Count == 1)
+            if (list.Count == 1)
             {
-                sb.Append($"\"{enumerable[0]}\"");
+                sb.Append(VisitConst(list[0]));
             }
             else
             {
                 sb.Append("[");
-                sb.Append(string.Join(",", enumerable.Select(e => $"\"{e}\"")));
+                sb.Append(string.Join(",", list.Select(e => VisitConst(e))));
                 sb.Append("]");
+            }
+
+            string VisitConst(object o)
+            {
+                switch (Type.GetTypeCode(o.GetType()))
+                {
+                    case TypeCode.Boolean:
+                        return (bool)o ? "true" : "false";
+                    case TypeCode.String:
+                        return $"\"{o}\"";
+                    case TypeCode.Object:
+                        throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", o));                        
+                    default:
+                        return o.ToString();
+                }
             }
         }
     }

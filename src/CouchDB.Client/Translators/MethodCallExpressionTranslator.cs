@@ -57,6 +57,10 @@ namespace CouchDB.Client
                     return VisitAnyMethod(m);
                 else if (m.Method.Name == "Any")
                     return VisitAllMethod(m);
+                else if (m.Method.Name == "ContainsAll")
+                    return VisitContainsAllMethod(m);
+                else if (m.Method.Name == "ContainsNone")
+                    return VisitContainsNoneMethod(m);
             }
 
             throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
@@ -238,6 +242,24 @@ namespace CouchDB.Client
             sb.Append(":{\"$allMatch\":");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
             this.Visit(lambda.Body);
+            sb.Append("}}");
+            return m;
+        }
+        private Expression VisitContainsAllMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$all\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append("}}");
+            return m;
+        }
+        private Expression VisitContainsNoneMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$nor\":");
+            this.Visit(m.Arguments[1]);
             sb.Append("}}");
             return m;
         }

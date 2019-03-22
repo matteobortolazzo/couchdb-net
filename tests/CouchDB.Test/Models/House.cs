@@ -10,5 +10,6 @@ namespace CouchDB.Test.Models
         public DateTime ConstructionDate { get; set; }
         public Owner Owner { get; set; }
         public List<Floor> Floors { get; set; }
+        public List<int> Numbers { get; set; }
     }
 }
