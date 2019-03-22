@@ -27,24 +27,25 @@ namespace CouchDB.Test
                         //h.Address.IsCouchType(CouchType.String)
                         //h.Numbers.In(new[] { 1, 2 }) &&
                         //h.Numbers.NotIn(new[] { 3, 4 })
-                        h.Numbers.Count == 3
-                    )
-                    .OrderByDescending(h => h.Owner.Name)
-                    .ThenByDescending(h => h.ConstructionDate)
-                    .Skip(0)
-                    .Take(50)
-                    .Select(h =>
-                        new
-                        {
-                            h.Owner.Name,
-                            h.Address,
-                            h.ConstructionDate
-                        })
-                    .UseBookmark("g1AAAABweJzLY...")
-                    .WithReadQuorum(150)
-                    .UpdateIndex(true)
-                    .FromStable(true)
-                    .UseIndex("design_document", "index_name");
+                        //h.Numbers.Count == 3
+                        !h.Numbers.Contains(3)
+                    );
+                    //.OrderByDescending(h => h.Owner.Name)
+                    //.ThenByDescending(h => h.ConstructionDate)
+                    //.Skip(0)
+                    //.Take(50)
+                    //.Select(h =>
+                    //    new
+                    //    {
+                    //        h.Owner.Name,
+                    //        h.Address,
+                    //        h.ConstructionDate
+                    //    })
+                    //.UseBookmark("g1AAAABweJzLY...")
+                    //.WithReadQuorum(150)
+                    //.UpdateIndex(true)
+                    //.FromStable(true)
+                    //.UseIndex("design_document", "index_name");
 
                 var list = query.ToList();
             }

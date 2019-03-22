@@ -1,5 +1,6 @@
 ﻿using CouchDB.Client.Extensions;
 using System;
+using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -21,7 +22,6 @@ namespace CouchDB.Client
         }
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
-            // Queryable
             if (m.Method.DeclaringType == typeof(Queryable))
             {
                 if (m.Method.Name == "Where")
@@ -37,6 +37,13 @@ namespace CouchDB.Client
                 else if (m.Method.Name == "Select")
                     return VisitSelectMethod(m);
             }
+            else if (m.Method.DeclaringType == typeof(Enumerable))
+            {
+                if (m.Method.Name == "All")
+                    return VisitAnyMethod(m);
+                else if (m.Method.Name == "Any")
+                    return VisitAllMethod(m);
+            }
             else if (m.Method.DeclaringType == typeof(QueryableExtensions))
             {
                 if (m.Method.Name == "UseBookmark")
@@ -50,25 +57,28 @@ namespace CouchDB.Client
                 else if (m.Method.Name == "UseIndex")
                     return VisitUseIndexMethod(m);
             }
-            // Not Queryable
-            else
+            else if (m.Method.DeclaringType == typeof(EnumerableExtensions))
             {
-                if (m.Method.Name == "All")
-                    return VisitAnyMethod(m);
-                else if (m.Method.Name == "Any")
-                    return VisitAllMethod(m);
-                else if (m.Method.Name == "ContainsAll")
+                if (m.Method.Name == "ContainsAll")
                     return VisitContainsAllMethod(m);
                 else if (m.Method.Name == "ContainsNone")
-                    return VisitContainsNoneMethod(m);   
-                else if (m.Method.Name == "FieldExists")
-                    return VisitFieldExistsMethod(m);
-                else if (m.Method.Name == "IsCouchType")
-                    return VisitIsCouchTypeMethod(m);
+                    return VisitContainsNoneMethod(m);
                 else if (m.Method.Name == "In")
                     return VisitInMethod(m);
                 else if (m.Method.Name == "NotIn")
                     return VisitNotInMethod(m);
+            }
+            else if (m.Method.DeclaringType == typeof(ObjectExtensions))
+            {
+                if (m.Method.Name == "FieldExists")
+                    return VisitFieldExistsMethod(m);
+                else if (m.Method.Name == "IsCouchType")
+                    return VisitIsCouchTypeMethod(m);
+            }
+            else
+            {
+                if (m.Method.Name == "Contains")
+                    return VisitContainsMethod(m);
             }
 
             throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
@@ -185,6 +195,31 @@ namespace CouchDB.Client
 
         #endregion
 
+        #region Enumerable
+
+        private Expression VisitAnyMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$elemMatch\":");
+            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+            this.Visit(lambda.Body);
+            sb.Append("}}");
+            return m;
+        }
+        private Expression VisitAllMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$allMatch\":");
+            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+            this.Visit(lambda.Body);
+            sb.Append("}}");
+            return m;
+        }
+
+        #endregion
+
         #region QueryableExtensions
 
         private Expression VisitUseBookmarkMethod(MethodCallExpression m)
@@ -228,31 +263,10 @@ namespace CouchDB.Client
             return m;
         }
 
-
         #endregion
 
-        #region NotQueryable
+        #region EnumerableExtensions
 
-        private Expression VisitAnyMethod(MethodCallExpression m)
-        {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$elemMatch\":");
-            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            this.Visit(lambda.Body);
-            sb.Append("}}");
-            return m;
-        }
-        private Expression VisitAllMethod(MethodCallExpression m)
-        {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$allMatch\":");
-            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            this.Visit(lambda.Body);
-            sb.Append("}}");
-            return m;
-        }
         private Expression VisitContainsAllMethod(MethodCallExpression m)
         {
             sb.Append("{");
@@ -271,6 +285,30 @@ namespace CouchDB.Client
             sb.Append("}}");
             return m;
         }
+
+        private Expression VisitInMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$in\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append("}}");
+            return m;
+        }
+        private Expression VisitNotInMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$nin\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append("}}");
+            return m;
+        }
+
+        #endregion
+
+        #region ObjectExtensions
+
         private Expression VisitFieldExistsMethod(MethodCallExpression m)
         {
             sb.Append("{");
@@ -291,22 +329,19 @@ namespace CouchDB.Client
             sb.Append("}}");
             return m;
         }
-        private Expression VisitInMethod(MethodCallExpression m)
+
+        #endregion
+
+        #region Other
+
+        private Expression VisitContainsMethod(MethodCallExpression m)
         {
+            // $in operator with single value = Contains(value)
             sb.Append("{");
+            this.Visit(m.Object);
+            sb.Append(":{\"$in\":[");
             this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$in\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
-            return m;
-        }
-        private Expression VisitNotInMethod(MethodCallExpression m)
-        {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$nin\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
+            sb.Append("]}}");
             return m;
         }
 
