@@ -33,7 +33,10 @@ namespace CouchDB.Test
                             h.Address,
                             h.ConstructionDate
                         })
-                    .UseBookmark("g1AAAABweJzLY...");
+                    .UseBookmark("g1AAAABweJzLY...")
+                    .WithReadQuorum(150)
+                    .UpdateIndex(true)
+                    .FromStable(true);
 
                 var list = query.ToList();
             }

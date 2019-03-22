@@ -56,5 +56,40 @@ namespace CouchDB.Client.Extensions
                     GetMethodInfo(UseBookmark, source, bookmark),
                     new Expression[] { source.Expression, Expression.Constant(bookmark) }));
         }
+        public static IQueryable<TSource> WithReadQuorum<TSource>(this IQueryable<TSource> source, int quorum = 1)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+            if (quorum < 1)
+                throw new ArgumentException(nameof(quorum), "Read quorum cannot be less than 1.");
+
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(WithReadQuorum, source, quorum),
+                    new Expression[] { source.Expression, Expression.Constant(quorum) }));
+        }
+        public static IQueryable<TSource> UpdateIndex<TSource>(this IQueryable<TSource> source, bool needUpdate = true)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(UpdateIndex, source, needUpdate),
+                    new Expression[] { source.Expression, Expression.Constant(needUpdate) }));
+        }
+        public static IQueryable<TSource> FromStable<TSource>(this IQueryable<TSource> source, bool isFromStable)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(FromStable, source, isFromStable),
+                    new Expression[] { source.Expression, Expression.Constant(isFromStable) }));
+        }
     }
 }

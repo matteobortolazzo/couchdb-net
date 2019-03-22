@@ -41,6 +41,12 @@ namespace CouchDB.Client
             {
                 if (m.Method.Name == "UseBookmark")
                     return VisitUseBookmarkMethod(m);
+                else if (m.Method.Name == "WithReadQuorum")
+                    return VisitWithQuorumMethod(m);
+                else if (m.Method.Name == "UpdateIndex")
+                    return VisitUpdateIndexMethod(m);
+                else if (m.Method.Name == "FromStable")
+                    return VisitFromStableMethod(m);
             }
             // Not Queryable
             else
@@ -53,7 +59,7 @@ namespace CouchDB.Client
 
             throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
         }
-
+        
         #region Queryable
 
         private Expression VisitWhereMethod(MethodCallExpression m)
@@ -171,6 +177,30 @@ namespace CouchDB.Client
         {
             this.Visit(m.Arguments[0]);
             sb.Append("\"bookmark\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append(",");
+            return m;
+        }
+        private Expression VisitWithQuorumMethod(MethodCallExpression m)
+        {
+            this.Visit(m.Arguments[0]);
+            sb.Append("\"r\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append(",");
+            return m;
+        }
+        private Expression VisitUpdateIndexMethod(MethodCallExpression m)
+        {
+            this.Visit(m.Arguments[0]);
+            sb.Append("\"update\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append(",");
+            return m;
+        }
+        private Expression VisitFromStableMethod(MethodCallExpression m)
+        {
+            this.Visit(m.Arguments[0]);
+            sb.Append("\"stable\":");
             this.Visit(m.Arguments[1]);
             sb.Append(",");
             return m;
