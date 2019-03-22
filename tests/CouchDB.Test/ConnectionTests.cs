@@ -36,7 +36,8 @@ namespace CouchDB.Test
                     .UseBookmark("g1AAAABweJzLY...")
                     .WithReadQuorum(150)
                     .UpdateIndex(true)
-                    .FromStable(true);
+                    .FromStable(true)
+                    .UseIndex("design_document", "index_name");
 
                 var list = query.ToList();
             }

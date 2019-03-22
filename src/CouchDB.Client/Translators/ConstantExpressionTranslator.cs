@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace CouchDB.Client
@@ -32,7 +33,11 @@ namespace CouchDB.Client
                         sb.Append($"\"{c.Value}\"");
                         break;
                     case TypeCode.Object:
-                        throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", c.Value));
+                        if (c.Value is IList<string>)
+                            this.VisitStringIEnumerable(c.Value as IList<string>);
+                        else
+                            throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", c.Value));
+                        break;
                     default:
                         sb.Append(c.Value);
                         break;
@@ -40,6 +45,22 @@ namespace CouchDB.Client
             }
 
             return c;
+        }
+
+        private void VisitStringIEnumerable(IList<string> enumerable)
+        {
+            if (enumerable.Count < 1)
+                return;
+            if (enumerable.Count == 1)
+            {
+                sb.Append($"\"{enumerable[0]}\"");
+            }
+            else
+            {
+                sb.Append("[");
+                sb.Append(string.Join(",", enumerable.Select(e => $"\"{e}\"")));
+                sb.Append("]");
+            }
         }
     }
 }

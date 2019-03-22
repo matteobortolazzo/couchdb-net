@@ -47,6 +47,8 @@ namespace CouchDB.Client
                     return VisitUpdateIndexMethod(m);
                 else if (m.Method.Name == "FromStable")
                     return VisitFromStableMethod(m);
+                else if (m.Method.Name == "UseIndex")
+                    return VisitUseIndexMethod(m);
             }
             // Not Queryable
             else
@@ -59,7 +61,7 @@ namespace CouchDB.Client
 
             throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
         }
-        
+
         #region Queryable
 
         private Expression VisitWhereMethod(MethodCallExpression m)
@@ -205,6 +207,15 @@ namespace CouchDB.Client
             sb.Append(",");
             return m;
         }
+        private Expression VisitUseIndexMethod(MethodCallExpression m)
+        {
+            this.Visit(m.Arguments[0]);
+            sb.Append("\"use_index\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append(",");
+            return m;
+        }
+
 
         #endregion
 

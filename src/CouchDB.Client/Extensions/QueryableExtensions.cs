@@ -91,5 +91,20 @@ namespace CouchDB.Client.Extensions
                     GetMethodInfo(FromStable, source, isFromStable),
                     new Expression[] { source.Expression, Expression.Constant(isFromStable) }));
         }
+        public static IQueryable<TSource> UseIndex<TSource>(this IQueryable<TSource> source, params string[] indexes)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+            if (indexes == null)
+                throw new ArgumentNullException(nameof(indexes));
+            if (indexes.Length != 1 && indexes.Length != 2)
+                throw new ArgumentException(nameof(indexes), "Only 1 or 2 parameters are allowed. \"<design_document>\" or [\"<design_document>\",\"<index_name>\"]");
+
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(UseIndex, source, indexes),
+                    new Expression[] { source.Expression, Expression.Constant(indexes) }));
+        }
     }
 }
