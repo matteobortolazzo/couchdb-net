@@ -67,11 +67,6 @@ namespace CouchDB.Client
             _serverUrl = serverUrl;
             _authData = new AuthorizationData();
 
-            FlurlHttp.Configure(c =>
-            {
-                c.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings { NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore });
-            });
-
             _flurlClient = FlurlHttp.GlobalSettings.FlurlClientFactory.Get(_serverUrl);
         }
 
