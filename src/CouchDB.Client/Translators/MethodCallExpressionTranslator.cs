@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CouchDB.Client.Extensions;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -13,6 +14,10 @@ namespace CouchDB.Client
                 e = ((UnaryExpression)e).Operand;
             }
             return e;
+        }
+        protected override Expression VisitExtension(Expression x)
+        {
+            return x;
         }
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
@@ -32,6 +37,11 @@ namespace CouchDB.Client
                 else if (m.Method.Name == "Select")
                     return VisitSelectMethod(m);
             }
+            else if (m.Method.DeclaringType == typeof(QueryableExtensions))
+            {
+                if (m.Method.Name == "UseBookmark")
+                    return VisitUseBookmarkMethod(m);
+            }
             // Not Queryable
             else
             {
@@ -42,7 +52,7 @@ namespace CouchDB.Client
             }
 
             throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
-        }              
+        }
 
         #region Queryable
 
@@ -150,6 +160,19 @@ namespace CouchDB.Client
             }
             sb.Append("],");
 
+            return m;
+        }
+
+        #endregion
+
+        #region QueryableExtensions
+
+        private Expression VisitUseBookmarkMethod(MethodCallExpression m)
+        {
+            this.Visit(m.Arguments[0]);
+            sb.Append("\"bookmark\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append(",");
             return m;
         }
 

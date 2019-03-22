@@ -73,5 +73,10 @@ namespace CouchDB.Client
         {
             return this.provider.GetQueryText(this.expression);
         }
+
+        public void UseBookmark(string bookmark)
+        {
+
+        }
     }
 }

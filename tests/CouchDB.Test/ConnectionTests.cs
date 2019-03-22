@@ -2,6 +2,7 @@ using CouchDB.Client;
 using CouchDB.Test.Models;
 using System.Linq;
 using Xunit;
+using CouchDB.Client.Extensions;
 
 namespace CouchDB.Test
 {
@@ -31,7 +32,8 @@ namespace CouchDB.Test
                             h.Owner.Name,
                             h.Address,
                             h.ConstructionDate
-                        });
+                        })
+                    .UseBookmark("g1AAAABweJzLY...");
 
                 var list = query.ToList();
             }
