@@ -14,7 +14,9 @@ namespace CouchDB.Client
         internal TranslatedRequest Translate(Expression expression)
         {
             this.sb = new StringBuilder();
+            sb.Append("{");
             this.Visit(expression);
+            sb.Append("}");
             var result = sb.ToString();
             return new TranslatedRequest();
         }

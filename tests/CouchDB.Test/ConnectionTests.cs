@@ -10,18 +10,21 @@ namespace CouchDB.Test
         [Fact]
         public void CreateConnection()
         {
-            using(var connection = new CouchConnection(""))
+            using (var connection = new CouchConnection(""))
             {
                 QueryProvider provider = new CouchQueryProvider(connection);
 
-                var customers = new Query<Customer>(provider);
+                var houses = new Query<House>(provider);
 
-                var query = customers.Where(c => 
-                c.Card.Number == "0000" && c.Points.All(d => d == 0));
+                var query = houses
+                    .Where(h =>
+                    h.Owner.Name == "Bobby" &&
+                    (h.Floors.All(f => f.Area < 120) || h.Floors.Any(f => f.Area > 500)))
+                    .Skip(0)
+                    .Take(50);
+
 
                 var list = query.ToList();
-
-                Assert.All(list, c => Assert.Equal("Matteo", c.Name));
             }
         }
     }

@@ -4,8 +4,9 @@ using System.Text;
 
 namespace CouchDB.Test.Models
 {
-    public class Card
+    class House
     {
-        public string Number { get; set; }
+        public Owner Owner { get; set; }
+        public List<Floor> Floors { get; set; }
     }
 }

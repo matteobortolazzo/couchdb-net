@@ -19,31 +19,28 @@ namespace CouchDB.Client
 
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
+            // Queryable
             if (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "Where")
             {
                 return VisitWhereMethod(m);
             }
-            else if (m.Method.Name == "All")
+            else if (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "Skip")
             {
-                if (m.Method.DeclaringType == typeof(Queryable))
-                {
-                    return VisitAnyQueryableMethod(m);
-                }
-                else
-                {
-                    return VisitAnyMethod(m);
-                }
+                return VisitSkipMethod(m);
             }
-            else if (m.Method.Name == "Any")
+            else if (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "Take")
             {
-                if (m.Method.DeclaringType == typeof(Queryable))
-                {
-                    return VisitAllQueryableMethod(m);
-                }
-                else
-                {
-                    return VisitAllMethod(m);
-                }
+                return VisitTakeMethod(m);
+            }
+
+            // Not Queryable
+            else if (m.Method.DeclaringType != typeof(Queryable) && m.Method.Name == "All")
+            {
+                return VisitAnyMethod(m);
+            }
+            else if (m.Method.DeclaringType != typeof(Queryable) && m.Method.Name == "Any")
+            {
+                return VisitAllMethod(m);
             }
 
             throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
@@ -53,20 +50,24 @@ namespace CouchDB.Client
 
         private Expression VisitWhereMethod(MethodCallExpression m)
         {
-            sb.Append("{\"selector\":");
+            sb.Append("\"selector\":");
             this.Visit(m.Arguments[0]);
-            LambdaExpression lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
             this.Visit(lambda.Body);
-            sb.Append("}");
+            sb.Append(",");
             return m;
         }
-        private Expression VisitAnyQueryableMethod(MethodCallExpression m)
+        private Expression VisitSkipMethod(MethodCallExpression m)
         {
-            throw new NotImplementedException();
+            this.Visit(m.Arguments[0]);
+            sb.Append($"\"limit\":{m.Arguments[1]},");
+            return m;
         }
-        private Expression VisitAllQueryableMethod(MethodCallExpression m)
+        private Expression VisitTakeMethod(MethodCallExpression m)
         {
-            throw new NotImplementedException();
+            this.Visit(m.Arguments[0]);
+            sb.Append($"\"skip\":{m.Arguments[1]},");
+            return m;
         }
 
         #endregion
@@ -75,11 +76,23 @@ namespace CouchDB.Client
 
         private Expression VisitAnyMethod(MethodCallExpression m)
         {
-            throw new NotImplementedException();
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$elemMatch\":");
+            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+            this.Visit(lambda.Body);
+            sb.Append("}}");
+            return m;
         }
         private Expression VisitAllMethod(MethodCallExpression m)
         {
-            throw new NotImplementedException();
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$allMatch\":");
+            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+            this.Visit(lambda.Body);
+            sb.Append("}}");
+            return m;
         }
 
         #endregion
