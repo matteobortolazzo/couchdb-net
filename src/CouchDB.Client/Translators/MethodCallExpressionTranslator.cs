@@ -60,15 +60,15 @@ namespace CouchDB.Client
                 else if (m.Method.Name == "ContainsAll")
                     return VisitContainsAllMethod(m);
                 else if (m.Method.Name == "ContainsNone")
-                    return VisitContainsNoneMethod(m);
+                    return VisitContainsNoneMethod(m);   
+                else if (m.Method.Name == "FieldExists")
+                    return VisitFieldExistsMethod(m);
+                else if (m.Method.Name == "IsCouchType")
+                    return VisitIsCouchTypeMethod(m);
                 else if (m.Method.Name == "In")
                     return VisitInMethod(m);
                 else if (m.Method.Name == "NotIn")
                     return VisitNotInMethod(m);
-                else if (m.Method.Name == "FieldExists")
-                    return VisitFieldExistsMethod(m);
-                else if (m.Method.Name == "IsCouchType")
-                    return VisitIsCouchTypeMethod(m);                
             }
 
             throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
@@ -262,24 +262,6 @@ namespace CouchDB.Client
             sb.Append("}}");
             return m;
         }
-        private Expression VisitInMethod(MethodCallExpression m)
-        {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$in\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
-            return m;
-        }
-        private Expression VisitNotInMethod(MethodCallExpression m)
-        {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$nin\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
-            return m;
-        }
         private Expression VisitContainsNoneMethod(MethodCallExpression m)
         {
             sb.Append("{");
@@ -306,6 +288,24 @@ namespace CouchDB.Client
             var cExpression = m.Arguments[1] as ConstantExpression;
             var couchType = cExpression.Value as CouchType;
             sb.Append($"\"{couchType.Value}\"");
+            sb.Append("}}");
+            return m;
+        }
+        private Expression VisitInMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$in\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append("}}");
+            return m;
+        }
+        private Expression VisitNotInMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$nin\":");
+            this.Visit(m.Arguments[1]);
             sb.Append("}}");
             return m;
         }

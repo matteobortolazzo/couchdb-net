@@ -12,9 +12,20 @@ namespace CouchDB.Client
             sb.Append("{");
             if (b.NodeType == ExpressionType.Equal)
             {
-                this.Visit(b.Left);
-                sb.Append(":");
-                this.Visit(b.Right);
+                if (b.Left is MemberExpression m && m.Member.Name == "Count")
+                {
+                    this.Visit(m.Expression);
+                    sb.Append(":{\"$size\":");
+                    this.Visit(b.Right);
+                    sb.Append("}}");
+                    return m;
+                }
+                else
+                {
+                    this.Visit(b.Left);
+                    sb.Append(":");
+                    this.Visit(b.Right);
+                }
             }
             else if (b.NodeType == ExpressionType.And ||
                 b.NodeType == ExpressionType.AndAlso ||
