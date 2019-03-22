@@ -81,7 +81,7 @@ namespace CouchDB.Client
                     return VisitContainsMethod(m);
             }
 
-            throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
+            throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
         }
 
         #region Queryable

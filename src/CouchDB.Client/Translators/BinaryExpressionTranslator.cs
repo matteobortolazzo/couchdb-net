@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using System.Reflection;
 
 namespace CouchDB.Client
 {
@@ -12,13 +13,30 @@ namespace CouchDB.Client
             sb.Append("{");
             if (b.NodeType == ExpressionType.Equal)
             {
+                // $size operator = array.Count == size
                 if (b.Left is MemberExpression m && m.Member.Name == "Count")
                 {
                     this.Visit(m.Expression);
                     sb.Append(":{\"$size\":");
                     this.Visit(b.Right);
                     sb.Append("}}");
-                    return m;
+                    return b;
+                }
+                // $mod operator = prop % divisor = remainder 
+                else if (b.Left is BinaryExpression mb && mb.NodeType == ExpressionType.Modulo)
+                {
+                    if (mb.Left is MemberExpression c && c.Member is PropertyInfo r && r.PropertyType == typeof(int))
+                    {
+                        this.Visit(mb.Left);
+                        sb.Append(":{\"$mod\":[");
+                        this.Visit(mb.Right);
+                        sb.Append(",");
+                        this.Visit(b.Right);
+                        sb.Append("]}}");
+                        return b;
+                    }
+                    else
+                        throw new NotSupportedException($"The document field must be an integer.");
                 }
                 else
                 {
