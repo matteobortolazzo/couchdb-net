@@ -61,6 +61,8 @@ namespace CouchDB.Client
                     return VisitContainsAllMethod(m);
                 else if (m.Method.Name == "ContainsNone")
                     return VisitContainsNoneMethod(m);
+                else if (m.Method.Name == "FieldExists")
+                    return VisitFieldExistsMethod(m);                
             }
 
             throw new NotSupportedException(string.Format("The method '{0}' is not supported", m.Method.Name));
@@ -259,6 +261,15 @@ namespace CouchDB.Client
             sb.Append("{");
             this.Visit(m.Arguments[0]);
             sb.Append(":{\"$nor\":");
+            this.Visit(m.Arguments[1]);
+            sb.Append("}}");
+            return m;
+        }
+        private Expression VisitFieldExistsMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$exists\":");
             this.Visit(m.Arguments[1]);
             sb.Append("}}");
             return m;

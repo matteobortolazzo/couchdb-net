@@ -22,7 +22,8 @@ namespace CouchDB.Test
                         h.Owner.Name == "Bobby" &&
                         (h.Floors.All(f => f.Area < 120) || h.Floors.Any(f => f.Area > 500)) ||
                         h.Numbers.ContainsAll(new[] { 1, 2 }) ||
-                        h.Numbers.ContainsNone(new[] { 3, 4 }) 
+                        h.Numbers.ContainsNone(new[] { 3, 4 }) && 
+                        h.Address.FieldExists(true)
                     )
                     .OrderByDescending(h => h.Owner.Name)
                     .ThenByDescending(h => h.ConstructionDate)
