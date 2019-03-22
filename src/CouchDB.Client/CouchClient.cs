@@ -60,17 +60,6 @@ namespace CouchDB.Client
             _flurlClient = FlurlHttp.GlobalSettings.FlurlClientFactory.Get(_serverUrl);
         }
 
-        public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback
-        {
-            set
-            {
-                if (_flurlClient.HttpMessageHandler is HttpClientHandler httpClientHandler)
-                {
-                    httpClientHandler.ServerCertificateCustomValidationCallback = value;
-                }
-            }
-        }
-
         #region Authentication
 
         public void ConfigureAuthentication(string name, string password, int tokenDurationMinutes = 10)
