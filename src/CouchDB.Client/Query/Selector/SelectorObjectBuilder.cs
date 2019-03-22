@@ -20,7 +20,7 @@ namespace CouchDB.Client.Query.Selector
 
         private static ExpandoObject OptimizeAndOperators(ExpandoObject node)
         {
-            var nodeDictioray = (IDictionary<string, object>) node;
+            var nodeDictioray = (IDictionary<string, object>)node;
             var andChildren = nodeDictioray.Where(n => n.Key == "$and").ToList();
             if (!andChildren.Any())
                 return (ExpandoObject)nodeDictioray;
@@ -29,7 +29,14 @@ namespace CouchDB.Client.Query.Selector
             {
                 var andSubChildren = andChild.Value as IEnumerable<IDictionary<string, object>>;
 
-                if(andSubChildren == null) continue;;
+                if (andSubChildren == null) continue;
+
+                // If both conditions are off the same property, don't combine them
+                var keys = andSubChildren.SelectMany(list => list.Select(kvp => kvp.Key)).ToArray();
+                if (keys.Length != keys.Distinct().Count())
+                {
+                    continue;
+                }
 
                 nodeDictioray.Remove(andChild);
                 foreach (var andSubChild in andSubChildren)
@@ -38,7 +45,7 @@ namespace CouchDB.Client.Query.Selector
                 }
             }
 
-            return (ExpandoObject) nodeDictioray;
+            return (ExpandoObject)nodeDictioray;
         }
 
         private static ExpandoObject BuildObjectNode(ICouchNode node)
@@ -46,60 +53,60 @@ namespace CouchDB.Client.Query.Selector
             switch (node)
             {
                 case ConditionNode conditionNode:
-                {
-                    if (conditionNode.Type == ConditionNodeType.Equal)
                     {
-                        var condition = new ExpandoObject();
-                        condition.AddProperty(conditionNode.PropertyNode.Name, conditionNode.ValueNode.Value);
-                        return condition;
+                        if (conditionNode.Type == ConditionNodeType.Equal)
+                        {
+                            var condition = new ExpandoObject();
+                            condition.AddProperty(conditionNode.PropertyNode.Name, conditionNode.ValueNode.Value);
+                            return condition;
+                        }
+
+                        var symbol = GetConditionSymbol(conditionNode);
+
+                        var rightConditionObject = new ExpandoObject();
+                        rightConditionObject.AddProperty(symbol, conditionNode.ValueNode.Value);
+
+                        var conditionObject = new ExpandoObject();
+                        conditionObject.AddProperty(conditionNode.PropertyNode.Name, rightConditionObject);
+
+                        return conditionObject;
                     }
-
-                    var symbol = GetConditionSymbol(conditionNode);
-
-                    var rightConditionObject = new ExpandoObject();
-                    rightConditionObject.AddProperty(symbol, conditionNode.ValueNode.Value);
-
-                    var conditionObject = new ExpandoObject();
-                    conditionObject.AddProperty(conditionNode.PropertyNode.Name, rightConditionObject);
-
-                    return conditionObject;
-                }
                 case UnitaryNode unitaryNode:
-                {
-                    var childObject = BuildObjectNode(unitaryNode.Child);
+                    {
+                        var childObject = BuildObjectNode(unitaryNode.Child);
 
-                    var symbol = GetUnitarySymbol(unitaryNode.Type);
+                        var symbol = GetUnitarySymbol(unitaryNode.Type);
 
-                    var unitaryObject = new ExpandoObject();
-                    unitaryObject.AddProperty(symbol, childObject);
+                        var unitaryObject = new ExpandoObject();
+                        unitaryObject.AddProperty(symbol, childObject);
 
-                    return unitaryObject;
-                }
+                        return unitaryObject;
+                    }
                 case CombinationNode combinationNode:
-                {
-                    var symbol = GetCombinationSymbol(combinationNode.Type);
+                    {
+                        var symbol = GetCombinationSymbol(combinationNode.Type);
 
-                    var childrenObjects = combinationNode.Children.Select(c => BuildObjectNode(c)).ToList();
+                        var childrenObjects = combinationNode.Children.Select(c => BuildObjectNode(c)).ToList();
 
-                    var combinationObject = new ExpandoObject();
-                    combinationObject.AddProperty(symbol, childrenObjects);
+                        var combinationObject = new ExpandoObject();
+                        combinationObject.AddProperty(symbol, childrenObjects);
 
-                    return combinationObject;
-                }
+                        return combinationObject;
+                    }
                 case ArrayMatchNode arrayMatchNode:
-                {
-                    var symbol = GetArrayMatchSymbol(arrayMatchNode.Type);
+                    {
+                        var symbol = GetArrayMatchSymbol(arrayMatchNode.Type);
 
-                    var arraySelectorNode = BuildObjectNode(arrayMatchNode.ArraySelectorNode);
+                        var arraySelectorNode = BuildObjectNode(arrayMatchNode.ArraySelectorNode);
 
-                    var arraySelectorObject = new ExpandoObject();
-                    arraySelectorObject.AddProperty(symbol, arraySelectorNode);
+                        var arraySelectorObject = new ExpandoObject();
+                        arraySelectorObject.AddProperty(symbol, arraySelectorNode);
 
-                    var arrayMatchObject = new ExpandoObject();
-                    arrayMatchObject.AddProperty(arrayMatchNode.PropertyNode.Name, arraySelectorObject);
+                        var arrayMatchObject = new ExpandoObject();
+                        arrayMatchObject.AddProperty(arrayMatchNode.PropertyNode.Name, arraySelectorObject);
 
-                    return arrayMatchObject;
-                }
+                        return arrayMatchObject;
+                    }
             }
             throw new InvalidOperationException();
         }
