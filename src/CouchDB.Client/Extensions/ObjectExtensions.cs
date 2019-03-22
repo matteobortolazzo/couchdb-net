@@ -9,6 +9,10 @@ namespace CouchDB.Client.Extensions
         public static bool FieldExists(this object obj, bool doExists = true)
         {
             return true;
-        } 
+        }
+        public static bool IsCouchType(this object obj, CouchType type)
+        {
+            return true;
+        }
     }
 }

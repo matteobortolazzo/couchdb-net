@@ -20,10 +20,13 @@ namespace CouchDB.Test
                 var query = houses
                     .Where(h =>
                         h.Owner.Name == "Bobby" &&
-                        (h.Floors.All(f => f.Area < 120) || h.Floors.Any(f => f.Area > 500)) ||
-                        h.Numbers.ContainsAll(new[] { 1, 2 }) ||
-                        h.Numbers.ContainsNone(new[] { 3, 4 }) && 
-                        h.Address.FieldExists(true)
+                        (h.Floors.All(f => f.Area < 120) || h.Floors.Any(f => f.Area > 500)) &&
+                        //|| h.Numbers.ContainsAll(new[] { 1, 2 }) ||
+                        //h.Numbers.ContainsNone(new[] { 3, 4 }) && 
+                        //h.Address.FieldExists(true) && 
+                        //h.Address.IsCouchType(CouchType.String)
+                        h.Numbers.In(new[] { 1, 2 }) &&
+                        h.Numbers.NotIn(new[] { 3, 4 })
                     )
                     .OrderByDescending(h => h.Owner.Name)
                     .ThenByDescending(h => h.ConstructionDate)
