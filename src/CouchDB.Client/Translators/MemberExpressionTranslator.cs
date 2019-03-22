@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CouchDB.Client.Extensions;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -16,7 +17,7 @@ namespace CouchDB.Client
                 var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
                 var jsonProperty = jsonPropertyAttributes.Length > 0 ? jsonPropertyAttributes[0] as JsonPropertyAttribute : null;
 
-                return jsonProperty != null ? jsonProperty.PropertyName : memberInfo.Name;
+                return jsonProperty != null ? jsonProperty.PropertyName : memberInfo.Name.ToCamelCase();
             }
 
             var members = new List<string> { GetPropertyName(m.Member) };
