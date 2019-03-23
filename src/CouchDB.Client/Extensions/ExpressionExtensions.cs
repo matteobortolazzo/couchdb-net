@@ -16,7 +16,7 @@ namespace CouchDB.Client.Helpers
             if (jsonObject != null)
                 return jsonObject.Id;
 
-            var typeName = elementType.Name.ToCamelCase();
+            var typeName = elementType.Name.Camelize();
             return typeName.Pluralize();
         }
     }
