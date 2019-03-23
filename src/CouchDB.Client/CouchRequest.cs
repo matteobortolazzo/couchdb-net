@@ -6,13 +6,13 @@ using System.Text;
 
 namespace CouchDB.Client
 {
-    internal class MangoQuery
+    internal class CouchRequest
     {
         public HttpMethod Method { get; }
         public string Path { get; }
         public string Body { get; }
 
-        public MangoQuery(HttpMethod method, string path, string body = null)
+        public CouchRequest(HttpMethod method, string path, string body = null)
         {           
             Method = method ?? throw new ArgumentNullException(nameof(method));
             Path = path ?? throw new ArgumentNullException(nameof(body));

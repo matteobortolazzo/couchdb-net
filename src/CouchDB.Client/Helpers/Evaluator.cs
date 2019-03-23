@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace CouchDB.Client
+namespace CouchDB.Client.Helpers
 {
     public static class Evaluator
     {

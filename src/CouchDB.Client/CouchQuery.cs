@@ -7,12 +7,12 @@ using System.Text;
 
 namespace CouchDB.Client
 {
-    public class Query<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable
+    public class CouchQuery<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable
     {
-        QueryProvider provider;
-        Expression expression;
+        private readonly QueryProvider provider;
+        private readonly Expression expression;
 
-        public Query(QueryProvider provider)
+        public CouchQuery(QueryProvider provider)
         {
             if (provider == null)
             {
@@ -23,7 +23,7 @@ namespace CouchDB.Client
             this.expression = Expression.Constant(this);
         }
                
-        public Query(QueryProvider provider, Expression expression)
+        public CouchQuery(QueryProvider provider, Expression expression)
         {
             if (provider == null)
             {

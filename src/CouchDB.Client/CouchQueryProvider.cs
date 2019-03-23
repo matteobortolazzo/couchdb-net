@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using CouchDB.Client.Helpers;
+using Flurl.Http;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -8,37 +10,36 @@ using System.Text;
 
 namespace CouchDB.Client
 {
-    public class CouchQueryProvider : QueryProvider
+    internal class CouchQueryProvider : QueryProvider
     {
-        CouchConnection connection;
+        private readonly FlurlClient flurlClient;
+        private readonly string connectionString;
+        private readonly string db;
 
-        public CouchQueryProvider(CouchConnection connection)
+        public CouchQueryProvider(FlurlClient flurlClient, string connectionString, string db)
         {
-            this.connection = connection;
+            this.flurlClient = flurlClient;
+            this.connectionString = connectionString;
+            this.db = db;
         }
 
         public override string GetQueryText(Expression expression)
         {
-            var body = this.Translate(expression).Body;            
-            return body;
+            var request = this.Translate(expression);
+            return request.Body;
         }
 
         public override object Execute(Expression expression)
         {
-            var cmd = this.connection.CreateCommand();
-
-            cmd.Request = this.Translate(expression);
-
-            Type elementType = TypeSystem.GetElementType(expression.Type);
-            MethodInfo method = typeof(CouchCommand).GetMethod("ExecuteReader");
-            MethodInfo generic = method.MakeGenericMethod(elementType);
-            return generic.Invoke(cmd, null);
+            var request = this.Translate(expression);
+            // TODO
+            return null;
         }
 
-        private MangoQuery Translate(Expression expression)
+        private CouchRequest Translate(Expression expression)
         {
             expression = Evaluator.PartialEval(expression);
-            return new QueryTranslator().Translate(expression);
+            return new QueryTranslator(db).Translate(expression);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CouchDB.Client.Types;
+using System;
 using System.Collections.Generic;
 using System.Text;
 

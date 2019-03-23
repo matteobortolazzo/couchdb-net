@@ -1,8 +1,6 @@
 ﻿using CouchDB.Client.Extensions;
-using CouchDB.Client.Helpers;
-using Newtonsoft.Json;
+using CouchDB.Client.Types;
 using System;
-using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -96,7 +94,7 @@ namespace CouchDB.Client
 
         private Expression VisitWhereMethod(MethodCallExpression m)
         {
-            path = $"{m.GetTypeName()}/_find";
+            path = $"{db}/_find";
             method = HttpMethod.Post;
 
             this.Visit(m.Arguments[0]);

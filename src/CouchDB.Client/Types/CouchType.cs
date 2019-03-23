@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CouchDB.Client
+namespace CouchDB.Client.Types
 {
     public class CouchType
     {

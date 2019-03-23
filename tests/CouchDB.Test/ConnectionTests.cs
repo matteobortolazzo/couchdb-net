@@ -14,18 +14,17 @@ namespace CouchDB.Test
         [Fact]
         public void CreateConnection()
         {
-            using (var connection = new CouchConnection("http://localhost:8080"))
+            using (var client = new CouchClient("http://127.0.0.1:5984/"))
             {
-                QueryProvider provider = new CouchQueryProvider(connection);
+                var houses = client.GetDatabase<House>();
 
-                var houses = new Query<House>(provider);
                 //const int one = 1;
                 //Expression<Func<House, bool>> funcQ1 = t => t.Number == one;
 
                 var comparisonHouse = new House { Number = 1 };
                 Expression<Func<House, bool>> funcQ2 = t => t.Number >= comparisonHouse.Number;
 
-                var query = houses
+                var query = houses.AsQueryable()
                     .Where(funcQ2);
                     //.Where(h =>
                     //    h.Owner.Name == "Bobby" &&
@@ -58,6 +57,7 @@ namespace CouchDB.Test
                     //.UseIndex("design_document", "index_name");
 
                 var json = query.ToString();
+                var result = query.ToList();
             }
         }
     }

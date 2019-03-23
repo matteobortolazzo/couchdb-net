@@ -13,7 +13,7 @@ namespace CouchDB.Client
 
         IQueryable<S> IQueryProvider.CreateQuery<S>(Expression expression)
         {
-            return new Query<S>(this, expression);
+            return new CouchQuery<S>(this, expression);
         }
 
         IQueryable IQueryProvider.CreateQuery(Expression expression)
@@ -22,7 +22,7 @@ namespace CouchDB.Client
 
             try
             {
-                return (IQueryable)Activator.CreateInstance(typeof(Query<>).MakeGenericType(elementType), new object[] { this, expression });
+                return (IQueryable)Activator.CreateInstance(typeof(CouchQuery<>).MakeGenericType(elementType), new object[] { this, expression });
             }
 
             catch (TargetInvocationException tie)
