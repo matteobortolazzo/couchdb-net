@@ -3,7 +3,6 @@ using CouchDB.Client.Types;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net.Http;
 
 namespace CouchDB.Client
 {
@@ -97,7 +96,10 @@ namespace CouchDB.Client
             this.Visit(m.Arguments[0]);
             sb.Append("\"selector\":");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            this.Visit(lambda.Body);
+            if (lambda.Body is ConstantExpression)
+                sb.Append("{}");
+            else
+                this.Visit(lambda.Body);
             sb.Append(",");
             return m;
         }
@@ -129,6 +131,7 @@ namespace CouchDB.Client
             }
 
             InspectOrdering(m);
+            sb.Length--;
             sb.Append("],");
             return m;
         }

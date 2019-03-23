@@ -46,7 +46,8 @@ namespace CouchDB.Client
                 .Request(connectionString)
                 .AppendPathSegments(db, "_find")
                 .WithHeader("Content-Type", "application/json")
-                .PostStringAsync(body).ReceiveJson<FindResult<T>>().Result;
+                .PostStringAsync(body).ReceiveJson<FindResult<T>>()
+                .SendRequest();
             return result.Docs;
         }
     }

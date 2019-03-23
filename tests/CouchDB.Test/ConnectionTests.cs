@@ -25,7 +25,9 @@ namespace CouchDB.Test
                 var comparisonHouse = new House { Number = 1 };
                 Expression<Func<House, bool>> funcQ2 = t => t.Number >= comparisonHouse.Number;
 
-                var q = customers.AsQueryable().Where(c => c.Name == "Matteo").ToList();
+                // var q = customers.Where(c => c.Name == "Matteo").ToList();
+                var q2 = customers.OrderBy(c => c.Name).Skip(1).Take(1).ToList();
+                // var x = customers.FindAsync("6bda3050d3d60002983be15d290006a9");
 
                 //var query = houses.AsQueryable()
                 //    .Where(funcQ2);

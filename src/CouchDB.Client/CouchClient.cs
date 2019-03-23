@@ -15,19 +15,18 @@ namespace CouchDB.Client
             flurlClient = new FlurlClient(connectionString);            
         }
 
-        public CouchDatabase<T> GetDatabase<T>()
+        public CouchDatabase<TSource> GetDatabase<TSource>() 
         {
-            var type = typeof(T);
+            var type = typeof(TSource);
             var db = type.GetName();
-            return GetDatabase<T>(db);
+            return GetDatabase<TSource>(db);
         }
-        public CouchDatabase<T> GetDatabase<T>(string db)
+        public CouchDatabase<TSource> GetDatabase<TSource>(string db) 
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
 
-            var queryProvider = new CouchQueryProvider(flurlClient, ConnectionString, db);
-            return new CouchDatabase<T>(queryProvider, db);
+            return new CouchDatabase<TSource>(flurlClient, ConnectionString, db);
         }
 
         public void Dispose()

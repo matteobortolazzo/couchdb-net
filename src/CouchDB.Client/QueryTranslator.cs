@@ -18,10 +18,9 @@ namespace CouchDB.Client
             this.sb = new StringBuilder();
             sb.Append("{");
             this.Visit(expression);
+            sb.Length--;
             sb.Append("}");
             var body = sb.ToString();
-            if (body[body.Length - 2] == ',')
-                body = body.Remove(body.Length - 2, 1);
             return body;
         }
 
