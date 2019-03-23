@@ -75,6 +75,11 @@ namespace CouchDB.Client
                 else if (m.Method.Name == "IsCouchType")
                     return VisitIsCouchTypeMethod(m);
             }
+            else if (m.Method.DeclaringType == typeof(StringExtensions))
+            {
+                if (m.Method.Name == "IsMatch")
+                    return VisitIsMatchMethod(m);
+            }
             else
             {
                 if (m.Method.Name == "Contains")
@@ -326,6 +331,20 @@ namespace CouchDB.Client
             var cExpression = m.Arguments[1] as ConstantExpression;
             var couchType = cExpression.Value as CouchType;
             sb.Append($"\"{couchType.Value}\"");
+            sb.Append("}}");
+            return m;
+        }
+
+        #endregion
+
+        #region StringExtensions
+
+        private Expression VisitIsMatchMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Arguments[0]);
+            sb.Append(":{\"$regex\":");
+            this.Visit(m.Arguments[1]);
             sb.Append("}}");
             return m;
         }

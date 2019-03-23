@@ -3,6 +3,7 @@ using CouchDB.Test.Models;
 using System.Linq;
 using Xunit;
 using CouchDB.Client.Extensions;
+using System.Text.RegularExpressions;
 
 namespace CouchDB.Test
 {
@@ -28,7 +29,7 @@ namespace CouchDB.Test
                         //h.Numbers.In(new[] { 1, 2 }) &&
                         //h.Numbers.NotIn(new[] { 3, 4 })
                         //h.Numbers.Count == 3
-                        h.Number % 3 == 0
+                        h.Address.IsMatch("[a-zA-Z]{0,2}")
                     );
                     //.OrderByDescending(h => h.Owner.Name)
                     //.ThenByDescending(h => h.ConstructionDate)

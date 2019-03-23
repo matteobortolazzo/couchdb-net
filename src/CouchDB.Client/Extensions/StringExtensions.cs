@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CouchDB.Client.Extensions
 {
@@ -10,9 +11,13 @@ namespace CouchDB.Client.Extensions
         {
             if (!string.IsNullOrEmpty(str) && str.Length > 1)
             {
-                return Char.ToLowerInvariant(str[0]) + str.Substring(1);
+                return char.ToLowerInvariant(str[0]) + str.Substring(1);
             }
             return str;
+        }
+        public static bool IsMatch(this string str, string pattern)
+        {
+            return new Regex(pattern).IsMatch(str);
         }
     }
 }
