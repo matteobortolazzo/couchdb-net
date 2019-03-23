@@ -7,22 +7,22 @@ namespace CouchDB.Client
     internal partial class QueryTranslator : ExpressionVisitor
     {
         private string db;
-        private string path;
-        private HttpMethod method;
         private StringBuilder sb;
 
         internal QueryTranslator(string db)
         {
             this.db = db;
         }
-        internal CouchRequest Translate(Expression expression)
+        internal string Translate(Expression expression)
         {
             this.sb = new StringBuilder();
             sb.Append("{");
             this.Visit(expression);
             sb.Append("}");
             var body = sb.ToString();
-            return new CouchRequest(method, path, body);
+            if (body[body.Length - 2] == ',')
+                body = body.Remove(body.Length - 2, 1);
+            return body;
         }
 
         protected override Expression VisitLambda<T>(Expression<T> l)

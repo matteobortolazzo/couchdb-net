@@ -94,9 +94,6 @@ namespace CouchDB.Client
 
         private Expression VisitWhereMethod(MethodCallExpression m)
         {
-            path = $"{db}/_find";
-            method = HttpMethod.Post;
-
             this.Visit(m.Arguments[0]);
             sb.Append("\"selector\":");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);

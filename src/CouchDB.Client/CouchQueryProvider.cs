@@ -1,12 +1,9 @@
 ﻿using CouchDB.Client.Helpers;
+using CouchDB.Client.Types;
 using Flurl.Http;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace CouchDB.Client
 {
@@ -25,21 +22,32 @@ namespace CouchDB.Client
 
         public override string GetQueryText(Expression expression)
         {
-            var request = this.Translate(expression);
-            return request.Body;
+            return this.Translate(expression);
         }
 
-        public override object Execute(Expression expression)
+        public override object Execute(Expression e)
         {
-            var request = this.Translate(expression);
-            // TODO
-            return null;
+            var request = this.Translate(e);
+            var elementType = TypeSystem.GetElementType(e.Type);
+            MethodInfo method = typeof(CouchQueryProvider).GetMethod("SendRequest");
+            MethodInfo generic = method.MakeGenericMethod(elementType);
+            return generic.Invoke(this, new[] { request });
         }
 
-        private CouchRequest Translate(Expression expression)
+        private string Translate(Expression expression)
         {
             expression = Evaluator.PartialEval(expression);
             return new QueryTranslator(db).Translate(expression);
+        }
+
+        public IEnumerable<T> SendRequest<T>(string body)
+        {
+            var result = flurlClient
+                .Request(connectionString)
+                .AppendPathSegments(db, "_find")
+                .WithHeader("Content-Type", "application/json")
+                .PostStringAsync(body).ReceiveJson<FindResult<T>>().Result;
+            return result.Docs;
         }
     }
 }
