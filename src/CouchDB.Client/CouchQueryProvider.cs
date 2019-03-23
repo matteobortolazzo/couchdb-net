@@ -19,9 +19,8 @@ namespace CouchDB.Client
 
         public override string GetQueryText(Expression expression)
         {
-            var body = this.Translate(expression).Body;
-            var jsonBody = JsonConvert.SerializeObject(body);
-            return jsonBody;
+            var body = this.Translate(expression).Body;            
+            return body;
         }
 
         public override object Execute(Expression expression)
@@ -30,15 +29,13 @@ namespace CouchDB.Client
 
             cmd.Request = this.Translate(expression);
 
-            //Type elementType = TypeSystem.GetElementType(expression.Type);
-
-            //MethodInfo method = typeof(CouchCommand).GetMethod("ExecuteReader");
-            //MethodInfo generic = method.MakeGenericMethod(elementType);
-            //return generic.Invoke(this, null);
-            return null;
+            Type elementType = TypeSystem.GetElementType(expression.Type);
+            MethodInfo method = typeof(CouchCommand).GetMethod("ExecuteReader");
+            MethodInfo generic = method.MakeGenericMethod(elementType);
+            return generic.Invoke(cmd, null);
         }
 
-        private TranslatedRequest Translate(Expression expression)
+        private MangoQuery Translate(Expression expression)
         {
             expression = Evaluator.PartialEval(expression);
             return new QueryTranslator().Translate(expression);

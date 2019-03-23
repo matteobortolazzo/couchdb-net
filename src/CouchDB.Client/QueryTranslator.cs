@@ -11,14 +11,14 @@ namespace CouchDB.Client
         private StringBuilder sb;
 
         internal QueryTranslator() { }
-        internal TranslatedRequest Translate(Expression expression)
+        internal MangoQuery Translate(Expression expression)
         {
             this.sb = new StringBuilder();
             sb.Append("{");
             this.Visit(expression);
             sb.Append("}");
-            var result = sb.ToString();
-            return new TranslatedRequest();
+            var body = sb.ToString();
+            return new MangoQuery(method, path, body);
         }
 
         protected override Expression VisitLambda<T>(Expression<T> l)

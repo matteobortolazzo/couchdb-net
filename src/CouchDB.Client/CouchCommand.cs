@@ -9,17 +9,20 @@ namespace CouchDB.Client
     internal class CouchCommand
     {
         private readonly FlurlClient flurlClient;
+        private readonly string connectionString;
 
-        public CouchCommand(FlurlClient flurlClient)
+        public CouchCommand(FlurlClient flurlClient, string connectionString)
         {
             this.flurlClient = flurlClient;
+            this.connectionString = connectionString;
         }
 
-        public TranslatedRequest Request { get; internal set; }
+        public MangoQuery Request { get; internal set; }
 
         public T ExecuteReader<T>() where T : new()
         {
-            var request = flurlClient.Request(Request.Path);
+            var request = flurlClient.Request(connectionString);
+            request.AppendPathSegment(Request.Path);
             T result;
 
             if (Request.Method.Equals(HttpMethod.Get))

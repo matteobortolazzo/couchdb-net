@@ -4,6 +4,8 @@ using System.Linq;
 using Xunit;
 using CouchDB.Client.Extensions;
 using System.Text.RegularExpressions;
+using System;
+using System.Linq.Expressions;
 
 namespace CouchDB.Test
 {
@@ -12,25 +14,32 @@ namespace CouchDB.Test
         [Fact]
         public void CreateConnection()
         {
-            using (var connection = new CouchConnection(""))
+            using (var connection = new CouchConnection("http://localhost:8080"))
             {
                 QueryProvider provider = new CouchQueryProvider(connection);
 
                 var houses = new Query<House>(provider);
+                //const int one = 1;
+                //Expression<Func<House, bool>> funcQ1 = t => t.Number == one;
+
+                var comparisonHouse = new House { Number = 1 };
+                Expression<Func<House, bool>> funcQ2 = t => t.Number >= comparisonHouse.Number;
 
                 var query = houses
-                    .Where(h =>
-                        //h.Owner.Name == "Bobby" &&
-                        //(h.Floors.All(f => f.Area < 120) || h.Floors.Any(f => f.Area > 500)) &&
-                        //|| h.Numbers.ContainsAll(new[] { 1, 2 }) ||
-                        //h.Numbers.ContainsNone(new[] { 3, 4 }) && 
-                        //h.Address.FieldExists(true) && 
-                        //h.Address.IsCouchType(CouchType.String)
-                        //h.Numbers.In(new[] { 1, 2 }) &&
-                        //h.Numbers.NotIn(new[] { 3, 4 })
-                        //h.Numbers.Count == 3
-                        h.Address.IsMatch("[a-zA-Z]{0,2}")
-                    );
+                    .Where(funcQ2);
+                    //.Where(h =>
+                    //    h.Owner.Name == "Bobby" &&
+                    //    h.Owner.Name != "AA"
+                    //    //(h.Floors.All(f => f.Area < 120) || h.Floors.Any(f => f.Area > 500)) &&
+                    //    //|| h.Numbers.ContainsAll(new[] { 1, 2 }) ||
+                    //    //h.Numbers.ContainsNone(new[] { 3, 4 }) && 
+                    //    //h.Address.FieldExists(true) && 
+                    //    //h.Address.IsCouchType(CouchType.String)
+                    //    //h.Numbers.In(new[] { 1, 2 }) &&
+                    //    //h.Numbers.NotIn(new[] { 3, 4 })
+                    //    //h.Numbers.Count == 3
+                    //    //h.Address.IsMatch("[a-zA-Z]{0,2}")
+                    //);
                     //.OrderByDescending(h => h.Owner.Name)
                     //.ThenByDescending(h => h.ConstructionDate)
                     //.Skip(0)
@@ -48,7 +57,7 @@ namespace CouchDB.Test
                     //.FromStable(true)
                     //.UseIndex("design_document", "index_name");
 
-                var list = query.ToList();
+                var json = query.ToString();
             }
         }
     }

@@ -1,8 +1,11 @@
 ﻿using CouchDB.Client.Extensions;
+using CouchDB.Client.Helpers;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 
 namespace CouchDB.Client
 {
@@ -93,6 +96,9 @@ namespace CouchDB.Client
 
         private Expression VisitWhereMethod(MethodCallExpression m)
         {
+            path = $"{m.GetTypeName()}/_find";
+            method = HttpMethod.Post;
+
             this.Visit(m.Arguments[0]);
             sb.Append("\"selector\":");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);

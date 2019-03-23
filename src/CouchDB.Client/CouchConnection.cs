@@ -21,7 +21,7 @@ namespace CouchDB.Client
 
         internal CouchCommand CreateCommand()
         {
-            return new CouchCommand(flurlClient);
+            return new CouchCommand(flurlClient, ConnectionString);
         }
 
         public void Dispose()
