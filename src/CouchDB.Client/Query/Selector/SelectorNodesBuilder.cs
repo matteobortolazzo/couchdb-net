@@ -76,6 +76,10 @@ namespace CouchDB.Client.Query.Selector
                     var op = NewCouchNode(unaryExpr.Operand);
                     return NewUnitaryNode(unaryExpr.NodeType, op);
                 }
+                else if (unaryExpr.NodeType == ExpressionType.Convert && unaryExpr.Operand is MemberExpression)
+                {
+                    return NewCouchNode(unaryExpr.Operand);
+                }
                 throw new NotImplementedException();
             }
             //else if (expr is ParameterExpression p) { }
