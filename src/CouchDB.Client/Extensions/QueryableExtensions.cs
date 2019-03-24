@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CouchDB.Client.Extensions
 {
@@ -43,6 +44,10 @@ namespace CouchDB.Client.Extensions
 
         #endregion
 
+        public static Task<List<TSource>> ToListAsync<TSource>(this IQueryable<TSource> source)
+        {
+            return Task<List<TSource>>.Factory.StartNew(() => source.ToList());
+        }
         public static IQueryable<TSource> UseBookmark<TSource>(this IQueryable<TSource> source, string bookmark)
         {
             if (source == null)
@@ -56,7 +61,7 @@ namespace CouchDB.Client.Extensions
                     GetMethodInfo(UseBookmark, source, bookmark),
                     new Expression[] { source.Expression, Expression.Constant(bookmark) }));
         }
-        public static IQueryable<TSource> WithReadQuorum<TSource>(this IQueryable<TSource> source, int quorum = 1)
+        public static IQueryable<TSource> WithReadQuorum<TSource>(this IQueryable<TSource> source, int quorum)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -69,7 +74,7 @@ namespace CouchDB.Client.Extensions
                     GetMethodInfo(WithReadQuorum, source, quorum),
                     new Expression[] { source.Expression, Expression.Constant(quorum) }));
         }
-        public static IQueryable<TSource> UpdateIndex<TSource>(this IQueryable<TSource> source, bool needUpdate = true)
+        public static IQueryable<TSource> UpdateIndex<TSource>(this IQueryable<TSource> source, bool needUpdate)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));

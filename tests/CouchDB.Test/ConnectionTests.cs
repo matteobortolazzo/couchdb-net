@@ -22,15 +22,15 @@ namespace CouchDB.Test
                 //const int one = 1;
                 //Expression<Func<House, bool>> funcQ1 = t => t.Number == one;
 
-                var comparisonHouse = new House { Number = 1 };
-                Expression<Func<House, bool>> funcQ2 = t => t.Number >= comparisonHouse.Number;
-
+                //var comparisonHouse = new House { Number = 1, Address = "AAA" };
+                //Expression<Func<House, bool>> funcQ2 = t => t.Number >= comparisonHouse.Number;
+                // const string book = "adsa";
                 // var q = customers.Where(c => c.Name == "Matteo").ToList();
-                var q2 = customers.OrderBy(c => c.Name).Skip(1).Take(1).ToList();
+                var q2 = customers.ToList();
                 // var x = customers.FindAsync("6bda3050d3d60002983be15d290006a9");
 
-                //var query = houses.AsQueryable()
-                //    .Where(funcQ2);
+                //var flats = houses.AsQueryable()
+                //   .Where(h => h.Type == HouseType.Flat).ToList();
                 //.Where(h =>
                 //    h.Owner.Name == "Bobby" &&
                 //    h.Owner.Name != "AA"

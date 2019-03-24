@@ -30,6 +30,17 @@ namespace CouchDB.Client.Helpers
                
         private static bool CanBeEvaluatedLocally(Expression expression)
         {
+            if (expression is MethodCallExpression c)
+            {
+                return 
+                    c.Method.Name != "Where" && 
+                    c.Method.Name != "Skip" &&
+                    c.Method.Name != "Take" &&
+                    c.Method.Name != "WithReadQuorum" &&
+                    c.Method.Name != "UpdateIndex" &&
+                    c.Method.Name != "UseBookmark" &&
+                    c.Method.Name != "UseIndex";
+            }
             return expression.NodeType != ExpressionType.Parameter;
         }
                

@@ -1,4 +1,5 @@
-﻿using CouchDB.Client.Helpers;
+﻿using CouchDB.Client.Extensions;
+using CouchDB.Client.Helpers;
 using Flurl.Http;
 using System;
 using System.Collections.Generic;
@@ -28,12 +29,16 @@ namespace CouchDB.Client
         {
             return new CouchQuery<TSource>(queryProvider);
         }
-
-        #region Reading
+        
+        #region Query
 
         public List<TSource> ToList()
         {
-            return QueryableNoFilter().Where(_ => true).ToList();
+            return AsQueryable().ToList();
+        }
+        public Task<List<TSource>> ToListAsync()
+        {
+            return AsQueryable().ToListAsync();
         }
         public IQueryable<TSource> Where(Expression<Func<TSource, bool>> predicate)
         {
@@ -41,24 +46,47 @@ namespace CouchDB.Client
         }
         public IQueryable<TSource> OrderBy<TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
-            return QueryableNoFilter().OrderBy(keySelector);
+            return AsQueryable().OrderBy(keySelector);
         }
         public IQueryable<TSource> OrderByDescending<TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
-            return QueryableNoFilter().OrderByDescending(keySelector);
+            return AsQueryable().OrderByDescending(keySelector);
         }
         public IQueryable<TResult> Select<TResult>(Expression<Func<TSource, TResult>> selector)
         {
-            return QueryableNoFilter().Select(selector);
+            return AsQueryable().Select(selector);
         }
         public IQueryable<TSource> Skip(int count)
         {
-            return QueryableNoFilter().Skip(count);
+            return AsQueryable().Skip(count);
         }
         public IQueryable<TSource> Take(int count)
         {
-            return QueryableNoFilter().Take(count);
+            return AsQueryable().Take(count);
         }
+        public IQueryable<TSource> UseBookmark(string bookmark)
+        {
+            return AsQueryable().UseBookmark(bookmark);
+        }
+        public IQueryable<TSource> WithReadQuorum(int quorum)
+        {
+            return AsQueryable().WithReadQuorum(quorum);
+        }
+        public IQueryable<TSource> UpdateIndex(bool needUpdate)
+        {
+            return AsQueryable().UpdateIndex(needUpdate);
+        }
+        public IQueryable<TSource> UseBookmark(bool isFromStable)
+        {
+            return AsQueryable().FromStable(isFromStable);
+        }
+        public IQueryable<TSource> UseIndex(params string[] indexes)
+        {
+            return AsQueryable().UseIndex(indexes);
+        }
+
+        #endregion
+
         public async Task<TSource> FindAsync(string docId)
         {
             return await NewRequest()
@@ -67,17 +95,11 @@ namespace CouchDB.Client
                 .SendRequestAsync();
         }
 
-        #endregion
-
         #region Helper
 
         private IFlurlRequest NewRequest()
         {
             return flurlClient.Request(connectionString).AppendPathSegment(db);
-        }
-        private IQueryable<TSource> QueryableNoFilter()
-        {
-            return AsQueryable().Where(_ => true);
         }
 
         #endregion

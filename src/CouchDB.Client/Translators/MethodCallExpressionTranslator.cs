@@ -96,11 +96,9 @@ namespace CouchDB.Client
             this.Visit(m.Arguments[0]);
             sb.Append("\"selector\":");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            if (lambda.Body is ConstantExpression)
-                sb.Append("{}");
-            else
-                this.Visit(lambda.Body);
+            this.Visit(lambda.Body);
             sb.Append(",");
+            isSelectorSet = true;
             return m;
         }
         private Expression VisitOrderAscendingMethod(MethodCallExpression m)

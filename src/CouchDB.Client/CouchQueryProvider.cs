@@ -37,7 +37,7 @@ namespace CouchDB.Client
         private string Translate(Expression expression)
         {
             expression = Evaluator.PartialEval(expression);
-            return new QueryTranslator(db).Translate(expression);
+            return new QueryTranslator().Translate(expression);
         }
 
         public IEnumerable<T> SendRequest<T>(string body)

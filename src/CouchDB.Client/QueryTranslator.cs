@@ -6,19 +6,28 @@ namespace CouchDB.Client
 {
     internal partial class QueryTranslator : ExpressionVisitor
     {
-        private string db;
         private StringBuilder sb;
+        private bool isSelectorSet;
 
-        internal QueryTranslator(string db)
-        {
-            this.db = db;
-        }
+        internal QueryTranslator() { }
         internal string Translate(Expression expression)
         {
             this.sb = new StringBuilder();
             sb.Append("{");
             this.Visit(expression);
-            sb.Length--;
+
+            // If no Where() calls
+            if (!isSelectorSet)
+            {
+                // If no other methods calls - ToList()
+                if (sb.Length > 1)
+                {
+                    sb.Length--;
+                    sb.Append(",");
+                }
+                sb.Append("\"selector\":{}");
+            }
+
             sb.Append("}");
             var body = sb.ToString();
             return body;
