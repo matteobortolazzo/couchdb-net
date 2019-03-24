@@ -58,35 +58,23 @@ namespace CouchDB.Driver
             return b;
         }
 
-        private void VisitBinaryCombinationOperator(BinaryExpression b)
+        private void VisitBinaryCombinationOperator(BinaryExpression b, bool not = false)
         {
-            switch (b.NodeType)
+            void InspectBinaryChildren(BinaryExpression e, ExpressionType nodeType)
             {
-                case ExpressionType.And:
-                case ExpressionType.AndAlso:
-                    sb.Append("\"$and\":[");
-                    break;
-                case ExpressionType.Or:
-                case ExpressionType.OrElse:
-                    sb.Append("\"$or\":[");
-                    break;
-            }
-
-            void InspectChildren(BinaryExpression e)
-            {
-                if (e.Left is BinaryExpression lb && lb.NodeType == b.NodeType)
+                if (e.Left is BinaryExpression lb && lb.NodeType == nodeType)
                 {
-                    InspectChildren(lb);
+                    InspectBinaryChildren(lb, nodeType);
                     sb.Append(",");
                     this.Visit(e.Right);
                     return;
                 }
 
-                if (e.Right is BinaryExpression rb && rb.NodeType == b.NodeType)
+                if (e.Right is BinaryExpression rb && rb.NodeType == nodeType)
                 {
                     this.Visit(e.Left);
                     sb.Append(",");
-                    InspectChildren(rb);
+                    InspectBinaryChildren(rb, nodeType);
                     return;
                 }
 
@@ -95,7 +83,22 @@ namespace CouchDB.Driver
                 this.Visit(e.Right);
             }
 
-            InspectChildren(b);
+            switch (b.NodeType)
+            {
+                case ExpressionType.And:
+                case ExpressionType.AndAlso:
+                    sb.Append("\"$and\":[");
+                    break;
+                case ExpressionType.Or:
+                case ExpressionType.OrElse:
+                    if (not)
+                        sb.Append("\"$nor\":[");
+                    else
+                        sb.Append("\"$or\":[");
+                    break;
+            }
+
+            InspectBinaryChildren(b, b.NodeType);
             sb.Append("]");
         }
 

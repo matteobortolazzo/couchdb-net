@@ -39,9 +39,9 @@ namespace CouchDB.Driver
             }
             else if (m.Method.DeclaringType == typeof(Enumerable))
             {
-                if (m.Method.Name == "All")
+                if (m.Method.Name == "Any")
                     return VisitAnyMethod(m);
-                else if (m.Method.Name == "Any")
+                else if (m.Method.Name == "All")
                     return VisitAllMethod(m);
             }
             else if (m.Method.DeclaringType == typeof(QueryableExtensions))
@@ -59,14 +59,10 @@ namespace CouchDB.Driver
             }
             else if (m.Method.DeclaringType == typeof(EnumerableExtensions))
             {
-                if (m.Method.Name == "ContainsAll")
-                    return VisitContainsAllMethod(m);
-                else if (m.Method.Name == "ContainsNone")
-                    return VisitContainsNoneMethod(m);
+                if (m.Method.Name == "Contains")
+                    return VisitEnumarableContains(m);
                 else if (m.Method.Name == "In")
                     return VisitInMethod(m);
-                else if (m.Method.Name == "NotIn")
-                    return VisitNotInMethod(m);
             }
             else if (m.Method.DeclaringType == typeof(ObjectExtensions))
             {
@@ -79,11 +75,6 @@ namespace CouchDB.Driver
             {
                 if (m.Method.Name == "IsMatch")
                     return VisitIsMatchMethod(m);
-            }
-            else
-            {
-                if (m.Method.Name == "Contains")
-                    return VisitContainsMethod(m);
             }
 
             throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
@@ -274,7 +265,7 @@ namespace CouchDB.Driver
 
         #region EnumerableExtensions
 
-        private Expression VisitContainsAllMethod(MethodCallExpression m)
+        private Expression VisitEnumarableContains(MethodCallExpression m)
         {
             sb.Append("{");
             this.Visit(m.Arguments[0]);
@@ -283,30 +274,14 @@ namespace CouchDB.Driver
             sb.Append("}}");
             return m;
         }
-        private Expression VisitContainsNoneMethod(MethodCallExpression m)
+        private Expression VisitInMethod(MethodCallExpression m, bool not = false)
         {
             sb.Append("{");
             this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$nor\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
-            return m;
-        }
-
-        private Expression VisitInMethod(MethodCallExpression m)
-        {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$in\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
-            return m;
-        }
-        private Expression VisitNotInMethod(MethodCallExpression m)
-        {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$nin\":");
+            if (not)
+                sb.Append(":{\"$nin\":");
+            else
+                sb.Append(":{\"$in\":");
             this.Visit(m.Arguments[1]);
             sb.Append("}}");
             return m;
@@ -348,21 +323,6 @@ namespace CouchDB.Driver
             sb.Append(":{\"$regex\":");
             this.Visit(m.Arguments[1]);
             sb.Append("}}");
-            return m;
-        }
-
-        #endregion
-
-        #region Other
-
-        private Expression VisitContainsMethod(MethodCallExpression m)
-        {
-            // $in operator with single value = Contains(value)
-            sb.Append("{");
-            this.Visit(m.Object);
-            sb.Append(":{\"$in\":[");
-            this.Visit(m.Arguments[0]);
-            sb.Append("]}}");
             return m;
         }
 

@@ -6,12 +6,12 @@ namespace CouchDB.Driver.UnitTests
 {
     public class Find_Selector
     {
-        CouchDatabase<Customer> customers;
+        CouchDatabase<Rebel> customers;
 
         public Find_Selector()
         {
             var client = new CouchClient("http://localhost");
-            customers = client.GetDatabase<Customer>();
+            customers = client.GetDatabase<Rebel>();
         }
 
         [Fact]
