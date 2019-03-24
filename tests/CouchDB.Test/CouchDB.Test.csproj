@@ -16,8 +16,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\CouchDB.Client\CouchDB.Client.csproj" />
-  </ItemGroup>
-
 </Project>
