@@ -86,12 +86,21 @@ namespace CouchDB.Driver
 
         #endregion
 
+        #region Single
+
         public async Task<TSource> FindAsync(string docId)
         {
             return await NewRequest()
                 .AppendPathSegment(docId)
                 .GetJsonAsync<TSource>()
                 .SendRequestAsync();
+        }
+
+        #endregion
+
+        public override string ToString()
+        {
+            return AsQueryable().ToString();
         }
 
         #region Helper
