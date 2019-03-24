@@ -10,9 +10,18 @@ namespace CouchDB.Client.Tests
     [TestClass]
     public class SelectorTests
     {
+        enum MyEnum
+        {
+            None = 0,
+            First = 1,
+            Second = 2,
+        }
+
         class MyDocument : CouchEntity
         {
             public int MyInt { get; set; }
+
+            public MyEnum MyEnum { get; set; }
 
             public MyDocument MyDoc { get; set; }
         }
@@ -371,6 +380,18 @@ namespace CouchDB.Client.Tests
             var jsonRequest = JsonConvert.SerializeObject(selector);
 
             jsonRequest.Should().Be("{\"$and\":[{\"MyInt\":{\"$gt\":10}},{\"MyInt\":{\"$lt\":100}}]}");
+        }
+
+        [TestMethod]
+        public void EnumComparisionTest()
+        {
+            Expression<Func<MyDocument, bool>> query = t => t.MyEnum == MyEnum.First;
+
+            var selector = SelectorObjectBuilder.Serialize<MyDocument>(query);
+
+            var jsonRequest = JsonConvert.SerializeObject(selector);
+
+            jsonRequest.Should().Be("{\"MyEnum\":1}");
         }
     }
 }
