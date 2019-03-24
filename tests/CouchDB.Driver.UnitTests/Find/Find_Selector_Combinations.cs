@@ -4,21 +4,14 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests
 {
-    public class Find_Selector
+    public class Find_Selector_Combinations
     {
         CouchDatabase<Customer> customers;
 
-        public Find_Selector()
+        public Find_Selector_Combinations()
         {
             var client = new CouchClient("http://localhost");
             customers = client.GetDatabase<Customer>();
-        }
-
-        [Fact]
-        public void ToList_EmptySelector()
-        {
-            var json = customers.ToString();
-            Assert.Equal(@"{""selector"":{}}", json);
         }
     }
 }

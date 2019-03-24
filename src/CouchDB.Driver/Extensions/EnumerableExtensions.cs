@@ -24,7 +24,7 @@ namespace CouchDB.Driver.Extensions
 
             return !source.Equals(input);
         }
-        public static bool In<T>(this IEnumerable<T> source, IEnumerable<T> input) where T : struct
+        public static bool In<T>(this IEnumerable<T> source, IEnumerable<T> input) where T : IConvertible
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -33,7 +33,7 @@ namespace CouchDB.Driver.Extensions
 
             return input.All(s => source.Contains(s));
         }
-        public static bool NotIn<T>(this IEnumerable<T> source, IEnumerable<T> input) where T : struct
+        public static bool NotIn<T>(this IEnumerable<T> source, IEnumerable<T> input) where T : IConvertible
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
