@@ -32,8 +32,8 @@ namespace CouchDB.Client.Helpers
         {
             if (expression is MethodCallExpression c)
             {
-                return 
-                    c.Method.Name != "Where" && 
+                return
+                    c.Method.Name != "Where" &&
                     c.Method.Name != "Skip" &&
                     c.Method.Name != "Take" &&
                     c.Method.Name != "WithReadQuorum" &&

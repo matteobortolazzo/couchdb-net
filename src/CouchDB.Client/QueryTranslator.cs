@@ -27,6 +27,10 @@ namespace CouchDB.Client
                 }
                 sb.Append("\"selector\":{}");
             }
+            else
+            {
+                sb.Length--;
+            }
 
             sb.Append("}");
             var body = sb.ToString();

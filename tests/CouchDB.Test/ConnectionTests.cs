@@ -26,11 +26,11 @@ namespace CouchDB.Test
                 //Expression<Func<House, bool>> funcQ2 = t => t.Number >= comparisonHouse.Number;
                 // const string book = "adsa";
                 // var q = customers.Where(c => c.Name == "Matteo").ToList();
-                var q2 = customers.ToList();
+                // var q2 = customers.ToList();
                 // var x = customers.FindAsync("6bda3050d3d60002983be15d290006a9");
 
-                //var flats = houses.AsQueryable()
-                //   .Where(h => h.Type == HouseType.Flat).ToList();
+                var flats = houses.AsQueryable()
+                   .Where(h => h.Type == HouseType.Flat).ToList();
                 //.Where(h =>
                 //    h.Owner.Name == "Bobby" &&
                 //    h.Owner.Name != "AA"
