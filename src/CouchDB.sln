@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Client.Tests", "CouchDB.Client.Tests\CouchDB.Client.Tests.csproj", "{D27ADAE7-B22F-4FAF-A042-6437820DB252}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Client.Tests", "CouchDB.Client.Tests\CouchDB.Client.Tests.csproj", "{F6008191-6A48-4BD4-B246-1B6D910DF99B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,10 +22,10 @@ Global
 		{B3700668-9B25-4351-BEBC-2058711E2648}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3700668-9B25-4351-BEBC-2058711E2648}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3700668-9B25-4351-BEBC-2058711E2648}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D27ADAE7-B22F-4FAF-A042-6437820DB252}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D27ADAE7-B22F-4FAF-A042-6437820DB252}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D27ADAE7-B22F-4FAF-A042-6437820DB252}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D27ADAE7-B22F-4FAF-A042-6437820DB252}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6008191-6A48-4BD4-B246-1B6D910DF99B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6008191-6A48-4BD4-B246-1B6D910DF99B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6008191-6A48-4BD4-B246-1B6D910DF99B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6008191-6A48-4BD4-B246-1B6D910DF99B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
