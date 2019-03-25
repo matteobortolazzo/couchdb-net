@@ -27,11 +27,17 @@ namespace CouchDB.Driver
             _flurlClient = new FlurlClient(connectionString);
             _flurlClient.Configure(s => {
                 s.BeforeCall = OnBeforeLogin;
-                s.HttpClientFactory = new CertClientFactory();
+                if (_settings.ServerCertificateCustomValidationCallback != null)
+                {
+                    s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
+                }
             });
             _settings = new CouchSettings();
             configFunc?.Invoke(_settings);
         }
+
+        #region Operations
+
         public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
         {
             var type = typeof(TSource);
@@ -45,10 +51,10 @@ namespace CouchDB.Driver
 
             return new CouchDatabase<TSource>(_flurlClient, ConnectionString, db);
         }
-        public void Dispose()
-        {
-            _flurlClient.Dispose();
-        }
+
+        #endregion
+
+        #region Helpers
 
         private async Task Login()
         {
@@ -104,5 +110,16 @@ namespace CouchDB.Driver
                     throw new NotSupportedException($"Authentication of type {_settings.AuthenticationType} is not supported.");
             }
         }
+
+        #endregion
+
+        #region Implementations
+        
+        public void Dispose()
+        {
+            _flurlClient.Dispose();
+        }
+
+        #endregion
     }
 }

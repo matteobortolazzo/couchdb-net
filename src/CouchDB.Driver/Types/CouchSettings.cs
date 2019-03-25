@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace CouchDB.Driver.Types
@@ -15,6 +18,7 @@ namespace CouchDB.Driver.Types
         internal string Username { get; private set; }
         internal string Password { get; private set; }
         internal int CookiesDuration { get; private set; }
+        public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback { get; private set; }
 
         internal CouchSettings()
         {
@@ -46,6 +50,18 @@ namespace CouchDB.Driver.Types
             Username = username;
             Password = password;
             CookiesDuration = cookieDuration;
+            return this;
+        }
+        public CouchSettings IgnoreCertificateValidation()
+        {
+            ServerCertificateCustomValidationCallback = (m,x,c,s) => true;
+            return this;
+        }
+        public CouchSettings ConfigureCertificateValidation(Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> 
+            serverCertificateCustomValidationCallback)
+        {
+            ServerCertificateCustomValidationCallback = serverCertificateCustomValidationCallback ?? 
+                throw new ArgumentNullException(nameof(serverCertificateCustomValidationCallback));
             return this;
         }
     }
