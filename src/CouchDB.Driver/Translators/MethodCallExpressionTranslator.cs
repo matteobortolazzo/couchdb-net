@@ -76,6 +76,11 @@ namespace CouchDB.Driver
                 if (m.Method.Name == "IsMatch")
                     return VisitIsMatchMethod(m);
             }
+            else
+            {
+                if (m.Method.Name == "Contains")
+                    return VisitContainsMethod(m);
+            }
 
             throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
         }
@@ -323,6 +328,20 @@ namespace CouchDB.Driver
             sb.Append(":{\"$regex\":");
             this.Visit(m.Arguments[1]);
             sb.Append("}}");
+            return m;
+        }
+
+        #endregion
+
+        #region Other
+
+        private Expression VisitContainsMethod(MethodCallExpression m)
+        {
+            sb.Append("{");
+            this.Visit(m.Object);
+            sb.Append(":{\"$all\":[");
+            this.Visit(m.Arguments[0]);
+            sb.Append("]}}");
             return m;
         }
 
