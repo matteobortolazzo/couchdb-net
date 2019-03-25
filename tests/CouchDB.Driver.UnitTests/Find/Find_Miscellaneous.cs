@@ -87,15 +87,28 @@ namespace CouchDB.Driver.UnitTests.Find
         public void Combinations()
         {
             var json = rebels
-                .Where(r => r.Surname == "Skywalker")
-                .OrderBy(r => r.Name)
+                .Where(r => 
+                    r.Surname == "Skywalker" && 
+                    (
+                        r.Battles.All(b => b.Planet == "Naboo") ||
+                        r.Battles.Any(b => b.Planet == "Death Star")
+                    )
+                )
+                .OrderByDescending(r => r.Name)
+                .ThenByDescending(r => r.Age)
+                .Skip(1)
                 .Take(2)
                 .WithReadQuorum(2)
+                .UseBookmark("g1AAAABweJzLY...")
+                .WithReadQuorum(150)
+                .UpdateIndex(true)
+                .FromStable(true)
                 .Select(r => new {
                     r.Name,
-                    r.Age
+                    r.Age,
+                    r.Species
                 }).ToString();
-            Assert.Equal(@"{""selector"":{""surname"":""Skywalker""},""sort"":[""name""],""limit"":2,""r"":2,""fields"":[""name"",""age""]}", json);
+            Assert.Equal(@"{""selector"":{""$and"":[{""surname"":""Skywalker""},{""$or"":[{""battles"":{""$allMatch"":{""planet"":""Naboo""}}},{""battles"":{""$elemMatch"":{""planet"":""Death Star""}}}]}]},""sort"":[{""name"":""desc""},{""age"":""desc""}],""skip"":1,""limit"":2,""r"":2,""bookmark"":""g1AAAABweJzLY..."",""r"":150,""update"":true,""stable"":true,""fields"":[""name"",""age"",""species""]}", json);
         }
     }
 }
