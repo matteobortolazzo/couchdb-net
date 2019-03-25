@@ -1,10 +1,11 @@
-﻿using System;
+﻿using CouchDB.Driver.Types;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace CouchDB.Driver.UnitTests.Models
 {
-    public class Rebel
+    public class Rebel : CouchEntity
     {
         public string Name { get; set; }
         public string Surname { get; set; }

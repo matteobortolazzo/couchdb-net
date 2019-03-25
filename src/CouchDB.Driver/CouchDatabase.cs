@@ -1,5 +1,6 @@
 ﻿using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CouchDB.Driver
 {
-    public class CouchDatabase<TSource>
+    public class CouchDatabase<TSource> where TSource : CouchEntity
     {
         private readonly QueryProvider queryProvider;
         private readonly FlurlClient flurlClient;
@@ -102,10 +103,14 @@ namespace CouchDB.Driver
 
         #endregion
 
+        #region Override
+
         public override string ToString()
         {
             return AsQueryable().ToString();
         }
+
+        #endregion
 
         #region Helper
 

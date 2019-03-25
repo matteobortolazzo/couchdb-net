@@ -1,4 +1,5 @@
 ﻿using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
 
@@ -15,13 +16,13 @@ namespace CouchDB.Driver
             flurlClient = new FlurlClient(connectionString);            
         }
 
-        public CouchDatabase<TSource> GetDatabase<TSource>() 
+        public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
         {
             var type = typeof(TSource);
             var db = type.GetName();
             return GetDatabase<TSource>(db);
         }
-        public CouchDatabase<TSource> GetDatabase<TSource>(string db) 
+        public CouchDatabase<TSource> GetDatabase<TSource>(string db) where TSource : CouchEntity
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
