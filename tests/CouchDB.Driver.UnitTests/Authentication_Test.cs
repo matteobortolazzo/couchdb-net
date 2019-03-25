@@ -8,10 +8,10 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests
 {
-    public class Requests_Test
+    public class Authentication_Test
     {
         [Fact]
-        public async Task Authentication_None()
+        public async Task None()
         {
             using (var httpTest = new HttpTest())
             {
@@ -27,7 +27,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task Authentication_Basic()
+        public async Task Basic()
         {
             using (var httpTest = new HttpTest())
             {
@@ -44,7 +44,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task Authentication_Cookie()
+        public async Task Cookie()
         {
             var token = "cm9vdDo1MEJCRkYwMjq0LO0ylOIwShrgt8y-UkhI-c6BGw";
 

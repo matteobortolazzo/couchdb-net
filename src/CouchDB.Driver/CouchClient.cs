@@ -26,7 +26,7 @@ namespace CouchDB.Driver
             flurlClient = new FlurlClient(connectionString);
             flurlClient.Configure(s => s.BeforeCall = OnBeforeLogin);
             settings = new CouchSettings();
-            configFunc(settings);            
+            configFunc?.Invoke(settings);
         }
         public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
         {
