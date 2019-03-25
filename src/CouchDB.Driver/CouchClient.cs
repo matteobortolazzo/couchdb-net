@@ -3,6 +3,7 @@ using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -50,6 +51,33 @@ namespace CouchDB.Driver
                 throw new ArgumentNullException(nameof(db));
 
             return new CouchDatabase<TSource>(_flurlClient, ConnectionString, db);
+        }
+        public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
+        {
+            return await NewRequest()
+                .AppendPathSegment("_all_dbs")
+                .GetJsonAsync<IEnumerable<string>>()
+                .SendRequestAsync();
+        }        
+        public async Task AddDatabaseAsync(string db)
+        {
+            if (db == null)
+                throw new ArgumentNullException(nameof(db));
+
+            await NewRequest()
+                .AppendPathSegment(db)
+                .PutAsync(null)
+                .SendRequestAsync();
+        }
+        public async Task RemoveDatabaseAsync(string db)
+        {
+            if (db == null)
+                throw new ArgumentNullException(nameof(db));
+
+            await NewRequest()
+                .AppendPathSegment(db)
+                .DeleteAsync()
+                .SendRequestAsync();
         }
 
         #endregion
@@ -110,11 +138,15 @@ namespace CouchDB.Driver
                     throw new NotSupportedException($"Authentication of type {_settings.AuthenticationType} is not supported.");
             }
         }
+        private IFlurlRequest NewRequest()
+        {
+            return _flurlClient.Request(ConnectionString);
+        }
 
         #endregion
 
         #region Implementations
-        
+
         public void Dispose()
         {
             _flurlClient.Dispose();
