@@ -3,7 +3,7 @@ using CouchDB.Driver.Types;
 using CouchDB.Driver.UnitTests.Models;
 using Xunit;
 
-namespace CouchDB.Driver.UnitTests
+namespace CouchDB.Driver.UnitTests.Find
 {
     public class Find_Selector_Conditions
     {

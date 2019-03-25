@@ -1,11 +1,9 @@
 using CouchDB.Driver.UnitTests.Models;
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using Xunit;
-using CouchDB.Driver.Extensions;
 
-namespace CouchDB.Driver.UnitTests
+namespace CouchDB.Driver.UnitTests.Find
 {
     public class Find_Selector
     {

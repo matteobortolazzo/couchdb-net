@@ -7,15 +7,20 @@ namespace CouchDB.Driver
 {
     public class CouchClient : IDisposable
     {
-        private FlurlClient flurlClient;
+        private readonly CouchSettings settings;
+        private readonly FlurlClient flurlClient;
         public string ConnectionString { get; private set; }
 
-        public CouchClient(string connectionString)
+        public CouchClient(string connectionString, Action<CouchSettings> configFunc = null)
         {
-            ConnectionString = connectionString;
-            flurlClient = new FlurlClient(connectionString);            
-        }
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ArgumentNullException(nameof(connectionString));
 
+            ConnectionString = connectionString;
+            flurlClient = new FlurlClient(connectionString);
+            settings = new CouchSettings();
+            configFunc?.Invoke(settings);
+        }
         public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
         {
             var type = typeof(TSource);

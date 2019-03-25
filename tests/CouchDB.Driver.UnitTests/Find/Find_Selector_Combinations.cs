@@ -4,7 +4,7 @@ using Xunit;
 using CouchDB.Driver.Extensions;
 using System.Linq;
 
-namespace CouchDB.Driver.UnitTests
+namespace CouchDB.Driver.UnitTests.Find
 {
     public class Find_Selector_Combinations
     {
