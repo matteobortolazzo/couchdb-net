@@ -75,6 +75,10 @@ namespace CouchDB.Driver
         {
             return AsQueryable().UpdateIndex(needUpdate);
         }
+        public IQueryable<TSource> FromStable(bool isFromStable)
+        {
+            return AsQueryable().FromStable(isFromStable);
+        }
         public IQueryable<TSource> UseBookmark(bool isFromStable)
         {
             return AsQueryable().FromStable(isFromStable);

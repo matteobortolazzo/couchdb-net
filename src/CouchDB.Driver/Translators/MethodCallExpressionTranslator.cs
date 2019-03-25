@@ -168,13 +168,13 @@ namespace CouchDB.Driver
         private Expression VisitSkipMethod(MethodCallExpression m)
         {
             this.Visit(m.Arguments[0]);
-            sb.Append($"\"limit\":{m.Arguments[1]},");
+            sb.Append($"\"skip\":{m.Arguments[1]},");
             return m;
         }
         private Expression VisitTakeMethod(MethodCallExpression m)
         {
             this.Visit(m.Arguments[0]);
-            sb.Append($"\"skip\":{m.Arguments[1]},");
+            sb.Append($"\"limit\":{m.Arguments[1]},");
             return m;
         }
         private Expression VisitSelectMethod(MethodCallExpression m)

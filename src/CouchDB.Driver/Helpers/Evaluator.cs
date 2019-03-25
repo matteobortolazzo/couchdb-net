@@ -38,7 +38,8 @@ namespace CouchDB.Driver.Helpers
                     c.Method.Name != "WithReadQuorum" &&
                     c.Method.Name != "UpdateIndex" &&
                     c.Method.Name != "UseBookmark" &&
-                    c.Method.Name != "UseIndex";
+                    c.Method.Name != "UseIndex" &&
+                    c.Method.Name != "FromStable";
             }
             return expression.NodeType != ExpressionType.Parameter;
         }
