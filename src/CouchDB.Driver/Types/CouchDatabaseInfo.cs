@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace CouchDB.Driver.Type
+namespace CouchDB.Driver.Types
 {
     public class Sizes
     {

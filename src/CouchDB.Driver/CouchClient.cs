@@ -24,8 +24,12 @@ namespace CouchDB.Driver
             if (string.IsNullOrEmpty(connectionString))
                 throw new ArgumentNullException(nameof(connectionString));
 
+            _settings = new CouchSettings();
+            configFunc?.Invoke(_settings);
+
             ConnectionString = connectionString;
             _flurlClient = new FlurlClient(connectionString);
+
             _flurlClient.Configure(s => {
                 s.BeforeCall = OnBeforeLogin;
                 if (_settings.ServerCertificateCustomValidationCallback != null)
@@ -33,8 +37,6 @@ namespace CouchDB.Driver
                     s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
                 }
             });
-            _settings = new CouchSettings();
-            configFunc?.Invoke(_settings);
         }
 
         #region Operations

@@ -1,7 +1,6 @@
 ﻿using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
-using CouchDB.Driver.Type;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
