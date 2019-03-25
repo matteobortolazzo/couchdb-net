@@ -13,9 +13,9 @@ namespace CouchDB.Driver
                 case ExpressionType.Not:
                     if (u.Operand is BinaryExpression b && (b.NodeType == ExpressionType.Or || b.NodeType == ExpressionType.OrElse))
                     {
-                        sb.Append("{");
+                        _sb.Append("{");
                         VisitBinaryCombinationOperator(b, true);
-                        sb.Append("}");
+                        _sb.Append("}");
                     }
                     else if (u.Operand is MethodCallExpression m && m.Method.Name == "In")
                     {
@@ -23,14 +23,14 @@ namespace CouchDB.Driver
                     }
                     else
                     {
-                        sb.Append("{");
-                        sb.Append("\"$not\":");
-                        this.Visit(u.Operand);
-                        sb.Append("}");
+                        _sb.Append("{");
+                        _sb.Append("\"$not\":");
+                        Visit(u.Operand);
+                        _sb.Append("}");
                     }
                     break;
                 case ExpressionType.Convert:
-                    this.Visit(u.Operand);
+                    Visit(u.Operand);
                     break;
                 default:
                     throw new NotSupportedException(string.Format("The unary operator '{0}' is not supported", u.NodeType));

@@ -8,30 +8,30 @@ namespace CouchDB.Driver.UnitTests.Find
 {
     public class Find_Miscellaneous
     {
-        private readonly CouchDatabase<Rebel> rebels;
+        private readonly CouchDatabase<Rebel> _rebels;
 
         public Find_Miscellaneous()
         {
             var client = new CouchClient("http://localhost");
-            rebels = client.GetDatabase<Rebel>();
+            _rebels = client.GetDatabase<Rebel>();
         }
 
         [Fact]
         public void Limit()
         {
-            var json = rebels.Take(20).ToString();
+            var json = _rebels.Take(20).ToString();
             Assert.Equal(@"{""limit"":20,""selector"":{}}", json);
         }
         [Fact]
         public void Skip()
         {
-            var json = rebels.Skip(20).ToString();
+            var json = _rebels.Skip(20).ToString();
             Assert.Equal(@"{""skip"":20,""selector"":{}}", json);
         }
         [Fact]
         public void Fields()
         {
-            var json = rebels.Select(r => new {
+            var json = _rebels.Select(r => new {
                 r.Name,
                 r.Age
             }).ToString();
@@ -40,13 +40,13 @@ namespace CouchDB.Driver.UnitTests.Find
         [Fact]
         public void Index_Parlial()
         {
-            var json = rebels.UseIndex("design_document").ToString();
+            var json = _rebels.UseIndex("design_document").ToString();
             Assert.Equal(@"{""use_index"":""design_document"",""selector"":{}}", json);
         }
         [Fact]
         public void Index_Complete()
         {
-            var json = rebels.UseIndex("design_document", "index_name").ToString();
+            var json = _rebels.UseIndex("design_document", "index_name").ToString();
             Assert.Equal(@"{""use_index"":[""design_document"",""index_name""],""selector"":{}}", json);
         }
         [Fact]
@@ -54,7 +54,7 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var exception = Record.Exception(() =>
             {
-                var json = rebels.UseIndex("arg1", "arg2", "arg3").ToString();
+                var json = _rebels.UseIndex("arg1", "arg2", "arg3").ToString();
             });
             Assert.NotNull(exception);
             Assert.IsType<ArgumentException>(exception);
@@ -62,31 +62,31 @@ namespace CouchDB.Driver.UnitTests.Find
         [Fact]
         public void Quorum()
         {
-            var json = rebels.WithReadQuorum(20).ToString();
+            var json = _rebels.WithReadQuorum(20).ToString();
             Assert.Equal(@"{""r"":20,""selector"":{}}", json);
         }
         [Fact]
         public void Bookmark()
         {
-            var json = rebels.UseBookmark("g1AAAABweJzLY...").ToString();
+            var json = _rebels.UseBookmark("g1AAAABweJzLY...").ToString();
             Assert.Equal(@"{""bookmark"":""g1AAAABweJzLY..."",""selector"":{}}", json);
         }
         [Fact]
         public void Update()
         {
-            var json = rebels.UpdateIndex(true).ToString();
+            var json = _rebels.UpdateIndex(true).ToString();
             Assert.Equal(@"{""update"":true,""selector"":{}}", json);
         }
         [Fact]
         public void Stable()
         {
-            var json = rebels.FromStable(true).ToString();
+            var json = _rebels.FromStable(true).ToString();
             Assert.Equal(@"{""stable"":true,""selector"":{}}", json);
         }
         [Fact]
         public void Combinations()
         {
-            var json = rebels
+            var json = _rebels
                 .Where(r => 
                     r.Surname == "Skywalker" && 
                     (

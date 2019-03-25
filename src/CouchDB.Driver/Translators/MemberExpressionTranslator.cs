@@ -31,7 +31,7 @@ namespace CouchDB.Driver
             members.Reverse();
             var propName = string.Join(".", members.ToArray());
 
-            sb.Append($"\"{propName}\"");
+            _sb.Append($"\"{propName}\"");
             return m;
         }
     }

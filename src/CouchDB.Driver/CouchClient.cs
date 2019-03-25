@@ -11,10 +11,10 @@ namespace CouchDB.Driver
 {
     public class CouchClient : IDisposable
     {
-        private DateTime? cookieCreationDate;
-        private string cookieToken;
-        private readonly CouchSettings settings;
-        private readonly FlurlClient flurlClient;
+        private DateTime? _cookieCreationDate;
+        private string _cookieToken;
+        private readonly CouchSettings _settings;
+        private readonly FlurlClient _flurlClient;
         public string ConnectionString { get; private set; }
 
         public CouchClient(string connectionString, Action<CouchSettings> configFunc = null)
@@ -23,10 +23,10 @@ namespace CouchDB.Driver
                 throw new ArgumentNullException(nameof(connectionString));
 
             ConnectionString = connectionString;
-            flurlClient = new FlurlClient(connectionString);
-            flurlClient.Configure(s => s.BeforeCall = OnBeforeLogin);
-            settings = new CouchSettings();
-            configFunc?.Invoke(settings);
+            _flurlClient = new FlurlClient(connectionString);
+            _flurlClient.Configure(s => s.BeforeCall = OnBeforeLogin);
+            _settings = new CouchSettings();
+            configFunc?.Invoke(_settings);
         }
         public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
         {
@@ -39,24 +39,24 @@ namespace CouchDB.Driver
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
 
-            return new CouchDatabase<TSource>(flurlClient, ConnectionString, db);
+            return new CouchDatabase<TSource>(_flurlClient, ConnectionString, db);
         }
         public void Dispose()
         {
-            flurlClient.Dispose();
+            _flurlClient.Dispose();
         }
 
         private async Task Login()
         {
-            var response = await flurlClient.Request(ConnectionString)
+            var response = await _flurlClient.Request(ConnectionString)
                 .AppendPathSegment("_session")
                 .PostJsonAsync(new
                 {
-                    name = settings.Username,
-                    password = settings.Password
+                    name = _settings.Username,
+                    password = _settings.Password
                 });
 
-            cookieCreationDate = DateTime.Now;
+            _cookieCreationDate = DateTime.Now;
 
             if (response.Headers.TryGetValues("Set-Cookie", out var values))
             {
@@ -65,7 +65,7 @@ namespace CouchDB.Driver
                 var match = regex.Match(dirtyToken);
                 if (match.Success)
                 {
-                    cookieToken = match.Groups[1].Value;
+                    _cookieToken = match.Groups[1].Value;
                     return;
                 }
             }
@@ -79,25 +79,25 @@ namespace CouchDB.Driver
             {
                 return;
             }
-            switch (settings.AuthenticationType)
+            switch (_settings.AuthenticationType)
             {
                 case AuthenticationType.None:
                     break;
                 case AuthenticationType.Basic:
-                    call.FlurlRequest.WithBasicAuth(settings.Username, settings.Password);
+                    call.FlurlRequest.WithBasicAuth(_settings.Username, _settings.Password);
                     break;
                 case AuthenticationType.Cookie:
                     var isTokenExpired = 
-                        !cookieCreationDate.HasValue || 
-                        cookieCreationDate.Value.AddMinutes(settings.CookiesDuration) < DateTime.Now;
+                        !_cookieCreationDate.HasValue || 
+                        _cookieCreationDate.Value.AddMinutes(_settings.CookiesDuration) < DateTime.Now;
                     if (isTokenExpired)
                     {
                         Login().Wait();
                     }
-                    call.FlurlRequest.EnableCookies().WithCookie("AuthSession", cookieToken);
+                    call.FlurlRequest.EnableCookies().WithCookie("AuthSession", _cookieToken);
                     break;
                 default:
-                    throw new NotSupportedException($"Authentication of type {settings.AuthenticationType} is not supported.");
+                    throw new NotSupportedException($"Authentication of type {_settings.AuthenticationType} is not supported.");
             }
         }
     }

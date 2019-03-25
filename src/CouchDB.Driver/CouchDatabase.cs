@@ -12,22 +12,22 @@ namespace CouchDB.Driver
 {
     public class CouchDatabase<TSource> where TSource : CouchEntity
     {
-        private readonly QueryProvider queryProvider;
-        private readonly FlurlClient flurlClient;
-        private readonly string connectionString;
-        private readonly string db;
+        private readonly QueryProvider _queryProvider;
+        private readonly FlurlClient _flurlClient;
+        private readonly string _connectionString;
+        private readonly string _db;
 
         internal CouchDatabase(FlurlClient flurlClient, string connectionString, string db)
         {
-            this.flurlClient = flurlClient;
-            this.connectionString = connectionString;
-            this.db = db;
-            this.queryProvider = new CouchQueryProvider(flurlClient, connectionString, db);
+            _flurlClient = flurlClient;
+            _connectionString = connectionString;
+            _db = db;
+            _queryProvider = new CouchQueryProvider(flurlClient, connectionString, db);
         }
 
         public IQueryable<TSource> AsQueryable()
         {
-            return new CouchQuery<TSource>(queryProvider);
+            return new CouchQuery<TSource>(_queryProvider);
         }
         
         #region Query
@@ -116,7 +116,7 @@ namespace CouchDB.Driver
 
         private IFlurlRequest NewRequest()
         {
-            return flurlClient.Request(connectionString).AppendPathSegment(db);
+            return _flurlClient.Request(_connectionString).AppendPathSegment(_db);
         }
 
         #endregion

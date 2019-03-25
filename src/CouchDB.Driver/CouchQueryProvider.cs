@@ -9,25 +9,25 @@ namespace CouchDB.Driver
 {
     internal class CouchQueryProvider : QueryProvider
     {
-        private readonly FlurlClient flurlClient;
-        private readonly string connectionString;
-        private readonly string db;
+        private readonly FlurlClient _flurlClient;
+        private readonly string _connectionString;
+        private readonly string _db;
 
         public CouchQueryProvider(FlurlClient flurlClient, string connectionString, string db)
         {
-            this.flurlClient = flurlClient;
-            this.connectionString = connectionString;
-            this.db = db;
+            _flurlClient = flurlClient;
+            _connectionString = connectionString;
+            _db = db;
         }
 
         public override string GetQueryText(Expression expression)
         {
-            return this.Translate(expression);
+            return Translate(expression);
         }
 
         public override object Execute(Expression e)
         {
-            var request = this.Translate(e);
+            var request = Translate(e);
             var elementType = TypeSystem.GetElementType(e.Type);
             MethodInfo method = typeof(CouchQueryProvider).GetMethod("SendRequest");
             MethodInfo generic = method.MakeGenericMethod(elementType);
@@ -42,9 +42,9 @@ namespace CouchDB.Driver
 
         public IEnumerable<T> SendRequest<T>(string body)
         {
-            var result = flurlClient
-                .Request(connectionString)
-                .AppendPathSegments(db, "_find")
+            var result = _flurlClient
+                .Request(_connectionString)
+                .AppendPathSegments(_db, "_find")
                 .WithHeader("Content-Type", "application/json")
                 .PostStringAsync(body).ReceiveJson<FindResult<T>>()
                 .SendRequest();

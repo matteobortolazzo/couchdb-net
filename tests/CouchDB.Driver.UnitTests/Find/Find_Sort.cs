@@ -9,36 +9,36 @@ namespace CouchDB.Driver.UnitTests.Find
 {
     public class Find_Sort
     {
-        private readonly CouchDatabase<Rebel> rebels;
+        private readonly CouchDatabase<Rebel> _rebels;
 
         public Find_Sort()
         {
             var client = new CouchClient("http://localhost");
-            rebels = client.GetDatabase<Rebel>();
+            _rebels = client.GetDatabase<Rebel>();
         }
 
         [Fact]
         public void SortAsc()
         {
-            var json = rebels.OrderBy(c => c.Name).ToString();
+            var json = _rebels.OrderBy(c => c.Name).ToString();
             Assert.Equal(@"{""sort"":[""name""],""selector"":{}}", json);
         }
         [Fact]
         public void SortDesc()
         {
-            var json = rebels.OrderByDescending(c => c.Name).ToString();
+            var json = _rebels.OrderByDescending(c => c.Name).ToString();
             Assert.Equal(@"{""sort"":[{""name"":""desc""}],""selector"":{}}", json);
         }
         [Fact]
         public void SortAscMultiple()
         {
-            var json = rebels.OrderBy(c => c.Name).ThenBy(c => c.Age).ToString();
+            var json = _rebels.OrderBy(c => c.Name).ThenBy(c => c.Age).ToString();
             Assert.Equal(@"{""sort"":[""name"",""age""],""selector"":{}}", json);
         }
         [Fact]
         public void SortDescMultiple()
         {
-            var json = rebels.OrderByDescending(c => c.Name).ThenByDescending(c => c.Age).ToString();
+            var json = _rebels.OrderByDescending(c => c.Name).ThenByDescending(c => c.Age).ToString();
             Assert.Equal(@"{""sort"":[{""name"":""desc""},{""age"":""desc""}],""selector"":{}}", json);
         }
         [Fact]
@@ -46,7 +46,7 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var exception = Record.Exception(() =>
             {
-                rebels.OrderBy(c => c.Name).ThenByDescending(c => c.Age).ToString();
+                _rebels.OrderBy(c => c.Name).ThenByDescending(c => c.Age).ToString();
             });
             Assert.NotNull(exception);
             Assert.IsType<InvalidOperationException>(exception);
@@ -56,7 +56,7 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var exception = Record.Exception(() =>
             {
-                rebels.OrderByDescending(c => c.Name).ThenBy(c => c.Age).ToString();
+                _rebels.OrderByDescending(c => c.Name).ThenBy(c => c.Age).ToString();
             });
             Assert.NotNull(exception);
             Assert.IsType<InvalidOperationException>(exception);

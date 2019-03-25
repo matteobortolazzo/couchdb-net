@@ -18,38 +18,38 @@ namespace CouchDB.Driver
             }
             else if (c.Value == null)
             {
-                sb.Append("null");
+                _sb.Append("null");
             }
             else
             {
                 switch (Type.GetTypeCode(c.Value.GetType()))
                 {
                     case TypeCode.Boolean:
-                        sb.Append(((bool)c.Value) ? "true" : "false");
+                        _sb.Append(((bool)c.Value) ? "true" : "false");
                         break;
                     case TypeCode.String:
-                        sb.Append($"\"{c.Value}\"");
+                        _sb.Append($"\"{c.Value}\"");
                         break;
                     case TypeCode.Object:
                         if (c.Value is IList<bool>)
-                            this.VisitIEnumerable(c.Value as IList<bool>);
+                            VisitIEnumerable(c.Value as IList<bool>);
                         else if (c.Value is IList<int>)
-                            this.VisitIEnumerable(c.Value as IList<int>);
+                            VisitIEnumerable(c.Value as IList<int>);
                         else if (c.Value is IList<long>)
-                            this.VisitIEnumerable(c.Value as IList<long>);
+                            VisitIEnumerable(c.Value as IList<long>);
                         else if(c.Value is IList<decimal>)
-                            this.VisitIEnumerable(c.Value as IList<decimal>);
+                            VisitIEnumerable(c.Value as IList<decimal>);
                         else if (c.Value is IList<float>)
-                            this.VisitIEnumerable(c.Value as IList<float>);
+                            VisitIEnumerable(c.Value as IList<float>);
                         else if (c.Value is IList<double>)
-                            this.VisitIEnumerable(c.Value as IList<double>);
+                            VisitIEnumerable(c.Value as IList<double>);
                         else if(c.Value is IList<string>)
-                            this.VisitIEnumerable(c.Value as IList<string>);
+                            VisitIEnumerable(c.Value as IList<string>);
                         else
                             throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", c.Value));
                         break;
                     default:
-                        sb.Append(c.Value);
+                        _sb.Append(c.Value);
                         break;
                 }
             }
@@ -63,13 +63,13 @@ namespace CouchDB.Driver
                 return;
             if (list.Count == 1)
             {
-                sb.Append(VisitConst(list[0]));
+                _sb.Append(VisitConst(list[0]));
             }
             else
             {
-                sb.Append("[");
-                sb.Append(string.Join(",", list.Select(e => VisitConst(e))));
-                sb.Append("]");
+                _sb.Append("[");
+                _sb.Append(string.Join(",", list.Select(e => VisitConst(e))));
+                _sb.Append("]");
             }
 
             string VisitConst(object o)
