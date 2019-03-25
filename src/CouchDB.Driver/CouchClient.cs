@@ -2,6 +2,7 @@
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace CouchDB.Driver
         private readonly FlurlClient _flurlClient;
         public string ConnectionString { get; private set; }
 
-        public CouchClient(string connectionString, Action<CouchSettings> configFunc = null)
+        public CouchClient(string connectionString, Action<CouchSettings> configFunc = null, Action<ClientFlurlHttpSettings> flurlConfigFunc = null)
         {
             if (string.IsNullOrEmpty(connectionString))
                 throw new ArgumentNullException(nameof(connectionString));
@@ -30,12 +31,14 @@ namespace CouchDB.Driver
             ConnectionString = connectionString;
             _flurlClient = new FlurlClient(connectionString);
 
-            _flurlClient.Configure(s => {
+            _flurlClient.Configure(s =>
+            {
                 s.BeforeCall = OnBeforeLogin;
                 if (_settings.ServerCertificateCustomValidationCallback != null)
                 {
                     s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
                 }
+                flurlConfigFunc?.Invoke(s);
             });
         }
 
@@ -60,7 +63,7 @@ namespace CouchDB.Driver
                 .AppendPathSegment("_all_dbs")
                 .GetJsonAsync<IEnumerable<string>>()
                 .SendRequestAsync();
-        }        
+        }
         public async Task AddDatabaseAsync(string db)
         {
             if (db == null)
@@ -134,8 +137,8 @@ namespace CouchDB.Driver
                     call.FlurlRequest.WithBasicAuth(_settings.Username, _settings.Password);
                     break;
                 case AuthenticationType.Cookie:
-                    var isTokenExpired = 
-                        !_cookieCreationDate.HasValue || 
+                    var isTokenExpired =
+                        !_cookieCreationDate.HasValue ||
                         _cookieCreationDate.Value.AddMinutes(_settings.CookiesDuration) < DateTime.Now;
                     if (isTokenExpired)
                     {
