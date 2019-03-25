@@ -1,4 +1,5 @@
-﻿using CouchDB.Driver.Extensions;
+﻿using CouchDB.Driver.Exceptions;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
@@ -91,13 +92,64 @@ namespace CouchDB.Driver
 
         #endregion
 
-        #region Single
+        #region Find
 
         public async Task<TSource> FindAsync(string docId)
         {
             return await NewRequest()
                 .AppendPathSegment(docId)
                 .GetJsonAsync<TSource>()
+                .SendRequestAsync();
+        }
+
+        #endregion
+
+        #region Writing
+
+        public async Task<TSource> AddAsync(TSource item)
+        {
+            var response = await NewRequest()
+                .PostJsonAsync(item)
+                .ReceiveJson<DocumentSaveResponse>()
+                .SendRequestAsync();
+
+            return (TSource)item.ProcessSaveResponse(response);
+        }
+        public async Task<IEnumerable<TSource>> AddRangeAsync(IEnumerable<TSource> documents)
+        {
+            var response = await NewRequest()
+                .AppendPathSegment("_bulk_docs")
+                .PostJsonAsync(new { docs = documents })
+                .ReceiveJson<DocumentSaveResponse[]>()
+                .SendRequestAsync();
+
+            var zipped = documents.Zip(response, (doc, saveResponse) => (Document: doc, SaveResponse: saveResponse));
+            foreach (var (document, saveResponse) in zipped)
+                document.ProcessSaveResponse(saveResponse);
+            return documents;
+        }
+
+        public async Task<TSource> UpdateAsync(TSource item)
+        {
+            var response = await NewRequest()
+                .AppendPathSegment(item.Id)
+                .PutJsonAsync(item)
+                .ReceiveJson<DocumentSaveResponse>()
+                .SendRequestAsync();
+
+            return (TSource)item.ProcessSaveResponse(response);
+        }
+        public Task<IEnumerable<TSource>> UpdateRangeAsync(IEnumerable<TSource> documents)
+        {
+            return AddRangeAsync(documents);
+        }
+
+        public async Task RemoveAsync(TSource document)
+        {
+            await NewRequest()
+                .AppendPathSegment(document.Id)
+                .SetQueryParam("rev", document.Rev)
+                .DeleteAsync()
                 .SendRequestAsync();
         }
 

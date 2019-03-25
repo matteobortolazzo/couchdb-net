@@ -1,4 +1,5 @@
 ﻿using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
@@ -24,7 +25,10 @@ namespace CouchDB.Driver
 
             ConnectionString = connectionString;
             _flurlClient = new FlurlClient(connectionString);
-            _flurlClient.Configure(s => s.BeforeCall = OnBeforeLogin);
+            _flurlClient.Configure(s => {
+                s.BeforeCall = OnBeforeLogin;
+                s.HttpClientFactory = new CertClientFactory();
+            });
             _settings = new CouchSettings();
             configFunc?.Invoke(_settings);
         }
