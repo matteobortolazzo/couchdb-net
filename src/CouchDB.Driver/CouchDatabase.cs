@@ -1,6 +1,7 @@
 ﻿using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Type;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
@@ -150,6 +151,24 @@ namespace CouchDB.Driver
                 .AppendPathSegment(document.Id)
                 .SetQueryParam("rev", document.Rev)
                 .DeleteAsync()
+                .SendRequestAsync();
+        }
+
+        #endregion
+                
+        #region Utils
+
+        public async Task CompactAsync()
+        {
+            await NewRequest()
+                .AppendPathSegment("_compact")
+                .PostJsonAsync(null)
+                .SendRequestAsync();
+        }
+        public async Task<CouchDatabaseInfo> GetInfoAsync()
+        {
+            return await NewRequest()
+                .GetJsonAsync<CouchDatabaseInfo>()
                 .SendRequestAsync();
         }
 
