@@ -79,6 +79,13 @@ namespace CouchDB.Driver
                 .DeleteAsync()
                 .SendRequestAsync();
         }
+        public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync()
+        {
+            return await NewRequest()
+                .AppendPathSegment("_active_tasks")
+                .GetJsonAsync<IEnumerable<CouchActiveTask>>()
+                .SendRequestAsync();
+        }
 
         #endregion
 
