@@ -161,6 +161,7 @@ namespace CouchDB.Driver
             }
 
             InspectOrdering(m);
+            sb.Length--;
             sb.Append("],");
             return m;
         }
@@ -191,6 +192,7 @@ namespace CouchDB.Driver
                 this.Visit(a);
                 sb.Append(",");
             }
+            sb.Length--;
             sb.Append("],");
 
             return m;

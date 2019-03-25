@@ -43,11 +43,11 @@ namespace CouchDB.Driver
         {
             return AsQueryable().Where(predicate);
         }
-        public IQueryable<TSource> OrderBy<TKey>(Expression<Func<TSource, TKey>> keySelector)
+        public IOrderedQueryable<TSource> OrderBy<TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
             return AsQueryable().OrderBy(keySelector);
         }
-        public IQueryable<TSource> OrderByDescending<TKey>(Expression<Func<TSource, TKey>> keySelector)
+        public IOrderedQueryable<TSource> OrderByDescending<TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
             return AsQueryable().OrderByDescending(keySelector);
         }
