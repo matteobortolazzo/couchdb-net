@@ -13,7 +13,7 @@ namespace CouchDB.Driver.UnitTests.Find
 
         public Find_Sort()
         {
-            var client = new CouchClient("http://localhost");
+            var client = new CouchClient("http://localhost:5984");
             _rebels = client.GetDatabase<Rebel>();
         }
 

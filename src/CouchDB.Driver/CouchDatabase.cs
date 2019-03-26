@@ -95,6 +95,7 @@ namespace CouchDB.Driver
         public async Task<TSource> FindAsync(string docId)
         {
             return await NewRequest()
+                .AppendPathSegment("doc")
                 .AppendPathSegment(docId)
                 .GetJsonAsync<TSource>()
                 .SendRequestAsync();
@@ -112,12 +113,35 @@ namespace CouchDB.Driver
                 .SendRequestAsync();
 
             return (TSource)item.ProcessSaveResponse(response);
+        }       
+        public async Task<TSource> AddOrUpdateAsync(TSource item)
+        {
+            if (string.IsNullOrEmpty(item.Id))
+                throw new InvalidOperationException("Cannot add or update an entity without an ID.");
+
+            var response = await NewRequest()
+                .AppendPathSegment("doc")
+                .AppendPathSegment(item.Id)
+                .PutJsonAsync(item)
+                .ReceiveJson<DocumentSaveResponse>()
+                .SendRequestAsync();
+
+            return (TSource)item.ProcessSaveResponse(response);
         }
-        public async Task<IEnumerable<TSource>> AddRangeAsync(IEnumerable<TSource> documents)
+        public async Task RemoveAsync(TSource document)
+        {
+            await NewRequest()
+                .AppendPathSegment("doc")
+                .AppendPathSegment(document.Id)
+                .SetQueryParam("rev", document.Rev)
+                .DeleteAsync()
+                .SendRequestAsync();
+        }
+        public async Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IEnumerable<TSource> documents)
         {
             var response = await NewRequest()
                 .AppendPathSegment("_bulk_docs")
-                .PostJsonAsync(new { docs = documents })
+                .PostJsonAsync(new { Docs = documents })
                 .ReceiveJson<DocumentSaveResponse[]>()
                 .SendRequestAsync();
 
@@ -127,32 +151,8 @@ namespace CouchDB.Driver
             return documents;
         }
 
-        public async Task<TSource> UpdateAsync(TSource item)
-        {
-            var response = await NewRequest()
-                .AppendPathSegment(item.Id)
-                .PutJsonAsync(item)
-                .ReceiveJson<DocumentSaveResponse>()
-                .SendRequestAsync();
-
-            return (TSource)item.ProcessSaveResponse(response);
-        }
-        public Task<IEnumerable<TSource>> UpdateRangeAsync(IEnumerable<TSource> documents)
-        {
-            return AddRangeAsync(documents);
-        }
-
-        public async Task RemoveAsync(TSource document)
-        {
-            await NewRequest()
-                .AppendPathSegment(document.Id)
-                .SetQueryParam("rev", document.Rev)
-                .DeleteAsync()
-                .SendRequestAsync();
-        }
-
         #endregion
-                
+
         #region Utils
 
         public async Task CompactAsync()

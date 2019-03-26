@@ -51,13 +51,17 @@ namespace CouchDB.Driver
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
-
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, db);
         }
         public async Task<CouchDatabase<TSource>> AddDatabaseAsync<TSource>(string db) where TSource : CouchEntity
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
+
+            if (!new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(db))
+            {
+                throw new ArgumentException(nameof(db), $"Name {db} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db");
+            }
 
             await NewRequest()
                 .AppendPathSegment(db)

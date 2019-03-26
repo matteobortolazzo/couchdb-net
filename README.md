@@ -185,12 +185,11 @@ var tasks = await client.GetActiveTasksAsync();
 ```csharp
 // CRUD
 await rebels.AddAsync(rebel);
-await rebels.UpdateAsync(rebel);
+await rebels.AddOrUpdateAsync(rebel);
 await rebels.RemoveAsync(rebel);
 var house = await housesDb.FindAsync(id);
 // Bulk
-await rebels.AddRangeAsync(moreRebels);
-await rebels.UpdateRangeAsync(moreRebels);
+await rebels.AddOrUpdateRangeAsync(moreRebels);
 // Utils
 await db.CompactAsync();
 var info = await db.GetInfoAsync();
