@@ -10,8 +10,10 @@ namespace CouchDB.Driver.UnitTests
         [Fact]
         public void Creation_Valid()
         {
-            var client = new CouchClient("http://localhost:5984");
-            Assert.Equal("http://localhost:5984", client.ConnectionString);
+            using (var client = new CouchClient("http://localhost:5984"))
+            {
+                Assert.Equal("http://localhost:5984", client.ConnectionString);
+            }
         }
         [Fact]
         public void Creation_NullConnectionString()
@@ -26,18 +28,20 @@ namespace CouchDB.Driver.UnitTests
         [Fact]
         public void Creation_BasicAuthentication()
         {
-            var client = new CouchClient(
-                "http://localhost:5984", 
-                s => s.ConfigureBasicAuthentication("root", "relax"));
-            Assert.Equal("http://localhost:5984", client.ConnectionString);
+            using (var client = new CouchClient("http://localhost:5984", s => 
+                s.ConfigureBasicAuthentication("root", "relax")))
+            {
+                Assert.Equal("http://localhost:5984", client.ConnectionString);
+            }
         }
         [Fact]
         public void Creation_CookieAuthentication()
         {
-            var client = new CouchClient(
-                "http://localhost:5984",
-                s => s.ConfigureCookieAuthentication("root", "relax"));
-            Assert.Equal("http://localhost:5984", client.ConnectionString);
+            using (var client = new CouchClient("http://localhost:5984", s =>
+                s.ConfigureCookieAuthentication("root", "relax")))
+            {
+                Assert.Equal("http://localhost:5984", client.ConnectionString);
+            }
         }
     }
 }

@@ -17,13 +17,15 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                var client = new CouchClient("http://localhost:5984", s => s.ConfigureBasicAuthentication("root", "relax"));
-                var rebels = client.GetDatabase<Rebel>();
-                var all = await rebels.ToListAsync();
+                using (var client = new CouchClient("http://localhost:5984", s => s.ConfigureBasicAuthentication("root", "relax")))
+                {
+                    var rebels = client.GetDatabase<Rebel>();
+                    var all = await rebels.ToListAsync();
 
-                httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels/_find")
-                    .WithVerb(HttpMethod.Post);
+                    httpTest
+                        .ShouldHaveCalled("http://localhost:5984/rebels/_find")
+                        .WithVerb(HttpMethod.Post);
+                }
             }
         }
         [Fact]
@@ -33,14 +35,16 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                var client = new CouchClient("http://localhost:5984", s => s.ConfigureBasicAuthentication("root", "relax"));
-                var rebels = client.GetDatabase<Rebel>();
-                var all = await rebels.ToListAsync();
+                using (var client = new CouchClient("http://localhost:5984", s => s.ConfigureBasicAuthentication("root", "relax")))
+                {
+                    var rebels = client.GetDatabase<Rebel>();
+                    var all = await rebels.ToListAsync();
 
-                httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels/_find")
-                    .WithVerb(HttpMethod.Post)
-                    .WithBasicAuth("root", "relax");
+                    httpTest
+                        .ShouldHaveCalled("http://localhost:5984/rebels/_find")
+                        .WithVerb(HttpMethod.Post)
+                        .WithBasicAuth("root", "relax");
+                }
             }
         }
         [Fact]
@@ -57,14 +61,16 @@ namespace CouchDB.Driver.UnitTests
                 httpTest.ResponseQueue.Enqueue(cookieResponse);
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                var client = new CouchClient("http://localhost:5984", s => s.ConfigureCookieAuthentication("root", "relax"));
-                var rebels = client.GetDatabase<Rebel>();
-                var all = await rebels.ToListAsync();
+                using (var client = new CouchClient("http://localhost:5984", s => s.ConfigureCookieAuthentication("root", "relax")))
+                {
+                    var rebels = client.GetDatabase<Rebel>();
+                    var all = await rebels.ToListAsync();
 
-                var authCookie = httpTest.CallLog
-                    .Single(c => c.Request.RequestUri.ToString().Contains("_session"))
-                    .FlurlRequest.Cookies.Single(c => c.Key == "AuthSession").Value;
-                Assert.Equal(token, authCookie.Value);
+                    var authCookie = httpTest.CallLog
+                        .Single(c => c.Request.RequestUri.ToString().Contains("_session"))
+                        .FlurlRequest.Cookies.Single(c => c.Key == "AuthSession").Value;
+                    Assert.Equal(token, authCookie.Value);
+                }
             }
         }
     }

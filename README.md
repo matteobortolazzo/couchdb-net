@@ -203,32 +203,6 @@ var allHouses = await housesDb.Documents.ToListAsync();
 var bobbysOnes = await housesDb.Documents.Where(h => h.Owner.Name == "Bobby").ToListAsync();
 ```
 
-## Indexes (WIP)
-
-C# example:
-```csharp
-await housesDb.NewIndexAsync(s => 
-        s.Descending(h => h.Address)
-            .ThenDescending(h => h.ConstructionDate), 
-        name: "useless_index",
-        designDocumentName: "my_design"
-    );
-```
-To JSON:
-```json
-{
-    "index":{
-        "fields":[
-            {"address":"desc"},
-            {"construction_date":"desc"}
-        ]
-    },
-    "name":"useless_index",
-    "ddoc":"my_design",
-    "type":"json"
-}
-```
-
 ## Contributors
 
-[Ben Origas](https://github.com/borigas) for features like SSL certs and multi queryable, plus bug fixes.
+Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and others..
