@@ -169,12 +169,12 @@ If the Where method is not called in the expression, it will at an empty selecto
 ```csharp
 // CRUD from class name (rebels)
 var rebels = client.GetDatabase<Rebel>();
-var rebels = await client.AddDatabaseAsync<Rebel>();
-await client.AddDatabaseAsync<Rebel>();
+var rebels = await client.CreateDatabaseAsync<Rebel>();
+await client.DeleteDatabaseAsync<Rebel>();
 // CRUD specific name
 var rebels = client.GetDatabase<Rebel>("naboo_rebels");
-var rebels = await client.AddDatabaseAsync<Rebel>("naboo_rebels");
-await client.RemoveDatabaseAsync<Rebel>("naboo_rebels");
+var rebels = await client.CreateDatabaseAsync<Rebel>("naboo_rebels");
+await client.DeleteDatabaseAsync<Rebel>("naboo_rebels");
 // Utils
 var databases = await client.GetDatabasesNamesAsync();
 var tasks = await client.GetActiveTasksAsync();
@@ -184,12 +184,12 @@ var tasks = await client.GetActiveTasksAsync();
 
 ```csharp
 // CRUD
-await rebels.AddAsync(rebel);
-await rebels.AddOrUpdateAsync(rebel);
-await rebels.RemoveAsync(rebel);
+await rebels.CreateAsync(rebel);
+await rebels.CreateOrUpdateAsync(rebel);
+await rebels.DeleteAsync(rebel);
 var rebel = await rebels.FindAsync(id);
 // Bulk
-await rebels.AddOrUpdateRangeAsync(moreRebels);
+await rebels.CreateOrUpdateRangeAsync(moreRebels);
 // Utils
 await rebels.CompactAsync();
 var info = await rebels.GetInfoAsync();

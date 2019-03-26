@@ -18,14 +18,14 @@ namespace CouchDB.Driver.UnitTests
             _client = new CouchClient("http://localhost:5984");
         }
 
-        #region Add
+        #region Create
 
         [Fact]
-        public async Task AddDatabase_Default()
+        public async Task CreateDatabase_Default()
         {
             using (var httpTest = new HttpTest())
             {
-                var rebels = await _client.AddDatabaseAsync<Rebel>();
+                var rebels = await _client.CreateDatabaseAsync<Rebel>();
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/rebels")
                     .WithVerb(HttpMethod.Put);
@@ -33,11 +33,11 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task AddDatabase_CustomName()
+        public async Task CreateDatabase_CustomName()
         {
             using (var httpTest = new HttpTest())
             {
-                var rebels = await _client.AddDatabaseAsync<Rebel>("some_rebels");
+                var rebels = await _client.CreateDatabase<Rebel>("some_rebels");
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/some_rebels")
                     .WithVerb(HttpMethod.Put);
@@ -54,7 +54,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                await _client.RemoveDatabaseAsync<Rebel>();
+                await _client.DeleteDatabaseAsync<Rebel>();
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/rebels")
                     .WithVerb(HttpMethod.Delete);
@@ -65,7 +65,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                await _client.RemoveDatabaseAsync<Rebel>("some_rebels");
+                await _client.DeleteDatabaseAsync<Rebel>("some_rebels");
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/some_rebels")
                     .WithVerb(HttpMethod.Delete);

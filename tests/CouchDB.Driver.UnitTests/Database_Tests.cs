@@ -33,42 +33,42 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task Add()
+        public async Task Create()
         {
             using (var httpTest = new HttpTest())
             {
                 httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
                 var r = new Rebel { Name = "Luke" };
-                var newR = await _rebels.AddAsync(r);
+                var newR = await _rebels.CreateAsync(r);
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/rebels")
                     .WithVerb(HttpMethod.Post);
             }
         }
         [Fact]
-        public async Task AddOrUpdate()
+        public async Task CreateOrUpdate()
         {
             using (var httpTest = new HttpTest())
             {
                 httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
                 var r = new Rebel { Name = "Luke", Id = "1" };
-                var newR = await _rebels.AddOrUpdateAsync(r);
+                var newR = await _rebels.CreateOrUpdateAsync(r);
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/rebels/doc/1")
                     .WithVerb(HttpMethod.Put);
             }
         }
         [Fact]
-        public async Task AddOrUpdate_WithoutId()
+        public async Task CreateOrUpdate_WithoutId()
         {
             using (var httpTest = new HttpTest())
             {
                 var exception = await Record.ExceptionAsync(async () =>
                 {
                     var r = new Rebel { Name = "Luke" };
-                    await _rebels.AddOrUpdateAsync(r);
+                    await _rebels.CreateOrUpdateAsync(r);
                 });
                 Assert.NotNull(exception);
                 Assert.IsType<InvalidOperationException>(exception);
@@ -80,7 +80,7 @@ namespace CouchDB.Driver.UnitTests
             using (var httpTest = new HttpTest())
             {
                 var r = new Rebel { Name = "Luke", Id = "1", Rev = "1" };
-                await _rebels.RemoveAsync(r);
+                await _rebels.DeleteAsync(r);
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/rebels/doc/1?rev=1")
                     .WithVerb(HttpMethod.Delete);
@@ -105,7 +105,7 @@ namespace CouchDB.Driver.UnitTests
                     new Rebel { Name = "Luke", Id = "1" },
                     new Rebel { Name = "Leia", Id = "2" }
                 };
-                var newR = await _rebels.AddOrUpdateRangeAsync(moreRebels);
+                var newR = await _rebels.CreateOrUpdateRangeAsync(moreRebels);
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/rebels/_bulk_docs")
                     .WithVerb(HttpMethod.Post);

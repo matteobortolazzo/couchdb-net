@@ -105,16 +105,15 @@ namespace CouchDB.Driver
 
         #region Writing
 
-        public async Task<TSource> AddAsync(TSource item)
+        public async Task<TSource> CreateAsync(TSource item)
         {
             var response = await NewRequest()
                 .PostJsonAsync(item)
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync();
-
             return (TSource)item.ProcessSaveResponse(response);
-        }       
-        public async Task<TSource> AddOrUpdateAsync(TSource item)
+        }
+        public async Task<TSource> CreateOrUpdateAsync(TSource item)
         {
             if (string.IsNullOrEmpty(item.Id))
                 throw new InvalidOperationException("Cannot add or update an entity without an ID.");
@@ -128,7 +127,7 @@ namespace CouchDB.Driver
 
             return (TSource)item.ProcessSaveResponse(response);
         }
-        public async Task RemoveAsync(TSource document)
+        public async Task DeleteAsync(TSource document)
         {
             await NewRequest()
                 .AppendPathSegment("doc")
@@ -137,7 +136,7 @@ namespace CouchDB.Driver
                 .DeleteAsync()
                 .SendRequestAsync();
         }
-        public async Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IEnumerable<TSource> documents)
+        public async Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IEnumerable<TSource> documents)
         {
             var response = await NewRequest()
                 .AppendPathSegment("_bulk_docs")

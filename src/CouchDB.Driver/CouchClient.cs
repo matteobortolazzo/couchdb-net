@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace CouchDB.Driver
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public partial class CouchClient : IDisposable
     {
         private DateTime? _cookieCreationDate;
@@ -52,7 +55,7 @@ namespace CouchDB.Driver
                 throw new ArgumentNullException(nameof(db));
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, db);
         }
-        public async Task<CouchDatabase<TSource>> AddDatabaseAsync<TSource>(string db) where TSource : CouchEntity
+        public async Task<CouchDatabase<TSource>> CreateDatabase<TSource>(string db) where TSource : CouchEntity
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
@@ -69,7 +72,7 @@ namespace CouchDB.Driver
 
             return GetDatabase<TSource>(db);
         }
-        public async Task RemoveDatabaseAsync<TSource>(string db) where TSource : CouchEntity
+        public async Task DeleteDatabaseAsync<TSource>(string db) where TSource : CouchEntity
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
@@ -88,13 +91,13 @@ namespace CouchDB.Driver
         {            
             return GetDatabase<TSource>(GetClassName<TSource>());
         }
-        public Task<CouchDatabase<TSource>> AddDatabaseAsync<TSource>() where TSource : CouchEntity
+        public Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchEntity
         {
-            return AddDatabaseAsync<TSource>(GetClassName<TSource>());
+            return CreateDatabase<TSource>(GetClassName<TSource>());
         }
-        public Task RemoveDatabaseAsync<TSource>() where TSource : CouchEntity
+        public Task DeleteDatabaseAsync<TSource>() where TSource : CouchEntity
         {
-            return RemoveDatabaseAsync<TSource>(GetClassName<TSource>());
+            return DeleteDatabaseAsync<TSource>(GetClassName<TSource>());
         }
         private string GetClassName<TSource>()
         {

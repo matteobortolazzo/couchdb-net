@@ -13,8 +13,8 @@ namespace CouchDB.Driver
     {
         protected virtual void OnBeforeCall(HttpCall call)
         {
-            // If cookie request
-            if (call.Request.RequestUri.ToString().Contains("_session") && call.Request.Method == HttpMethod.Post)
+            // If session requests no authorization needed
+            if (call.Request.RequestUri.ToString().Contains("_session"))
             {
                 return;
             }
