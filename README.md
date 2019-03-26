@@ -23,6 +23,7 @@ var json = _rebels
     .WithReadQuorum(150)
     .WithoutIndexUpdate()
     .FromStable()
+    .IncludeExecutionStats()
     .Select(r => new {
         r.Name,
         r.Age,
@@ -68,6 +69,7 @@ The produced Mango JSON:
   "bookmark": "g1AAAABweJzLY...",
   "update": false,
   "stable": true,
+  "execution_stats":true,
   "fields": [
     "name",
     "age",

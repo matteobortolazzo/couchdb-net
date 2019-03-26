@@ -109,12 +109,13 @@ namespace CouchDB.Driver.UnitTests.Find
                 .WithReadQuorum(150)
                 .WithoutIndexUpdate()
                 .FromStable()
+                .IncludeExecutionStats()
                 .Select(r => new {
                     r.Name,
                     r.Age,
                     r.Species
                 }).ToString();
-            Assert.Equal(@"{""selector"":{""$and"":[{""surname"":""Skywalker""},{""$or"":[{""battles"":{""$allMatch"":{""planet"":""Naboo""}}},{""battles"":{""$elemMatch"":{""planet"":""Death Star""}}}]}]},""sort"":[{""name"":""desc""},{""age"":""desc""}],""skip"":1,""limit"":2,""r"":2,""bookmark"":""g1AAAABweJzLY..."",""r"":150,""update"":false,""stable"":true,""fields"":[""name"",""age"",""species""]}", json);
+            Assert.Equal(@"{""selector"":{""$and"":[{""surname"":""Skywalker""},{""$or"":[{""battles"":{""$allMatch"":{""planet"":""Naboo""}}},{""battles"":{""$elemMatch"":{""planet"":""Death Star""}}}]}]},""sort"":[{""name"":""desc""},{""age"":""desc""}],""skip"":1,""limit"":2,""r"":2,""bookmark"":""g1AAAABweJzLY..."",""r"":150,""update"":false,""stable"":true,""execution_stats"":true,""fields"":[""name"",""age"",""species""]}", json);
         }
     }
 }
