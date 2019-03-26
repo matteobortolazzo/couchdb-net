@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using CouchDB.Driver.Extensions;
 
 namespace CouchDB.Driver.UnitTests
 {
@@ -84,6 +85,25 @@ namespace CouchDB.Driver.UnitTests
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/rebels/doc/1?rev=1")
                     .WithVerb(HttpMethod.Delete);
+            }
+        }
+        [Fact]
+        public async Task CouchList()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new { Docs = new string[0], Bookmark = "bookmark" });
+
+                using (var client = new CouchClient("http://localhost:5984"))
+                {
+                    var rebels = client.GetDatabase<Rebel>();
+                    var completeResult = await rebels.ToCouchListAsync();
+
+                    httpTest
+                        .ShouldHaveCalled("http://localhost:5984/rebels/_find")
+                        .WithVerb(HttpMethod.Post);
+                    Assert.Equal("bookmark", completeResult.Bookmark);
+                }
             }
         }
 

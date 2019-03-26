@@ -43,6 +43,14 @@ namespace CouchDB.Driver
         {
             return AsQueryable().ToListAsync();
         }
+        public ICouchList<TSource> ToCouchList()
+        {
+            return AsQueryable().ToCouchList();
+        }
+        public Task<ICouchList<TSource>> ToCouchListAsync()
+        {
+            return AsQueryable().ToCouchListAsync();
+        }
         public IQueryable<TSource> Where(Expression<Func<TSource, bool>> predicate)
         {
             return AsQueryable().Where(predicate);
@@ -86,6 +94,10 @@ namespace CouchDB.Driver
         public IQueryable<TSource> UseIndex(params string[] indexes)
         {
             return AsQueryable().UseIndex(indexes);
+        }
+        public IQueryable<TSource> IncludeExecutionStats()
+        {
+            return AsQueryable().IncludeExecutionStats();
         }
 
         #endregion

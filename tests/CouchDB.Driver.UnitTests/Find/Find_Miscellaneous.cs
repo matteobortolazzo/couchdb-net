@@ -84,6 +84,12 @@ namespace CouchDB.Driver.UnitTests.Find
             Assert.Equal(@"{""stable"":true,""selector"":{}}", json);
         }
         [Fact]
+        public void ExecutionStats()
+        {
+            var json = _rebels.IncludeExecutionStats().ToString();
+            Assert.Equal(@"{""execution_stats"":true,""selector"":{}}", json);
+        }
+        [Fact]
         public void Combinations()
         {
             var json = _rebels

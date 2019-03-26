@@ -148,21 +148,22 @@ If the Where method is not called in the expression, it will at an empty selecto
 
 ### IQueryable operations
 
-| Mango     | C#                                                   |
-|:----------|:-----------------------------------------------------|
-| limit     | Take(n)                                              |
-| skip      | Skip(n)                                              |
-| sort      | OrderBy(..)                                          |
-| sort      | OrderBy(..).ThenBy()                                 |
-| sort      | OrderByDescending(..)                                |
-| sort      | OrderByDescending(..).ThenByDescending()             |
-| fields    | Select(x => new { })                                 |
-| use_index | UseIndex("design_document")                          |
-| use_index | UseIndex(new [] { "design_document", "index_name" }) |
-| r         | WithReadQuorum(n)                                    |
-| bookmark  | UseBookmark(s)                                       |
-| update    | WithoutIndexUpdate()                                 |
-| stable    | FromStable()                                         |
+| Mango           | C#                                                   |
+|:----------------|:-----------------------------------------------------|
+| limit           | Take(n)                                              |
+| skip            | Skip(n)                                              |
+| sort            | OrderBy(..)                                          |
+| sort            | OrderBy(..).ThenBy()                                 |
+| sort            | OrderByDescending(..)                                |
+| sort            | OrderByDescending(..).ThenByDescending()             |
+| fields          | Select(x => new { })                                 |
+| use_index       | UseIndex("design_document")                          |
+| use_index       | UseIndex(new [] { "design_document", "index_name" }) |
+| r               | WithReadQuorum(n)                                    |
+| bookmark        | UseBookmark(s)                                       |
+| update          | WithoutIndexUpdate()                                 |
+| stable          | FromStable()                                         |
+| execution_stats | IncludeExecutionStats()                              |
 
 ## Client operations
 
@@ -262,7 +263,7 @@ public DateTime BirthDate { get; set; }
 
 ## Advanced
 
-If requests have to be updated it's possible to override OnBeforeCall.
+If requests have to be modified before each call, it's possible to override OnBeforeCall.
 ```csharp
 protected virtual void OnBeforeCall(HttpCall call)
 ```
@@ -271,6 +272,22 @@ Also, the constructor accept a ClientFlurlHttpSettings function as third paramet
 
 ```csharp
 Action<ClientFlurlHttpSettings> flurlConfigFunc
+```
+
+### Bookmark and Execution stats
+
+If bookmark and execution stats must be retrived, call *ToCouchList* or *ToCouchListAsync*.
+
+```csharp
+var allRebels = rebels.ToCouchList();
+var allRebels = await rebels.ToCouchListAsync();
+
+foreach(var r in allRebels) 
+{
+    ...
+}
+var b = allRebels.Bookmark;
+var ex = allRebels.ExecutionStats; // .IncludeExecutionStats() must be called
 ```
 
 ## Contributors

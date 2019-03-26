@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CouchDB.Driver.Types;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,17 +56,22 @@ namespace CouchDB.Driver
                
         public IEnumerator<T> GetEnumerator()
         {
-            return ((IEnumerable<T>)_provider.Execute(_expression)).GetEnumerator();
+            return ((IEnumerable<T>)_provider.Execute(_expression, false)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)_provider.Execute(_expression)).GetEnumerator();
+            return ((IEnumerable)_provider.Execute(_expression, false)).GetEnumerator();
         }
 
         public override string ToString()
         {
             return _provider.GetQueryText(_expression);
+        }
+
+        public ICouchList<T> ToCouchList()
+        {
+            return (ICouchList<T>)_provider.Execute(_expression, true);
         }
     }
 }

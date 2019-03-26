@@ -28,13 +28,14 @@ namespace CouchDB.Driver
             return Translate(expression);
         }
 
-        public override object Execute(Expression e)
+        public override object Execute(Expression e, bool completeResponse)
         {
-            var request = Translate(e);
+            var body = Translate(e);
             var elementType = TypeSystem.GetElementType(e.Type);
-            MethodInfo method = typeof(CouchQueryProvider).GetMethod("SendRequest");
+
+            MethodInfo method = typeof(CouchQueryProvider).GetMethod("GetCouchList");
             MethodInfo generic = method.MakeGenericMethod(elementType);
-            return generic.Invoke(this, new[] { request });
+            return generic.Invoke(this, new[] { body });
         }
 
         private string Translate(Expression expression)
@@ -43,7 +44,7 @@ namespace CouchDB.Driver
             return new QueryTranslator(_settings).Translate(expression);
         }
 
-        public IEnumerable<T> SendRequest<T>(string body)
+        public ICouchList<T> GetCouchList<T>(string body)
         {
             var result = _flurlClient
                 .Request(_connectionString)
@@ -51,7 +52,9 @@ namespace CouchDB.Driver
                 .WithHeader("Content-Type", "application/json")
                 .PostStringAsync(body).ReceiveJson<FindResult<T>>()
                 .SendRequest();
-            return result.Docs;
+
+            var couchList = new CouchList<T>(result.Docs, result.Bookmark, result.ExecutionStats);
+            return couchList;
         }
     }
 }

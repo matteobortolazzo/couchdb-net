@@ -56,6 +56,8 @@ namespace CouchDB.Driver
                     return VisitFromStableMethod(m);
                 else if (m.Method.Name == "UseIndex")
                     return VisitUseIndexMethod(m);
+                else if (m.Method.Name == "IncludeExecutionStats")
+                    return VisitIncludeExecutionStatsMethod(m);
             }
             else if (m.Method.DeclaringType == typeof(EnumerableExtensions))
             {
@@ -262,6 +264,13 @@ namespace CouchDB.Driver
             Visit(m.Arguments[0]);
             _sb.Append("\"use_index\":");
             Visit(m.Arguments[1]);
+            _sb.Append(",");
+            return m;
+        }
+        public Expression VisitIncludeExecutionStatsMethod(MethodCallExpression m)
+        {
+            Visit(m.Arguments[0]);
+            _sb.Append("\"execution_stats\":true");
             _sb.Append(",");
             return m;
         }

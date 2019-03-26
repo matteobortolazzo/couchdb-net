@@ -39,7 +39,8 @@ namespace CouchDB.Driver.Helpers
                     c.Method.Name != "WithoutIndexUpdate" &&
                     c.Method.Name != "UseBookmark" &&
                     c.Method.Name != "UseIndex" &&
-                    c.Method.Name != "FromStable";
+                    c.Method.Name != "FromStable" && 
+                    c.Method.Name != "IncludeExecutionStats";
             }
             return expression.NodeType != ExpressionType.Parameter;
         }
