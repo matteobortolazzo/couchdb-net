@@ -73,7 +73,7 @@ namespace CouchDB.Driver.Extensions
                     GetMethodInfo(WithReadQuorum, source, quorum),
                     new Expression[] { source.Expression, Expression.Constant(quorum) }));
         }
-        public static IQueryable<TSource> UpdateIndex<TSource>(this IQueryable<TSource> source, bool needUpdate)
+        public static IQueryable<TSource> WithoutIndexUpdate<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -81,10 +81,10 @@ namespace CouchDB.Driver.Extensions
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
                     null,
-                    GetMethodInfo(UpdateIndex, source, needUpdate),
-                    new Expression[] { source.Expression, Expression.Constant(needUpdate) }));
+                    GetMethodInfo(WithoutIndexUpdate, source),
+                    new Expression[] { source.Expression }));
         }
-        public static IQueryable<TSource> FromStable<TSource>(this IQueryable<TSource> source, bool isFromStable)
+        public static IQueryable<TSource> FromStable<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -92,8 +92,8 @@ namespace CouchDB.Driver.Extensions
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
                     null,
-                    GetMethodInfo(FromStable, source, isFromStable),
-                    new Expression[] { source.Expression, Expression.Constant(isFromStable) }));
+                    GetMethodInfo(FromStable, source),
+                    new Expression[] { source.Expression }));
         }
         public static IQueryable<TSource> UseIndex<TSource>(this IQueryable<TSource> source, params string[] indexes)
         {

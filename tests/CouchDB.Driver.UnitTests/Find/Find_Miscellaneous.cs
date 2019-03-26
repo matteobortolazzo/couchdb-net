@@ -74,13 +74,13 @@ namespace CouchDB.Driver.UnitTests.Find
         [Fact]
         public void Update()
         {
-            var json = _rebels.UpdateIndex(true).ToString();
-            Assert.Equal(@"{""update"":true,""selector"":{}}", json);
+            var json = _rebels.WithoutIndexUpdate().ToString();
+            Assert.Equal(@"{""update"":false,""selector"":{}}", json);
         }
         [Fact]
         public void Stable()
         {
-            var json = _rebels.FromStable(true).ToString();
+            var json = _rebels.FromStable().ToString();
             Assert.Equal(@"{""stable"":true,""selector"":{}}", json);
         }
         [Fact]
@@ -101,14 +101,14 @@ namespace CouchDB.Driver.UnitTests.Find
                 .WithReadQuorum(2)
                 .UseBookmark("g1AAAABweJzLY...")
                 .WithReadQuorum(150)
-                .UpdateIndex(true)
-                .FromStable(true)
+                .WithoutIndexUpdate()
+                .FromStable()
                 .Select(r => new {
                     r.Name,
                     r.Age,
                     r.Species
                 }).ToString();
-            Assert.Equal(@"{""selector"":{""$and"":[{""surname"":""Skywalker""},{""$or"":[{""battles"":{""$allMatch"":{""planet"":""Naboo""}}},{""battles"":{""$elemMatch"":{""planet"":""Death Star""}}}]}]},""sort"":[{""name"":""desc""},{""age"":""desc""}],""skip"":1,""limit"":2,""r"":2,""bookmark"":""g1AAAABweJzLY..."",""r"":150,""update"":true,""stable"":true,""fields"":[""name"",""age"",""species""]}", json);
+            Assert.Equal(@"{""selector"":{""$and"":[{""surname"":""Skywalker""},{""$or"":[{""battles"":{""$allMatch"":{""planet"":""Naboo""}}},{""battles"":{""$elemMatch"":{""planet"":""Death Star""}}}]}]},""sort"":[{""name"":""desc""},{""age"":""desc""}],""skip"":1,""limit"":2,""r"":2,""bookmark"":""g1AAAABweJzLY..."",""r"":150,""update"":false,""stable"":true,""fields"":[""name"",""age"",""species""]}", json);
         }
     }
 }

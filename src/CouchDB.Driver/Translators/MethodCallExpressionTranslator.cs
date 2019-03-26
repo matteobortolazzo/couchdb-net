@@ -50,8 +50,8 @@ namespace CouchDB.Driver
                     return VisitUseBookmarkMethod(m);
                 else if (m.Method.Name == "WithReadQuorum")
                     return VisitWithQuorumMethod(m);
-                else if (m.Method.Name == "UpdateIndex")
-                    return VisitUpdateIndexMethod(m);
+                else if (m.Method.Name == "WithoutIndexUpdate")
+                    return VisitWithoutIndexUpdateMethod(m);
                 else if (m.Method.Name == "FromStable")
                     return VisitFromStableMethod(m);
                 else if (m.Method.Name == "UseIndex")
@@ -243,19 +243,17 @@ namespace CouchDB.Driver
             _sb.Append(",");
             return m;
         }
-        private Expression VisitUpdateIndexMethod(MethodCallExpression m)
+        private Expression VisitWithoutIndexUpdateMethod(MethodCallExpression m)
         {
             Visit(m.Arguments[0]);
-            _sb.Append("\"update\":");
-            Visit(m.Arguments[1]);
+            _sb.Append("\"update\":false");
             _sb.Append(",");
             return m;
         }
         private Expression VisitFromStableMethod(MethodCallExpression m)
         {
             Visit(m.Arguments[0]);
-            _sb.Append("\"stable\":");
-            Visit(m.Arguments[1]);
+            _sb.Append("\"stable\":true");
             _sb.Append(",");
             return m;
         }

@@ -1,59 +1,78 @@
 # CouchDB.NET
-## A .NET Standard driver for CouchDB databases.
+## A .NET Standard driver for CouchDB.
 
-** **Still in development** **
-TODO: implement IQueryable!
-
-## LINQ-like queries
+## LINQ queries
 
 C# query example:
 
 ```csharp
-var houses = await housesDb.Documents
-    .Where(h => 
-        h.Owner.Name == "Bobby" && 
-        (h.Floors.All(f => f.Area < 120) || h.Floors.Any(f => f.Area > 500))
+var json = _rebels
+    .Where(r => 
+        r.Surname == "Skywalker" && 
+        (
+            r.Battles.All(b => b.Planet == "Naboo") ||
+            r.Battles.Any(b => b.Planet == "Death Star")
+        )
     )
-    .OrderByDescending(h => h.Owner.Name)
-    .ThenByDescending(h => h.ConstructionDate)
-    .Skip(0)
-    .Take(50)
-    .Select(
-        h => h.Owner.Name, 
-        h => h.Address,
-        h => h.ConstructionDate)
+    .OrderByDescending(r => r.Name)
+    .ThenByDescending(r => r.Age)
+    .Skip(1)
+    .Take(2)
+    .WithReadQuorum(2)
     .UseBookmark("g1AAAABweJzLY...")
     .WithReadQuorum(150)
-    .UpdateIndex()
+    .WithoutIndexUpdate()
     .FromStable()
-    .ToListAsync();
+    .Select(r => new {
+        r.Name,
+        r.Age,
+        r.Species
+    }).ToList();
 ```
 
 The produced Mango JSON:
 ```json
 {
-    "selector":{ 
-        "owner.name":"Bobby",
-	"$or":[
-    	    {"floors":{"$allMatch":{"area":{"$lt":120}}}},
-            {"floors":{"$elemMatch":{"area":{"$gt":500}}}}
-    	]
-    },
-    "limit":50,
-    "skip":0,
-    "sort":[
-    	{"owner.name":"desc"},
-    	{"construction_date":"desc"}
-    ],
-    "fields":[
-	    "owner.name",
-	    "address",
-	    "construction_date"
-        ],
-    "bookmark":"g1AAAABweJzLY...",
-    "r":150,
-    "update":true,
-    "stable":true
+  "selector": {
+    "$and": [
+      {
+        "surname": "Skywalker"
+      },
+      {
+        "$or": [
+          {
+            "battles": {
+              "$allMatch": {
+                "planet": "Naboo"
+              }
+            }
+          },
+          {
+            "battles": {
+              "$elemMatch": {
+                "planet": "Death Star"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "sort": [
+    { "name": "desc" },
+    { "age": "desc" }
+  ],
+  "skip": 1,
+  "limit": 2,
+  "r": 150,
+  "bookmark": "g1AAAABweJzLY...",
+  "update": false,
+  "stable": true,
+  "fields": [
+    "name",
+    "age",
+    "species"
+  ]
 }
 ``` 
 
@@ -62,21 +81,88 @@ The produced Mango JSON:
 * Install it from NuGet: [https://www.nuget.org/packages/CouchDB.NET](https://www.nuget.org/packages/CouchDB.NET)
 * Create a client:
     ```csharp
-    var client = new CouchClient("http://127.0.0.1:5984");
+   using(var client = new CouchClient("http://localhost:5984")) { }
    ```
-* If authentication needed:
+* Create an entity class:
     ```csharp
-    client.ConfigureAuthentication("myusername", "mypassword");
+    public class Rebel : CouchEntity
     ```
-* Extend **CouchEntity** in every model class:
+* Get a database reference:
     ```csharp
-    public class House : CouchEntity
+    var rebels = client.GetDatabase<Rebel>();
     ```
-* Use the **JsonProperty** attribute if you need to override default names:
+* Query the database
     ```csharp
-    [JsonProperty("construction_date")]
-    public DateTime ConstructionDate { get; set; }
+    var skywalkers = await rebels.Where(r => r.Surname == "Skywalker").ToListAsync();
     ```
+
+## Mango Queries vs LINQ
+
+The database class exposes all the implemented LINQ methods like Where and OrderBy, 
+those methods returns an IQueryable.
+
+It's possible to explicitly get the IQueryable calling the AsQueryable() method.
+
+```csharp
+var skywalkers =
+    from r in rebels.AsQueryable()
+    where r.Surname == "Skywalker"
+    select r;
+```
+
+### Selector
+
+The selector is created when the method Where (IQueryable) is called.
+If the Where method is not called in the expression, it will at an empty selector.
+
+#### Combinations
+
+| Mango      |      C#          |
+|:-----------|:-----------------|
+| $and       | &&               |
+| $or        | \|\|             |
+| $not       | !                |
+| $nor       | !( \|\| )        |
+| $all       | a.Contains(x)    |
+| $all       | a.Contains(list) |
+| $elemMatch | a.Any(condition) |
+| $allMatch  | a.All(condition) |
+
+#### Conditions
+
+| Mango          | C#                 |
+|:---------------|:-------------------|
+| $lt            | <                  |
+| $lte           | <=                 |
+| $eq (implicit) | ==                 |
+| $ne            | !=                 |
+| $gte           | >=                 |
+| $gt            | >                  |
+| $exists        | o.FieldExists()    |
+| $type          | o.IsCouchType(...) |
+| $in            | a.In(list)         |
+| $nin           | !a.In(list)        |
+| $size          | a.Count == x       |
+| $mod           | n % x = y          |
+| $regex         | s.IsMatch(rx)      |
+
+### IQueryable operations
+
+| Mango     | C#                                                   |
+|:----------|:-----------------------------------------------------|
+| limit     | Take(n)                                              |
+| skip      | Skip(n)                                              |
+| sort      | OrderBy(..)                                          |
+| sort      | OrderBy(..).ThenBy()                                 |
+| sort      | OrderByDescending(..)                                |
+| sort      | OrderByDescending(..).ThenByDescending()             |
+| fields    | Select(x => new { })                                 |
+| use_index | UseIndex("design_document")                          |
+| use_index | UseIndex(new [] { "design_document", "index_name" }) |
+| r         | WithReadQuorum(n)                                    |
+| bookmark  | UseBookmark(s)                                       |
+| update    | WithoutIndexUpdate()                                 |
+| stable    | FromStable()                                         |
 
 ## Client operations
 ```csharp

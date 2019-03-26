@@ -73,17 +73,13 @@ namespace CouchDB.Driver
         {
             return AsQueryable().WithReadQuorum(quorum);
         }
-        public IQueryable<TSource> UpdateIndex(bool needUpdate)
+        public IQueryable<TSource> WithoutIndexUpdate()
         {
-            return AsQueryable().UpdateIndex(needUpdate);
+            return AsQueryable().WithoutIndexUpdate();
         }
-        public IQueryable<TSource> FromStable(bool isFromStable)
+        public IQueryable<TSource> FromStable()
         {
-            return AsQueryable().FromStable(isFromStable);
-        }
-        public IQueryable<TSource> UseBookmark(bool isFromStable)
-        {
-            return AsQueryable().FromStable(isFromStable);
+            return AsQueryable().FromStable();
         }
         public IQueryable<TSource> UseIndex(params string[] indexes)
         {

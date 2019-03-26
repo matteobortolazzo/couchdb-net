@@ -36,7 +36,7 @@ namespace CouchDB.Driver.Helpers
                     c.Method.Name != "Skip" &&
                     c.Method.Name != "Take" &&
                     c.Method.Name != "WithReadQuorum" &&
-                    c.Method.Name != "UpdateIndex" &&
+                    c.Method.Name != "WithoutIndexUpdate" &&
                     c.Method.Name != "UseBookmark" &&
                     c.Method.Name != "UseIndex" &&
                     c.Method.Name != "FromStable";
