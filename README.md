@@ -165,42 +165,35 @@ If the Where method is not called in the expression, it will at an empty selecto
 | stable    | FromStable()                                         |
 
 ## Client operations
+
 ```csharp
-var allDbs = await client.GetDatabasesNamesAsync();
+// CRUD from class name (rebels)
+var rebels = client.GetDatabase<Rebel>();
+var rebels = await client.AddDatabaseAsync<Rebel>();
+await client.AddDatabaseAsync<Rebel>();
+// CRUD specific name
+var rebels = client.GetDatabase<Rebel>("naboo_rebels");
+var rebels = await client.AddDatabaseAsync<Rebel>("naboo_rebels");
+await client.RemoveDatabaseAsync<Rebel>("naboo_rebels");
+// Utils
+var databases = await client.GetDatabasesNamesAsync();
 var tasks = await client.GetActiveTasksAsync();
-// CRUD
-var db = client.GetDatabase<House>("dbName");
-await client.AddDatabaseAsync("dbName");
-await client.RemoveDatabaseAsync("dbName");
 ```
 
 ## Database operations
-```csharp
-await db.CompactAsync();
-await housesDb.NewIndexAsync(...) // Late in the README
-var info = await db.GetInfoAsync();
-```
 
-## Documents operations
 ```csharp
 // CRUD
-await housesDb.Documents.AddAsync(house);
-await housesDb.Documents.UpdateAsync(house);
-await housesDb.Documents.RemoveAsync(house);
-var house = await housesDb.Documents.FindAsync(houseId);
+await rebels.AddAsync(rebel);
+await rebels.UpdateAsync(rebel);
+await rebels.RemoveAsync(rebel);
+var house = await housesDb.FindAsync(id);
 // Bulk
-await housesDb.Documents.AddRangeAsync(houses);
-await housesDb.Documents.UpdateRangeAsync(houses);
-var houses = await housesDb.Documents.FindAsync(houseId1, houseId2, houseId3);
-var houses = await housesDb.Documents.FindAsync(houseIdArray);
-// Enebles stats in queries
-housesDb.Documents.EnableStats();
-var stats = housesDb.Documents.LastExecutionStats;
-// Bookmakrs
-var bookmark = housesDb.Documents.LastBookmark;
-// Find
-var allHouses = await housesDb.Documents.ToListAsync();
-var bobbysOnes = await housesDb.Documents.Where(h => h.Owner.Name == "Bobby").ToListAsync();
+await rebels.AddRangeAsync(moreRebels);
+await rebels.UpdateRangeAsync(moreRebels);
+// Utils
+await db.CompactAsync();
+var info = await db.GetInfoAsync();
 ```
 
 ## Contributors

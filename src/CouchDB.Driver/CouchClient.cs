@@ -44,12 +44,8 @@ namespace CouchDB.Driver
 
         #region Operations
 
-        public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
-        {
-            var type = typeof(TSource);
-            var db = type.GetName();
-            return GetDatabase<TSource>(db);
-        }
+        #region CRUD
+
         public CouchDatabase<TSource> GetDatabase<TSource>(string db) where TSource : CouchEntity
         {
             if (db == null)
@@ -57,14 +53,7 @@ namespace CouchDB.Driver
 
             return new CouchDatabase<TSource>(_flurlClient, ConnectionString, db);
         }
-        public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
-        {
-            return await NewRequest()
-                .AppendPathSegment("_all_dbs")
-                .GetJsonAsync<IEnumerable<string>>()
-                .SendRequestAsync();
-        }
-        public async Task AddDatabaseAsync(string db)
+        public async Task<CouchDatabase<TSource>> AddDatabaseAsync<TSource>(string db) where TSource : CouchEntity
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
@@ -73,8 +62,10 @@ namespace CouchDB.Driver
                 .AppendPathSegment(db)
                 .PutAsync(null)
                 .SendRequestAsync();
+
+            return GetDatabase<TSource>(db);
         }
-        public async Task RemoveDatabaseAsync(string db)
+        public async Task RemoveDatabaseAsync<TSource>(string db) where TSource : CouchEntity
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
@@ -84,6 +75,40 @@ namespace CouchDB.Driver
                 .DeleteAsync()
                 .SendRequestAsync();
         }
+
+        #endregion
+
+        #region CRUD reflection
+
+        public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
+        {            
+            return GetDatabase<TSource>(GetClassName<TSource>());
+        }
+        public Task<CouchDatabase<TSource>> AddDatabaseAsync<TSource>() where TSource : CouchEntity
+        {
+            return AddDatabaseAsync<TSource>(GetClassName<TSource>());
+        }
+        public Task RemoveDatabaseAsync<TSource>() where TSource : CouchEntity
+        {
+            return RemoveDatabaseAsync<TSource>(GetClassName<TSource>());
+        }
+        private string GetClassName<TSource>()
+        {
+            var type = typeof(TSource);
+            return type.GetName();
+        }
+
+        #endregion
+
+        #region Utils
+
+        public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
+        {
+            return await NewRequest()
+                .AppendPathSegment("_all_dbs")
+                .GetJsonAsync<IEnumerable<string>>()
+                .SendRequestAsync();
+        }
         public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync()
         {
             return await NewRequest()
@@ -91,6 +116,8 @@ namespace CouchDB.Driver
                 .GetJsonAsync<IEnumerable<CouchActiveTask>>()
                 .SendRequestAsync();
         }
+
+        #endregion
 
         #endregion
 
