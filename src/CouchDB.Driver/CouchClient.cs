@@ -13,7 +13,7 @@ using System.Linq;
 namespace CouchDB.Driver
 {
     /// <summary>
-    /// 
+    /// Client for querying a CouchDB database.
     /// </summary>
     public partial class CouchClient : IDisposable
     {
@@ -23,13 +23,19 @@ namespace CouchDB.Driver
         private readonly FlurlClient _flurlClient;
         public string ConnectionString { get; private set; }
 
-        public CouchClient(string connectionString, Action<CouchSettings> configFunc = null, Action<ClientFlurlHttpSettings> flurlConfigFunc = null)
+        /// <summary>
+        /// Creates a new CouchDB client.
+        /// </summary>
+        /// <param name="connectionString">URI to the CouchDB endpoint.</param>
+        /// <param name="couchSettingsFunc"></param>
+        /// <param name="flurlSettingsFunc"></param>
+        public CouchClient(string connectionString, Action<CouchSettings> couchSettingsFunc = null, Action<ClientFlurlHttpSettings> flurlSettingsFunc = null)
         {
             if (string.IsNullOrEmpty(connectionString))
                 throw new ArgumentNullException(nameof(connectionString));
 
             _settings = new CouchSettings();
-            configFunc?.Invoke(_settings);
+            couchSettingsFunc?.Invoke(_settings);
 
             ConnectionString = connectionString;
             _flurlClient = new FlurlClient(connectionString);
@@ -42,7 +48,7 @@ namespace CouchDB.Driver
                     s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
                 }
 
-                flurlConfigFunc?.Invoke(s);
+                flurlSettingsFunc?.Invoke(s);
             });
         }
 
@@ -50,46 +56,65 @@ namespace CouchDB.Driver
 
         #region CRUD
 
-        public CouchDatabase<TSource> GetDatabase<TSource>(string db) where TSource : CouchEntity
+        /// <summary>
+        /// Return an instance of a CouchDB database with the given name. If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
+        /// </summary>
+        /// <typeparam name="TSource">Type of the objects in the database.</typeparam>
+        /// <param name="database">Database name</param>
+        /// <returns></returns>
+        public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchEntity
         {
-            if (db == null)
-                throw new ArgumentNullException(nameof(db));
+            if (database == null)
+                throw new ArgumentNullException(nameof(database));
 
             if (_settings.CheckDatabaseExists)
             {
                 var dbs = AsyncContext.Run(() => GetDatabasesNamesAsync());
-                if (!dbs.Contains(db))
+                if (!dbs.Contains(database))
                 {
-                    return AsyncContext.Run(() => CreateDatabaseAsync<TSource>(db));
+                    return AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database));
                 }
             }
 
-            return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, db);
+            return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
-        public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string db) where TSource : CouchEntity
+        /// <summary>
+        /// Create a new database in the server with the given name. 
+        /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
+        /// </summary>
+        /// <typeparam name="TSource">Type of the objects in the database.</typeparam>
+        /// <param name="database">Database name</param>
+        /// <returns></returns>
+        public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database) where TSource : CouchEntity
         {
-            if (db == null)
-                throw new ArgumentNullException(nameof(db));
+            if (database == null)
+                throw new ArgumentNullException(nameof(database));
 
-            if (!new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(db))
+            if (!new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
             {
-                throw new ArgumentException(nameof(db), $"Name {db} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db");
+                throw new ArgumentException(nameof(database), $"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db");
             }
 
             await NewRequest()
-                .AppendPathSegment(db)
+                .AppendPathSegment(database)
                 .PutAsync(null)
                 .SendRequestAsync();
 
-            return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, db);
+            return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
-        public async Task DeleteDatabaseAsync<TSource>(string db) where TSource : CouchEntity
+        /// <summary>
+        /// Delete the database with the given name in the server.
+        /// </summary>
+        /// <typeparam name="TSource">Type of the objects in the database.</typeparam>
+        /// <param name="database">Database name</param>
+        /// <returns></returns>
+        public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchEntity
         {
-            if (db == null)
-                throw new ArgumentNullException(nameof(db));
+            if (database == null)
+                throw new ArgumentNullException(nameof(database));
 
             await NewRequest()
-                .AppendPathSegment(db)
+                .AppendPathSegment(database)
                 .DeleteAsync()
                 .SendRequestAsync();
         }

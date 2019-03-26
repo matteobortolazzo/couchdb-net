@@ -245,14 +245,15 @@ var client = new CouchClient("http://localhost:5984", s => s
 | SetPropertyCase                | Sets the format case for properties.         |
 | EnsureDatabaseExists           | If a database doesn't exists, it creates it. |
 
-**CaseTypes**: None, CamelCase *(default)*, PascalCase, UnderscoreCase, DashCase, KebabCase.
+- **EntityCaseTypes**: None, UnderscoreCase *(default)*, DashCase, KebabCase.
+- **PropertyCaseTypes**: None, CamelCase *(default)*, PascalCase, UnderscoreCase, DashCase, KebabCase.
 
 ## Custom JSON values
 
 If you need custom values for entities and properties, it's possible to use JsonObject and JsonProperty attributes.
 
 ```csharp
-[JsonObject("custom_rebels")]
+[JsonObject("custom-rebels")]
 public class OtherRebel : Rebel
 
 [JsonProperty("rebel_bith_date")]
@@ -274,4 +275,4 @@ Action<ClientFlurlHttpSettings> flurlConfigFunc
 
 ## Contributors
 
-Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and others..
+Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and others.

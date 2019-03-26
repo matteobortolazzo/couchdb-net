@@ -20,11 +20,7 @@ namespace CouchDB.Driver
                 {
                     return jsonProperty.PropertyName;
                 }
-                if (_settings.PropertiesCase != CaseType.None)
-                {
-                    return _settings.PropertiesCase.Convert(memberInfo.Name);
-                }
-                return memberInfo.Name;
+                return _settings.PropertiesCase.Convert(memberInfo.Name);
             }
 
             var members = new List<string> { GetPropertyName(m.Member) };

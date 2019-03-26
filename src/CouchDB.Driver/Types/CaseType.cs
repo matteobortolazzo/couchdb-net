@@ -7,35 +7,14 @@ namespace CouchDB.Driver.Types
     {
         public string Value { get; }
 
-        private CaseType(string value)
+        protected CaseType(string value)
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
-
-        public static CaseType None = new CaseType("None");
-        public static CaseType PascalCase = new CaseType("PascalCase");
-        public static CaseType CamelCase = new CaseType("CamelCase");
-        public static CaseType UnderscoreCase = new CaseType("UnderscoreCase");
-        public static CaseType DashCase = new CaseType("DashCase");
-        public static CaseType KebabCase = new CaseType("KebabCase");
-        
-        public string Convert(string str)
+        public virtual string Convert(string str)
         {
-            if (this == CaseType.None)
-                return str;
-            if (this == CaseType.PascalCase)
-                return str.Pascalize();
-            if (this == CaseType.CamelCase)
-                return str.Camelize();
-            if (this == CaseType.UnderscoreCase)
-                return str.Underscore();
-            if (this == CaseType.DashCase)
-                return str.Dasherize();
-            if (this == CaseType.KebabCase)
-                return str.Kebaberize();
-            throw new NotSupportedException($"Value {Value} not supported.");
+            throw new NotImplementedException();
         }
-        
         public override bool Equals(object obj)
         {
             if (!(obj is CaseType item))
@@ -47,6 +26,56 @@ namespace CouchDB.Driver.Types
         public override int GetHashCode()
         {
             return Value.GetHashCode();
+        }
+    }
+    public class EntityCaseType : CaseType
+    {
+        private EntityCaseType(string value) : base(value) { }
+
+        public static EntityCaseType None = new EntityCaseType("None");
+        public static EntityCaseType UnderscoreCase = new EntityCaseType("UnderscoreCase");
+        public static EntityCaseType DashCase = new EntityCaseType("DashCase");
+        public static EntityCaseType KebabCase = new EntityCaseType("KebabCase");
+
+        public override string Convert(string str)
+        {
+            if (this == EntityCaseType.None)
+                return str.ToLowerInvariant();
+            if (this == EntityCaseType.UnderscoreCase)
+                return str.ToLowerInvariant().Underscore();
+            if (this == EntityCaseType.DashCase)
+                return str.ToLowerInvariant().Dasherize();
+            if (this == EntityCaseType.KebabCase)
+                return str.ToLowerInvariant().Kebaberize();
+            throw new NotSupportedException($"Value {Value} not supported.");
+        }
+    }
+    public class PropertyCaseType : CaseType
+    {
+        private PropertyCaseType(string value) : base(value) { }
+
+        public static PropertyCaseType None = new PropertyCaseType("None");
+        public static PropertyCaseType UnderscoreCase = new PropertyCaseType("UnderscoreCase");
+        public static PropertyCaseType DashCase = new PropertyCaseType("DashCase");
+        public static PropertyCaseType KebabCase = new PropertyCaseType("KebabCase");
+        public static PropertyCaseType PascalCase = new PropertyCaseType("PascalCase");
+        public static PropertyCaseType CamelCase = new PropertyCaseType("CamelCase");
+
+        public override string Convert(string str)
+        {
+            if (this == PropertyCaseType.None)
+                return str;
+            if (this == PropertyCaseType.UnderscoreCase)
+                return str.Underscore();
+            if (this == PropertyCaseType.DashCase)
+                return str.Dasherize();
+            if (this == PropertyCaseType.KebabCase)
+                return str.Kebaberize();
+            if (this == PropertyCaseType.PascalCase)
+                return str.Pascalize();
+            if (this == PropertyCaseType.CamelCase)
+                return str.Camelize();
+            throw new NotSupportedException($"Value {Value} not supported.");
         }
     }
 }
