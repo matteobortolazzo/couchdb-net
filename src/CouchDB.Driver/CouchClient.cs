@@ -33,12 +33,13 @@ namespace CouchDB.Driver
 
             _flurlClient.Configure(s =>
             {
+                flurlConfigFunc?.Invoke(s);
+
                 s.BeforeCall = OnBeforeLogin;
                 if (_settings.ServerCertificateCustomValidationCallback != null)
                 {
                     s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
                 }
-                flurlConfigFunc?.Invoke(s);
             });
         }
 
