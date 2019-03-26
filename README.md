@@ -258,6 +258,19 @@ public class OtherRebel : Rebel
 public DateTime BirthDate { get; set; }
 ```
 
+## Advanced
+
+If requests have to be updated it's possible to override OnBeforeCall.
+```csharp
+protected virtual void OnBeforeCall(HttpCall call)
+```
+
+Also, the constructor accept a ClientFlurlHttpSettings function as third parameter.
+
+```csharp
+Action<ClientFlurlHttpSettings> flurlConfigFunc
+```
+
 ## Contributors
 
 Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and others..

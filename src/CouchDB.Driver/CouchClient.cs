@@ -3,16 +3,15 @@ using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using Flurl.Http.Configuration;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CouchDB.Driver
 {
-    public class CouchClient : IDisposable
+    public partial class CouchClient : IDisposable
     {
         private DateTime? _cookieCreationDate;
         private string _cookieToken;
@@ -33,13 +32,13 @@ namespace CouchDB.Driver
 
             _flurlClient.Configure(s =>
             {
-                flurlConfigFunc?.Invoke(s);
-
-                s.BeforeCall = OnBeforeLogin;
+                s.BeforeCall = OnBeforeCall;
                 if (_settings.ServerCertificateCustomValidationCallback != null)
                 {
                     s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
                 }
+
+                flurlConfigFunc?.Invoke(s);
             });
         }
 
@@ -126,73 +125,14 @@ namespace CouchDB.Driver
 
         #endregion
 
-        #region Helpers
-
-        private async Task Login()
-        {
-            var response = await _flurlClient.Request(ConnectionString)
-                .AppendPathSegment("_session")
-                .PostJsonAsync(new
-                {
-                    name = _settings.Username,
-                    password = _settings.Password
-                });
-
-            _cookieCreationDate = DateTime.Now;
-
-            if (response.Headers.TryGetValues("Set-Cookie", out var values))
-            {
-                var dirtyToken = values.First();
-                var regex = new Regex(@"^AuthSession=(.+); Version=1; .*Path=\/; HttpOnly$");
-                var match = regex.Match(dirtyToken);
-                if (match.Success)
-                {
-                    _cookieToken = match.Groups[1].Value;
-                    return;
-                }
-            }
-
-            throw new InvalidOperationException("Error while trying to log-in.");
-        }
-        private void OnBeforeLogin(HttpCall call)
-        {
-            // If cookie request
-            if (call.Request.RequestUri.ToString().Contains("_session") && call.Request.Method == HttpMethod.Post)
-            {
-                return;
-            }
-            switch (_settings.AuthenticationType)
-            {
-                case AuthenticationType.None:
-                    break;
-                case AuthenticationType.Basic:
-                    call.FlurlRequest.WithBasicAuth(_settings.Username, _settings.Password);
-                    break;
-                case AuthenticationType.Cookie:
-                    var isTokenExpired =
-                        !_cookieCreationDate.HasValue ||
-                        _cookieCreationDate.Value.AddMinutes(_settings.CookiesDuration) < DateTime.Now;
-                    if (isTokenExpired)
-                    {
-                        Login().Wait();
-                    }
-                    call.FlurlRequest.EnableCookies().WithCookie("AuthSession", _cookieToken);
-                    break;
-                default:
-                    throw new NotSupportedException($"Authentication of type {_settings.AuthenticationType} is not supported.");
-            }
-        }
+        #region Implementations
         private IFlurlRequest NewRequest()
         {
             return _flurlClient.Request(ConnectionString);
         }
-
-        #endregion
-
-        #region Implementations
-
         public void Dispose()
         {
+            AsyncContext.Run(() => LogoutAsync());
             _flurlClient.Dispose();
         }
 
