@@ -18,11 +18,15 @@ namespace CouchDB.Driver.Types
         internal string Username { get; private set; }
         internal string Password { get; private set; }
         internal int CookiesDuration { get; private set; }
+        internal bool PluralizeEntitis { get; private set; }
+        internal bool CamelizeProperties { get; private set; }
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback { get; private set; }
 
         internal CouchSettings()
         {
             AuthenticationType = AuthenticationType.None;
+            PluralizeEntitis = true;
+            CamelizeProperties = true;
         }
 
         public CouchSettings ConfigureBasicAuthentication(string username, string password)
@@ -62,6 +66,16 @@ namespace CouchDB.Driver.Types
         {
             ServerCertificateCustomValidationCallback = serverCertificateCustomValidationCallback ?? 
                 throw new ArgumentNullException(nameof(serverCertificateCustomValidationCallback));
+            return this;
+        }
+        public CouchSettings DisableEntitisPluralization()
+        {
+            PluralizeEntitis = false;
+            return this;
+        }
+        public CouchSettings DisablePropertiesCamelization()
+        {
+            CamelizeProperties = false;
             return this;
         }
     }

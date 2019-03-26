@@ -1,6 +1,10 @@
-﻿using System;
+﻿using CouchDB.Driver.UnitTests.Models;
+using Flurl.Http.Testing;
+using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests
@@ -43,5 +47,119 @@ namespace CouchDB.Driver.UnitTests
                 Assert.Equal("http://localhost:5984", client.ConnectionString);
             }
         }
+
+        #region ProperyName
+
+        [Fact]
+        public void PropertyName_Camelization()
+        {
+            using (var client = new CouchClient("http://localhost:5984"))
+            {
+                var rebels = client.GetDatabase<Rebel>();
+                var json = rebels.Where(r => r.Age == 19).ToString();
+                Assert.Equal(@"{""selector"":{""age"":19}}", json);
+            }
+        }
+        [Fact]
+        public void PropertyName_CamelizationDisabled()
+        {
+            using (var client = new CouchClient("http://localhost:5984", s =>
+                s.DisablePropertiesCamelization()))
+            {
+                var rebels = client.GetDatabase<Rebel>();
+                var json = rebels.Where(r => r.Age == 19).ToString();
+                Assert.Equal(@"{""selector"":{""Age"":19}}", json);
+            }
+        }
+        [Fact]
+        public void PropertyName__JsonProperty()
+        {
+            using (var client = new CouchClient("http://localhost:5984", s =>
+                s.DisablePropertiesCamelization()))
+            {
+                var rebels = client.GetDatabase<Rebel>();
+                var json = rebels.Where(r => r.Age == 19).ToString();
+                Assert.Equal(@"{""selector"":{""Age"":19}}", json);
+            }
+        }
+
+        #endregion
+
+        #region EntityName
+
+        [Fact]
+        public async Task EntityName_Pluralization()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new { Docs = new string[0] });
+
+                using (var client = new CouchClient("http://localhost:5984"))
+                {
+                    var rebels = client.GetDatabase<Rebel>();
+                    var all = await rebels.ToListAsync();
+
+                    httpTest
+                        .ShouldHaveCalled("http://localhost:5984/rebels/_find")
+                        .WithVerb(HttpMethod.Post);
+                }
+            }
+        }
+        [Fact]
+        public async Task EntityName_PluralizationDisabled()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new { Docs = new string[0] });
+
+                using (var client = new CouchClient("http://localhost:5984", s => s.DisableEntitisPluralization()))
+                {
+                    var rebels = client.GetDatabase<Rebel>();
+                    var all = await rebels.ToListAsync();
+
+                    httpTest
+                        .ShouldHaveCalled("http://localhost:5984/rebel/_find")
+                        .WithVerb(HttpMethod.Post);
+                }
+            }
+        }
+        [Fact]
+        public async Task EntityName_SpecificName()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new { Docs = new string[0] });
+
+                using (var client = new CouchClient("http://localhost:5984"))
+                {
+                    var rebels = client.GetDatabase<Rebel>("naboo_rebels");
+                    var all = await rebels.ToListAsync();
+
+                    httpTest
+                        .ShouldHaveCalled("http://localhost:5984/naboo_rebels/_find")
+                        .WithVerb(HttpMethod.Post);
+                }
+            }
+        }
+        [Fact]
+        public async Task EntityName_JsonObject()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new { Docs = new string[0] });
+
+                using (var client = new CouchClient("http://localhost:5984"))
+                {
+                    var rebels = client.GetDatabase<OtherRebel>();
+                    var all = await rebels.ToListAsync();
+
+                    httpTest
+                        .ShouldHaveCalled("http://localhost:5984/naboo_rebels/_find")
+                        .WithVerb(HttpMethod.Post);
+                }
+            }
+        }
+
+        #endregion
     }
 }

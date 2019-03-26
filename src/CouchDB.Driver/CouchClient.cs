@@ -51,7 +51,7 @@ namespace CouchDB.Driver
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
 
-            return new CouchDatabase<TSource>(_flurlClient, ConnectionString, db);
+            return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, db);
         }
         public async Task<CouchDatabase<TSource>> AddDatabaseAsync<TSource>(string db) where TSource : CouchEntity
         {
@@ -95,7 +95,7 @@ namespace CouchDB.Driver
         private string GetClassName<TSource>()
         {
             var type = typeof(TSource);
-            return type.GetName();
+            return type.GetName(_settings.PluralizeEntitis);
         }
 
         #endregion

@@ -15,7 +15,15 @@ namespace CouchDB.Driver
                 var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
                 var jsonProperty = jsonPropertyAttributes.Length > 0 ? jsonPropertyAttributes[0] as JsonPropertyAttribute : null;
 
-                return jsonProperty != null ? jsonProperty.PropertyName : memberInfo.Name.Camelize();
+                if (jsonProperty != null)
+                {
+                    return jsonProperty.PropertyName;
+                }
+                if (_settings.CamelizeProperties)
+                {
+                    return memberInfo.Name.Camelize();
+                }
+                return memberInfo.Name;
             }
 
             var members = new List<string> { GetPropertyName(m.Member) };

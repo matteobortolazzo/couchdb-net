@@ -15,15 +15,17 @@ namespace CouchDB.Driver
     {
         private readonly QueryProvider _queryProvider;
         private readonly FlurlClient _flurlClient;
+        private readonly CouchSettings _settings;
         private readonly string _connectionString;
         private readonly string _db;
 
-        internal CouchDatabase(FlurlClient flurlClient, string connectionString, string db)
+        internal CouchDatabase(FlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
         {
-            _flurlClient = flurlClient;
-            _connectionString = connectionString;
-            _db = db;
-            _queryProvider = new CouchQueryProvider(flurlClient, connectionString, db);
+            _flurlClient = flurlClient ?? throw new ArgumentNullException(nameof(flurlClient));
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+            _db = db ?? throw new ArgumentNullException(nameof(db));
+            _queryProvider = new CouchQueryProvider(flurlClient, _settings, connectionString, db);
         }
 
         public IQueryable<TSource> AsQueryable()
