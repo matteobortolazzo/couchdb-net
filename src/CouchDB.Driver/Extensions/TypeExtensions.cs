@@ -1,4 +1,5 @@
-﻿using Humanizer;
+﻿using CouchDB.Driver.Types;
+using Humanizer;
 using Newtonsoft.Json;
 using System;
 
@@ -6,7 +7,7 @@ namespace CouchDB.Driver.Extensions
 {
     public static class TypeExtensions
     {
-        public static string GetName(this Type t, bool pluralize)
+        public static string GetName(this Type t, CouchSettings settings)
         {
             var jsonObjectAttributes = t.GetCustomAttributes(typeof(JsonObjectAttribute), true);
             var jsonObject = jsonObjectAttributes.Length > 0 ? jsonObjectAttributes[0] as JsonObjectAttribute : null;
@@ -15,10 +16,14 @@ namespace CouchDB.Driver.Extensions
             {
                 return jsonObject.Id;
             }
-            var typeName = t.Name.Camelize();
-            if (pluralize)
+            var typeName = t.Name;
+            if (settings.PluralizeEntitis)
             {
-                return typeName.Pluralize();
+                typeName = typeName.Pluralize();
+            }
+            if (settings.EntitiesCaseType != CaseType.None)
+            {
+                return settings.EntitiesCaseType.Convert(typeName);
             }
             return typeName;
         }

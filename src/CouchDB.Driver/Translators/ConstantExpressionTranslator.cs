@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -29,6 +30,9 @@ namespace CouchDB.Driver
                         break;
                     case TypeCode.String:
                         _sb.Append($"\"{c.Value}\"");
+                        break;
+                    case TypeCode.DateTime:
+                        _sb.Append(JsonConvert.SerializeObject(c.Value));
                         break;
                     case TypeCode.Object:
                         if (c.Value is IList<bool>)

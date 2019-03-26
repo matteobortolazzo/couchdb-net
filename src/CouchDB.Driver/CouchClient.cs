@@ -95,7 +95,7 @@ namespace CouchDB.Driver
         private string GetClassName<TSource>()
         {
             var type = typeof(TSource);
-            return type.GetName(_settings.PluralizeEntitis);
+            return type.GetName(_settings);
         }
 
         #endregion

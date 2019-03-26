@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace CouchDB.Driver.Types
 { 
@@ -19,14 +17,16 @@ namespace CouchDB.Driver.Types
         internal string Password { get; private set; }
         internal int CookiesDuration { get; private set; }
         internal bool PluralizeEntitis { get; private set; }
-        internal bool CamelizeProperties { get; private set; }
+        internal CaseType EntitiesCaseType { get; private set; }
+        internal CaseType PropertiesCaseType { get; private set; }
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback { get; private set; }
 
         internal CouchSettings()
         {
             AuthenticationType = AuthenticationType.None;
             PluralizeEntitis = true;
-            CamelizeProperties = true;
+            EntitiesCaseType = CaseType.CamelCase;
+            PropertiesCaseType = CaseType.CamelCase;
         }
 
         public CouchSettings ConfigureBasicAuthentication(string username, string password)
@@ -73,9 +73,14 @@ namespace CouchDB.Driver.Types
             PluralizeEntitis = false;
             return this;
         }
-        public CouchSettings DisablePropertiesCamelization()
+        public CouchSettings SetEntitisCaseType(CaseType type)
         {
-            CamelizeProperties = false;
+            EntitiesCaseType = type;
+            return this;
+        }
+        public CouchSettings SetPropertiesCaseType(CaseType type)
+        {
+            PropertiesCaseType = type;
             return this;
         }
     }

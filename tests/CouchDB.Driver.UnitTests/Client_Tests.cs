@@ -1,4 +1,5 @@
-﻿using CouchDB.Driver.UnitTests.Models;
+﻿using CouchDB.Driver.Types;
+using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
 using System.Collections.Generic;
@@ -64,7 +65,7 @@ namespace CouchDB.Driver.UnitTests
         public void PropertyName_CamelizationDisabled()
         {
             using (var client = new CouchClient("http://localhost:5984", s =>
-                s.DisablePropertiesCamelization()))
+                s.SetPropertiesCaseType(CaseType.None)))
             {
                 var rebels = client.GetDatabase<Rebel>();
                 var json = rebels.Where(r => r.Age == 19).ToString();
@@ -72,14 +73,13 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public void PropertyName__JsonProperty()
+        public void PropertyName_JsonProperty()
         {
-            using (var client = new CouchClient("http://localhost:5984", s =>
-                s.DisablePropertiesCamelization()))
+            using (var client = new CouchClient("http://localhost:5984"))
             {
-                var rebels = client.GetDatabase<Rebel>();
-                var json = rebels.Where(r => r.Age == 19).ToString();
-                Assert.Equal(@"{""selector"":{""Age"":19}}", json);
+                var rebels = client.GetDatabase<OtherRebel>();
+                var json = rebels.Where(r => r.BirthDate == new DateTime(2000, 1, 1)).ToString();
+                Assert.Equal(@"{""selector"":{""birth_date"":""2000-01-01T00:00:00""}}", json);
             }
         }
 

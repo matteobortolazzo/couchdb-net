@@ -196,6 +196,57 @@ await db.CompactAsync();
 var info = await db.GetInfoAsync();
 ```
 
+## Authentication
+
+If authentication is needed currently there are two ways: Basic and Cookie authentication.
+
+### Basic authentication
+
+```csharp
+var client = new CouchClient("http://localhost:5984", s => 
+    s.ConfigureBasicAuthentication("root", "relax")
+)
+```
+
+### Cookie authentication
+
+```csharp
+var client = new CouchClient("http://localhost:5984", s => s
+    .ConfigureCookieAuthentication("root", "relax")
+)
+```
+
+It's also possible to specify the duration of the session.
+
+```csharp
+var client = new CouchClient("http://localhost:5984", s => s
+    .ConfigureCookieAuthentication("root", "relax", cookieDuration)
+)
+```
+
+### Options
+
+The second parameter of the client constructor is a function to configure CouchSettings fluently.
+
+```csharp
+var client = new CouchClient("http://localhost:5984", s => s
+    .ConfigureBasicAuthentication("root", "relax")
+    .DisableEntitisPluralization()
+    ....
+)
+```
+| Method                         | Description                                  |
+|:-------------------------------|:---------------------------------------------|
+| ConfigureBasicAuthentication   | Enables basic authentication.                |
+| ConfigureCookieAuthentication  | Enables cookie authentication.               |
+| IgnoreCertificateValidation    | Removes any SSL certificate validation.      |
+| ConfigureCertificateValidation | Sets a custom SSL validation rule.           |
+| DisableEntitisPluralization    | Disables entities pluralization in requests. |
+| SetEntitisCaseType             | Sets the format case for entities.           |
+| SetPropertiesCaseType          | Sets the format case for properties          |
+
+**CaseTypes**: None, CamelCase *(default)*, PascalCase, UnderscoreCase, DashCase, KebabCase.
+
 ## Contributors
 
 Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and others..

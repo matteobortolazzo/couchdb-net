@@ -1,4 +1,5 @@
-﻿using Humanizer;
+﻿using CouchDB.Driver.Types;
+using Humanizer;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -19,9 +20,9 @@ namespace CouchDB.Driver
                 {
                     return jsonProperty.PropertyName;
                 }
-                if (_settings.CamelizeProperties)
+                if (_settings.PropertiesCaseType != CaseType.None)
                 {
-                    return memberInfo.Name.Camelize();
+                    return _settings.PropertiesCaseType.Convert(memberInfo.Name);
                 }
                 return memberInfo.Name;
             }
