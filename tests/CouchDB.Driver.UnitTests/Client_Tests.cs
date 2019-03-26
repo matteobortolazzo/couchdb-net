@@ -1,5 +1,4 @@
-﻿using CouchDB.Driver.Types;
-using CouchDB.Driver.UnitTests.Models;
+﻿using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
 using System.Collections.Generic;
@@ -10,154 +9,105 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests
 {
-    public class Client_Tests
+    public class Client_Tests : IDisposable
     {
-        [Fact]
-        public void Creation_Valid()
+        private readonly CouchClient _client;
+
+        public Client_Tests()
         {
-            using (var client = new CouchClient("http://localhost:5984"))
-            {
-                Assert.Equal("http://localhost:5984", client.ConnectionString);
-            }
-        }
-        [Fact]
-        public void Creation_NullConnectionString()
-        {
-            var exception = Record.Exception(() =>
-            {
-                new CouchClient(null);
-            });
-            Assert.NotNull(exception);
-            Assert.IsType<ArgumentNullException>(exception);
-        }
-        [Fact]
-        public void Creation_BasicAuthentication()
-        {
-            using (var client = new CouchClient("http://localhost:5984", s => 
-                s.ConfigureBasicAuthentication("root", "relax")))
-            {
-                Assert.Equal("http://localhost:5984", client.ConnectionString);
-            }
-        }
-        [Fact]
-        public void Creation_CookieAuthentication()
-        {
-            using (var client = new CouchClient("http://localhost:5984", s =>
-                s.ConfigureCookieAuthentication("root", "relax")))
-            {
-                Assert.Equal("http://localhost:5984", client.ConnectionString);
-            }
+            _client = new CouchClient("http://localhost:5984");
         }
 
-        #region ProperyName
+        #region Add
 
         [Fact]
-        public void PropertyName_Camelization()
+        public async Task AddDatabase_Default()
         {
-            using (var client = new CouchClient("http://localhost:5984"))
+            using (var httpTest = new HttpTest())
             {
-                var rebels = client.GetDatabase<Rebel>();
-                var json = rebels.Where(r => r.Age == 19).ToString();
-                Assert.Equal(@"{""selector"":{""age"":19}}", json);
+                var rebels = await _client.AddDatabaseAsync<Rebel>();
+                httpTest
+                    .ShouldHaveCalled("http://localhost:5984/rebels")
+                    .WithVerb(HttpMethod.Put);
+                Assert.Equal("rebels", rebels.Database);
             }
         }
         [Fact]
-        public void PropertyName_CamelizationDisabled()
+        public async Task AddDatabase_CustomName()
         {
-            using (var client = new CouchClient("http://localhost:5984", s =>
-                s.SetPropertiesCaseType(CaseType.None)))
+            using (var httpTest = new HttpTest())
             {
-                var rebels = client.GetDatabase<Rebel>();
-                var json = rebels.Where(r => r.Age == 19).ToString();
-                Assert.Equal(@"{""selector"":{""Age"":19}}", json);
-            }
-        }
-        [Fact]
-        public void PropertyName_JsonProperty()
-        {
-            using (var client = new CouchClient("http://localhost:5984"))
-            {
-                var rebels = client.GetDatabase<OtherRebel>();
-                var json = rebels.Where(r => r.BirthDate == new DateTime(2000, 1, 1)).ToString();
-                Assert.Equal(@"{""selector"":{""rebel_bith_date"":""2000-01-01T00:00:00""}}", json);
+                var rebels = await _client.AddDatabaseAsync<Rebel>("some_rebels");
+                httpTest
+                    .ShouldHaveCalled("http://localhost:5984/some_rebels")
+                    .WithVerb(HttpMethod.Put);
+                Assert.Equal("some_rebels", rebels.Database);
             }
         }
 
         #endregion
 
-        #region EntityName
+        #region Delete
 
         [Fact]
-        public async Task EntityName_Pluralization()
+        public async Task DeleteDatabase_Default()
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
-
-                using (var client = new CouchClient("http://localhost:5984"))
-                {
-                    var rebels = client.GetDatabase<Rebel>();
-                    var all = await rebels.ToListAsync();
-
-                    httpTest
-                        .ShouldHaveCalled("http://localhost:5984/rebels/_find")
-                        .WithVerb(HttpMethod.Post);
-                }
+                await _client.RemoveDatabaseAsync<Rebel>();
+                httpTest
+                    .ShouldHaveCalled("http://localhost:5984/rebels")
+                    .WithVerb(HttpMethod.Delete);
             }
         }
         [Fact]
-        public async Task EntityName_PluralizationDisabled()
+        public async Task DeleteDatabase_CustomName()
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
+                await _client.RemoveDatabaseAsync<Rebel>("some_rebels");
+                httpTest
+                    .ShouldHaveCalled("http://localhost:5984/some_rebels")
+                    .WithVerb(HttpMethod.Delete);
+            }
+        }
 
-                using (var client = new CouchClient("http://localhost:5984", s => s.DisableEntitisPluralization()))
-                {
-                    var rebels = client.GetDatabase<Rebel>();
-                    var all = await rebels.ToListAsync();
+        #endregion
 
-                    httpTest
-                        .ShouldHaveCalled("http://localhost:5984/rebel/_find")
-                        .WithVerb(HttpMethod.Post);
-                }
+        #region Utils
+
+        [Fact]
+        public async Task DatabaseNames()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new[] { "jedi", "sith" });
+                var dbs = await _client.GetDatabasesNamesAsync();
+                httpTest
+                    .ShouldHaveCalled("http://localhost:5984/_all_dbs")
+                    .WithVerb(HttpMethod.Get);
+                Assert.Equal(new[] { "jedi", "sith" }, dbs);
             }
         }
         [Fact]
-        public async Task EntityName_SpecificName()
+        public async Task ActiveTasks()
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
-
-                using (var client = new CouchClient("http://localhost:5984"))
-                {
-                    var rebels = client.GetDatabase<Rebel>("some_rebels");
-                    var all = await rebels.ToListAsync();
-
-                    httpTest
-                        .ShouldHaveCalled("http://localhost:5984/some_rebels/_find")
-                        .WithVerb(HttpMethod.Post);
-                }
+                var dbs = await _client.GetActiveTasksAsync();
+                httpTest
+                    .ShouldHaveCalled("http://localhost:5984/_active_tasks")
+                    .WithVerb(HttpMethod.Get);
             }
         }
-        [Fact]
-        public async Task EntityName_JsonObject()
+
+        #endregion
+
+        #region Implementations
+
+        public void Dispose()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
-
-                using (var client = new CouchClient("http://localhost:5984"))
-                {
-                    var rebels = client.GetDatabase<OtherRebel>();
-                    var all = await rebels.ToListAsync();
-
-                    httpTest
-                        .ShouldHaveCalled("http://localhost:5984/custom_rebels/_find")
-                        .WithVerb(HttpMethod.Post);
-                }
-            }
+            _client.Dispose();
         }
 
         #endregion

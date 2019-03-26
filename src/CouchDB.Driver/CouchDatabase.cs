@@ -17,15 +17,15 @@ namespace CouchDB.Driver
         private readonly FlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
-        private readonly string _db;
+        public string Database { get; }
 
         internal CouchDatabase(FlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
         {
             _flurlClient = flurlClient ?? throw new ArgumentNullException(nameof(flurlClient));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
-            _db = db ?? throw new ArgumentNullException(nameof(db));
-            _queryProvider = new CouchQueryProvider(flurlClient, _settings, connectionString, db);
+            Database = db ?? throw new ArgumentNullException(nameof(db));
+            _queryProvider = new CouchQueryProvider(flurlClient, _settings, connectionString, Database);
         }
 
         public IQueryable<TSource> AsQueryable()
@@ -184,7 +184,7 @@ namespace CouchDB.Driver
 
         private IFlurlRequest NewRequest()
         {
-            return _flurlClient.Request(_connectionString).AppendPathSegment(_db);
+            return _flurlClient.Request(_connectionString).AppendPathSegment(Database);
         }
 
         #endregion
