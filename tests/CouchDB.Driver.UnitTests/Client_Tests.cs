@@ -37,7 +37,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                var rebels = await _client.CreateDatabase<Rebel>("some_rebels");
+                var rebels = await _client.CreateDatabaseAsync<Rebel>("some_rebels");
                 httpTest
                     .ShouldHaveCalled("http://localhost:5984/some_rebels")
                     .WithVerb(HttpMethod.Put);

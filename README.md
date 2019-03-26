@@ -241,8 +241,9 @@ var client = new CouchClient("http://localhost:5984", s => s
 | IgnoreCertificateValidation    | Removes any SSL certificate validation.      |
 | ConfigureCertificateValidation | Sets a custom SSL validation rule.           |
 | DisableEntitisPluralization    | Disables entities pluralization in requests. |
-| SetEntitisCaseType             | Sets the format case for entities.           |
-| SetPropertiesCaseType          | Sets the format case for properties          |
+| SetEntityCase                  | Sets the format case for entities.           |
+| SetPropertyCase                | Sets the format case for properties.         |
+| EnsureDatabaseExists           | If a database doesn't exists, it creates it. |
 
 **CaseTypes**: None, CamelCase *(default)*, PascalCase, UnderscoreCase, DashCase, KebabCase.
 

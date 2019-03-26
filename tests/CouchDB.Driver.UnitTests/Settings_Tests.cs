@@ -72,7 +72,7 @@ namespace CouchDB.Driver.UnitTests
         public void PropertyName_CamelizationDisabled()
         {
             using (var client = new CouchClient("http://localhost:5984", s =>
-                s.SetPropertiesCaseType(CaseType.None)))
+                s.SetPropertyCase(CaseType.None)))
             {
                 var rebels = client.GetDatabase<Rebel>();
                 var json = rebels.Where(r => r.Age == 19).ToString();
@@ -163,6 +163,28 @@ namespace CouchDB.Driver.UnitTests
                     httpTest
                         .ShouldHaveCalled("http://localhost:5984/custom_rebels/_find")
                         .WithVerb(HttpMethod.Post);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Utils
+
+        [Fact]
+        public void EnsureDatabaseExists()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new [] { "sith" });
+
+                using (var client = new CouchClient("http://localhost:5984", s => s.
+                    EnsureDatabaseExists()))
+                {
+                    client.GetDatabase<Rebel>("yedi");
+                    httpTest
+                        .ShouldHaveCalled("http://localhost:5984/yedi")
+                        .WithVerb(HttpMethod.Put);
                 }
             }
         }

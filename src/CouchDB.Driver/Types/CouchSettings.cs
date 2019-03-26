@@ -17,16 +17,17 @@ namespace CouchDB.Driver.Types
         internal string Password { get; private set; }
         internal int CookiesDuration { get; private set; }
         internal bool PluralizeEntitis { get; private set; }
-        internal CaseType EntitiesCaseType { get; private set; }
-        internal CaseType PropertiesCaseType { get; private set; }
+        internal CaseType EntityCaseType { get; private set; }
+        internal CaseType PropertiesCase { get; private set; }
+        internal bool CheckDatabaseExists { get; private set; }
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback { get; private set; }
 
         internal CouchSettings()
         {
             AuthenticationType = AuthenticationType.None;
             PluralizeEntitis = true;
-            EntitiesCaseType = CaseType.CamelCase;
-            PropertiesCaseType = CaseType.CamelCase;
+            EntityCaseType = CaseType.CamelCase;
+            PropertiesCase = CaseType.CamelCase;
         }
 
         public CouchSettings ConfigureBasicAuthentication(string username, string password)
@@ -73,14 +74,19 @@ namespace CouchDB.Driver.Types
             PluralizeEntitis = false;
             return this;
         }
-        public CouchSettings SetEntitisCaseType(CaseType type)
+        public CouchSettings SetEntityCase(CaseType type)
         {
-            EntitiesCaseType = type;
+            EntityCaseType = type;
             return this;
         }
-        public CouchSettings SetPropertiesCaseType(CaseType type)
+        public CouchSettings SetPropertyCase(CaseType type)
         {
-            PropertiesCaseType = type;
+            PropertiesCase = type;
+            return this;
+        }
+        public CouchSettings EnsureDatabaseExists()
+        {
+            CheckDatabaseExists = true;
             return this;
         }
     }

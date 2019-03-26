@@ -21,9 +21,9 @@ namespace CouchDB.Driver.Extensions
             {
                 typeName = typeName.Pluralize();
             }
-            if (settings.EntitiesCaseType != CaseType.None)
+            if (settings.EntityCaseType != CaseType.None)
             {
-                return settings.EntitiesCaseType.Convert(typeName);
+                return settings.EntityCaseType.Convert(typeName);
             }
             return typeName;
         }

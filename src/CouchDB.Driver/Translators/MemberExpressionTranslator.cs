@@ -20,9 +20,9 @@ namespace CouchDB.Driver
                 {
                     return jsonProperty.PropertyName;
                 }
-                if (_settings.PropertiesCaseType != CaseType.None)
+                if (_settings.PropertiesCase != CaseType.None)
                 {
-                    return _settings.PropertiesCaseType.Convert(memberInfo.Name);
+                    return _settings.PropertiesCase.Convert(memberInfo.Name);
                 }
                 return memberInfo.Name;
             }

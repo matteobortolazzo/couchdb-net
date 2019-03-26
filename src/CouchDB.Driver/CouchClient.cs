@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace CouchDB.Driver
 {
@@ -53,9 +54,19 @@ namespace CouchDB.Driver
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
+
+            if (_settings.CheckDatabaseExists)
+            {
+                var dbs = AsyncContext.Run(() => GetDatabasesNamesAsync());
+                if (!dbs.Contains(db))
+                {
+                    return AsyncContext.Run(() => CreateDatabaseAsync<TSource>(db));
+                }
+            }
+
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, db);
         }
-        public async Task<CouchDatabase<TSource>> CreateDatabase<TSource>(string db) where TSource : CouchEntity
+        public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string db) where TSource : CouchEntity
         {
             if (db == null)
                 throw new ArgumentNullException(nameof(db));
@@ -70,7 +81,7 @@ namespace CouchDB.Driver
                 .PutAsync(null)
                 .SendRequestAsync();
 
-            return GetDatabase<TSource>(db);
+            return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, db);
         }
         public async Task DeleteDatabaseAsync<TSource>(string db) where TSource : CouchEntity
         {
@@ -93,7 +104,7 @@ namespace CouchDB.Driver
         }
         public Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchEntity
         {
-            return CreateDatabase<TSource>(GetClassName<TSource>());
+            return CreateDatabaseAsync<TSource>(GetClassName<TSource>());
         }
         public Task DeleteDatabaseAsync<TSource>() where TSource : CouchEntity
         {
