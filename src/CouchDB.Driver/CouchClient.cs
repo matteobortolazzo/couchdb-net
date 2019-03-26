@@ -57,11 +57,12 @@ namespace CouchDB.Driver
         #region CRUD
 
         /// <summary>
-        /// Return an instance of a CouchDB database with the given name. If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
+        /// Returns an instance of the CouchDB database with the given name. 
+        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
-        /// <typeparam name="TSource">Type of the objects in the database.</typeparam>
+        /// <typeparam name="TSource">Entity type</typeparam>
         /// <param name="database">Database name</param>
-        /// <returns></returns>
+        /// <returns>Instance of the CouchDB database with given name</returns>
         public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchEntity
         {
             if (database == null)
@@ -79,12 +80,12 @@ namespace CouchDB.Driver
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
         /// <summary>
-        /// Create a new database in the server with the given name. 
+        /// Creates a new database with the given name in the server.
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
         /// </summary>
-        /// <typeparam name="TSource">Type of the objects in the database.</typeparam>
+        /// <typeparam name="TSource">Entity type</typeparam>
         /// <param name="database">Database name</param>
-        /// <returns></returns>
+        /// <returns>Instance of the newly created CouchDB database</returns>
         public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database) where TSource : CouchEntity
         {
             if (database == null)
@@ -103,11 +104,10 @@ namespace CouchDB.Driver
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
         /// <summary>
-        /// Delete the database with the given name in the server.
+        /// Deletes the database with the given name from the server.
         /// </summary>
-        /// <typeparam name="TSource">Type of the objects in the database.</typeparam>
+        /// <typeparam name="TSource">Entity type</typeparam>
         /// <param name="database">Database name</param>
-        /// <returns></returns>
         public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchEntity
         {
             if (database == null)
@@ -123,14 +123,31 @@ namespace CouchDB.Driver
 
         #region CRUD reflection
 
+        /// <summary>
+        /// Returns an instance of the CouchDB database of the given type. 
+        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
+        /// </summary>
+        /// <typeparam name="TSource">Entity type</typeparam>
+        /// <returns>Instance of the CouchDB database of the given type</returns>
         public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
         {            
             return GetDatabase<TSource>(GetClassName<TSource>());
         }
+        /// <summary>
+        /// Creates a new database of the given type in the server. 
+        /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
+        /// </summary>
+        /// <typeparam name="TSource">Entity type</typeparam>
+        /// <param name="database">Database name</param>
+        /// <returns>Instance of the newly created CouchDB database</returns>
         public Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchEntity
         {
             return CreateDatabaseAsync<TSource>(GetClassName<TSource>());
         }
+        /// <summary>
+        /// Deletes the database with the given type from the server.
+        /// </summary>
+        /// <typeparam name="TSource">Entity type</typeparam>
         public Task DeleteDatabaseAsync<TSource>() where TSource : CouchEntity
         {
             return DeleteDatabaseAsync<TSource>(GetClassName<TSource>());
@@ -145,6 +162,10 @@ namespace CouchDB.Driver
 
         #region Utils
 
+        /// <summary>
+        /// Returns all databases names in the server.
+        /// </summary>
+        /// <returns>All databases names</returns>
         public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
         {
             return await NewRequest()
@@ -152,6 +173,10 @@ namespace CouchDB.Driver
                 .GetJsonAsync<IEnumerable<string>>()
                 .SendRequestAsync();
         }
+        /// <summary>
+        /// Returns all active tasks in the server.
+        /// </summary>
+        /// <returns>All active tasks</returns>
         public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync()
         {
             return await NewRequest()
@@ -165,6 +190,7 @@ namespace CouchDB.Driver
         #endregion
 
         #region Implementations
+
         private IFlurlRequest NewRequest()
         {
             return _flurlClient.Request(ConnectionString);
