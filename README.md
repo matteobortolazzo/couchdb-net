@@ -247,6 +247,18 @@ var client = new CouchClient("http://localhost:5984", s => s
 
 **CaseTypes**: None, CamelCase *(default)*, PascalCase, UnderscoreCase, DashCase, KebabCase.
 
+## Custom JSON values
+
+If you need custom values for entities and properties, it's possible to use JsonObject and JsonProperty attributes.
+
+```csharp
+[JsonObject("custom_rebels")]
+public class OtherRebel : Rebel
+
+[JsonProperty("rebel_bith_date")]
+public DateTime BirthDate { get; set; }
+```
+
 ## Contributors
 
 Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and others..

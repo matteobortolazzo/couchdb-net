@@ -6,10 +6,10 @@ using System.Text;
 
 namespace CouchDB.Driver.UnitTests.Models
 {
-    [JsonObject("naboo_rebels")]
+    [JsonObject("custom_rebels")]
     public class OtherRebel : Rebel
     {
-        [JsonProperty("birth_date")]
+        [JsonProperty("rebel_bith_date")]
         public DateTime BirthDate { get; set; }
     }
 }

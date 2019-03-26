@@ -79,7 +79,7 @@ namespace CouchDB.Driver.UnitTests
             {
                 var rebels = client.GetDatabase<OtherRebel>();
                 var json = rebels.Where(r => r.BirthDate == new DateTime(2000, 1, 1)).ToString();
-                Assert.Equal(@"{""selector"":{""birth_date"":""2000-01-01T00:00:00""}}", json);
+                Assert.Equal(@"{""selector"":{""rebel_bith_date"":""2000-01-01T00:00:00""}}", json);
             }
         }
 
@@ -132,11 +132,11 @@ namespace CouchDB.Driver.UnitTests
 
                 using (var client = new CouchClient("http://localhost:5984"))
                 {
-                    var rebels = client.GetDatabase<Rebel>("naboo_rebels");
+                    var rebels = client.GetDatabase<Rebel>("some_rebels");
                     var all = await rebels.ToListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/naboo_rebels/_find")
+                        .ShouldHaveCalled("http://localhost:5984/some_rebels/_find")
                         .WithVerb(HttpMethod.Post);
                 }
             }
@@ -154,7 +154,7 @@ namespace CouchDB.Driver.UnitTests
                     var all = await rebels.ToListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/naboo_rebels/_find")
+                        .ShouldHaveCalled("http://localhost:5984/custom_rebels/_find")
                         .WithVerb(HttpMethod.Post);
                 }
             }
