@@ -39,9 +39,9 @@ namespace CouchDB.Driver
             }
             else if (m.Method.DeclaringType == typeof(Enumerable))
             {
-                if (m.Method.Name == "All")
+                if (m.Method.Name == "Any")
                     return VisitAnyMethod(m);
-                else if (m.Method.Name == "Any")
+                else if (m.Method.Name == "All")
                     return VisitAllMethod(m);
             }
             else if (m.Method.DeclaringType == typeof(QueryableExtensions))
@@ -50,23 +50,21 @@ namespace CouchDB.Driver
                     return VisitUseBookmarkMethod(m);
                 else if (m.Method.Name == "WithReadQuorum")
                     return VisitWithQuorumMethod(m);
-                else if (m.Method.Name == "UpdateIndex")
-                    return VisitUpdateIndexMethod(m);
+                else if (m.Method.Name == "WithoutIndexUpdate")
+                    return VisitWithoutIndexUpdateMethod(m);
                 else if (m.Method.Name == "FromStable")
                     return VisitFromStableMethod(m);
                 else if (m.Method.Name == "UseIndex")
                     return VisitUseIndexMethod(m);
+                else if (m.Method.Name == "IncludeExecutionStats")
+                    return VisitIncludeExecutionStatsMethod(m);
             }
             else if (m.Method.DeclaringType == typeof(EnumerableExtensions))
             {
-                if (m.Method.Name == "ContainsAll")
-                    return VisitContainsAllMethod(m);
-                else if (m.Method.Name == "ContainsNone")
-                    return VisitContainsNoneMethod(m);
+                if (m.Method.Name == "Contains")
+                    return VisitEnumarableContains(m);
                 else if (m.Method.Name == "In")
                     return VisitInMethod(m);
-                else if (m.Method.Name == "NotIn")
-                    return VisitNotInMethod(m);
             }
             else if (m.Method.DeclaringType == typeof(ObjectExtensions))
             {
@@ -93,12 +91,12 @@ namespace CouchDB.Driver
 
         private Expression VisitWhereMethod(MethodCallExpression m)
         {
-            this.Visit(m.Arguments[0]);
-            sb.Append("\"selector\":");
+            Visit(m.Arguments[0]);
+            _sb.Append("\"selector\":");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            this.Visit(lambda.Body);
-            sb.Append(",");
-            isSelectorSet = true;
+            Visit(lambda.Body);
+            _sb.Append(",");
+            _isSelectorSet = true;
             return m;
         }
         private Expression VisitOrderAscendingMethod(MethodCallExpression m)
@@ -110,9 +108,9 @@ namespace CouchDB.Driver
 
                 if (o.Method.Name == "OrderBy")
                 {
-                    this.Visit(o.Arguments[0]);
-                    sb.Append("\"sort\":[");
-                    this.Visit(lambda.Body);
+                    Visit(o.Arguments[0]);
+                    _sb.Append("\"sort\":[");
+                    Visit(lambda.Body);
                 }
                 else if (o.Method.Name == "OrderByDescending")
                 {
@@ -121,16 +119,16 @@ namespace CouchDB.Driver
                 else if (o.Method.Name == "ThenBy")
                 {
                     InspectOrdering(o.Arguments[0]);
-                    this.Visit(lambda.Body);
+                    Visit(lambda.Body);
                 }
                 else
                     return;
-                sb.Append(",");
+                _sb.Append(",");
             }
 
             InspectOrdering(m);
-            sb.Length--;
-            sb.Append("],");
+            _sb.Length--;
+            _sb.Append("],");
             return m;
         }
         private Expression VisitOrderDescendingMethod(MethodCallExpression m)
@@ -146,44 +144,45 @@ namespace CouchDB.Driver
                 }
                 else if (o.Method.Name == "OrderByDescending")
                 {
-                    this.Visit(o.Arguments[0]);
-                    sb.Append("\"sort\":[");
-                    sb.Append("{");
-                    this.Visit(lambda.Body);
-                    sb.Append(":\"desc\"}");
+                    Visit(o.Arguments[0]);
+                    _sb.Append("\"sort\":[");
+                    _sb.Append("{");
+                    Visit(lambda.Body);
+                    _sb.Append(":\"desc\"}");
                 }
                 else if (o.Method.Name == "ThenByDescending")
                 {
                     InspectOrdering(o.Arguments[0]);
-                    sb.Append("{");
-                    this.Visit(lambda.Body);
-                    sb.Append(":\"desc\"}");
+                    _sb.Append("{");
+                    Visit(lambda.Body);
+                    _sb.Append(":\"desc\"}");
                 }
                 else
                     return;
-                sb.Append(",");
+                _sb.Append(",");
             }
 
             InspectOrdering(m);
-            sb.Append("],");
+            _sb.Length--;
+            _sb.Append("],");
             return m;
         }
         private Expression VisitSkipMethod(MethodCallExpression m)
         {
-            this.Visit(m.Arguments[0]);
-            sb.Append($"\"limit\":{m.Arguments[1]},");
+            Visit(m.Arguments[0]);
+            _sb.Append($"\"skip\":{m.Arguments[1]},");
             return m;
         }
         private Expression VisitTakeMethod(MethodCallExpression m)
         {
-            this.Visit(m.Arguments[0]);
-            sb.Append($"\"skip\":{m.Arguments[1]},");
+            Visit(m.Arguments[0]);
+            _sb.Append($"\"limit\":{m.Arguments[1]},");
             return m;
         }
         private Expression VisitSelectMethod(MethodCallExpression m)
         {
-            this.Visit(m.Arguments[0]);
-            sb.Append("\"fields\":[");
+            Visit(m.Arguments[0]);
+            _sb.Append("\"fields\":[");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
             var n = lambda.Body as NewExpression;
 
@@ -192,10 +191,11 @@ namespace CouchDB.Driver
 
             foreach (var a in n.Arguments)
             {
-                this.Visit(a);
-                sb.Append(",");
+                Visit(a);
+                _sb.Append(",");
             }
-            sb.Append("],");
+            _sb.Length--;
+            _sb.Append("],");
 
             return m;
         }
@@ -206,22 +206,22 @@ namespace CouchDB.Driver
 
         private Expression VisitAnyMethod(MethodCallExpression m)
         {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$elemMatch\":");
+            _sb.Append("{");
+            Visit(m.Arguments[0]);
+            _sb.Append(":{\"$elemMatch\":");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            this.Visit(lambda.Body);
-            sb.Append("}}");
+            Visit(lambda.Body);
+            _sb.Append("}}");
             return m;
         }
         private Expression VisitAllMethod(MethodCallExpression m)
         {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$allMatch\":");
+            _sb.Append("{");
+            Visit(m.Arguments[0]);
+            _sb.Append(":{\"$allMatch\":");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            this.Visit(lambda.Body);
-            sb.Append("}}");
+            Visit(lambda.Body);
+            _sb.Append("}}");
             return m;
         }
 
@@ -231,42 +231,47 @@ namespace CouchDB.Driver
 
         private Expression VisitUseBookmarkMethod(MethodCallExpression m)
         {
-            this.Visit(m.Arguments[0]);
-            sb.Append("\"bookmark\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append(",");
+            Visit(m.Arguments[0]);
+            _sb.Append("\"bookmark\":");
+            Visit(m.Arguments[1]);
+            _sb.Append(",");
             return m;
         }
         private Expression VisitWithQuorumMethod(MethodCallExpression m)
         {
-            this.Visit(m.Arguments[0]);
-            sb.Append("\"r\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append(",");
+            Visit(m.Arguments[0]);
+            _sb.Append("\"r\":");
+            Visit(m.Arguments[1]);
+            _sb.Append(",");
             return m;
         }
-        private Expression VisitUpdateIndexMethod(MethodCallExpression m)
+        private Expression VisitWithoutIndexUpdateMethod(MethodCallExpression m)
         {
-            this.Visit(m.Arguments[0]);
-            sb.Append("\"update\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append(",");
+            Visit(m.Arguments[0]);
+            _sb.Append("\"update\":false");
+            _sb.Append(",");
             return m;
         }
         private Expression VisitFromStableMethod(MethodCallExpression m)
         {
-            this.Visit(m.Arguments[0]);
-            sb.Append("\"stable\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append(",");
+            Visit(m.Arguments[0]);
+            _sb.Append("\"stable\":true");
+            _sb.Append(",");
             return m;
         }
         private Expression VisitUseIndexMethod(MethodCallExpression m)
         {
-            this.Visit(m.Arguments[0]);
-            sb.Append("\"use_index\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append(",");
+            Visit(m.Arguments[0]);
+            _sb.Append("\"use_index\":");
+            Visit(m.Arguments[1]);
+            _sb.Append(",");
+            return m;
+        }
+        public Expression VisitIncludeExecutionStatsMethod(MethodCallExpression m)
+        {
+            Visit(m.Arguments[0]);
+            _sb.Append("\"execution_stats\":true");
+            _sb.Append(",");
             return m;
         }
 
@@ -274,41 +279,25 @@ namespace CouchDB.Driver
 
         #region EnumerableExtensions
 
-        private Expression VisitContainsAllMethod(MethodCallExpression m)
+        private Expression VisitEnumarableContains(MethodCallExpression m)
         {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$all\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
+            _sb.Append("{");
+            Visit(m.Arguments[0]);
+            _sb.Append(":{\"$all\":");
+            Visit(m.Arguments[1]);
+            _sb.Append("}}");
             return m;
         }
-        private Expression VisitContainsNoneMethod(MethodCallExpression m)
+        private Expression VisitInMethod(MethodCallExpression m, bool not = false)
         {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$nor\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
-            return m;
-        }
-
-        private Expression VisitInMethod(MethodCallExpression m)
-        {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$in\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
-            return m;
-        }
-        private Expression VisitNotInMethod(MethodCallExpression m)
-        {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$nin\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
+            _sb.Append("{");
+            Visit(m.Arguments[0]);
+            if (not)
+                _sb.Append(":{\"$nin\":");
+            else
+                _sb.Append(":{\"$in\":");
+            Visit(m.Arguments[1]);
+            _sb.Append("}}");
             return m;
         }
 
@@ -318,22 +307,22 @@ namespace CouchDB.Driver
 
         private Expression VisitFieldExistsMethod(MethodCallExpression m)
         {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$exists\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
+            _sb.Append("{");
+            Visit(m.Arguments[0]);
+            _sb.Append(":{\"$exists\":");
+            Visit(m.Arguments[1]);
+            _sb.Append("}}");
             return m;
         }
         private Expression VisitIsCouchTypeMethod(MethodCallExpression m)
         {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$type\":");
+            _sb.Append("{");
+            Visit(m.Arguments[0]);
+            _sb.Append(":{\"$type\":");
             var cExpression = m.Arguments[1] as ConstantExpression;
             var couchType = cExpression.Value as CouchType;
-            sb.Append($"\"{couchType.Value}\"");
-            sb.Append("}}");
+            _sb.Append($"\"{couchType.Value}\"");
+            _sb.Append("}}");
             return m;
         }
 
@@ -343,11 +332,11 @@ namespace CouchDB.Driver
 
         private Expression VisitIsMatchMethod(MethodCallExpression m)
         {
-            sb.Append("{");
-            this.Visit(m.Arguments[0]);
-            sb.Append(":{\"$regex\":");
-            this.Visit(m.Arguments[1]);
-            sb.Append("}}");
+            _sb.Append("{");
+            Visit(m.Arguments[0]);
+            _sb.Append(":{\"$regex\":");
+            Visit(m.Arguments[1]);
+            _sb.Append("}}");
             return m;
         }
 
@@ -357,12 +346,11 @@ namespace CouchDB.Driver
 
         private Expression VisitContainsMethod(MethodCallExpression m)
         {
-            // $in operator with single value = Contains(value)
-            sb.Append("{");
-            this.Visit(m.Object);
-            sb.Append(":{\"$in\":[");
-            this.Visit(m.Arguments[0]);
-            sb.Append("]}}");
+            _sb.Append("{");
+            Visit(m.Object);
+            _sb.Append(":{\"$all\":[");
+            Visit(m.Arguments[0]);
+            _sb.Append("]}}");
             return m;
         }
 

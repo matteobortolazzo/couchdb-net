@@ -8,16 +8,16 @@ namespace CouchDB.Driver
     {
         protected override Expression VisitBinary(BinaryExpression b)
         {
-            sb.Append("{");
+            _sb.Append("{");
             if (b.NodeType == ExpressionType.Equal)
             {
                 // $size operator = array.Count == size
                 if (b.Left is MemberExpression m && m.Member.Name == "Count")
                 {
-                    this.Visit(m.Expression);
-                    sb.Append(":{\"$size\":");
-                    this.Visit(b.Right);
-                    sb.Append("}}");
+                    Visit(m.Expression);
+                    _sb.Append(":{\"$size\":");
+                    Visit(b.Right);
+                    _sb.Append("}}");
                     return b;
                 }
                 // $mod operator = prop % divisor = remainder 
@@ -25,12 +25,12 @@ namespace CouchDB.Driver
                 {
                     if (mb.Left is MemberExpression c && c.Member is PropertyInfo r && r.PropertyType == typeof(int))
                     {
-                        this.Visit(mb.Left);
-                        sb.Append(":{\"$mod\":[");
-                        this.Visit(mb.Right);
-                        sb.Append(",");
-                        this.Visit(b.Right);
-                        sb.Append("]}}");
+                        Visit(mb.Left);
+                        _sb.Append(":{\"$mod\":[");
+                        Visit(mb.Right);
+                        _sb.Append(",");
+                        Visit(b.Right);
+                        _sb.Append("]}}");
                         return b;
                     }
                     else
@@ -38,9 +38,9 @@ namespace CouchDB.Driver
                 }
                 else
                 {
-                    this.Visit(b.Left);
-                    sb.Append(":");
-                    this.Visit(b.Right);
+                    Visit(b.Left);
+                    _sb.Append(":");
+                    Visit(b.Right);
                 }
             }
             else if (b.NodeType == ExpressionType.And ||
@@ -54,79 +54,82 @@ namespace CouchDB.Driver
             {
                 VisitBinaryConditionOperator(b);
             }
-            sb.Append("}");
+            _sb.Append("}");
             return b;
         }
 
-        private void VisitBinaryCombinationOperator(BinaryExpression b)
+        private void VisitBinaryCombinationOperator(BinaryExpression b, bool not = false)
         {
+            void InspectBinaryChildren(BinaryExpression e, ExpressionType nodeType)
+            {
+                if (e.Left is BinaryExpression lb && lb.NodeType == nodeType)
+                {
+                    InspectBinaryChildren(lb, nodeType);
+                    _sb.Append(",");
+                    Visit(e.Right);
+                    return;
+                }
+
+                if (e.Right is BinaryExpression rb && rb.NodeType == nodeType)
+                {
+                    Visit(e.Left);
+                    _sb.Append(",");
+                    InspectBinaryChildren(rb, nodeType);
+                    return;
+                }
+
+                Visit(e.Left);
+                _sb.Append(",");
+                Visit(e.Right);
+            }
+
             switch (b.NodeType)
             {
                 case ExpressionType.And:
                 case ExpressionType.AndAlso:
-                    sb.Append("\"$and\":[");
+                    _sb.Append("\"$and\":[");
                     break;
                 case ExpressionType.Or:
                 case ExpressionType.OrElse:
-                    sb.Append("\"$or\":[");
+                    if (not)
+                        _sb.Append("\"$nor\":[");
+                    else
+                        _sb.Append("\"$or\":[");
                     break;
             }
 
-            void InspectChildren(BinaryExpression e)
-            {
-                if (e.Left is BinaryExpression lb && lb.NodeType == b.NodeType)
-                {
-                    InspectChildren(lb);
-                    sb.Append(",");
-                    this.Visit(e.Right);
-                    return;
-                }
-
-                if (e.Right is BinaryExpression rb && rb.NodeType == b.NodeType)
-                {
-                    this.Visit(e.Left);
-                    sb.Append(",");
-                    InspectChildren(rb);
-                    return;
-                }
-
-                this.Visit(e.Left);
-                sb.Append(",");
-                this.Visit(e.Right);
-            }
-
-            InspectChildren(b);
-            sb.Append("]");
+            InspectBinaryChildren(b, b.NodeType);
+            _sb.Append("]");
         }
 
         private void VisitBinaryConditionOperator(BinaryExpression b)
         {
-            this.Visit(b.Left);
-            sb.Append(":{");
+            Visit(b.Left);
+            _sb.Append(":{");
 
             switch (b.NodeType)
             {
                 case ExpressionType.NotEqual:
-                    sb.Append("\"$ne\":");
+                    _sb.Append("\"$ne\":");
                     break;
                 case ExpressionType.LessThan:
-                    sb.Append("\"$lt\":");
+                    _sb.Append("\"$lt\":");
                     break;
                 case ExpressionType.LessThanOrEqual:
-                    sb.Append("\"$lte\":");
+                    _sb.Append("\"$lte\":");
                     break;
                 case ExpressionType.GreaterThan:
-                    sb.Append("\"$gt\":");
+                    _sb.Append("\"$gt\":");
                     break;
                 case ExpressionType.GreaterThanOrEqual:
-                    sb.Append("\"$gte\":");
+                    _sb.Append("\"$gte\":");
                     break;
                 default:
                     throw new NotSupportedException(string.Format("The binary operator '{0}' is not supported", b.NodeType));
             }
 
-            this.Visit(b.Right);
-            sb.Append("}");
+            Visit(b.Right);
+            _sb.Append("}");
         }
     }
 }

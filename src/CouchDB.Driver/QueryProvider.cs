@@ -31,15 +31,15 @@ namespace CouchDB.Driver
 
         S IQueryProvider.Execute<S>(Expression expression)
         {
-            return (S)this.Execute(expression);
+            return (S)Execute(expression, false);
         }
 
         object IQueryProvider.Execute(Expression expression)
         {
-            return this.Execute(expression);
+            return Execute(expression, false);
         }
-               
+        
         public abstract string GetQueryText(Expression expression);
-        public abstract object Execute(Expression expression);
+        public abstract object Execute(Expression expression, bool completeResponse);
     }
 }

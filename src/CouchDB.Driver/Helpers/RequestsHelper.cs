@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Types;
 using Flurl.Http;
+using Nito.AsyncEx;
 
 namespace CouchDB.Driver.Helpers
 {
@@ -11,7 +12,7 @@ namespace CouchDB.Driver.Helpers
     {
         public static T SendRequest<T>(this Task<T> asyncRequest)
         {
-            return asyncRequest.SendRequestAsync().Result;
+            return AsyncContext.Run(() => asyncRequest.SendRequestAsync());
         }
         public static async Task<T> SendRequestAsync<T>(this Task<T> asyncRequest)
         {

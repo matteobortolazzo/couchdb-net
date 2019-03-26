@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CouchDB.Driver.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -43,6 +44,18 @@ namespace CouchDB.Driver.Extensions
 
         #endregion
 
+        public static ICouchList<TSource> ToCouchList<TSource>(this IQueryable<TSource> source)
+        {
+            if (source is CouchQuery<TSource> couchQuery)
+            {
+                return couchQuery.ToCouchList();
+            }
+            throw new NotSupportedException($"The method CompleteResult is not supported on this type of IQueryable");
+        }
+        public static Task<ICouchList<TSource>> ToCouchListAsync<TSource>(this IQueryable<TSource> source)
+        {
+            return Task<ICouchList<TSource>>.Factory.StartNew(() => source.ToCouchList());
+        }
         public static Task<List<TSource>> ToListAsync<TSource>(this IQueryable<TSource> source)
         {
             return Task<List<TSource>>.Factory.StartNew(() => source.ToList());
@@ -73,7 +86,7 @@ namespace CouchDB.Driver.Extensions
                     GetMethodInfo(WithReadQuorum, source, quorum),
                     new Expression[] { source.Expression, Expression.Constant(quorum) }));
         }
-        public static IQueryable<TSource> UpdateIndex<TSource>(this IQueryable<TSource> source, bool needUpdate)
+        public static IQueryable<TSource> WithoutIndexUpdate<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -81,10 +94,10 @@ namespace CouchDB.Driver.Extensions
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
                     null,
-                    GetMethodInfo(UpdateIndex, source, needUpdate),
-                    new Expression[] { source.Expression, Expression.Constant(needUpdate) }));
+                    GetMethodInfo(WithoutIndexUpdate, source),
+                    new Expression[] { source.Expression }));
         }
-        public static IQueryable<TSource> FromStable<TSource>(this IQueryable<TSource> source, bool isFromStable)
+        public static IQueryable<TSource> FromStable<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -92,8 +105,8 @@ namespace CouchDB.Driver.Extensions
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
                     null,
-                    GetMethodInfo(FromStable, source, isFromStable),
-                    new Expression[] { source.Expression, Expression.Constant(isFromStable) }));
+                    GetMethodInfo(FromStable, source),
+                    new Expression[] { source.Expression }));
         }
         public static IQueryable<TSource> UseIndex<TSource>(this IQueryable<TSource> source, params string[] indexes)
         {
@@ -109,6 +122,17 @@ namespace CouchDB.Driver.Extensions
                     null,
                     GetMethodInfo(UseIndex, source, indexes),
                     new Expression[] { source.Expression, Expression.Constant(indexes) }));
+        }
+        public static IQueryable<TSource> IncludeExecutionStats<TSource>(this IQueryable<TSource> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(IncludeExecutionStats, source),
+                    new Expression[] { source.Expression }));
         }
     }
 }

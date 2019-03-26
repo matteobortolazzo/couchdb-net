@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CouchDB.Driver.Types;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +9,13 @@ namespace CouchDB.Driver
 {
     internal class CouchQuery<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable
     {
-        private readonly QueryProvider provider;
-        private readonly Expression expression;
+        private readonly QueryProvider _provider;
+        private readonly Expression _expression;
 
         public CouchQuery(QueryProvider provider)
         {
-            this.provider = provider ?? throw new ArgumentNullException("provider");
-            this.expression = Expression.Constant(this);
+            _provider = provider ?? throw new ArgumentNullException("provider");
+            _expression = Expression.Constant(this);
         }
                
         public CouchQuery(QueryProvider provider, Expression expression)
@@ -34,13 +35,13 @@ namespace CouchDB.Driver
                 throw new ArgumentOutOfRangeException("expression");
             }
 
-            this.provider = provider;
-            this.expression = expression;
+            _provider = provider;
+            _expression = expression;
         }
                
         Expression IQueryable.Expression
         {
-            get { return this.expression; }
+            get { return _expression; }
         }
                
         Type IQueryable.ElementType
@@ -50,22 +51,27 @@ namespace CouchDB.Driver
 
         IQueryProvider IQueryable.Provider
         {
-            get { return this.provider; }
+            get { return _provider; }
         }
                
         public IEnumerator<T> GetEnumerator()
         {
-            return ((IEnumerable<T>)this.provider.Execute(this.expression)).GetEnumerator();
+            return ((IEnumerable<T>)_provider.Execute(_expression, false)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)this.provider.Execute(this.expression)).GetEnumerator();
+            return ((IEnumerable)_provider.Execute(_expression, false)).GetEnumerator();
         }
 
         public override string ToString()
         {
-            return this.provider.GetQueryText(this.expression);
+            return _provider.GetQueryText(_expression);
+        }
+
+        public ICouchList<T> ToCouchList()
+        {
+            return (ICouchList<T>)_provider.Execute(_expression, true);
         }
     }
 }

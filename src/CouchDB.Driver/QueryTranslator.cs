@@ -1,44 +1,50 @@
-﻿using System.Linq.Expressions;
+﻿using CouchDB.Driver.Types;
+using System;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace CouchDB.Driver
 {
     internal partial class QueryTranslator : ExpressionVisitor
     {
-        private StringBuilder sb;
-        private bool isSelectorSet;
+        private readonly CouchSettings _settings;
+        private StringBuilder _sb;
+        private bool _isSelectorSet;
 
-        internal QueryTranslator() { }
+        internal QueryTranslator(CouchSettings settings)
+        {
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        }
         internal string Translate(Expression expression)
         {
-            this.sb = new StringBuilder();
-            sb.Append("{");
-            this.Visit(expression);
+            _sb = new StringBuilder();
+            _sb.Append("{");
+            Visit(expression);
 
             // If no Where() calls
-            if (!isSelectorSet)
+            if (!_isSelectorSet)
             {
                 // If no other methods calls - ToList()
-                if (sb.Length > 1)
+                if (_sb.Length > 1)
                 {
-                    sb.Length--;
-                    sb.Append(",");
+                    _sb.Length--;
+                    _sb.Append(",");
                 }
-                sb.Append("\"selector\":{}");
+                _sb.Append("\"selector\":{}");
             }
             else
             {
-                sb.Length--;
+                _sb.Length--;
             }
 
-            sb.Append("}");
-            var body = sb.ToString();
+            _sb.Append("}");
+            var body = _sb.ToString();
             return body;
         }
 
         protected override Expression VisitLambda<T>(Expression<T> l)
         {
-            this.Visit(l.Body);
+            Visit(l.Body);
             return l;
         }
     }

@@ -4,11 +4,11 @@ namespace CouchDB.Driver.Extensions
 {
     public static class ObjectExtensions
     {
-        public static bool FieldExists(this object obj, bool doExists = true)
+        public static bool FieldExists<T>(this T obj, bool doExists)
         {
             return true;
         }
-        public static bool IsCouchType(this object obj, CouchType type)
+        public static bool IsCouchType<T>(this T obj, CouchType type)
         {
             return true;
         }
