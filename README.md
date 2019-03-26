@@ -187,12 +187,12 @@ var tasks = await client.GetActiveTasksAsync();
 await rebels.AddAsync(rebel);
 await rebels.AddOrUpdateAsync(rebel);
 await rebels.RemoveAsync(rebel);
-var house = await housesDb.FindAsync(id);
+var rebel = await rebels.FindAsync(id);
 // Bulk
 await rebels.AddOrUpdateRangeAsync(moreRebels);
 // Utils
-await db.CompactAsync();
-var info = await db.GetInfoAsync();
+await rebels.CompactAsync();
+var info = await rebels.GetInfoAsync();
 ```
 
 ## Authentication
