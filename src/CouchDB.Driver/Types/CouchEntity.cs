@@ -7,6 +7,9 @@ namespace CouchDB.Driver.Types
 {
     public abstract class CouchEntity
     {
+        /// <summary>
+        /// The ID of the entity.
+        /// </summary>
         [DataMember]
         [JsonProperty("_id", NullValueHandling = NullValueHandling.Ignore)]
         public string Id { get; set; }
@@ -14,6 +17,9 @@ namespace CouchDB.Driver.Types
         [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
         private string IdOther { set => Id = value; }
 
+        /// <summary>
+        /// The revision of the current entity.
+        /// </summary>
         [DataMember]
         [JsonProperty("_rev", NullValueHandling = NullValueHandling.Ignore)]
         public string Rev { get; set; }

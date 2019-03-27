@@ -1,5 +1,8 @@
 ﻿namespace CouchDB.Driver.Types
 {
+    /// <summary>
+    /// Represents a document field type.
+    /// </summary>
     public class CouchType
     {
         public string Value { get; }
@@ -9,11 +12,11 @@
             Value = value;
         }
 
-        public static CouchType Null = new CouchType("null");
-        public static CouchType Boolean = new CouchType("boolean");
-        public static CouchType Number = new CouchType("number");
-        public static CouchType String = new CouchType("string");
-        public static CouchType Array = new CouchType("array");
-        public static CouchType Object = new CouchType("object");
+        public static readonly CouchType Null = new CouchType("null");
+        public static readonly CouchType Boolean = new CouchType("boolean");
+        public static readonly CouchType Number = new CouchType("number");
+        public static readonly CouchType String = new CouchType("string");
+        public static readonly CouchType Array = new CouchType("array");
+        public static readonly CouchType Object = new CouchType("object");
     }
 }
