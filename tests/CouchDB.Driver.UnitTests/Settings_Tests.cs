@@ -15,9 +15,12 @@ namespace CouchDB.Driver.UnitTests
         [Fact]
         public void Creation_Valid()
         {
-            using (var client = new CouchClient("http://localhost:5984"))
+            using (var httpTest = new HttpTest())
             {
-                Assert.Equal("http://localhost:5984", client.ConnectionString);
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    Assert.Equal("http://localhost", client.ConnectionString);
+                }
             }
         }
         [Fact]
@@ -38,19 +41,25 @@ namespace CouchDB.Driver.UnitTests
         [Fact]
         public void Creation_BasicAuthentication()
         {
-            using (var client = new CouchClient("http://localhost:5984", s => 
-                s.UseBasicAuthentication("root", "relax")))
+            using (var httpTest = new HttpTest())
             {
-                Assert.Equal("http://localhost:5984", client.ConnectionString);
+                using (var client = new CouchClient("http://localhost", s =>
+                s.UseBasicAuthentication("root", "relax")))
+                {
+                    Assert.Equal("http://localhost", client.ConnectionString);
+                }
             }
         }
         [Fact]
         public void Creation_CookieAuthentication()
         {
-            using (var client = new CouchClient("http://localhost:5984", s =>
-                s.UseCookieAuthentication("root", "relax")))
+            using (var httpTest = new HttpTest())
             {
-                Assert.Equal("http://localhost:5984", client.ConnectionString);
+                using (var client = new CouchClient("http://localhost", s =>
+                s.UseCookieAuthentication("root", "relax")))
+                {
+                    Assert.Equal("http://localhost", client.ConnectionString);
+                }
             }
         }
 
@@ -61,32 +70,41 @@ namespace CouchDB.Driver.UnitTests
         [Fact]
         public void PropertyName_Camelization()
         {
-            using (var client = new CouchClient("http://localhost:5984"))
+            using (var httpTest = new HttpTest())
             {
-                var rebels = client.GetDatabase<Rebel>();
-                var json = rebels.Where(r => r.Age == 19).ToString();
-                Assert.Equal(@"{""selector"":{""age"":19}}", json);
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var rebels = client.GetDatabase<Rebel>();
+                    var json = rebels.Where(r => r.Age == 19).ToString();
+                    Assert.Equal(@"{""selector"":{""age"":19}}", json);
+                }
             }
         }
         [Fact]
         public void PropertyName_CamelizationDisabled()
         {
-            using (var client = new CouchClient("http://localhost:5984", s =>
-                s.SetPropertyCase(PropertyCaseType.None)))
+            using (var httpTest = new HttpTest())
             {
-                var rebels = client.GetDatabase<Rebel>();
-                var json = rebels.Where(r => r.Age == 19).ToString();
-                Assert.Equal(@"{""selector"":{""Age"":19}}", json);
+                using (var client = new CouchClient("http://localhost", s =>
+                s.SetPropertyCase(PropertyCaseType.None)))
+                {
+                    var rebels = client.GetDatabase<Rebel>();
+                    var json = rebels.Where(r => r.Age == 19).ToString();
+                    Assert.Equal(@"{""selector"":{""Age"":19}}", json);
+                }
             }
         }
         [Fact]
         public void PropertyName_JsonProperty()
         {
-            using (var client = new CouchClient("http://localhost:5984"))
+            using (var httpTest = new HttpTest())
             {
-                var rebels = client.GetDatabase<OtherRebel>();
-                var json = rebels.Where(r => r.BirthDate == new DateTime(2000, 1, 1)).ToString();
-                Assert.Equal(@"{""selector"":{""rebel_bith_date"":""2000-01-01T00:00:00""}}", json);
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var rebels = client.GetDatabase<OtherRebel>();
+                    var json = rebels.Where(r => r.BirthDate == new DateTime(2000, 1, 1)).ToString();
+                    Assert.Equal(@"{""selector"":{""rebel_bith_date"":""2000-01-01T00:00:00""}}", json);
+                }
             }
         }
 
@@ -101,13 +119,13 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                using (var client = new CouchClient("http://localhost:5984"))
+                using (var client = new CouchClient("http://localhost"))
                 {
                     var rebels = client.GetDatabase<Rebel>();
                     var all = await rebels.ToListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/rebels/_find")
+                        .ShouldHaveCalled("http://localhost/rebels/_find")
                         .WithVerb(HttpMethod.Post);
                 }
             }
@@ -119,13 +137,13 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                using (var client = new CouchClient("http://localhost:5984", s => s.DisableEntitisPluralization()))
+                using (var client = new CouchClient("http://localhost", s => s.DisableEntitisPluralization()))
                 {
                     var rebels = client.GetDatabase<Rebel>();
                     var all = await rebels.ToListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/rebel/_find")
+                        .ShouldHaveCalled("http://localhost/rebel/_find")
                         .WithVerb(HttpMethod.Post);
                 }
             }
@@ -137,14 +155,14 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                using (var client = new CouchClient("http://localhost:5984", s => s
+                using (var client = new CouchClient("http://localhost", s => s
                     .SetEntityCase(EntityCaseType.None)))
                 {
                     var rebels = client.GetDatabase<NewRebel>();
                     var all = await rebels.ToListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/newrebels/_find")
+                        .ShouldHaveCalled("http://localhost/newrebels/_find")
                         .WithVerb(HttpMethod.Post);
                 }
             }
@@ -156,13 +174,13 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                using (var client = new CouchClient("http://localhost:5984"))
+                using (var client = new CouchClient("http://localhost"))
                 {
                     var rebels = client.GetDatabase<Rebel>("some_rebels");
                     var all = await rebels.ToListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/some_rebels/_find")
+                        .ShouldHaveCalled("http://localhost/some_rebels/_find")
                         .WithVerb(HttpMethod.Post);
                 }
             }
@@ -174,13 +192,13 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                using (var client = new CouchClient("http://localhost:5984"))
+                using (var client = new CouchClient("http://localhost"))
                 {
                     var rebels = client.GetDatabase<OtherRebel>();
                     var all = await rebels.ToListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/custom_rebels/_find")
+                        .ShouldHaveCalled("http://localhost/custom_rebels/_find")
                         .WithVerb(HttpMethod.Post);
                 }
             }
@@ -197,12 +215,12 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new [] { "sith" });
 
-                using (var client = new CouchClient("http://localhost:5984", s => s.
+                using (var client = new CouchClient("http://localhost", s => s.
                     EnsureDatabaseExists()))
                 {
                     client.GetDatabase<Rebel>("yedi");
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/yedi")
+                        .ShouldHaveCalled("http://localhost/yedi")
                         .WithVerb(HttpMethod.Put);
                 }
             }

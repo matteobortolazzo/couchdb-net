@@ -9,15 +9,8 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests
 {
-    public class Client_Tests : IDisposable
+    public class Client_Tests
     {
-        private readonly CouchClient _client;
-
-        public Client_Tests()
-        {
-            _client = new CouchClient("http://localhost:5984");
-        }
-
         #region Create
 
         [Fact]
@@ -25,11 +18,14 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                var rebels = await _client.CreateDatabaseAsync<Rebel>();
-                httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels")
-                    .WithVerb(HttpMethod.Put);
-                Assert.Equal("rebels", rebels.Database);
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var rebels = await client.CreateDatabaseAsync<Rebel>();
+                    httpTest
+                        .ShouldHaveCalled("http://localhost/rebels")
+                        .WithVerb(HttpMethod.Put);
+                    Assert.Equal("rebels", rebels.Database);
+                }
             }
         }
         [Fact]
@@ -37,11 +33,14 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                var rebels = await _client.CreateDatabaseAsync<Rebel>("some_rebels");
-                httpTest
-                    .ShouldHaveCalled("http://localhost:5984/some_rebels")
-                    .WithVerb(HttpMethod.Put);
-                Assert.Equal("some_rebels", rebels.Database);
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var rebels = await client.CreateDatabaseAsync<Rebel>("some_rebels");
+                    httpTest
+                        .ShouldHaveCalled("http://localhost/some_rebels")
+                        .WithVerb(HttpMethod.Put);
+                    Assert.Equal("some_rebels", rebels.Database);
+                }
             }
         }
 
@@ -54,10 +53,13 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                await _client.DeleteDatabaseAsync<Rebel>();
-                httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels")
-                    .WithVerb(HttpMethod.Delete);
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    await client.DeleteDatabaseAsync<Rebel>();
+                    httpTest
+                        .ShouldHaveCalled("http://localhost/rebels")
+                        .WithVerb(HttpMethod.Delete);
+                }
             }
         }
         [Fact]
@@ -65,10 +67,13 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                await _client.DeleteDatabaseAsync<Rebel>("some_rebels");
-                httpTest
-                    .ShouldHaveCalled("http://localhost:5984/some_rebels")
-                    .WithVerb(HttpMethod.Delete);
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    await client.DeleteDatabaseAsync<Rebel>("some_rebels");
+                    httpTest
+                        .ShouldHaveCalled("http://localhost/some_rebels")
+                        .WithVerb(HttpMethod.Delete);
+                }
             }
         }
 
@@ -81,12 +86,15 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new[] { "jedi", "sith" });
-                var dbs = await _client.GetDatabasesNamesAsync();
-                httpTest
-                    .ShouldHaveCalled("http://localhost:5984/_all_dbs")
-                    .WithVerb(HttpMethod.Get);
-                Assert.Equal(new[] { "jedi", "sith" }, dbs);
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    httpTest.RespondWithJson(new[] { "jedi", "sith" });
+                    var dbs = await client.GetDatabasesNamesAsync();
+                    httpTest
+                        .ShouldHaveCalled("http://localhost/_all_dbs")
+                        .WithVerb(HttpMethod.Get);
+                    Assert.Equal(new[] { "jedi", "sith" }, dbs);
+                }
             }
         }
         [Fact]
@@ -94,20 +102,14 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                var dbs = await _client.GetActiveTasksAsync();
-                httpTest
-                    .ShouldHaveCalled("http://localhost:5984/_active_tasks")
-                    .WithVerb(HttpMethod.Get);
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var dbs = await client.GetActiveTasksAsync();
+                    httpTest
+                        .ShouldHaveCalled("http://localhost/_active_tasks")
+                        .WithVerb(HttpMethod.Get);
+                }
             }
-        }
-
-        #endregion
-
-        #region Implementations
-
-        public void Dispose()
-        {
-            _client.Dispose();
         }
 
         #endregion

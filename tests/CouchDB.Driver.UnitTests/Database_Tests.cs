@@ -16,7 +16,7 @@ namespace CouchDB.Driver.UnitTests
 
         public Database_Tests()
         {
-            var client = new CouchClient("http://localhost:5984");
+            var client = new CouchClient("http://localhost");
             _rebels = client.GetDatabase<Rebel>();
         }
 
@@ -29,7 +29,7 @@ namespace CouchDB.Driver.UnitTests
             {
                 var newR = await _rebels.FindAsync("1");
                 httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels/doc/1")
+                    .ShouldHaveCalled("http://localhost/rebels/doc/1")
                     .WithVerb(HttpMethod.Get);
             }
         }
@@ -43,7 +43,7 @@ namespace CouchDB.Driver.UnitTests
                 var r = new Rebel { Name = "Luke" };
                 var newR = await _rebels.CreateAsync(r);
                 httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels")
+                    .ShouldHaveCalled("http://localhost/rebels")
                     .WithVerb(HttpMethod.Post);
             }
         }
@@ -57,7 +57,7 @@ namespace CouchDB.Driver.UnitTests
                 var r = new Rebel { Name = "Luke", Id = "1" };
                 var newR = await _rebels.CreateOrUpdateAsync(r);
                 httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels/doc/1")
+                    .ShouldHaveCalled("http://localhost/rebels/doc/1")
                     .WithVerb(HttpMethod.Put);
             }
         }
@@ -83,7 +83,7 @@ namespace CouchDB.Driver.UnitTests
                 var r = new Rebel { Name = "Luke", Id = "1", Rev = "1" };
                 await _rebels.DeleteAsync(r);
                 httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels/doc/1?rev=1")
+                    .ShouldHaveCalled("http://localhost/rebels/doc/1?rev=1")
                     .WithVerb(HttpMethod.Delete);
             }
         }
@@ -94,13 +94,13 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0], Bookmark = "bookmark" });
 
-                using (var client = new CouchClient("http://localhost:5984"))
+                using (var client = new CouchClient("http://localhost"))
                 {
                     var rebels = client.GetDatabase<Rebel>();
                     var completeResult = await rebels.ToCouchListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/rebels/_find")
+                        .ShouldHaveCalled("http://localhost/rebels/_find")
                         .WithVerb(HttpMethod.Post);
                     Assert.Equal("bookmark", completeResult.Bookmark);
                 }
@@ -127,7 +127,7 @@ namespace CouchDB.Driver.UnitTests
                 };
                 var newR = await _rebels.CreateOrUpdateRangeAsync(moreRebels);
                 httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels/_bulk_docs")
+                    .ShouldHaveCalled("http://localhost/rebels/_bulk_docs")
                     .WithVerb(HttpMethod.Post);
             }
         }
@@ -143,7 +143,7 @@ namespace CouchDB.Driver.UnitTests
             {
                 await _rebels.GetInfoAsync();
                 httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels")
+                    .ShouldHaveCalled("http://localhost/rebels")
                     .WithVerb(HttpMethod.Get);
             }
         }
@@ -154,7 +154,7 @@ namespace CouchDB.Driver.UnitTests
             {
                 await _rebels.CompactAsync();
                 httpTest
-                    .ShouldHaveCalled("http://localhost:5984/rebels/_compact")
+                    .ShouldHaveCalled("http://localhost/rebels/_compact")
                     .WithVerb(HttpMethod.Post);
             }
         }

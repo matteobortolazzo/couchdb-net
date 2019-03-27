@@ -17,13 +17,13 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                using (var client = new CouchClient("http://localhost:5984", s => s.UseBasicAuthentication("root", "relax")))
+                using (var client = new CouchClient("http://localhost", s => s.UseBasicAuthentication("root", "relax")))
                 {
                     var rebels = client.GetDatabase<Rebel>();
                     var all = await rebels.ToListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/rebels/_find")
+                        .ShouldHaveCalled("http://localhost/rebels/_find")
                         .WithVerb(HttpMethod.Post);
                 }
             }
@@ -35,13 +35,13 @@ namespace CouchDB.Driver.UnitTests
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                using (var client = new CouchClient("http://localhost:5984", s => s.UseBasicAuthentication("root", "relax")))
+                using (var client = new CouchClient("http://localhost", s => s.UseBasicAuthentication("root", "relax")))
                 {
                     var rebels = client.GetDatabase<Rebel>();
                     var all = await rebels.ToListAsync();
 
                     httpTest
-                        .ShouldHaveCalled("http://localhost:5984/rebels/_find")
+                        .ShouldHaveCalled("http://localhost/rebels/_find")
                         .WithVerb(HttpMethod.Post)
                         .WithBasicAuth("root", "relax");
                 }
@@ -61,7 +61,7 @@ namespace CouchDB.Driver.UnitTests
                 httpTest.ResponseQueue.Enqueue(cookieResponse);
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                using (var client = new CouchClient("http://localhost:5984", s => s.UseCookieAuthentication("root", "relax")))
+                using (var client = new CouchClient("http://localhost", s => s.UseCookieAuthentication("root", "relax")))
                 {
                     var rebels = client.GetDatabase<Rebel>();
                     var all = await rebels.ToListAsync();

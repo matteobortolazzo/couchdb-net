@@ -11,7 +11,7 @@ namespace CouchDB.Driver.UnitTests.Find
 
         public Find_Selector()
         {
-            var client = new CouchClient("http://localhost:5984");
+            var client = new CouchClient("http://localhost");
             rebels = client.GetDatabase<Rebel>();
         }
 

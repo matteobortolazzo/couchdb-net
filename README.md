@@ -83,7 +83,7 @@ The produced Mango JSON:
 * Install it from NuGet: [https://www.nuget.org/packages/CouchDB.NET](https://www.nuget.org/packages/CouchDB.NET)
 * Create a client:
     ```csharp
-   using(var client = new CouchClient("http://localhost:5984")) { }
+   using(var client = new CouchClient("http://localhost")) { }
    ```
 * Create an entity class:
     ```csharp
@@ -205,7 +205,7 @@ If authentication is needed currently there are two ways: Basic and Cookie authe
 ### Basic authentication
 
 ```csharp
-var client = new CouchClient("http://localhost:5984", s => 
+var client = new CouchClient("http://localhost", s => 
     s.UseBasicAuthentication("root", "relax")
 )
 ```
@@ -213,7 +213,7 @@ var client = new CouchClient("http://localhost:5984", s =>
 ### Cookie authentication
 
 ```csharp
-var client = new CouchClient("http://localhost:5984", s => s
+var client = new CouchClient("http://localhost", s => s
     .UseCookieAuthentication("root", "relax")
 )
 ```
@@ -221,7 +221,7 @@ var client = new CouchClient("http://localhost:5984", s => s
 It's also possible to specify the duration of the session.
 
 ```csharp
-var client = new CouchClient("http://localhost:5984", s => s
+var client = new CouchClient("http://localhost", s => s
     .UseCookieAuthentication("root", "relax", cookieDuration)
 )
 ```
@@ -231,7 +231,7 @@ var client = new CouchClient("http://localhost:5984", s => s
 The second parameter of the client constructor is a function to configure CouchSettings fluently.
 
 ```csharp
-var client = new CouchClient("http://localhost:5984", s => s
+var client = new CouchClient("http://localhost", s => s
     .UseBasicAuthentication("root", "relax")
     .DisableEntitisPluralization()
     ....
