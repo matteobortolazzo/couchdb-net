@@ -78,14 +78,14 @@ namespace CouchDB.Driver.UnitTests.Find
         [Fact]
         public void Array_In()
         {
-            var json = _rebels.Where(r => r.Skills.In(new[] { "lightsaber", "force" })).ToString();
-            Assert.Equal(@"{""selector"":{""skills"":{""$in"":[""lightsaber"",""force""]}}}", json);
+            var json = _rebels.Where(r => r.Age.In(new[] { 20, 30 })).ToString();
+            Assert.Equal(@"{""selector"":{""age"":{""$in"":[20,30]}}}", json);
         }
         [Fact]
         public void Array_NotIn()
         {
-            var json = _rebels.Where(r => !r.Skills.In(new[] { "lightsaber", "force" })).ToString();
-            Assert.Equal(@"{""selector"":{""skills"":{""$nin"":[""lightsaber"",""force""]}}}", json);
+            var json = _rebels.Where(r => !r.Age.In(new[] { 20, 30 })).ToString();
+            Assert.Equal(@"{""selector"":{""age"":{""$nin"":[20,30]}}}", json);
         }
         [Fact]
         public void Array_Size()

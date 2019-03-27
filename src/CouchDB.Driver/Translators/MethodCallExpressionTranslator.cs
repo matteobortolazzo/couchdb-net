@@ -63,8 +63,6 @@ namespace CouchDB.Driver
             {
                 if (m.Method.Name == "Contains")
                     return VisitEnumarableContains(m);
-                else if (m.Method.Name == "In")
-                    return VisitInMethod(m);
             }
             else if (m.Method.DeclaringType == typeof(ObjectExtensions))
             {
@@ -72,6 +70,8 @@ namespace CouchDB.Driver
                     return VisitFieldExistsMethod(m);
                 else if (m.Method.Name == "IsCouchType")
                     return VisitIsCouchTypeMethod(m);
+                else if (m.Method.Name == "In")
+                    return VisitInMethod(m);
             }
             else if (m.Method.DeclaringType == typeof(StringExtensions))
             {

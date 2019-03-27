@@ -142,8 +142,8 @@ If the Where method is not called in the expression, it will at an empty selecto
 | $gt            | >                  |
 | $exists        | o.FieldExists()    |
 | $type          | o.IsCouchType(...) |
-| $in            | a.In(list)         |
-| $nin           | !a.In(list)        |
+| $in            | o.In(list)         |
+| $nin           | !o.In(list)        |
 | $size          | a.Count == x       |
 | $mod           | n % x = y          |
 | $regex         | s.IsMatch(rx)      |
