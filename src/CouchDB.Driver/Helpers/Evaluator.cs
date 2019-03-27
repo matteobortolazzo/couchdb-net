@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace CouchDB.Driver.Helpers
 {
-    public static class Evaluator
+    internal static class Evaluator
     {
         /// <summary>
         /// Performs evaluation & replacement of independent sub-trees

@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CouchDB.Driver.Exceptions
+﻿namespace CouchDB.Driver.Exceptions
 {
+    /// <summary>
+    /// The exception that is thrown when something is not found.
+    /// </summary>
     public class CouchNotFoundException : CouchException
     {
-        public CouchNotFoundException(string message, string reason) : base(message, reason) { }
+        /// <summary>
+        /// Creates a new instance of CouchNotFoundException.
+        /// </summary>
+        /// <param name="message">Error message</param>
+        /// <param name="reason">Error reason</param>
+        internal CouchNotFoundException(string message, string reason) : base(message, reason) { }
     }
 }
