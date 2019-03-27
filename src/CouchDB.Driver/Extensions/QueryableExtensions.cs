@@ -44,6 +44,18 @@ namespace CouchDB.Driver.Extensions
 
         #endregion
 
+        /// <summary>
+        /// Creates a List<T> from a sequence by enumerating it asynchronously.
+        /// </summary>
+        /// <retuns>A task that represents the asynchronous operation. The task result contains a List<T> that contains elements from the sequence.</retuns>
+        public static Task<List<TSource>> ToListAsync<TSource>(this IQueryable<TSource> source)
+        {
+            return Task<List<TSource>>.Factory.StartNew(() => source.ToList());
+        }
+        /// <summary>
+        /// Creates a CouchList<T> from the sequence.
+        /// </summary>
+        /// <returns>A CouchList<T> that contains elements from the sequence.</returns>
         public static CouchList<TSource> ToCouchList<TSource>(this IQueryable<TSource> source)
         {
             if (source is CouchQuery<TSource> couchQuery)
@@ -52,22 +64,19 @@ namespace CouchDB.Driver.Extensions
             }
             throw new NotSupportedException($"The method CompleteResult is not supported on this type of IQueryable");
         }
+        /// <summary>
+        /// Creates a CouchList<T> from a sequence by enumerating it asynchronously.
+        /// </summary>
+        /// <retuns>A task that represents the asynchronous operation. The task result contains a CouchList<T> that contains elements from the sequence.</retuns>
         public static Task<CouchList<TSource>> ToCouchListAsync<TSource>(this IQueryable<TSource> source)
         {
             return Task<CouchList<TSource>>.Factory.StartNew(() => source.ToCouchList());
         }
         /// <summary>
-        /// Creates a List<T> from the database asyncronsly.
-        /// </summary>
-        /// <typeparam name="TSource">Document type</typeparam>
-        public static Task<List<TSource>> ToListAsync<TSource>(this IQueryable<TSource> source)
-        {
-            return Task<List<TSource>>.Factory.StartNew(() => source.ToList());
-        }
-        /// <summary>
-        /// Returns a sequence paginated using a bookmark.
+        /// Paginates elements in the sequence using a bookmark.
         /// </summary>
         /// <param name="bookmark">A string that enables you to specify which page of results you require.</param>
+        /// <return>An IQueryable<T> that contains the paginated of elements of the sequence.</return>
         public static IQueryable<TSource> UseBookmark<TSource>(this IQueryable<TSource> source, string bookmark)
         {
             if (source == null)
@@ -82,9 +91,10 @@ namespace CouchDB.Driver.Extensions
                     new Expression[] { source.Expression, Expression.Constant(bookmark) }));
         }
         /// <summary>
-        /// Returns a sequence after the element is read from at least that many replicas.
+        /// Ensures that elements from the sequence will be read from at least that many replicas.
         /// </summary>
         /// <param name="quorum">Read quorum needed for the result.</param>
+        /// <return>An IQueryable<T> that contains the elements of the sequence after had been read from at least that many replicas.</return>
         public static IQueryable<TSource> WithReadQuorum<TSource>(this IQueryable<TSource> source, int quorum)
         {
             if (source == null)
@@ -99,8 +109,9 @@ namespace CouchDB.Driver.Extensions
                     new Expression[] { source.Expression, Expression.Constant(quorum) }));
         }
         /// <summary>
-        /// Returns a sequence that do not update the index.
+        /// Disables the index update in the sequence.
         /// </summary>
+        /// <return>An IQueryable<T> that contains the instruction to disable index updates in the sequence.</return>
         public static IQueryable<TSource> WithoutIndexUpdate<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -113,8 +124,9 @@ namespace CouchDB.Driver.Extensions
                     new Expression[] { source.Expression }));
         }
         /// <summary>
-        /// Returns a sequence returned from a "stable" set of shards.
+        /// Ensures that elements returned is from a "stable" set of shards in the sequence.
         /// </summary>
+        /// <return>An IQueryable<T> that contains the instruction to request elements from a "stable" set of shards in the sequence.</return>
         public static IQueryable<TSource> FromStable<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -127,9 +139,10 @@ namespace CouchDB.Driver.Extensions
                     new Expression[] { source.Expression }));
         }
         /// <summary>
-        /// Returns a sequence that use the specific index.
+        /// Applies an index when requesting elements from the sequence.
         /// </summary>
         /// <param name="indexes">Array representing the design document and, optionally, the index name.</param>
+        /// <return>An IQueryable<T> that contains the index to use when requesting elements from the sequence.</return>
         public static IQueryable<TSource> UseIndex<TSource>(this IQueryable<TSource> source, params string[] indexes)
         {
             if (source == null)
@@ -146,8 +159,9 @@ namespace CouchDB.Driver.Extensions
                     new Expression[] { source.Expression, Expression.Constant(indexes) }));
         }
         /// <summary>
-        /// Retutns a sequence that includes execution statistics.
+        /// Asks for exection stats when requesting elements from the sequence.
         /// </summary>
+        /// <return>An IQueryable<T> that contains the request to ask for execution stats when requesting elements from the sequence.</return>
         public static IQueryable<TSource> IncludeExecutionStats<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)

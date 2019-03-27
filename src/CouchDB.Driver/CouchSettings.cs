@@ -40,6 +40,7 @@ namespace CouchDB.Driver
         /// </summary>
         /// <param name="username">Server username.</param>
         /// <param name="password">Server password.</param>
+        /// <returns>The current settings</returns>
         public CouchSettings UseBasicAuthentication(string username, string password)
         {
             if (string.IsNullOrEmpty(username))
@@ -59,6 +60,7 @@ namespace CouchDB.Driver
         /// <param name="username">Server username.</param>
         /// <param name="password">Server password.</param>
         /// <param name="cookieDuration">Cookie duration in minutes.</param>
+        /// <returns>The current settings</returns>
         public CouchSettings UseCookieAuthentication(string username, string password, int cookieDuration = 10)
         {
             if (string.IsNullOrEmpty(username))
@@ -77,6 +79,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// Removes any SSL certificate validation.
         /// </summary>
+        /// <returns>The current settings</returns>
         public CouchSettings IgnoreCertificateValidation()
         {
             ServerCertificateCustomValidationCallback = (m,x,c,s) => true;
@@ -86,6 +89,7 @@ namespace CouchDB.Driver
         /// Sets a custom SSL validation rule.
         /// </summary>
         /// <param name="serverCertificateCustomValidationCallback">SSL validation function</param>
+        /// <returns>The current settings</returns>
         public CouchSettings ConfigureCertificateValidation(Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> 
             serverCertificateCustomValidationCallback)
         {
@@ -96,6 +100,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// Disables entities pluralization in requests.
         /// </summary>
+        /// <returns>The current settings</returns>
         public CouchSettings DisableEntitisPluralization()
         {
             PluralizeEntitis = false;
@@ -105,6 +110,7 @@ namespace CouchDB.Driver
         /// Sets the format case for entities. Default: underscore_case.
         /// </summary>
         /// <param name="type">The type of case format.</param>
+        /// <returns>The current settings</returns>
         public CouchSettings SetEntityCase(EntityCaseType type)
         {
             EntityCaseType = type;
@@ -114,6 +120,7 @@ namespace CouchDB.Driver
         /// Sets the format case for properties. Default: camelCase.
         /// </summary>
         /// <param name="type">The type of case format.</param>
+        /// <returns>The current settings</returns>
         public CouchSettings SetPropertyCase(PropertyCaseType type)
         {
             PropertiesCase = type;
@@ -122,6 +129,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// If a database doesn't exists, it creates it.
         /// </summary>
+        /// <returns>The current settings</returns>
         public CouchSettings EnsureDatabaseExists()
         {
             CheckDatabaseExists = true;

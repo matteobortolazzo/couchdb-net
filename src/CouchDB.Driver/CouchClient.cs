@@ -60,9 +60,9 @@ namespace CouchDB.Driver
         /// Returns an instance of the CouchDB database with the given name. 
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
-        /// <typeparam name="TSource">Document type.</typeparam>
-        /// <param name="database">Database name.</param>
-        /// <returns>Instance of the CouchDB database with given name.</returns>
+        /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <param name="database">The database name.</param>
+        /// <returns>An instance of the CouchDB database with given name.</returns>
         public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchEntity
         {
             if (database == null)
@@ -83,9 +83,9 @@ namespace CouchDB.Driver
         /// Creates a new database with the given name in the server.
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
         /// </summary>
-        /// <typeparam name="TSource">Document type.</typeparam>
-        /// <param name="database">Database name.</param>
-        /// <returns>Instance of the newly created CouchDB database.</returns>
+        /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <param name="database">The database name.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
         public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database) where TSource : CouchEntity
         {
             if (database == null)
@@ -106,8 +106,9 @@ namespace CouchDB.Driver
         /// <summary>
         /// Deletes the database with the given name from the server.
         /// </summary>
-        /// <typeparam name="TSource">Document type.</typeparam>
-        /// <param name="database">Database name.</param>
+        /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <param name="database">The database name.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchEntity
         {
             if (database == null)
@@ -127,8 +128,8 @@ namespace CouchDB.Driver
         /// Returns an instance of the CouchDB database of the given type. 
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
-        /// <typeparam name="TSource">Document type.</typeparam>
-        /// <returns>Instance of the CouchDB database of the given type.</returns>
+        /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <returns>The instance of the CouchDB database of the given type.</returns>
         public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
         {            
             return GetDatabase<TSource>(GetClassName<TSource>());
@@ -137,9 +138,9 @@ namespace CouchDB.Driver
         /// Creates a new database of the given type in the server. 
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
         /// </summary>
-        /// <typeparam name="TSource">Document type.</typeparam>
-        /// <param name="database">Database name.</param>
-        /// <returns>Instance of the newly created CouchDB database.</returns>
+        /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <param name="database">The database name.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
         public Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchEntity
         {
             return CreateDatabaseAsync<TSource>(GetClassName<TSource>());
@@ -147,7 +148,8 @@ namespace CouchDB.Driver
         /// <summary>
         /// Deletes the database with the given type from the server.
         /// </summary>
-        /// <typeparam name="TSource">Document type.</typeparam>
+        /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public Task DeleteDatabaseAsync<TSource>() where TSource : CouchEntity
         {
             return DeleteDatabaseAsync<TSource>(GetClassName<TSource>());
@@ -165,7 +167,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// Returns all databases names in the server.
         /// </summary>
-        /// <returns>All databases names.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the sequence of databases names.</returns>
         public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
         {
             return await NewRequest()
@@ -176,7 +178,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// Returns all active tasks in the server.
         /// </summary>
-        /// <returns>All active tasks.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the sequence of all active tasks.</returns>
         public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync()
         {
             return await NewRequest()
