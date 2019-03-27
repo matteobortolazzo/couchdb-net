@@ -27,8 +27,8 @@ namespace CouchDB.Driver
         /// Creates a new CouchDB client.
         /// </summary>
         /// <param name="connectionString">URI to the CouchDB endpoint.</param>
-        /// <param name="couchSettingsFunc"></param>
-        /// <param name="flurlSettingsFunc"></param>
+        /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
+        /// <param name="flurlSettingsFunc">A function to configure the HTTP client.</param>
         public CouchClient(string connectionString, Action<CouchSettings> couchSettingsFunc = null, Action<ClientFlurlHttpSettings> flurlSettingsFunc = null)
         {
             if (string.IsNullOrEmpty(connectionString))
@@ -60,9 +60,9 @@ namespace CouchDB.Driver
         /// Returns an instance of the CouchDB database with the given name. 
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
-        /// <typeparam name="TSource">Entity type</typeparam>
-        /// <param name="database">Database name</param>
-        /// <returns>Instance of the CouchDB database with given name</returns>
+        /// <typeparam name="TSource">Document type.</typeparam>
+        /// <param name="database">Database name.</param>
+        /// <returns>Instance of the CouchDB database with given name.</returns>
         public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchEntity
         {
             if (database == null)
@@ -83,9 +83,9 @@ namespace CouchDB.Driver
         /// Creates a new database with the given name in the server.
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
         /// </summary>
-        /// <typeparam name="TSource">Entity type</typeparam>
-        /// <param name="database">Database name</param>
-        /// <returns>Instance of the newly created CouchDB database</returns>
+        /// <typeparam name="TSource">Document type.</typeparam>
+        /// <param name="database">Database name.</param>
+        /// <returns>Instance of the newly created CouchDB database.</returns>
         public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database) where TSource : CouchEntity
         {
             if (database == null)
@@ -106,8 +106,8 @@ namespace CouchDB.Driver
         /// <summary>
         /// Deletes the database with the given name from the server.
         /// </summary>
-        /// <typeparam name="TSource">Entity type</typeparam>
-        /// <param name="database">Database name</param>
+        /// <typeparam name="TSource">Document type.</typeparam>
+        /// <param name="database">Database name.</param>
         public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchEntity
         {
             if (database == null)
@@ -127,8 +127,8 @@ namespace CouchDB.Driver
         /// Returns an instance of the CouchDB database of the given type. 
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
-        /// <typeparam name="TSource">Entity type</typeparam>
-        /// <returns>Instance of the CouchDB database of the given type</returns>
+        /// <typeparam name="TSource">Document type.</typeparam>
+        /// <returns>Instance of the CouchDB database of the given type.</returns>
         public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
         {            
             return GetDatabase<TSource>(GetClassName<TSource>());
@@ -137,9 +137,9 @@ namespace CouchDB.Driver
         /// Creates a new database of the given type in the server. 
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
         /// </summary>
-        /// <typeparam name="TSource">Entity type</typeparam>
-        /// <param name="database">Database name</param>
-        /// <returns>Instance of the newly created CouchDB database</returns>
+        /// <typeparam name="TSource">Document type.</typeparam>
+        /// <param name="database">Database name.</param>
+        /// <returns>Instance of the newly created CouchDB database.</returns>
         public Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchEntity
         {
             return CreateDatabaseAsync<TSource>(GetClassName<TSource>());
@@ -147,7 +147,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// Deletes the database with the given type from the server.
         /// </summary>
-        /// <typeparam name="TSource">Entity type</typeparam>
+        /// <typeparam name="TSource">Document type.</typeparam>
         public Task DeleteDatabaseAsync<TSource>() where TSource : CouchEntity
         {
             return DeleteDatabaseAsync<TSource>(GetClassName<TSource>());
@@ -165,7 +165,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// Returns all databases names in the server.
         /// </summary>
-        /// <returns>All databases names</returns>
+        /// <returns>All databases names.</returns>
         public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
         {
             return await NewRequest()
@@ -176,7 +176,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// Returns all active tasks in the server.
         /// </summary>
-        /// <returns>All active tasks</returns>
+        /// <returns>All active tasks.</returns>
         public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync()
         {
             return await NewRequest()
@@ -195,6 +195,10 @@ namespace CouchDB.Driver
         {
             return _flurlClient.Request(ConnectionString);
         }
+
+        /// <summary>
+        /// Performs the logout and disposes the HTTP client.
+        /// </summary>
         public void Dispose()
         {
             AsyncContext.Run(() => LogoutAsync());

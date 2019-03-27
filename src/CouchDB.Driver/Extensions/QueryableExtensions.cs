@@ -44,7 +44,7 @@ namespace CouchDB.Driver.Extensions
 
         #endregion
 
-        public static ICouchList<TSource> ToCouchList<TSource>(this IQueryable<TSource> source)
+        public static CouchList<TSource> ToCouchList<TSource>(this IQueryable<TSource> source)
         {
             if (source is CouchQuery<TSource> couchQuery)
             {
@@ -52,14 +52,22 @@ namespace CouchDB.Driver.Extensions
             }
             throw new NotSupportedException($"The method CompleteResult is not supported on this type of IQueryable");
         }
-        public static Task<ICouchList<TSource>> ToCouchListAsync<TSource>(this IQueryable<TSource> source)
+        public static Task<CouchList<TSource>> ToCouchListAsync<TSource>(this IQueryable<TSource> source)
         {
-            return Task<ICouchList<TSource>>.Factory.StartNew(() => source.ToCouchList());
+            return Task<CouchList<TSource>>.Factory.StartNew(() => source.ToCouchList());
         }
+        /// <summary>
+        /// Creates a List<T> from the database asyncronsly.
+        /// </summary>
+        /// <typeparam name="TSource">Document type</typeparam>
         public static Task<List<TSource>> ToListAsync<TSource>(this IQueryable<TSource> source)
         {
             return Task<List<TSource>>.Factory.StartNew(() => source.ToList());
         }
+        /// <summary>
+        /// Returns a sequence paginated using a bookmark.
+        /// </summary>
+        /// <param name="bookmark">A string that enables you to specify which page of results you require.</param>
         public static IQueryable<TSource> UseBookmark<TSource>(this IQueryable<TSource> source, string bookmark)
         {
             if (source == null)
@@ -73,6 +81,10 @@ namespace CouchDB.Driver.Extensions
                     GetMethodInfo(UseBookmark, source, bookmark),
                     new Expression[] { source.Expression, Expression.Constant(bookmark) }));
         }
+        /// <summary>
+        /// Returns a sequence after the element is read from at least that many replicas.
+        /// </summary>
+        /// <param name="quorum">Read quorum needed for the result.</param>
         public static IQueryable<TSource> WithReadQuorum<TSource>(this IQueryable<TSource> source, int quorum)
         {
             if (source == null)
@@ -86,6 +98,9 @@ namespace CouchDB.Driver.Extensions
                     GetMethodInfo(WithReadQuorum, source, quorum),
                     new Expression[] { source.Expression, Expression.Constant(quorum) }));
         }
+        /// <summary>
+        /// Returns a sequence that do not update the index.
+        /// </summary>
         public static IQueryable<TSource> WithoutIndexUpdate<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -97,6 +112,9 @@ namespace CouchDB.Driver.Extensions
                     GetMethodInfo(WithoutIndexUpdate, source),
                     new Expression[] { source.Expression }));
         }
+        /// <summary>
+        /// Returns a sequence returned from a "stable" set of shards.
+        /// </summary>
         public static IQueryable<TSource> FromStable<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -108,6 +126,10 @@ namespace CouchDB.Driver.Extensions
                     GetMethodInfo(FromStable, source),
                     new Expression[] { source.Expression }));
         }
+        /// <summary>
+        /// Returns a sequence that use the specific index.
+        /// </summary>
+        /// <param name="indexes">Array representing the design document and, optionally, the index name.</param>
         public static IQueryable<TSource> UseIndex<TSource>(this IQueryable<TSource> source, params string[] indexes)
         {
             if (source == null)
@@ -123,6 +145,9 @@ namespace CouchDB.Driver.Extensions
                     GetMethodInfo(UseIndex, source, indexes),
                     new Expression[] { source.Expression, Expression.Constant(indexes) }));
         }
+        /// <summary>
+        /// Retutns a sequence that includes execution statistics.
+        /// </summary>
         public static IQueryable<TSource> IncludeExecutionStats<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)

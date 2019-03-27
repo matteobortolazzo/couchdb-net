@@ -38,8 +38,8 @@ namespace CouchDB.Driver
         /// Enables basic authentication. 
         /// Basic authentication (RFC 2617) is a quick and simple way to authenticate with CouchDB. The main drawback is the need to send user credentials with each request which may be insecure and could hurt operation performance (since CouchDB must compute the password hash with every request).
         /// </summary>
-        /// <param name="username">Server username</param>
-        /// <param name="password">Server password</param>
+        /// <param name="username">Server username.</param>
+        /// <param name="password">Server password.</param>
         public CouchSettings UseBasicAuthentication(string username, string password)
         {
             if (string.IsNullOrEmpty(username))
@@ -56,9 +56,9 @@ namespace CouchDB.Driver
         /// Enables cookie authentication. 
         /// For cookie authentication (RFC 2109) CouchDB generates a token that the client can use for the next few requests to CouchDB. Tokens are valid until a timeout.
         /// </summary>
-        /// <param name="username">Server username</param>
-        /// <param name="password">Server password</param>
-        /// <param name="cookieDuration">Cookie duration in minutes</param>
+        /// <param name="username">Server username.</param>
+        /// <param name="password">Server password.</param>
+        /// <param name="cookieDuration">Cookie duration in minutes.</param>
         public CouchSettings UseCookieAuthentication(string username, string password, int cookieDuration = 10)
         {
             if (string.IsNullOrEmpty(username))
@@ -104,7 +104,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// Sets the format case for entities. Default: underscore_case.
         /// </summary>
-        /// <param name="type">The type of case format</param>
+        /// <param name="type">The type of case format.</param>
         public CouchSettings SetEntityCase(EntityCaseType type)
         {
             EntityCaseType = type;
@@ -113,7 +113,7 @@ namespace CouchDB.Driver
         /// <summary>
         /// Sets the format case for properties. Default: camelCase.
         /// </summary>
-        /// <param name="type">The type of case format</param>
+        /// <param name="type">The type of case format.</param>
         public CouchSettings SetPropertyCase(PropertyCaseType type)
         {
             PropertiesCase = type;

@@ -69,9 +69,9 @@ namespace CouchDB.Driver
             return _provider.GetQueryText(_expression);
         }
 
-        public ICouchList<T> ToCouchList()
+        public CouchList<T> ToCouchList()
         {
-            return (ICouchList<T>)_provider.Execute(_expression, true);
+            return (CouchList<T>)_provider.Execute(_expression, true);
         }
     }
 }

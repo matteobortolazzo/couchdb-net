@@ -9,26 +9,24 @@ namespace CouchDB.Driver.Types
     /// Represents a Couch query response.
     /// </summary>
     /// <typeparam name="TSource"></typeparam>
-    public interface ICouchList<TSource> : IEnumerable<TSource>
+    public class CouchList<TSource> : IReadOnlyList<TSource>
     {
+        private readonly IReadOnlyList<TSource> _source;
+
         /// <summary>
         /// An opaque string used for paging.
         /// </summary>
-        string Bookmark { get; }
-
+        public string Bookmark { get; }
         /// <summary>
         /// Execution statistics.
         /// </summary>
-        ExecutionStats ExecutionStats { get; }
-    }
-    internal class CouchList<TSource> : ICouchList<TSource>
-    {
-        private IEnumerable<TSource> _source;
-
-        public string Bookmark { get; }
         public ExecutionStats ExecutionStats { get; }
 
-        public CouchList(IEnumerable<TSource> source, string bookmark, ExecutionStats executionStats)
+        public int Count => _source.Count;
+        public bool IsReadOnly => true;
+        public TSource this[int index] => _source[index];
+
+        public CouchList(List<TSource> source, string bookmark, ExecutionStats executionStats)
         {
             _source = source;
             Bookmark = bookmark;
@@ -39,10 +37,9 @@ namespace CouchDB.Driver.Types
         {
             return _source.GetEnumerator();
         }
-
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return _source.GetEnumerator();
         }
     }
 }

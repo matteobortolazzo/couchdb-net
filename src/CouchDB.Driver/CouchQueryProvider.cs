@@ -3,6 +3,7 @@ using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -44,7 +45,7 @@ namespace CouchDB.Driver
             return new QueryTranslator(_settings).Translate(expression);
         }
 
-        public ICouchList<T> GetCouchList<T>(string body)
+        public CouchList<T> GetCouchList<T>(string body)
         {
             var result = _flurlClient
                 .Request(_connectionString)
@@ -53,7 +54,7 @@ namespace CouchDB.Driver
                 .PostStringAsync(body).ReceiveJson<FindResult<T>>()
                 .SendRequest();
 
-            var couchList = new CouchList<T>(result.Docs, result.Bookmark, result.ExecutionStats);
+            var couchList = new CouchList<T>(result.Docs.ToList(), result.Bookmark, result.ExecutionStats);
             return couchList;
         }
     }
