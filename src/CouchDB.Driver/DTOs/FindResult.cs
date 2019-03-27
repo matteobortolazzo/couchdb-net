@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using CouchDB.Driver.Types;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace CouchDB.Driver.Types
+namespace CouchDB.Driver.DTOs
 {
     internal class FindResult<T>
     {

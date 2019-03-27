@@ -1,8 +1,8 @@
-﻿using CouchDB.Driver.Helpers;
+﻿using CouchDB.Driver.DTOs;
+using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
-using CouchDB.Driver.Types;
 using Flurl.Http;
 using Nito.AsyncEx;
 

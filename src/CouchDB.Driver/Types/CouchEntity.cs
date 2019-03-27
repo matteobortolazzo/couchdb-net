@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
 

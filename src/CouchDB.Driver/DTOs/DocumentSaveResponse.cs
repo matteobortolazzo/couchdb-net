@@ -1,4 +1,4 @@
-﻿namespace CouchDB.Driver.Types
+﻿namespace CouchDB.Driver.DTOs
 {
     internal class DocumentSaveResponse
     {

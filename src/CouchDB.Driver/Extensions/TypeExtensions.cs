@@ -1,4 +1,5 @@
-﻿using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Types;
 using Humanizer;
 using Newtonsoft.Json;
 using System;

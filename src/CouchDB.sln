@@ -10,9 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{17AFFCE7-6EA4-4036-9885-4448FC315C57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Driver", "CouchDB.Driver\CouchDB.Driver.csproj", "{E5FECE8E-AC0A-4591-8B08-5D5D0016022A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver", "CouchDB.Driver\CouchDB.Driver.csproj", "{E5FECE8E-AC0A-4591-8B08-5D5D0016022A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Driver.UnitTests", "..\tests\CouchDB.Driver.UnitTests\CouchDB.Driver.UnitTests.csproj", "{1B136529-B659-49B3-9974-11C6D43CC9A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.UnitTests", "..\tests\CouchDB.Driver.UnitTests\CouchDB.Driver.UnitTests.csproj", "{1B136529-B659-49B3-9974-11C6D43CC9A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -263,19 +263,6 @@ public class OtherRebel : Rebel
 public DateTime BirthDate { get; set; }
 ```
 
-## Advanced
-
-If requests have to be modified before each call, it's possible to override OnBeforeCall.
-```csharp
-protected virtual void OnBeforeCall(HttpCall call)
-```
-
-Also, the constructor accept a ClientFlurlHttpSettings function as third parameter.
-
-```csharp
-Action<ClientFlurlHttpSettings> flurlConfigFunc
-```
-
 ### Bookmark and Execution stats
 
 If bookmark and execution stats must be retrived, call *ToCouchList* or *ToCouchListAsync*.
@@ -290,6 +277,19 @@ foreach(var r in allRebels)
 }
 var b = allRebels.Bookmark;
 var ex = allRebels.ExecutionStats; // .IncludeExecutionStats() must be called
+```
+
+## Advanced
+
+If requests have to be modified before each call, it's possible to override OnBeforeCall.
+```csharp
+protected virtual void OnBeforeCall(HttpCall call)
+```
+
+Also, the constructor accept a ClientFlurlHttpSettings function as third parameter.
+
+```csharp
+Action<ClientFlurlHttpSettings> flurlConfigFunc
 ```
 
 ## Contributors
