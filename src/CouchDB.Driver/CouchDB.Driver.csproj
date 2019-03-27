@@ -4,15 +4,30 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>CouchDB.NET</AssemblyName>
     <Authors>Matteo Bortolazzo</Authors>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>A .NET Standard driver for CouchDB.</Description>
-    <PackageLicenseExpression>MIT License</PackageLicenseExpression>
+    <PackageLicenseExpression></PackageLicenseExpression>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-ne</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-ne</RepositoryUrl>
+    <PackageTags>couchdb,driver,nosql,netstandard,pouchdb,xamarin</PackageTags>
+    <PackageReleaseNotes>Complete rewrite.
+IQueryable support.
+All selectors support.</PackageReleaseNotes>
+    <PackageIconUrl>http://couchdb.apache.org/image/couch@2x.png</PackageIconUrl>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="2.4.1" />
     <PackageReference Include="Humanizer.Core" Version="2.6.2" />
     <PackageReference Include="Nito.AsyncEx.Context" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
