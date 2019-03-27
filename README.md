@@ -206,7 +206,7 @@ If authentication is needed currently there are two ways: Basic and Cookie authe
 
 ```csharp
 var client = new CouchClient("http://localhost:5984", s => 
-    s.ConfigureBasicAuthentication("root", "relax")
+    s.UseBasicAuthentication("root", "relax")
 )
 ```
 
@@ -214,7 +214,7 @@ var client = new CouchClient("http://localhost:5984", s =>
 
 ```csharp
 var client = new CouchClient("http://localhost:5984", s => s
-    .ConfigureCookieAuthentication("root", "relax")
+    .UseCookieAuthentication("root", "relax")
 )
 ```
 
@@ -222,7 +222,7 @@ It's also possible to specify the duration of the session.
 
 ```csharp
 var client = new CouchClient("http://localhost:5984", s => s
-    .ConfigureCookieAuthentication("root", "relax", cookieDuration)
+    .UseCookieAuthentication("root", "relax", cookieDuration)
 )
 ```
 
@@ -232,15 +232,15 @@ The second parameter of the client constructor is a function to configure CouchS
 
 ```csharp
 var client = new CouchClient("http://localhost:5984", s => s
-    .ConfigureBasicAuthentication("root", "relax")
+    .UseBasicAuthentication("root", "relax")
     .DisableEntitisPluralization()
     ....
 )
 ```
 | Method                         | Description                                  |
 |:-------------------------------|:---------------------------------------------|
-| ConfigureBasicAuthentication   | Enables basic authentication.                |
-| ConfigureCookieAuthentication  | Enables cookie authentication.               |
+| UseBasicAuthentication         | Enables basic authentication.                |
+| UseCookieAuthentication        | Enables cookie authentication.               |
 | IgnoreCertificateValidation    | Removes any SSL certificate validation.      |
 | ConfigureCertificateValidation | Sets a custom SSL validation rule.           |
 | DisableEntitisPluralization    | Disables entities pluralization in requests. |

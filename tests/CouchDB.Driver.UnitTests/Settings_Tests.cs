@@ -39,7 +39,7 @@ namespace CouchDB.Driver.UnitTests
         public void Creation_BasicAuthentication()
         {
             using (var client = new CouchClient("http://localhost:5984", s => 
-                s.ConfigureBasicAuthentication("root", "relax")))
+                s.UseBasicAuthentication("root", "relax")))
             {
                 Assert.Equal("http://localhost:5984", client.ConnectionString);
             }
@@ -48,7 +48,7 @@ namespace CouchDB.Driver.UnitTests
         public void Creation_CookieAuthentication()
         {
             using (var client = new CouchClient("http://localhost:5984", s =>
-                s.ConfigureCookieAuthentication("root", "relax")))
+                s.UseCookieAuthentication("root", "relax")))
             {
                 Assert.Equal("http://localhost:5984", client.ConnectionString);
             }

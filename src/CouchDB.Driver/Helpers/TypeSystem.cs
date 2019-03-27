@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Helpers
 {
     internal static class TypeSystem
     {

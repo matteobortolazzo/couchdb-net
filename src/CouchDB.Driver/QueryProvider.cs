@@ -1,11 +1,12 @@
-﻿using System;
+﻿using CouchDB.Driver.Helpers;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace CouchDB.Driver
 {
-    public abstract class QueryProvider : IQueryProvider
+    internal abstract class QueryProvider : IQueryProvider
     {
         protected QueryProvider() { }
 
