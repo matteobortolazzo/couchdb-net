@@ -57,7 +57,7 @@ namespace CouchDB.Driver.UnitTests
                 var r = new Rebel { Name = "Luke", Id = "1" };
                 var newR = await _rebels.CreateOrUpdateAsync(r);
                 httpTest
-                    .ShouldHaveCalled("http://localhost/rebels/doc/1")
+                    .ShouldHaveCalled("http://localhost/rebels/1")
                     .WithVerb(HttpMethod.Put);
             }
         }
@@ -83,7 +83,7 @@ namespace CouchDB.Driver.UnitTests
                 var r = new Rebel { Name = "Luke", Id = "1", Rev = "1" };
                 await _rebels.DeleteAsync(r);
                 httpTest
-                    .ShouldHaveCalled("http://localhost/rebels/doc/1?rev=1")
+                    .ShouldHaveCalled("http://localhost/rebels/1?rev=1")
                     .WithVerb(HttpMethod.Delete);
             }
         }
