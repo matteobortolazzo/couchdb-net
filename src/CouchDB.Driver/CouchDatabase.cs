@@ -227,7 +227,6 @@ namespace CouchDB.Driver
                 throw new InvalidOperationException("Cannot add or update an entity without an ID.");
 
             var response = await NewRequest()
-                .AppendPathSegment("doc")
                 .AppendPathSegment(item.Id)
                 .PutJsonAsync(item)
                 .ReceiveJson<DocumentSaveResponse>()
@@ -243,7 +242,6 @@ namespace CouchDB.Driver
         public async Task DeleteAsync(TSource document)
         {
             await NewRequest()
-                .AppendPathSegment("doc")
                 .AppendPathSegment(document.Id)
                 .SetQueryParam("rev", document.Rev)
                 .DeleteAsync()
@@ -258,7 +256,7 @@ namespace CouchDB.Driver
         {
             var response = await NewRequest()
                 .AppendPathSegment("_bulk_docs")
-                .PostJsonAsync(new { Docs = documents })
+                .PostJsonAsync(new { docs = documents })
                 .ReceiveJson<DocumentSaveResponse[]>()
                 .SendRequestAsync();
 

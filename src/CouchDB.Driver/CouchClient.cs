@@ -91,7 +91,7 @@ namespace CouchDB.Driver
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
 
-            if (!new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
+            if (!new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database) && !IsSystemDatabase(database))
             {
                 throw new ArgumentException(nameof(database), $"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db");
             }
@@ -103,6 +103,9 @@ namespace CouchDB.Driver
 
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
+
+        private bool IsSystemDatabase(string database) => database == "_users" || database == "_replicator" || database == "_global_changes";
+
         /// <summary>
         /// Deletes the database with the given name from the server.
         /// </summary>
@@ -131,7 +134,7 @@ namespace CouchDB.Driver
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <returns>The instance of the CouchDB database of the given type.</returns>
         public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
-        {            
+        {
             return GetDatabase<TSource>(GetClassName<TSource>());
         }
         /// <summary>
