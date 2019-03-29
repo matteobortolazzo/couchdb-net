@@ -1,10 +1,9 @@
-﻿using CouchDB.Driver.Types;
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Settings
 { 
     internal enum AuthenticationType
     {

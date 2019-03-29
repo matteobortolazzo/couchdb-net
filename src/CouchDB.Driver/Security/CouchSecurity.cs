@@ -1,10 +1,9 @@
 ﻿using CouchDB.Driver.Helpers;
-using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
 using System.Threading.Tasks;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Security
 {
     public class CouchSecurity
     {

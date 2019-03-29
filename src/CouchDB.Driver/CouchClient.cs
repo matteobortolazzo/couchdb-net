@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
+using CouchDB.Driver.Settings;
 
 namespace CouchDB.Driver
 {

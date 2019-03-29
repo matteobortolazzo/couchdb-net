@@ -1,6 +1,8 @@
 ﻿using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Security;
+using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;

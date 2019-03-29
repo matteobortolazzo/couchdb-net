@@ -1,8 +1,7 @@
 ﻿using Humanizer;
 using System;
-using System.Net.Http;
 
-namespace CouchDB.Driver.Types
+namespace CouchDB.Driver.Settings
 {
     /// <summary>
     /// A helper class for specify a case format for strings.

@@ -1,4 +1,5 @@
-﻿using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Security;
+using CouchDB.Driver.Types;
 using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;

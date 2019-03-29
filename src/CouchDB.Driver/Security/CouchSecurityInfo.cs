@@ -1,8 +1,7 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 
-namespace CouchDB.Driver.Types
+namespace CouchDB.Driver.Security
 {
     /// <summary>
     /// Represents list of users and/or roles that have rights to the database.
