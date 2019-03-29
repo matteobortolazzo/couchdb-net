@@ -8,7 +8,7 @@ namespace CouchDB.Driver.Extensions
     public static class ObjectExtensions
     {
         /// <summary>
-        /// Determins whether value is contained in the sequence provided.
+        /// Determines whether value is contained in the sequence provided.
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="value">The value to locate in the input.</param>

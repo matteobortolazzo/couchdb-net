@@ -167,6 +167,10 @@ namespace CouchDB.Driver
 
         #region Utils
 
+        /// <summary>
+        /// Determines whether the server is up, running, and ready to respond to requests. 
+        /// </summary>
+        /// <returns>true is the server is not in maintenance_mode; otherwise, false.</returns>
         public async Task<bool> IsUpAsync()
         {
             try

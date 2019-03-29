@@ -179,6 +179,7 @@ var rebels = client.GetDatabase<Rebel>("naboo_rebels");
 var rebels = await client.CreateDatabaseAsync<Rebel>("naboo_rebels");
 await client.DeleteDatabaseAsync<Rebel>("naboo_rebels");
 // Utils
+var isRunning = await client.IsUpAsync();
 var databases = await client.GetDatabasesNamesAsync();
 var tasks = await client.GetActiveTasksAsync();
 ```
