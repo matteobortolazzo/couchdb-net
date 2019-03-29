@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
-using CouchDB.Driver.Exceptions;
 
 namespace CouchDB.Driver
 {
@@ -81,6 +80,7 @@ namespace CouchDB.Driver
 
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
+
         /// <summary>
         /// Creates a new database with the given name in the server.
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
@@ -137,6 +137,7 @@ namespace CouchDB.Driver
         {
             return GetDatabase<TSource>(GetClassName<TSource>());
         }
+
         /// <summary>
         /// Creates a new database of the given type in the server. 
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
@@ -148,6 +149,7 @@ namespace CouchDB.Driver
         {
             return CreateDatabaseAsync<TSource>(GetClassName<TSource>());
         }
+
         /// <summary>
         /// Deletes the database with the given type from the server.
         /// </summary>
@@ -198,6 +200,7 @@ namespace CouchDB.Driver
                 .GetJsonAsync<IEnumerable<string>>()
                 .SendRequestAsync();
         }
+
         /// <summary>
         /// Returns all active tasks in the server.
         /// </summary>
@@ -211,12 +214,12 @@ namespace CouchDB.Driver
         }
 
         #endregion
-
+        
         #endregion
-
+        
         #region Implementations
 
-        private IFlurlRequest NewRequest()
+            private IFlurlRequest NewRequest()
         {
             return _flurlClient.Request(ConnectionString);
         }

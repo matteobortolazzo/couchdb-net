@@ -281,6 +281,7 @@ namespace CouchDB.Driver
                 .PostJsonAsync(null)
                 .SendRequestAsync();
         }
+
         /// <summary>
         /// Gets information about the specified database.
         /// </summary>
@@ -290,6 +291,18 @@ namespace CouchDB.Driver
             return await NewRequest()
                 .GetJsonAsync<CouchDatabaseInfo>()
                 .SendRequestAsync();
+        }
+
+        /// <summary>
+        /// Gets security information about the database.
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the database security information.</returns>
+        public async Task<CouchSecurity> GetSecurityInfoAsync()
+        {
+            return await NewRequest()
+                   .AppendPathSegment("_security")
+                   .GetJsonAsync<CouchSecurity>()
+                   .SendRequestAsync();
         }
 
         #endregion

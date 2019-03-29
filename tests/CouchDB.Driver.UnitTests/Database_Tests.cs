@@ -1,12 +1,9 @@
 ﻿using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using CouchDB.Driver.Extensions;
 
 namespace CouchDB.Driver.UnitTests
 {
@@ -156,6 +153,31 @@ namespace CouchDB.Driver.UnitTests
                 httpTest
                     .ShouldHaveCalled("http://localhost/rebels/_compact")
                     .WithVerb(HttpMethod.Post);
+            }
+        }
+        [Fact]
+        public async Task SecurityInfo()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new
+                {
+                    Admins = new
+                    {
+                        Names = new[] { "superuser" }, 
+                        Roles = new[] { "admins" }
+                    },
+                    Members = new
+                    {
+                        Names = new[] { "user1", "user2" },
+                        Roles = new[] { "developers" }
+                    }
+                });
+                var securityInfo = await _rebels.GetSecurityInfoAsync();
+                httpTest
+                    .ShouldHaveCalled("http://localhost/rebels/_security")
+                    .WithVerb(HttpMethod.Get);
+                Assert.Equal("user1", securityInfo.Members.Names[0]);
             }
         }
 
