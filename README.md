@@ -197,7 +197,9 @@ await rebels.CreateOrUpdateRangeAsync(moreRebels);
 // Utils
 await rebels.CompactAsync();
 var info = await rebels.GetInfoAsync();
-var securityInfo = await rebels.GetSecurityInfoAsync();
+// Security
+await rebels.Security.SetInfoAsync(securityInfo);
+var securityInfo = await rebels.Security.GetInfoAsync();
 ```
 
 ## Authentication

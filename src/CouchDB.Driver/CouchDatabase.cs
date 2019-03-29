@@ -21,7 +21,16 @@ namespace CouchDB.Driver
         private readonly FlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
+
+        /// <summary>
+        /// The database name.
+        /// </summary>
         public string Database { get; }
+
+        /// <summary>
+        /// Section to handle security operations.
+        /// </summary>
+        public CouchSecurity Security { get; }
 
         internal CouchDatabase(FlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
         {
@@ -30,6 +39,8 @@ namespace CouchDB.Driver
             _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             Database = db ?? throw new ArgumentNullException(nameof(db));
             _queryProvider = new CouchQueryProvider(flurlClient, _settings, connectionString, Database);
+
+            Security = new CouchSecurity(NewRequest);
         }
 
         /// <summary>
@@ -291,18 +302,6 @@ namespace CouchDB.Driver
             return await NewRequest()
                 .GetJsonAsync<CouchDatabaseInfo>()
                 .SendRequestAsync();
-        }
-
-        /// <summary>
-        /// Gets security information about the database.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the database security information.</returns>
-        public async Task<CouchSecurity> GetSecurityInfoAsync()
-        {
-            return await NewRequest()
-                   .AppendPathSegment("_security")
-                   .GetJsonAsync<CouchSecurity>()
-                   .SendRequestAsync();
         }
 
         #endregion

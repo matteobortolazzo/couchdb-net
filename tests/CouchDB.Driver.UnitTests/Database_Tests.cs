@@ -1,4 +1,5 @@
-﻿using CouchDB.Driver.UnitTests.Models;
+﻿using CouchDB.Driver.Types;
+using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
 using System.Net.Http;
@@ -156,7 +157,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task SecurityInfo()
+        public async Task SecurityInfo_Get()
         {
             using (var httpTest = new HttpTest())
             {
@@ -173,11 +174,26 @@ namespace CouchDB.Driver.UnitTests
                         Roles = new[] { "developers" }
                     }
                 });
-                var securityInfo = await _rebels.GetSecurityInfoAsync();
+                var securityInfo = await _rebels.Security.GetInfoAsync();
                 httpTest
                     .ShouldHaveCalled("http://localhost/rebels/_security")
                     .WithVerb(HttpMethod.Get);
                 Assert.Equal("user1", securityInfo.Members.Names[0]);
+            }
+        }
+        [Fact]
+        public async Task SecurityInfo_Put()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                var securityInfo = new CouchSecurityInfo();
+                securityInfo.Admins.Names.Add("user1");
+
+                await _rebels.Security.SetInfoAsync(securityInfo);
+                httpTest
+                    .ShouldHaveCalled("http://localhost/rebels/_security")
+                    .WithVerb(HttpMethod.Put)
+                    .WithRequestJson(securityInfo);
             }
         }
 
