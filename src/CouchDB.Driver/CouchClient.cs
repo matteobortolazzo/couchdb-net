@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
+using CouchDB.Driver.Exceptions;
 
 namespace CouchDB.Driver
 {
@@ -21,6 +22,7 @@ namespace CouchDB.Driver
         private string _cookieToken;
         private readonly CouchSettings _settings;
         private readonly FlurlClient _flurlClient;
+        private readonly string[] _systemDatabases = new[] { "_users", "_replicator", "_global_changes" };
         public string ConnectionString { get; private set; }
 
         /// <summary>
@@ -91,7 +93,7 @@ namespace CouchDB.Driver
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
 
-            if (!new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database) && !IsSystemDatabase(database))
+            if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
             {
                 throw new ArgumentException(nameof(database), $"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db");
             }
@@ -103,8 +105,6 @@ namespace CouchDB.Driver
 
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
-
-        private bool IsSystemDatabase(string database) => database == "_users" || database == "_replicator" || database == "_global_changes";
 
         /// <summary>
         /// Deletes the database with the given name from the server.
@@ -166,6 +166,22 @@ namespace CouchDB.Driver
         #endregion
 
         #region Utils
+
+        public async Task<bool> IsUpAsync()
+        {
+            try
+            {
+                await NewRequest()
+                    .AppendPathSegment("/_usp")
+                    .GetAsync()
+                    .SendRequestAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         /// <summary>
         /// Returns all databases names in the server.
