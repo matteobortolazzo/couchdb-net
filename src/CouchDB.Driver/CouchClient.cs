@@ -176,7 +176,7 @@ namespace CouchDB.Driver
             try
             {
                 await NewRequest()
-                    .AppendPathSegment("/_usp")
+                    .AppendPathSegment("/_up")
                     .GetAsync()
                     .SendRequestAsync();
                 return true;
