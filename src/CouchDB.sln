@@ -5,6 +5,7 @@ VisualStudioVersion = 16.0.28714.193
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{4D37247A-2FC3-4EDA-A6C4-668A7AA67B8F}"
 	ProjectSection(SolutionItems) = preProject
+		..\.gitignore = ..\.gitignore
 		..\CHANGELOG.md = ..\CHANGELOG.md
 		..\README.md = ..\README.md
 	EndProjectSection
@@ -15,7 +16,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver", "CouchDB.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.UnitTests", "..\tests\CouchDB.Driver.UnitTests\CouchDB.Driver.UnitTests.csproj", "{1B136529-B659-49B3-9974-11C6D43CC9A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Driver.E2E", "..\tests\CouchDB.Driver.E2E\CouchDB.Driver.E2E.csproj", "{D16B9B70-8709-4B23-9AD7-B5358BA1F3CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Driver.E2ETests", "..\tests\CouchDB.Driver.E2E\CouchDB.Driver.E2ETests.csproj", "{D16B9B70-8709-4B23-9AD7-B5358BA1F3CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
