@@ -10,6 +10,6 @@
         /// </summary>
         /// <param name="message">Error message</param>
         /// <param name="reason">Error reason</param>
-        internal CouchConflictException(string message, string reason) : base(message, reason) { }
+        public CouchConflictException(string message, string reason) : base(message, reason) { }
     }
 }

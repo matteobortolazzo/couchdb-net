@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver", "CouchDB.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.UnitTests", "..\tests\CouchDB.Driver.UnitTests\CouchDB.Driver.UnitTests.csproj", "{1B136529-B659-49B3-9974-11C6D43CC9A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Driver.E2E", "..\tests\CouchDB.Driver.E2E\CouchDB.Driver.E2E.csproj", "{D16B9B70-8709-4B23-9AD7-B5358BA1F3CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,12 +31,17 @@ Global
 		{1B136529-B659-49B3-9974-11C6D43CC9A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B136529-B659-49B3-9974-11C6D43CC9A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B136529-B659-49B3-9974-11C6D43CC9A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D16B9B70-8709-4B23-9AD7-B5358BA1F3CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D16B9B70-8709-4B23-9AD7-B5358BA1F3CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D16B9B70-8709-4B23-9AD7-B5358BA1F3CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D16B9B70-8709-4B23-9AD7-B5358BA1F3CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1B136529-B659-49B3-9974-11C6D43CC9A0} = {17AFFCE7-6EA4-4036-9885-4448FC315C57}
+		{D16B9B70-8709-4B23-9AD7-B5358BA1F3CD} = {17AFFCE7-6EA4-4036-9885-4448FC315C57}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B6B9CD2D-85AC-498B-9ED4-38F20AC234C5}

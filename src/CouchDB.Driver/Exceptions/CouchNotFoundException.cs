@@ -10,6 +10,6 @@
         /// </summary>
         /// <param name="message">Error message</param>
         /// <param name="reason">Error reason</param>
-        internal CouchNotFoundException(string message, string reason) : base(message, reason) { }
+        public CouchNotFoundException(string message, string reason) : base(message, reason) { }
     }
 }

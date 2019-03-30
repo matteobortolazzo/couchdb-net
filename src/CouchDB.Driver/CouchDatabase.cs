@@ -1,4 +1,5 @@
 ﻿using CouchDB.Driver.DTOs;
+using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Security;
@@ -199,16 +200,23 @@ namespace CouchDB.Driver
         #region Find
 
         /// <summary>
-        /// Finds the document with the given ID.
+        /// Finds the document with the given ID. If no document is found, then null is returned.
         /// </summary>
         /// <param name="docId">The document ID.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the element found.</returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null.</returns>
         public async Task<TSource> FindAsync(string docId)
         {
-            return await NewRequest()
-                .AppendPathSegment(docId)
-                .GetJsonAsync<TSource>()
-                .SendRequestAsync();
+            try
+            {
+                return await NewRequest()
+                    .AppendPathSegment(docId)
+                    .GetJsonAsync<TSource>()
+                    .SendRequestAsync();
+            }
+            catch(CouchNotFoundException)
+            {
+                return null;
+            }
         }
 
         #endregion
