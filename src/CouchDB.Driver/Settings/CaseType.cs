@@ -35,33 +35,33 @@ namespace CouchDB.Driver.Settings
         }
     }
     /// <summary>
-    /// A helper class for specify a case format for entities. 
+    /// A helper class for specify a case format for documents. 
     /// Every string will be at least convert to lowercase.
     /// </summary>
-    public class EntityCaseType : CaseType
+    public class DocumentCaseType : CaseType
     {
-        private EntityCaseType(string value) : base(value) { }
+        private DocumentCaseType(string value) : base(value) { }
 
         /// <summary>
         /// Represents no format.
         /// </summary>
-        public static readonly EntityCaseType None = new EntityCaseType("None");
+        public static readonly DocumentCaseType None = new DocumentCaseType("None");
         /// <summary>
         /// Represents underscore_case or snake_case.
         /// </summary>
-        public static readonly EntityCaseType UnderscoreCase = new EntityCaseType("UnderscoreCase");        
+        public static readonly DocumentCaseType UnderscoreCase = new DocumentCaseType("UnderscoreCase");        
         /// <summary>
         /// Represents kebab-case.
         /// </summary>
-        public static readonly EntityCaseType KebabCase = new EntityCaseType("KebabCase");
+        public static readonly DocumentCaseType KebabCase = new DocumentCaseType("KebabCase");
 
         internal override string Convert(string str)
         {
-            if (this == EntityCaseType.None)
+            if (this == DocumentCaseType.None)
                 return str.ToLowerInvariant();
-            if (this == EntityCaseType.UnderscoreCase)
+            if (this == DocumentCaseType.UnderscoreCase)
                 return str.ToLowerInvariant().Underscore();            
-            if (this == EntityCaseType.KebabCase)
+            if (this == DocumentCaseType.KebabCase)
                 return str.ToLowerInvariant().Kebaberize();
             throw new NotSupportedException($"Value {Value} not supported.");
         }

@@ -65,7 +65,7 @@ namespace CouchDB.Driver
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>
         /// <returns>An instance of the CouchDB database with given name.</returns>
-        public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchEntity
+        public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
@@ -89,7 +89,7 @@ namespace CouchDB.Driver
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-        public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database) where TSource : CouchEntity
+        public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database) where TSource : CouchDocument
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
@@ -113,7 +113,7 @@ namespace CouchDB.Driver
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchEntity
+        public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
@@ -134,7 +134,7 @@ namespace CouchDB.Driver
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <returns>The instance of the CouchDB database of the given type.</returns>
-        public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchEntity
+        public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument
         {
             return GetDatabase<TSource>(GetClassName<TSource>());
         }
@@ -146,7 +146,7 @@ namespace CouchDB.Driver
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-        public Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchEntity
+        public Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchDocument
         {
             return CreateDatabaseAsync<TSource>(GetClassName<TSource>());
         }
@@ -156,7 +156,7 @@ namespace CouchDB.Driver
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public Task DeleteDatabaseAsync<TSource>() where TSource : CouchEntity
+        public Task DeleteDatabaseAsync<TSource>() where TSource : CouchDocument
         {
             return DeleteDatabaseAsync<TSource>(GetClassName<TSource>());
         }
@@ -164,6 +164,31 @@ namespace CouchDB.Driver
         {
             var type = typeof(TSource);
             return type.GetName(_settings);
+        }
+
+        #endregion
+
+        #region Users
+
+        /// <summary>
+        /// Returns an instance of the users database.
+        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
+        /// </summary>
+        /// <returns>The instance of the users database.</returns>
+        public CouchDatabase<CouchUser> GetUsersDatabase()
+        {
+            return GetDatabase<CouchUser>(GetClassName<CouchUser>());
+        }
+
+        /// <summary>
+        /// Returns an instance of the users database.
+        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
+        /// </summary>
+        /// <typeparam name="TUser">The specic type of user.</typeparam>
+        /// <returns>The instance of the users database.</returns>
+        public CouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser
+        {
+            return GetDatabase<TUser>(GetClassName<TUser>());
         }
 
         #endregion

@@ -1,4 +1,5 @@
 using CouchDB.Driver.E2E.Models;
+using CouchDB.Driver.Types;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,6 +39,32 @@ namespace CouchDB.Driver.E2E
                 Assert.Null(luke);
 
                 await client.DeleteDatabaseAsync<Rebel>();
+            }
+        }
+        [Fact]
+        public async Task Users()
+        {
+            using (var client = new CouchClient("http://localhost:5984"))
+            {
+                var dbs = await client.GetDatabasesNamesAsync();
+                var users = client.GetUsersDatabase();
+
+                if (!dbs.Contains(users.Database))
+                {
+                    users = await client.CreateDatabaseAsync<CouchUser>();
+                }
+                
+                var luke = await users.CreateAsync(new CouchUser(name: "luke", password: "lasersword"));
+                Assert.Equal("luke", luke.Name);
+                
+                luke = await users.FindAsync(luke.Id);
+                Assert.Equal("luke", luke.Name);
+
+                await users.DeleteAsync(luke);
+                luke = await users.FindAsync(luke.Id);
+                Assert.Null(luke);
+
+                await client.DeleteDatabaseAsync<CouchUser>();
             }
         }
     }

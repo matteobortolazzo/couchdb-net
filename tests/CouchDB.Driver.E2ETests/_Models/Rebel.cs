@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CouchDB.Driver.E2E.Models
 {
-    public class Rebel : CouchEntity
+    public class Rebel : CouchDocument
     {
         public string Name { get; set; }
         public string Surname { get; set; }

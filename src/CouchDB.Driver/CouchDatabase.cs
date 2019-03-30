@@ -18,7 +18,7 @@ namespace CouchDB.Driver
     /// Represents a CouchDB database.
     /// </summary>
     /// <typeparam name="TSource">The type of database documents.</typeparam>
-    public class CouchDatabase<TSource> where TSource : CouchEntity
+    public class CouchDatabase<TSource> where TSource : CouchDocument
     {
         private readonly QueryProvider _queryProvider;
         private readonly FlurlClient _flurlClient;
@@ -226,33 +226,36 @@ namespace CouchDB.Driver
         /// <summary>
         /// Creates a new document and returns it.
         /// </summary>
-        /// <param name="item">The document to create.</param>
+        /// <param name="document">The document to create.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-        public async Task<TSource> CreateAsync(TSource item)
+        public async Task<TSource> CreateAsync(TSource document)
         {
+            if (!string.IsNullOrEmpty(document.Id))
+                return await CreateOrUpdateAsync(document);
+
             var response = await NewRequest()
-                .PostJsonAsync(item)
+                .PostJsonAsync(document)
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync();
-            return (TSource)item.ProcessSaveResponse(response);
+            return (TSource)document.ProcessSaveResponse(response);
         }
         /// <summary>
         /// Creates or updates the document with the given ID.
         /// </summary>
-        /// <param name="item">The document to create or update</param>
+        /// <param name="document">The document to create or update</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-        public async Task<TSource> CreateOrUpdateAsync(TSource item)
+        public async Task<TSource> CreateOrUpdateAsync(TSource document)
         {
-            if (string.IsNullOrEmpty(item.Id))
-                throw new InvalidOperationException("Cannot add or update an entity without an ID.");
+            if (string.IsNullOrEmpty(document.Id))
+                throw new InvalidOperationException("Cannot add or update a document without an ID.");
 
             var response = await NewRequest()
-                .AppendPathSegment(item.Id)
-                .PutJsonAsync(item)
+                .AppendPathSegment(document.Id)
+                .PutJsonAsync(document)
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync();
 
-            return (TSource)item.ProcessSaveResponse(response);
+            return (TSource)document.ProcessSaveResponse(response);
         }
         /// <summary>
         /// Deletes the document with the given ID.

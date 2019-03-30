@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CouchDB.Driver.UnitTests.Models
 {
-    public class Rebel : CouchEntity
+    public class Rebel : CouchDocument
     {
         public string Name { get; set; }
         public string Surname { get; set; }

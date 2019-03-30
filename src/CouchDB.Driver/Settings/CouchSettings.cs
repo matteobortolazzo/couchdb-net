@@ -20,7 +20,7 @@ namespace CouchDB.Driver.Settings
         internal string Password { get; private set; }
         internal int CookiesDuration { get; private set; }
         internal bool PluralizeEntitis { get; private set; }
-        internal EntityCaseType EntityCaseType { get; private set; }
+        internal DocumentCaseType DocumentsCaseType { get; private set; }
         internal PropertyCaseType PropertiesCase { get; private set; }
         internal bool CheckDatabaseExists { get; private set; }
         internal Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback { get; private set; }
@@ -29,7 +29,7 @@ namespace CouchDB.Driver.Settings
         {
             AuthenticationType = AuthenticationType.None;
             PluralizeEntitis = true;
-            EntityCaseType = (EntityCaseType)EntityCaseType.UnderscoreCase;
+            DocumentsCaseType = (DocumentCaseType)DocumentCaseType.UnderscoreCase;
             PropertiesCase = PropertyCaseType.CamelCase;
         }
 
@@ -97,22 +97,22 @@ namespace CouchDB.Driver.Settings
             return this;
         }
         /// <summary>
-        /// Disables entities pluralization in requests.
+        /// Disables documents pluralization in requests.
         /// </summary>
         /// <returns>The current settings</returns>
-        public CouchSettings DisableEntitisPluralization()
+        public CouchSettings DisableDocumentPluralization()
         {
             PluralizeEntitis = false;
             return this;
         }
         /// <summary>
-        /// Sets the format case for entities. Default: underscore_case.
+        /// Sets the format case for documents. Default: underscore_case.
         /// </summary>
         /// <param name="type">The type of case format.</param>
         /// <returns>The current settings</returns>
-        public CouchSettings SetEntityCase(EntityCaseType type)
+        public CouchSettings SetDocumentCase(DocumentCaseType type)
         {
-            EntityCaseType = type;
+            DocumentsCaseType = type;
             return this;
         }
         /// <summary>
