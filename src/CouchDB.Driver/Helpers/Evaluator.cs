@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CouchDB.Driver.Extensions;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace CouchDB.Driver.Helpers
@@ -32,15 +34,15 @@ namespace CouchDB.Driver.Helpers
             if (expression is MethodCallExpression c)
             {
                 return
-                    c.Method.Name != "Where" &&
-                    c.Method.Name != "Skip" &&
-                    c.Method.Name != "Take" &&
-                    c.Method.Name != "WithReadQuorum" &&
-                    c.Method.Name != "WithoutIndexUpdate" &&
-                    c.Method.Name != "UseBookmark" &&
-                    c.Method.Name != "UseIndex" &&
-                    c.Method.Name != "FromStable" && 
-                    c.Method.Name != "IncludeExecutionStats";
+                    c.Method.Name != nameof(Queryable.Where) &&
+                    c.Method.Name != nameof(Queryable.Skip) &&
+                    c.Method.Name != nameof(Queryable.Take) &&
+                    c.Method.Name != nameof(QueryableExtensions.WithReadQuorum) &&
+                    c.Method.Name != nameof(QueryableExtensions.WithoutIndexUpdate) &&
+                    c.Method.Name != nameof(QueryableExtensions.UseBookmark) &&
+                    c.Method.Name != nameof(QueryableExtensions.UseIndex) &&
+                    c.Method.Name != nameof(QueryableExtensions.FromStable) && 
+                    c.Method.Name != nameof(QueryableExtensions.IncludeExecutionStats);
             }
             return expression.NodeType != ExpressionType.Parameter;
         }
