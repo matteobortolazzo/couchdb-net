@@ -1,5 +1,11 @@
+[![Build status](https://dev.azure.com/matteobortolazzo/CouchDB.NET/_apis/build/status/CouchDB.NET-CI)](https://dev.azure.com/matteobortolazzo/CouchDB.NET/_build/latest?definitionId=8)
+![Release Beta status](https://vsrm.dev.azure.com/matteobortolazzo/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/1/1)
+![Release Stable status](https://vsrm.dev.azure.com/matteobortolazzo/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/1/2)
+[![License](https://badgen.net/badge/license/MIT/blue)](https://github.com/matteobortolazzo/couchdb-net/blob/dev/LICENSE)
+
 # CouchDB.NET
-## A .NET Standard driver for CouchDB.
+
+A .NET Standard driver for CouchDB.
 
 ## LINQ queries
 
