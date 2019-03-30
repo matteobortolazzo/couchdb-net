@@ -180,6 +180,14 @@ namespace CouchDB.Driver
         {
             return AsQueryable().IncludeExecutionStats();
         }
+        /// <summary>
+        /// Asks for conflicts when requesting elements from the database.
+        /// </summary>
+        /// <return>An IQueryable<T> that contains the request to ask for conflicts when requesting elements from the database.</return>
+        public IQueryable<TSource> IncludeConflicts()
+        {
+            return AsQueryable().IncludeConflicts();
+        }
 
         #endregion
 

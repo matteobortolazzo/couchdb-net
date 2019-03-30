@@ -16,7 +16,7 @@ namespace CouchDB.Driver.Helpers
         {
             return new SubtreeEvaluator(new Nominator(fnCanBeEvaluated).Nominate(expression)).Eval(expression);
         }
-               
+
         /// <summary>
         /// Performs evaluation & replacement of independent sub-trees
         /// </summary>
@@ -26,7 +26,7 @@ namespace CouchDB.Driver.Helpers
         {
             return PartialEval(expression, Evaluator.CanBeEvaluatedLocally);
         }
-               
+
         private static bool CanBeEvaluatedLocally(Expression expression)
         {
             if (expression is MethodCallExpression c)
@@ -39,12 +39,13 @@ namespace CouchDB.Driver.Helpers
                     c.Method.Name != "WithoutIndexUpdate" &&
                     c.Method.Name != "UseBookmark" &&
                     c.Method.Name != "UseIndex" &&
-                    c.Method.Name != "FromStable" && 
+                    c.Method.Name != "FromStable" &&
+                    c.Method.Name != nameof(Extensions.QueryableExtensions.IncludeConflicts) &&
                     c.Method.Name != "IncludeExecutionStats";
             }
             return expression.NodeType != ExpressionType.Parameter;
         }
-               
+
         /// <summary>
         /// /// Evaluates & replaces sub-trees when first candidate is reached (top-down)
         /// </summary>
@@ -83,7 +84,7 @@ namespace CouchDB.Driver.Helpers
                 return Expression.Constant(fn.DynamicInvoke(null), e.Type);
             }
         }
-               
+
         /// <summary>
         /// Performs bottom-up analysis to determine which nodes can possibly
         /// be part of an evaluated sub-tree.
