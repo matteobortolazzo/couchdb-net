@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
+using CouchDB.Driver.Settings;
 
 namespace CouchDB.Driver
 {
@@ -21,6 +22,7 @@ namespace CouchDB.Driver
         private string _cookieToken;
         private readonly CouchSettings _settings;
         private readonly FlurlClient _flurlClient;
+        private readonly string[] _systemDatabases = new[] { "_users", "_replicator", "_global_changes" };
         public string ConnectionString { get; private set; }
 
         /// <summary>
@@ -79,6 +81,7 @@ namespace CouchDB.Driver
 
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
+
         /// <summary>
         /// Creates a new database with the given name in the server.
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
@@ -91,7 +94,7 @@ namespace CouchDB.Driver
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
 
-            if (!new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database) && !IsSystemDatabase(database))
+            if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
             {
                 throw new ArgumentException(nameof(database), $"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db");
             }
@@ -103,8 +106,6 @@ namespace CouchDB.Driver
 
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
-
-        private bool IsSystemDatabase(string database) => database == "_users" || database == "_replicator" || database == "_global_changes";
 
         /// <summary>
         /// Deletes the database with the given name from the server.
@@ -137,6 +138,7 @@ namespace CouchDB.Driver
         {
             return GetDatabase<TSource>(GetClassName<TSource>());
         }
+
         /// <summary>
         /// Creates a new database of the given type in the server. 
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
@@ -148,6 +150,7 @@ namespace CouchDB.Driver
         {
             return CreateDatabaseAsync<TSource>(GetClassName<TSource>());
         }
+
         /// <summary>
         /// Deletes the database with the given type from the server.
         /// </summary>
@@ -168,6 +171,26 @@ namespace CouchDB.Driver
         #region Utils
 
         /// <summary>
+        /// Determines whether the server is up, running, and ready to respond to requests. 
+        /// </summary>
+        /// <returns>true is the server is not in maintenance_mode; otherwise, false.</returns>
+        public async Task<bool> IsUpAsync()
+        {
+            try
+            {
+                await NewRequest()
+                    .AppendPathSegment("/_up")
+                    .GetAsync()
+                    .SendRequestAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Returns all databases names in the server.
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. The task result contains the sequence of databases names.</returns>
@@ -178,6 +201,7 @@ namespace CouchDB.Driver
                 .GetJsonAsync<IEnumerable<string>>()
                 .SendRequestAsync();
         }
+
         /// <summary>
         /// Returns all active tasks in the server.
         /// </summary>
@@ -191,12 +215,12 @@ namespace CouchDB.Driver
         }
 
         #endregion
-
+        
         #endregion
-
+        
         #region Implementations
 
-        private IFlurlRequest NewRequest()
+            private IFlurlRequest NewRequest()
         {
             return _flurlClient.Request(ConnectionString);
         }

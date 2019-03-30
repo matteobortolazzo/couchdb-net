@@ -1,5 +1,13 @@
+| Stage      | Status  |
+|:-----------|:--------|
+| Build      | [![Build status](https://dev.azure.com/matteobortolazzo/CouchDB.NET/_apis/build/status/CouchDB.NET-CI)](https://dev.azure.com/matteobortolazzo/CouchDB.NET/_build/latest?definitionId=8) |
+| Beta       | ![Release Beta status](https://vsrm.dev.azure.com/matteobortolazzo/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/1/1)                                                  |
+| Production | ![Release Stable status](https://vsrm.dev.azure.com/matteobortolazzo/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/1/2)                                                |
+
+
 # CouchDB.NET
-## A .NET Standard driver for CouchDB.
+
+A .NET Standard driver for CouchDB.
 
 ## LINQ queries
 
@@ -179,6 +187,7 @@ var rebels = client.GetDatabase<Rebel>("naboo_rebels");
 var rebels = await client.CreateDatabaseAsync<Rebel>("naboo_rebels");
 await client.DeleteDatabaseAsync<Rebel>("naboo_rebels");
 // Utils
+var isRunning = await client.IsUpAsync();
 var databases = await client.GetDatabasesNamesAsync();
 var tasks = await client.GetActiveTasksAsync();
 ```
@@ -196,6 +205,9 @@ await rebels.CreateOrUpdateRangeAsync(moreRebels);
 // Utils
 await rebels.CompactAsync();
 var info = await rebels.GetInfoAsync();
+// Security
+await rebels.Security.SetInfoAsync(securityInfo);
+var securityInfo = await rebels.Security.GetInfoAsync();
 ```
 
 ## Authentication

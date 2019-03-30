@@ -1,9 +1,8 @@
-﻿using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Settings;
 using Flurl.Http;
 using Nito.AsyncEx;
 using System;
 using System.Linq;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 

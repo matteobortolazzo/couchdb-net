@@ -1,9 +1,6 @@
 ﻿using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
-using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -80,6 +77,33 @@ namespace CouchDB.Driver.UnitTests
         #endregion
 
         #region Utils
+
+        [Fact]
+        public async Task IsUp()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    httpTest.RespondWithJson(new { status = "ok" });
+                    var result = await client.IsUpAsync();                    
+                    Assert.True(result);
+                }
+            }
+        }
+        [Fact]
+        public async Task IsNotUp()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    httpTest.RespondWith("Not found",  404);
+                    var result = await client.IsUpAsync();
+                    Assert.False(result);
+                }
+            }
+        }
 
         [Fact]
         public async Task DatabaseNames()

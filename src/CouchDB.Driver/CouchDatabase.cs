@@ -1,6 +1,8 @@
 ﻿using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Security;
+using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
@@ -21,7 +23,16 @@ namespace CouchDB.Driver
         private readonly FlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
+
+        /// <summary>
+        /// The database name.
+        /// </summary>
         public string Database { get; }
+
+        /// <summary>
+        /// Section to handle security operations.
+        /// </summary>
+        public CouchSecurity Security { get; }
 
         internal CouchDatabase(FlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
         {
@@ -30,6 +41,8 @@ namespace CouchDB.Driver
             _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             Database = db ?? throw new ArgumentNullException(nameof(db));
             _queryProvider = new CouchQueryProvider(flurlClient, _settings, connectionString, Database);
+
+            Security = new CouchSecurity(NewRequest);
         }
 
         /// <summary>
@@ -201,7 +214,6 @@ namespace CouchDB.Driver
         public async Task<TSource> FindAsync(string docId)
         {
             return await NewRequest()
-                .AppendPathSegment("doc")
                 .AppendPathSegment(docId)
                 .GetJsonAsync<TSource>()
                 .SendRequestAsync();
@@ -303,6 +315,7 @@ namespace CouchDB.Driver
                 .PostJsonAsync(null)
                 .SendRequestAsync();
         }
+
         /// <summary>
         /// Gets information about the specified database.
         /// </summary>
