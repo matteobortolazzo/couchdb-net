@@ -28,7 +28,7 @@ namespace CouchDB.Driver.UnitTests
             {
                 var newR = await _rebels.FindAsync("1");
                 httpTest
-                    .ShouldHaveCalled("http://localhost/rebels/doc/1")
+                    .ShouldHaveCalled("http://localhost/rebels/1")
                     .WithVerb(HttpMethod.Get);
             }
         }
@@ -115,7 +115,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new [] {
+                httpTest.RespondWithJson(new[] {
                     new { Id = "111", Ok = true, Rev = "111" },
                     new { Id = "222", Ok = true, Rev = "222" },
                 });

@@ -206,7 +206,6 @@ namespace CouchDB.Driver
         public async Task<TSource> FindAsync(string docId)
         {
             return await NewRequest()
-                .AppendPathSegment("doc")
                 .AppendPathSegment(docId)
                 .GetJsonAsync<TSource>()
                 .SendRequestAsync();
