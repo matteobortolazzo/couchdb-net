@@ -207,6 +207,20 @@ namespace CouchDB.Driver
                 .SendRequestAsync();
         }
 
+        /// <summary>
+        /// Finds the document with the given ID, including _conflicts
+        /// </summary>
+        /// <param name="docId">The document ID.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the element found.</returns>
+        public async Task<TSource> FindWithConflictsAsync(string docId)
+        {
+            return await NewRequest()
+                .AppendPathSegment(docId)
+                .SetQueryParams(new { conflicts = "true" })
+                .GetJsonAsync<TSource>()
+                .SendRequestAsync();
+        }
+
         #endregion
 
         #region Writing
