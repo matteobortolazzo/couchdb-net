@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
@@ -11,6 +12,11 @@ namespace CouchDB.Driver.Types
     /// </summary>
     public abstract class CouchDocument
     {
+        public CouchDocument()
+        {
+            Conflicts = new List<string>();
+        }
+
         /// <summary>
         /// The document ID.
         /// </summary>
@@ -30,6 +36,10 @@ namespace CouchDB.Driver.Types
         [DataMember]
         [JsonProperty("rev", NullValueHandling = NullValueHandling.Ignore)]
         private string RevOther { set => Rev = value; }
+
+        [DataMember]
+        [JsonProperty("_conflicts")]
+        public List<string> Conflicts { get; set; }
     }
 
     internal static class CouchDocumentExtensions

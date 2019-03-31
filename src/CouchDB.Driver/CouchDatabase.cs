@@ -211,34 +211,26 @@ namespace CouchDB.Driver
         /// Finds the document with the given ID. If no document is found, then null is returned.
         /// </summary>
         /// <param name="docId">The document ID.</param>
+        /// <param name="withConflicts">Set if conflicts array should be included.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null.</returns>
-        public async Task<TSource> FindAsync(string docId)
+        public async Task<TSource> FindAsync(string docId, bool withConflicts = false)
         {
             try
             {
-                return await NewRequest()
-                    .AppendPathSegment(docId)
+                var request = NewRequest()
+                        .AppendPathSegment(docId);
+
+                if (withConflicts)
+                    request = request.SetQueryParam("conflicts", true);
+
+                return await request
                     .GetJsonAsync<TSource>()
                     .SendRequestAsync();
             }
-            catch(CouchNotFoundException)
+            catch (CouchNotFoundException)
             {
                 return null;
             }
-        }
-
-        /// <summary>
-        /// Finds the document with the given ID, including _conflicts
-        /// </summary>
-        /// <param name="docId">The document ID.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the element found.</returns>
-        public async Task<TSource> FindWithConflictsAsync(string docId)
-        {
-            return await NewRequest()
-                .AppendPathSegment(docId)
-                .SetQueryParams(new { conflicts = "true" })
-                .GetJsonAsync<TSource>()
-                .SendRequestAsync();
         }
 
         #endregion

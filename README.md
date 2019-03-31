@@ -32,6 +32,7 @@ var json = _rebels
     .WithoutIndexUpdate()
     .FromStable()
     .IncludeExecutionStats()
+    .IncludeConflicts()
     .Select(r => new {
         r.Name,
         r.Age,
@@ -78,6 +79,7 @@ The produced Mango JSON:
   "update": false,
   "stable": true,
   "execution_stats":true,
+  "conflicts":true,
   "fields": [
     "name",
     "age",
@@ -174,6 +176,7 @@ If the Where method is not called in the expression, it will at an empty selecto
 | update          | WithoutIndexUpdate()                                 |
 | stable          | FromStable()                                         |
 | execution_stats | IncludeExecutionStats()                              |
+| conflicts       | IncludeConflicts()                                   |
 
 ## Client operations
 
@@ -200,6 +203,7 @@ await rebels.CreateAsync(rebel);
 await rebels.CreateOrUpdateAsync(rebel);
 await rebels.DeleteAsync(rebel);
 var rebel = await rebels.FindAsync(id);
+var rebel = await rebels.FindAsync(id, withConflicts: true);
 // Bulk
 await rebels.CreateOrUpdateRangeAsync(moreRebels);
 // Utils

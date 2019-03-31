@@ -29,6 +29,7 @@ namespace CouchDB.Driver.UnitTests
                 var newR = await _rebels.FindAsync("1");
                 httpTest
                     .ShouldHaveCalled("http://localhost/rebels/1")
+                    .WithoutQueryParam("conflicts")
                     .WithVerb(HttpMethod.Get);
             }
         }
@@ -37,9 +38,10 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                var newR = await _rebels.FindWithConflictsAsync("1");
+                var newR = await _rebels.FindAsync("1", true);
                 httpTest
                     .ShouldHaveCalled("http://localhost/rebels/1")
+                    .WithQueryParamValue("conflicts", true)
                     .WithVerb(HttpMethod.Get);
             }
         }
