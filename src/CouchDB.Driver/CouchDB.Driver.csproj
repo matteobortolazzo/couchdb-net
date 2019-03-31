@@ -15,6 +15,9 @@
 IQueryable support.
 All selectors support.</PackageReleaseNotes>
     <PackageIconUrl>http://couchdb.apache.org/image/couch@2x.png</PackageIconUrl>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
