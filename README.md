@@ -1,8 +1,9 @@
 | Stage      | Status  |
 |:-----------|:--------|
-| Build      | [![Build status](https://dev.azure.com/matteobortolazzo/CouchDB.NET/_apis/build/status/CouchDB.NET-CI)](https://dev.azure.com/matteobortolazzo/CouchDB.NET/_build/latest?definitionId=8) |
-| Beta       | ![Release Beta status](https://vsrm.dev.azure.com/matteobortolazzo/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/1/1)                                                  |
-| Production | ![Release Stable status](https://vsrm.dev.azure.com/matteobortolazzo/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/1/2)                                                |
+| dev        | [![Build status](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_apis/build/status/CI%20-%20Production)](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_build/latest?definitionId=15) |
+| master     | [![Build status](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_apis/build/status/CI%20-%20Beta)](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_build/latest?definitionId=16)       |
+| Beta       | ![Release Beta status](https://matteobortolazzo.vsrm.visualstudio.com/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/4/5)                                                           |
+| Production | ![Release Stable status](https://matteobortolazzo.vsrm.visualstudio.com/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/3/4)                                                         |
 
 
 # CouchDB.NET
