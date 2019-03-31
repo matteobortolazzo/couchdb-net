@@ -88,8 +88,10 @@ namespace CouchDB.Driver
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>
+        /// <param name="shards">The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
+        /// <param name="replicas">The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-        public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database) where TSource : CouchDocument
+        public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
@@ -99,8 +101,19 @@ namespace CouchDB.Driver
                 throw new ArgumentException(nameof(database), $"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db");
             }
 
-            await NewRequest()
-                .AppendPathSegment(database)
+            var request = NewRequest()
+                .AppendPathSegment(database);
+
+            if (shards.HasValue)
+            {
+                request.SetQueryParam("q", shards.Value);
+            }
+            if (replicas.HasValue)
+            {
+                request.SetQueryParam("n", replicas.Value);
+            }
+
+            await request
                 .PutAsync(null)
                 .SendRequestAsync();
 
