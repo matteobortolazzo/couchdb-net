@@ -261,37 +261,56 @@ namespace CouchDB.Driver
                 .SendRequestAsync();
             return (TSource)document.ProcessSaveResponse(response);
         }
+
         /// <summary>
         /// Creates or updates the document with the given ID.
         /// </summary>
         /// <param name="document">The document to create or update</param>
+        /// <param name="batch">Stores document in batch mode.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-        public async Task<TSource> CreateOrUpdateAsync(TSource document)
+        public async Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false)
         {
             if (string.IsNullOrEmpty(document.Id))
                 throw new InvalidOperationException("Cannot add or update a document without an ID.");
 
-            var response = await NewRequest()
-                .AppendPathSegment(document.Id)
+            var request = NewRequest()
+                .AppendPathSegment(document.Id);
+
+            if (batch)
+            {
+                request.SetQueryParam("batch", "ok");
+            }
+
+            var response = await request
                 .PutJsonAsync(document)
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync();
 
             return (TSource)document.ProcessSaveResponse(response);
         }
+
         /// <summary>
         /// Deletes the document with the given ID.
         /// </summary>
         /// <param name="document">The document to delete.</param>
+        /// <param name="batch">Stores document in batch mode.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public async Task DeleteAsync(TSource document)
+        public async Task DeleteAsync(TSource document, bool batch = false)
         {
-            await NewRequest()
-                .AppendPathSegment(document.Id)
+            var request = NewRequest()
+                .AppendPathSegment(document.Id);
+
+            if (batch)
+            {
+                request.SetQueryParam("batch", "ok");
+            }
+
+            await request
                 .SetQueryParam("rev", document.Rev)
                 .DeleteAsync()
                 .SendRequestAsync();
         }
+
         /// <summary>
         /// Creates or updates a sequence of documents based on their IDs.
         /// </summary>
@@ -309,6 +328,19 @@ namespace CouchDB.Driver
             foreach (var (document, saveResponse) in zipped)
                 document.ProcessSaveResponse(saveResponse);
             return documents;
+        }
+
+        /// <summary>
+        /// Commits any recent changes to the specified database to disk. You should call this if you want to ensure that recent changes have been flushed.
+        /// This function is likely not required, assuming you have the recommended configuration setting of delayed_commits=false, which requires CouchDB to ensure changes are written to disk before a 200 or similar result is returned.
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        public async Task EnsureFullCommitAsync()
+        {
+            await NewRequest()
+                .AppendPathSegment("_ensure_full_commit")
+                .PostAsync(null)
+                .SendRequestAsync();
         }
 
         #endregion
