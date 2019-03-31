@@ -241,13 +241,21 @@ namespace CouchDB.Driver
         /// Creates a new document and returns it.
         /// </summary>
         /// <param name="document">The document to create.</param>
+        /// <param name="batch">Stores document in batch mode.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-        public async Task<TSource> CreateAsync(TSource document)
+        public async Task<TSource> CreateAsync(TSource document, bool batch = false)
         {
             if (!string.IsNullOrEmpty(document.Id))
                 return await CreateOrUpdateAsync(document);
 
-            var response = await NewRequest()
+            var request = NewRequest();
+
+            if (batch)
+            {
+                request.SetQueryParam("batch", "ok");
+            }
+
+            var response = await request
                 .PostJsonAsync(document)
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync();
