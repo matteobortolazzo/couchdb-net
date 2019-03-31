@@ -1,5 +1,4 @@
-﻿using CouchDB.Driver.Helpers;
-using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Settings;
 using Humanizer;
 using Newtonsoft.Json;
 using System;
@@ -22,7 +21,7 @@ namespace CouchDB.Driver.Extensions
             {
                 typeName = typeName.Pluralize();
             }
-            return settings.EntityCaseType.Convert(typeName);
+            return settings.DocumentsCaseType.Convert(typeName);
         }
     }
 }

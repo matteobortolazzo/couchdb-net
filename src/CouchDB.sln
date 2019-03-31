@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.28714.193
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{4D37247A-2FC3-4EDA-A6C4-668A7AA67B8F}"
 	ProjectSection(SolutionItems) = preProject
+		..\.gitignore = ..\.gitignore
+		..\CHANGELOG.md = ..\CHANGELOG.md
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
@@ -13,6 +15,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver", "CouchDB.Driver\CouchDB.Driver.csproj", "{E5FECE8E-AC0A-4591-8B08-5D5D0016022A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.UnitTests", "..\tests\CouchDB.Driver.UnitTests\CouchDB.Driver.UnitTests.csproj", "{1B136529-B659-49B3-9974-11C6D43CC9A0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.E2ETests", "..\tests\CouchDB.Driver.E2ETests\CouchDB.Driver.E2ETests.csproj", "{F382E261-4BFD-4F99-90FB-1DC23B93FB80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,12 +32,17 @@ Global
 		{1B136529-B659-49B3-9974-11C6D43CC9A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B136529-B659-49B3-9974-11C6D43CC9A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B136529-B659-49B3-9974-11C6D43CC9A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F382E261-4BFD-4F99-90FB-1DC23B93FB80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F382E261-4BFD-4F99-90FB-1DC23B93FB80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F382E261-4BFD-4F99-90FB-1DC23B93FB80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F382E261-4BFD-4F99-90FB-1DC23B93FB80}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1B136529-B659-49B3-9974-11C6D43CC9A0} = {17AFFCE7-6EA4-4036-9885-4448FC315C57}
+		{F382E261-4BFD-4F99-90FB-1DC23B93FB80} = {17AFFCE7-6EA4-4036-9885-4448FC315C57}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B6B9CD2D-85AC-498B-9ED4-38F20AC234C5}

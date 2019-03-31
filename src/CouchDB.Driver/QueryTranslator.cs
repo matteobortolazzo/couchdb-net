@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CouchDB.Driver.Settings;
+using System;
 using System.Linq.Expressions;
 using System.Text;
 

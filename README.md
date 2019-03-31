@@ -1,5 +1,13 @@
+| Stage      | Status  |
+|:-----------|:--------|
+| Build      | [![Build status](https://dev.azure.com/matteobortolazzo/CouchDB.NET/_apis/build/status/CouchDB.NET-CI)](https://dev.azure.com/matteobortolazzo/CouchDB.NET/_build/latest?definitionId=8) |
+| Beta       | ![Release Beta status](https://vsrm.dev.azure.com/matteobortolazzo/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/1/1)                                                  |
+| Production | ![Release Stable status](https://vsrm.dev.azure.com/matteobortolazzo/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/1/2)                                                |
+
+
 # CouchDB.NET
-## A .NET Standard driver for CouchDB.
+
+A .NET Standard driver for CouchDB.
 
 ## LINQ queries
 
@@ -24,6 +32,7 @@ var json = _rebels
     .WithoutIndexUpdate()
     .FromStable()
     .IncludeExecutionStats()
+    .IncludeConflicts()
     .Select(r => new {
         r.Name,
         r.Age,
@@ -70,6 +79,7 @@ The produced Mango JSON:
   "update": false,
   "stable": true,
   "execution_stats":true,
+  "conflicts":true,
   "fields": [
     "name",
     "age",
@@ -85,9 +95,9 @@ The produced Mango JSON:
     ```csharp
    using(var client = new CouchClient("http://localhost")) { }
    ```
-* Create an entity class:
+* Create a document class:
     ```csharp
-    public class Rebel : CouchEntity
+    public class Rebel : CouchDocument
     ```
 * Get a database reference:
     ```csharp
@@ -166,6 +176,7 @@ If the Where method is not called in the expression, it will at an empty selecto
 | update          | WithoutIndexUpdate()                                 |
 | stable          | FromStable()                                         |
 | execution_stats | IncludeExecutionStats()                              |
+| conflicts       | IncludeConflicts()                                   |
 
 ## Client operations
 
@@ -179,6 +190,7 @@ var rebels = client.GetDatabase<Rebel>("naboo_rebels");
 var rebels = await client.CreateDatabaseAsync<Rebel>("naboo_rebels");
 await client.DeleteDatabaseAsync<Rebel>("naboo_rebels");
 // Utils
+var isRunning = await client.IsUpAsync();
 var databases = await client.GetDatabasesNamesAsync();
 var tasks = await client.GetActiveTasksAsync();
 ```
@@ -191,11 +203,15 @@ await rebels.CreateAsync(rebel);
 await rebels.CreateOrUpdateAsync(rebel);
 await rebels.DeleteAsync(rebel);
 var rebel = await rebels.FindAsync(id);
+var rebel = await rebels.FindAsync(id, withConflicts: true);
 // Bulk
 await rebels.CreateOrUpdateRangeAsync(moreRebels);
 // Utils
 await rebels.CompactAsync();
 var info = await rebels.GetInfoAsync();
+// Security
+await rebels.Security.SetInfoAsync(securityInfo);
+var securityInfo = await rebels.Security.GetInfoAsync();
 ```
 
 ## Authentication
@@ -237,31 +253,19 @@ var client = new CouchClient("http://localhost", s => s
     ....
 )
 ```
-| Method                         | Description                                  |
-|:-------------------------------|:---------------------------------------------|
-| UseBasicAuthentication         | Enables basic authentication.                |
-| UseCookieAuthentication        | Enables cookie authentication.               |
-| IgnoreCertificateValidation    | Removes any SSL certificate validation.      |
-| ConfigureCertificateValidation | Sets a custom SSL validation rule.           |
-| DisableEntitisPluralization    | Disables entities pluralization in requests. |
-| SetEntityCase                  | Sets the format case for entities.           |
-| SetPropertyCase                | Sets the format case for properties.         |
-| EnsureDatabaseExists           | If a database doesn't exists, it creates it. |
+| Method                         | Description                                   |
+|:-------------------------------|:----------------------------------------------|
+| UseBasicAuthentication         | Enables basic authentication.                 |
+| UseCookieAuthentication        | Enables cookie authentication.                |
+| IgnoreCertificateValidation    | Removes any SSL certificate validation.       |
+| ConfigureCertificateValidation | Sets a custom SSL validation rule.            |
+| DisableDocumentPluralization   | Disables documents pluralization in requests. |
+| SetDocumentCase                | Sets the format case for documents.           |
+| SetPropertyCase                | Sets the format case for properties.          |
+| EnsureDatabaseExists           | If a database doesn't exists, it creates it.  |
 
-- **EntityCaseTypes**: None, UnderscoreCase *(default)*, DashCase, KebabCase.
+- **DocumentCaseTypes**: None, UnderscoreCase *(default)*, DashCase, KebabCase.
 - **PropertyCaseTypes**: None, CamelCase *(default)*, PascalCase, UnderscoreCase, DashCase, KebabCase.
-
-## Custom JSON values
-
-If you need custom values for entities and properties, it's possible to use JsonObject and JsonProperty attributes.
-
-```csharp
-[JsonObject("custom-rebels")]
-public class OtherRebel : Rebel
-
-[JsonProperty("rebel_bith_date")]
-public DateTime BirthDate { get; set; }
-```
 
 ### Bookmark and Execution stats
 
@@ -277,6 +281,33 @@ foreach(var r in allRebels)
 }
 var b = allRebels.Bookmark;
 var ex = allRebels.ExecutionStats; // .IncludeExecutionStats() must be called
+```
+
+### Users
+
+The driver natively support the *_users* database.
+
+```csharp
+var users = client.GetUsersDatabase();
+var luke = await users.CreateAsync(new CouchUser(name: "luke", password: "lasersword"));
+```
+
+It's possible to extend *CouchUser* for store custom info.
+```csharp
+var users = client.GetUsersDatabase<CustomUser>();
+var luke = await users.CreateAsync(new CustomUser(name: "luke", password: "lasersword"));
+```
+
+## Custom JSON values
+
+If you need custom values for documents and properties, it's possible to use JsonObject and JsonProperty attributes.
+
+```csharp
+[JsonObject("custom-rebels")]
+public class OtherRebel : Rebel
+
+[JsonProperty("rebel_bith_date")]
+public DateTime BirthDate { get; set; }
 ```
 
 ## Advanced

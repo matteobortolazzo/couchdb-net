@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CouchDB.Driver.Extensions;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace CouchDB.Driver.Helpers
@@ -16,7 +18,7 @@ namespace CouchDB.Driver.Helpers
         {
             return new SubtreeEvaluator(new Nominator(fnCanBeEvaluated).Nominate(expression)).Eval(expression);
         }
-               
+
         /// <summary>
         /// Performs evaluation & replacement of independent sub-trees
         /// </summary>
@@ -26,25 +28,26 @@ namespace CouchDB.Driver.Helpers
         {
             return PartialEval(expression, Evaluator.CanBeEvaluatedLocally);
         }
-               
+
         private static bool CanBeEvaluatedLocally(Expression expression)
         {
             if (expression is MethodCallExpression c)
             {
                 return
-                    c.Method.Name != "Where" &&
-                    c.Method.Name != "Skip" &&
-                    c.Method.Name != "Take" &&
-                    c.Method.Name != "WithReadQuorum" &&
-                    c.Method.Name != "WithoutIndexUpdate" &&
-                    c.Method.Name != "UseBookmark" &&
-                    c.Method.Name != "UseIndex" &&
-                    c.Method.Name != "FromStable" && 
-                    c.Method.Name != "IncludeExecutionStats";
+                    c.Method.Name != nameof(Queryable.Where) &&
+                    c.Method.Name != nameof(Queryable.Skip) &&
+                    c.Method.Name != nameof(Queryable.Take) &&
+                    c.Method.Name != nameof(QueryableExtensions.WithReadQuorum) &&
+                    c.Method.Name != nameof(QueryableExtensions.WithoutIndexUpdate) &&
+                    c.Method.Name != nameof(QueryableExtensions.UseBookmark) &&
+                    c.Method.Name != nameof(QueryableExtensions.UseIndex) &&
+                    c.Method.Name != nameof(QueryableExtensions.FromStable) && 
+                    c.Method.Name != nameof(QueryableExtensions.IncludeExecutionStats) &&
+                    c.Method.Name != nameof(Extensions.QueryableExtensions.IncludeConflicts);
             }
             return expression.NodeType != ExpressionType.Parameter;
         }
-               
+
         /// <summary>
         /// /// Evaluates & replaces sub-trees when first candidate is reached (top-down)
         /// </summary>
@@ -83,7 +86,7 @@ namespace CouchDB.Driver.Helpers
                 return Expression.Constant(fn.DynamicInvoke(null), e.Type);
             }
         }
-               
+
         /// <summary>
         /// Performs bottom-up analysis to determine which nodes can possibly
         /// be part of an evaluated sub-tree.

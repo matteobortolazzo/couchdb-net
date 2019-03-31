@@ -1,12 +1,11 @@
-﻿using CouchDB.Driver.UnitTests.Models;
+﻿using CouchDB.Driver.Security;
+using CouchDB.Driver.Types;
+using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using CouchDB.Driver.Extensions;
 
 namespace CouchDB.Driver.UnitTests
 {
@@ -29,7 +28,20 @@ namespace CouchDB.Driver.UnitTests
             {
                 var newR = await _rebels.FindAsync("1");
                 httpTest
-                    .ShouldHaveCalled("http://localhost/rebels/doc/1")
+                    .ShouldHaveCalled("http://localhost/rebels/1")
+                    .WithoutQueryParam("conflicts")
+                    .WithVerb(HttpMethod.Get);
+            }
+        }
+        [Fact]
+        public async Task FindWithConflicts()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                var newR = await _rebels.FindAsync("1", true);
+                httpTest
+                    .ShouldHaveCalled("http://localhost/rebels/1")
+                    .WithQueryParamValue("conflicts", true)
                     .WithVerb(HttpMethod.Get);
             }
         }
@@ -116,7 +128,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new [] {
+                httpTest.RespondWithJson(new[] {
                     new { Id = "111", Ok = true, Rev = "111" },
                     new { Id = "222", Ok = true, Rev = "222" },
                 });
@@ -156,6 +168,46 @@ namespace CouchDB.Driver.UnitTests
                 httpTest
                     .ShouldHaveCalled("http://localhost/rebels/_compact")
                     .WithVerb(HttpMethod.Post);
+            }
+        }
+        [Fact]
+        public async Task SecurityInfo_Get()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new
+                {
+                    Admins = new
+                    {
+                        Names = new[] { "superuser" }, 
+                        Roles = new[] { "admins" }
+                    },
+                    Members = new
+                    {
+                        Names = new[] { "user1", "user2" },
+                        Roles = new[] { "developers" }
+                    }
+                });
+                var securityInfo = await _rebels.Security.GetInfoAsync();
+                httpTest
+                    .ShouldHaveCalled("http://localhost/rebels/_security")
+                    .WithVerb(HttpMethod.Get);
+                Assert.Equal("user1", securityInfo.Members.Names[0]);
+            }
+        }
+        [Fact]
+        public async Task SecurityInfo_Put()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                var securityInfo = new CouchSecurityInfo();
+                securityInfo.Admins.Names.Add("user1");
+
+                await _rebels.Security.SetInfoAsync(securityInfo);
+                httpTest
+                    .ShouldHaveCalled("http://localhost/rebels/_security")
+                    .WithVerb(HttpMethod.Put)
+                    .WithRequestJson(securityInfo);
             }
         }
 

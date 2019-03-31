@@ -22,25 +22,31 @@ namespace CouchDB.Driver.Helpers
             }
             catch (FlurlHttpException ex)
             {
-                var e = await ex.GetResponseJsonAsync<CouchError>();
-
-                if (e == null)
+                CouchError couchError;
+                try
                 {
-                    throw;
+                    couchError = await ex.GetResponseJsonAsync<CouchError>();
+                }
+                catch
+                {
+                    throw ex;
                 }
 
-                switch (ex.Call.HttpStatus)
+                if (couchError != null)
                 {
-                    case HttpStatusCode.Conflict:
-                        throw e.NewCouchExteption(typeof(CouchConflictException));
-                    case HttpStatusCode.NotFound:
-                        throw e.NewCouchExteption(typeof(CouchNotFoundException));
-                    case HttpStatusCode.BadRequest:
-                        if (e.Error == "no_usable_index")
-                            throw e.NewCouchExteption(typeof(CouchNoIndexException));
-                        break;
+                    switch (ex.Call.HttpStatus)
+                    {
+                        case HttpStatusCode.Conflict:
+                            throw couchError.NewCouchExteption(typeof(CouchConflictException));
+                        case HttpStatusCode.NotFound:
+                            throw couchError.NewCouchExteption(typeof(CouchNotFoundException));
+                        case HttpStatusCode.BadRequest:
+                            if (couchError.Error == "no_usable_index")
+                                throw couchError.NewCouchExteption(typeof(CouchNoIndexException));
+                            break;
+                    }
                 }
-                throw new CouchException(e.Error, e.Reason);
+                throw new CouchException(couchError.Error, couchError.Reason);                
             }
         }
 

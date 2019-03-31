@@ -12,6 +12,6 @@ namespace CouchDB.Driver.Exceptions
         /// </summary>
         /// <param name="message">Error message</param>
         /// <param name="reason">Error reason</param>
-        internal CouchException(string message, string reason) : base(message, new Exception(reason)) { }
+        public CouchException(string message, string reason) : base(message, new Exception(reason)) { }
     }
 }

@@ -31,7 +31,8 @@ namespace CouchDB.Driver.UnitTests.Find
         [Fact]
         public void Fields()
         {
-            var json = _rebels.Select(r => new {
+            var json = _rebels.Select(r => new
+            {
                 r.Name,
                 r.Age
             }).ToString();
@@ -90,11 +91,17 @@ namespace CouchDB.Driver.UnitTests.Find
             Assert.Equal(@"{""execution_stats"":true,""selector"":{}}", json);
         }
         [Fact]
+        public void Conflicts()
+        {
+            var json = _rebels.IncludeConflicts().ToString();
+            Assert.Equal(@"{""conflicts"":true,""selector"":{}}", json);
+        }
+        [Fact]
         public void Combinations()
         {
             var json = _rebels
-                .Where(r => 
-                    r.Surname == "Skywalker" && 
+                .Where(r =>
+                    r.Surname == "Skywalker" &&
                     (
                         r.Battles.All(b => b.Planet == "Naboo") ||
                         r.Battles.Any(b => b.Planet == "Death Star")
@@ -110,7 +117,8 @@ namespace CouchDB.Driver.UnitTests.Find
                 .WithoutIndexUpdate()
                 .FromStable()
                 .IncludeExecutionStats()
-                .Select(r => new {
+                .Select(r => new
+                {
                     r.Name,
                     r.Age,
                     r.Species

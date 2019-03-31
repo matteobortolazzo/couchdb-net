@@ -1,6 +1,9 @@
 ﻿using CouchDB.Driver.DTOs;
+using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Security;
+using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
@@ -15,13 +18,22 @@ namespace CouchDB.Driver
     /// Represents a CouchDB database.
     /// </summary>
     /// <typeparam name="TSource">The type of database documents.</typeparam>
-    public class CouchDatabase<TSource> where TSource : CouchEntity
+    public class CouchDatabase<TSource> where TSource : CouchDocument
     {
         private readonly QueryProvider _queryProvider;
         private readonly FlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
+
+        /// <summary>
+        /// The database name.
+        /// </summary>
         public string Database { get; }
+
+        /// <summary>
+        /// Section to handle security operations.
+        /// </summary>
+        public CouchSecurity Security { get; }
 
         internal CouchDatabase(FlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
         {
@@ -30,6 +42,8 @@ namespace CouchDB.Driver
             _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             Database = db ?? throw new ArgumentNullException(nameof(db));
             _queryProvider = new CouchQueryProvider(flurlClient, _settings, connectionString, Database);
+
+            Security = new CouchSecurity(NewRequest);
         }
 
         /// <summary>
@@ -180,23 +194,43 @@ namespace CouchDB.Driver
         {
             return AsQueryable().IncludeExecutionStats();
         }
+        /// <summary>
+        /// Asks for conflicts when requesting elements from the database.
+        /// </summary>
+        /// <return>An IQueryable<T> that contains the request to ask for conflicts when requesting elements from the database.</return>
+        public IQueryable<TSource> IncludeConflicts()
+        {
+            return AsQueryable().IncludeConflicts();
+        }
 
         #endregion
 
         #region Find
 
         /// <summary>
-        /// Finds the document with the given ID.
+        /// Finds the document with the given ID. If no document is found, then null is returned.
         /// </summary>
         /// <param name="docId">The document ID.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the element found.</returns>
-        public async Task<TSource> FindAsync(string docId)
+        /// <param name="withConflicts">Set if conflicts array should be included.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null.</returns>
+        public async Task<TSource> FindAsync(string docId, bool withConflicts = false)
         {
-            return await NewRequest()
-                .AppendPathSegment("doc")
-                .AppendPathSegment(docId)
-                .GetJsonAsync<TSource>()
-                .SendRequestAsync();
+            try
+            {
+                var request = NewRequest()
+                        .AppendPathSegment(docId);
+
+                if (withConflicts)
+                    request = request.SetQueryParam("conflicts", true);
+
+                return await request
+                    .GetJsonAsync<TSource>()
+                    .SendRequestAsync();
+            }
+            catch (CouchNotFoundException)
+            {
+                return null;
+            }
         }
 
         #endregion
@@ -206,47 +240,77 @@ namespace CouchDB.Driver
         /// <summary>
         /// Creates a new document and returns it.
         /// </summary>
-        /// <param name="item">The document to create.</param>
+        /// <param name="document">The document to create.</param>
+        /// <param name="batch">Stores document in batch mode.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-        public async Task<TSource> CreateAsync(TSource item)
+        public async Task<TSource> CreateAsync(TSource document, bool batch = false)
         {
-            var response = await NewRequest()
-                .PostJsonAsync(item)
+            if (!string.IsNullOrEmpty(document.Id))
+                return await CreateOrUpdateAsync(document);
+
+            var request = NewRequest();
+
+            if (batch)
+            {
+                request.SetQueryParam("batch", "ok");
+            }
+
+            var response = await request
+                .PostJsonAsync(document)
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync();
-            return (TSource)item.ProcessSaveResponse(response);
+            return (TSource)document.ProcessSaveResponse(response);
         }
+
         /// <summary>
         /// Creates or updates the document with the given ID.
         /// </summary>
-        /// <param name="item">The document to create or update</param>
+        /// <param name="document">The document to create or update</param>
+        /// <param name="batch">Stores document in batch mode.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-        public async Task<TSource> CreateOrUpdateAsync(TSource item)
+        public async Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false)
         {
-            if (string.IsNullOrEmpty(item.Id))
-                throw new InvalidOperationException("Cannot add or update an entity without an ID.");
+            if (string.IsNullOrEmpty(document.Id))
+                throw new InvalidOperationException("Cannot add or update a document without an ID.");
 
-            var response = await NewRequest()
-                .AppendPathSegment(item.Id)
-                .PutJsonAsync(item)
+            var request = NewRequest()
+                .AppendPathSegment(document.Id);
+
+            if (batch)
+            {
+                request.SetQueryParam("batch", "ok");
+            }
+
+            var response = await request
+                .PutJsonAsync(document)
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync();
 
-            return (TSource)item.ProcessSaveResponse(response);
+            return (TSource)document.ProcessSaveResponse(response);
         }
+
         /// <summary>
         /// Deletes the document with the given ID.
         /// </summary>
         /// <param name="document">The document to delete.</param>
+        /// <param name="batch">Stores document in batch mode.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public async Task DeleteAsync(TSource document)
+        public async Task DeleteAsync(TSource document, bool batch = false)
         {
-            await NewRequest()
-                .AppendPathSegment(document.Id)
+            var request = NewRequest()
+                .AppendPathSegment(document.Id);
+
+            if (batch)
+            {
+                request.SetQueryParam("batch", "ok");
+            }
+
+            await request
                 .SetQueryParam("rev", document.Rev)
                 .DeleteAsync()
                 .SendRequestAsync();
         }
+
         /// <summary>
         /// Creates or updates a sequence of documents based on their IDs.
         /// </summary>
@@ -266,6 +330,19 @@ namespace CouchDB.Driver
             return documents;
         }
 
+        /// <summary>
+        /// Commits any recent changes to the specified database to disk. You should call this if you want to ensure that recent changes have been flushed.
+        /// This function is likely not required, assuming you have the recommended configuration setting of delayed_commits=false, which requires CouchDB to ensure changes are written to disk before a 200 or similar result is returned.
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        public async Task EnsureFullCommitAsync()
+        {
+            await NewRequest()
+                .AppendPathSegment("_ensure_full_commit")
+                .PostAsync(null)
+                .SendRequestAsync();
+        }
+
         #endregion
 
         #region Utils
@@ -281,6 +358,7 @@ namespace CouchDB.Driver
                 .PostJsonAsync(null)
                 .SendRequestAsync();
         }
+
         /// <summary>
         /// Gets information about the specified database.
         /// </summary>

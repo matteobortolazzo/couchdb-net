@@ -1,4 +1,5 @@
-﻿using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Settings;
+using CouchDB.Driver.Types;
 using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
@@ -110,10 +111,10 @@ namespace CouchDB.Driver.UnitTests
 
         #endregion
 
-        #region EntityName
+        #region DocumentName
 
         [Fact]
-        public async Task EntityName_Pluralization()
+        public async Task DocumentName_Pluralization()
         {
             using (var httpTest = new HttpTest())
             {
@@ -131,13 +132,13 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task EntityName_PluralizationDisabled()
+        public async Task DocumentName_PluralizationDisabled()
         {
             using (var httpTest = new HttpTest())
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
-                using (var client = new CouchClient("http://localhost", s => s.DisableEntitisPluralization()))
+                using (var client = new CouchClient("http://localhost", s => s.DisableDocumentPluralization()))
                 {
                     var rebels = client.GetDatabase<Rebel>();
                     var all = await rebels.ToListAsync();
@@ -149,14 +150,14 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task EntityName_UnderscoreDisabled()
+        public async Task DocumentName_UnderscoreDisabled()
         {
             using (var httpTest = new HttpTest())
             {
                 httpTest.RespondWithJson(new { Docs = new string[0] });
 
                 using (var client = new CouchClient("http://localhost", s => s
-                    .SetEntityCase(EntityCaseType.None)))
+                    .SetDocumentCase(DocumentCaseType.None)))
                 {
                     var rebels = client.GetDatabase<NewRebel>();
                     var all = await rebels.ToListAsync();
@@ -168,7 +169,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task EntityName_SpecificName()
+        public async Task DocumentName_SpecificName()
         {
             using (var httpTest = new HttpTest())
             {
@@ -186,7 +187,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task EntityName_JsonObject()
+        public async Task DocumentName_JsonObject()
         {
             using (var httpTest = new HttpTest())
             {

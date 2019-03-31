@@ -1,24 +1,34 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
 {
-    public abstract class CouchEntity
+    /// <summary>
+    /// Represents a CouchDB document.
+    /// </summary>
+    public abstract class CouchDocument
     {
+        public CouchDocument()
+        {
+            Conflicts = new List<string>();
+        }
+
         /// <summary>
-        /// The ID of the entity.
+        /// The document ID.
         /// </summary>
         [DataMember]
         [JsonProperty("_id", NullValueHandling = NullValueHandling.Ignore)]
-        public string Id { get; set; }
+        public virtual string Id { get; set; }
         [DataMember]
         [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
         private string IdOther { set => Id = value; }
 
         /// <summary>
-        /// The revision of the current entity.
+        /// The current document revision ID.
         /// </summary>
         [DataMember]
         [JsonProperty("_rev", NullValueHandling = NullValueHandling.Ignore)]
@@ -26,11 +36,15 @@ namespace CouchDB.Driver.Types
         [DataMember]
         [JsonProperty("rev", NullValueHandling = NullValueHandling.Ignore)]
         private string RevOther { set => Rev = value; }
+
+        [DataMember]
+        [JsonProperty("_conflicts")]
+        public List<string> Conflicts { get; set; }
     }
 
-    internal static class CouchEntityExtensions
+    internal static class CouchDocumentExtensions
     {
-        public static CouchEntity ProcessSaveResponse(this CouchEntity item, DocumentSaveResponse response)
+        public static CouchDocument ProcessSaveResponse(this CouchDocument item, DocumentSaveResponse response)
         {
             if (!response.Ok)
             {
