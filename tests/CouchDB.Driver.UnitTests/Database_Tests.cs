@@ -33,6 +33,17 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
+        public async Task FindWithConflicts()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                var newR = await _rebels.FindWithConflictsAsync("1");
+                httpTest
+                    .ShouldHaveCalled("http://localhost/rebels/1")
+                    .WithVerb(HttpMethod.Get);
+            }
+        }
+        [Fact]
         public async Task Create()
         {
             using (var httpTest = new HttpTest())

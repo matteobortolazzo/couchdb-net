@@ -173,5 +173,20 @@ namespace CouchDB.Driver.Extensions
                     GetMethodInfo(IncludeExecutionStats, source),
                     new Expression[] { source.Expression }));
         }
+        /// <summary>
+        /// Asks for conflicts when requesting elements from the sequence.
+        /// </summary>
+        /// <return>An IQueryable<T> that contains the request to ask for conflicts when requesting elements from the sequence.</return>
+        public static IQueryable<TSource> IncludeConflicts<TSource>(this IQueryable<TSource> source)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(IncludeConflicts, source),
+                    new Expression[] { source.Expression }));
+        }
     }
 }

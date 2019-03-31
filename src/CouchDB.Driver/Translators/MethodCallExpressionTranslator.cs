@@ -58,6 +58,8 @@ namespace CouchDB.Driver
                     return VisitUseIndexMethod(m);
                 else if (m.Method.Name == "IncludeExecutionStats")
                     return VisitIncludeExecutionStatsMethod(m);
+                else if (m.Method.Name == nameof(QueryableExtensions.IncludeConflicts))
+                    return VisitIncludeConflictsMethod(m);
             }
             else if (m.Method.DeclaringType == typeof(EnumerableExtensions))
             {
@@ -271,6 +273,13 @@ namespace CouchDB.Driver
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"execution_stats\":true");
+            _sb.Append(",");
+            return m;
+        }
+        public Expression VisitIncludeConflictsMethod(MethodCallExpression m)
+        {
+            Visit(m.Arguments[0]);
+            _sb.Append("\"conflicts\":true");
             _sb.Append(",");
             return m;
         }
