@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PreserveCompilationContext>false</PreserveCompilationContext>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup>
-    <RuntimeFrameworkVersion>2.1.7</RuntimeFrameworkVersion>
+    <RuntimeFrameworkVersion>2.1.9</RuntimeFrameworkVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
