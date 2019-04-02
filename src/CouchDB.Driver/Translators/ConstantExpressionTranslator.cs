@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -41,16 +42,21 @@ namespace CouchDB.Driver
                             VisitIEnumerable(c.Value as IList<int>);
                         else if (c.Value is IList<long>)
                             VisitIEnumerable(c.Value as IList<long>);
-                        else if(c.Value is IList<decimal>)
+                        else if (c.Value is IList<decimal>)
                             VisitIEnumerable(c.Value as IList<decimal>);
                         else if (c.Value is IList<float>)
                             VisitIEnumerable(c.Value as IList<float>);
                         else if (c.Value is IList<double>)
                             VisitIEnumerable(c.Value as IList<double>);
-                        else if(c.Value is IList<string>)
+                        else if (c.Value is IList<string>)
                             VisitIEnumerable(c.Value as IList<string>);
+                        else if (c.Value is Guid)
+                            _sb.Append(JsonConvert.SerializeObject(c.Value));
                         else
-                            throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", c.Value));
+                        {
+                            Debug.WriteLine($"The constant for '{c.Value}' not ufficially supported.");
+                            _sb.Append(JsonConvert.SerializeObject(c.Value));
+                        }
                         break;
                     default:
                         _sb.Append(c.Value);
@@ -85,7 +91,7 @@ namespace CouchDB.Driver
                     case TypeCode.String:
                         return $"\"{o}\"";
                     case TypeCode.Object:
-                        throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", o));                        
+                        throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", o));
                     default:
                         return o.ToString();
                 }
