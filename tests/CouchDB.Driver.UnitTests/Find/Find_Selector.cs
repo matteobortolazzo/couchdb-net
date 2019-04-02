@@ -24,9 +24,9 @@ namespace CouchDB.Driver.UnitTests.Find
         [Fact]
         public void ComplexQuery()
         {
-            var json = rebels.Where(r => 
-            r.Age == 19 && 
-            (r.Name == "Luke" || r.Name == "Leia") && 
+            var json = rebels.Where(r =>
+            r.Age == 19 &&
+            (r.Name == "Luke" || r.Name == "Leia") &&
             r.Skills.Contains("force")).ToString();
             Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""$or"":[{""name"":""Luke""},{""name"":""Leia""}]},{""skills"":{""$all"":[""force""]}}]}}", json);
         }
@@ -64,6 +64,14 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var json = rebels.Where(r => r.Species == Species.Human).ToString();
             Assert.Equal(@"{""selector"":{""species"":0}}", json);
+        }
+        [Fact]
+        public void GuidQuery()
+        {
+            var guidString = "83c79283-f634-41e3-8aab-674bdbae3413";
+            var guid = Guid.Parse(guidString);
+            var json = rebels.Where(r => r.Guid == guid).ToString();
+            Assert.Equal(@"{""selector"":{""guid"":""83c79283-f634-41e3-8aab-674bdbae3413""}}", json);
         }
     }
 }
