@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -52,7 +53,10 @@ namespace CouchDB.Driver
                         else if (c.Value is Guid)
                             _sb.Append(JsonConvert.SerializeObject(c.Value));
                         else
-                            throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", c.Value));
+                        {
+                            Debug.WriteLine($"The constant for '{c.Value}' not ufficially supported.");
+                            _sb.Append(JsonConvert.SerializeObject(c.Value));
+                        }
                         break;
                     default:
                         _sb.Append(c.Value);
