@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,8 +6,6 @@
     <Authors>Matteo Bortolazzo</Authors>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>A .NET Standard driver for CouchDB.</Description>
-    <PackageLicenseExpression></PackageLicenseExpression>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-ne</PackageProjectUrl>
     <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-ne</RepositoryUrl>
     <PackageTags>couchdb,driver,nosql,netstandard,pouchdb,xamarin</PackageTags>
