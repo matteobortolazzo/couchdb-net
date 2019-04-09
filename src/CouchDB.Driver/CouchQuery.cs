@@ -14,28 +14,23 @@ namespace CouchDB.Driver
 
         public CouchQuery(QueryProvider provider)
         {
-            _provider = provider ?? throw new ArgumentNullException("provider");
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _expression = Expression.Constant(this);
         }
                
         public CouchQuery(QueryProvider provider, Expression expression)
         {
-            if (provider == null)
-            {
-                throw new ArgumentNullException("provider");
-            }
-
             if (expression == null)
             {
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             }
 
             if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
             {
-                throw new ArgumentOutOfRangeException("expression");
+                throw new ArgumentOutOfRangeException(nameof(expression));
             }
 
-            _provider = provider;
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
             _expression = expression;
         }
                

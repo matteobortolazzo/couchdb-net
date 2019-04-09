@@ -43,7 +43,7 @@ namespace CouchDB.Driver.Helpers
                     c.Method.Name != nameof(QueryableExtensions.UseIndex) &&
                     c.Method.Name != nameof(QueryableExtensions.FromStable) && 
                     c.Method.Name != nameof(QueryableExtensions.IncludeExecutionStats) &&
-                    c.Method.Name != nameof(Extensions.QueryableExtensions.IncludeConflicts);
+                    c.Method.Name != nameof(QueryableExtensions.IncludeConflicts);
             }
             return expression.NodeType != ExpressionType.Parameter;
         }
@@ -53,7 +53,7 @@ namespace CouchDB.Driver.Helpers
         /// </summary>
         class SubtreeEvaluator : ExpressionVisitor
         {
-            HashSet<Expression> _candidates;
+            readonly HashSet<Expression> _candidates;
 
             internal SubtreeEvaluator(HashSet<Expression> candidates)
             {
@@ -93,7 +93,7 @@ namespace CouchDB.Driver.Helpers
         /// </summary>
         class Nominator : ExpressionVisitor
         {
-            Func<Expression, bool> _fnCanBeEvaluated;
+            readonly Func<Expression, bool> _fnCanBeEvaluated;
             HashSet<Expression> _candidates;
             bool _cannotBeEvaluated;
 
@@ -111,7 +111,7 @@ namespace CouchDB.Driver.Helpers
             {
                 if (expression != null)
                 {
-                    bool saveCannotBeEvaluated = _cannotBeEvaluated;
+                    var saveCannotBeEvaluated = _cannotBeEvaluated;
                     _cannotBeEvaluated = false;
                     base.Visit(expression);
 

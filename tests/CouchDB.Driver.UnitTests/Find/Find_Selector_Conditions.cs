@@ -61,13 +61,13 @@ namespace CouchDB.Driver.UnitTests.Find
         [Fact]
         public void Object_FieldExists()
         {
-            var json = _rebels.Where(r => r.Age.FieldExists(true)).ToString();
+            var json = _rebels.Where(r => r.FieldExists("age")).ToString();
             Assert.Equal(@"{""selector"":{""age"":{""$exists"":true}}}", json);
         }
         [Fact]
         public void Object_IsCouchType()
         {
-            var json = _rebels.Where(r => r.Age.IsCouchType(CouchType.Number)).ToString();
+            var json = _rebels.Where(r => r.Age.IsCouchType(CouchType.CNumber)).ToString();
             Assert.Equal(@"{""selector"":{""age"":{""$type"":""number""}}}", json);
         }
 

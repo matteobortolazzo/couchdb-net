@@ -4,7 +4,9 @@ using Newtonsoft.Json.Converters;
 
 namespace CouchDB.Driver.Helpers
 {
+#pragma warning disable CA1812 // Avoid uninstantiated internal classes
     internal class MicrosecondEpochConverter : DateTimeConverterBase
+#pragma warning restore CA1812 // Avoid uninstantiated internal classes
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 

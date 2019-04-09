@@ -7,7 +7,7 @@ namespace CouchDB.Driver.Security
 {
     public class CouchSecurity
     {
-        private Func<IFlurlRequest> _newRequest;
+        private readonly Func<IFlurlRequest> _newRequest;
 
         internal CouchSecurity(Func<IFlurlRequest> newRequest)
         {
@@ -23,7 +23,8 @@ namespace CouchDB.Driver.Security
             return await _newRequest()
                    .AppendPathSegment("_security")
                    .GetJsonAsync<CouchSecurityInfo>()
-                   .SendRequestAsync();
+                   .SendRequestAsync()
+                   .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -34,12 +35,15 @@ namespace CouchDB.Driver.Security
         public async Task SetInfoAsync(CouchSecurityInfo info)
         {
             if (info == null)
+            {
                 throw new ArgumentNullException(nameof(info));
+            }
 
             await _newRequest()
                    .AppendPathSegment("_security")
                    .PutJsonAsync(info)
-                   .SendRequestAsync();
+                   .SendRequestAsync()
+                   .ConfigureAwait(false);
         }
     }
 }

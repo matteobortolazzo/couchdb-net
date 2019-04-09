@@ -6,7 +6,7 @@
     <Authors>Matteo Bortolazzo</Authors>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>A .NET Standard driver for CouchDB.</Description>
-    <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-ne</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-ne</RepositoryUrl>
     <PackageTags>couchdb,driver,nosql,netstandard,pouchdb,xamarin</PackageTags>
     <PackageReleaseNotes>Complete rewrite.
@@ -16,11 +16,18 @@ All selectors support.</PackageReleaseNotes>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="2.4.1" />
     <PackageReference Include="Humanizer.Core" Version="2.6.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.1" />
     <PackageReference Include="Nito.AsyncEx.Context" Version="1.1.0" />
   </ItemGroup>
 

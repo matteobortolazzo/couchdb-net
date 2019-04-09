@@ -3,6 +3,8 @@ using CouchDB.Driver.Types;
 using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
@@ -26,6 +28,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                var a = new List<Rebel>();
                 var newR = await _rebels.FindAsync("1");
                 httpTest
                     .ShouldHaveCalled("http://localhost/rebels/1")
@@ -92,6 +95,9 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                // Operation response
+                httpTest.RespondWithJson(new { ok = true });
+
                 var r = new Rebel { Name = "Luke", Id = "1", Rev = "1" };
                 await _rebels.DeleteAsync(r);
                 httpTest
@@ -104,7 +110,10 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0], Bookmark = "bookmark" });
+                // ToList
+                httpTest.RespondWithJson(new { Docs = new List<string>(), Bookmark = "bookmark" });
+                // Operation response
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost"))
                 {
@@ -128,10 +137,13 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                // Response
                 httpTest.RespondWithJson(new[] {
                     new { Id = "111", Ok = true, Rev = "111" },
                     new { Id = "222", Ok = true, Rev = "222" },
                 });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 var moreRebels = new[] {
                     new Rebel { Name = "Luke", Id = "1" },
@@ -164,6 +176,9 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                // Operation response
+                httpTest.RespondWithJson(new { ok = true });
+
                 await _rebels.CompactAsync();
                 httpTest
                     .ShouldHaveCalled("http://localhost/rebels/_compact")

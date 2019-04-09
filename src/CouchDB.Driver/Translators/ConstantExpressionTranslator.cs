@@ -7,13 +7,12 @@ using System.Linq.Expressions;
 
 namespace CouchDB.Driver
 {
+#pragma warning disable IDE0058 // Expression value is never used
     internal partial class QueryTranslator
     {
         protected override Expression VisitConstant(ConstantExpression c)
         {
-            IQueryable q = c.Value as IQueryable;
-
-            if (q != null)
+            if (c.Value is IQueryable)
             {
                 // assume constant nodes w/ IQueryables are table references
                 // q.ElementType.Name
@@ -37,21 +36,37 @@ namespace CouchDB.Driver
                         break;
                     case TypeCode.Object:
                         if (c.Value is IList<bool>)
+                        {
                             VisitIEnumerable(c.Value as IList<bool>);
+                        }
                         else if (c.Value is IList<int>)
+                        {
                             VisitIEnumerable(c.Value as IList<int>);
+                        }
                         else if (c.Value is IList<long>)
+                        {
                             VisitIEnumerable(c.Value as IList<long>);
+                        }
                         else if (c.Value is IList<decimal>)
+                        {
                             VisitIEnumerable(c.Value as IList<decimal>);
+                        }
                         else if (c.Value is IList<float>)
+                        {
                             VisitIEnumerable(c.Value as IList<float>);
+                        }
                         else if (c.Value is IList<double>)
+                        {
                             VisitIEnumerable(c.Value as IList<double>);
+                        }
                         else if (c.Value is IList<string>)
+                        {
                             VisitIEnumerable(c.Value as IList<string>);
+                        }
                         else if (c.Value is Guid)
+                        {
                             _sb.Append(JsonConvert.SerializeObject(c.Value));
+                        }
                         else
                         {
                             Debug.WriteLine($"The constant for '{c.Value}' not ufficially supported.");
@@ -70,7 +85,9 @@ namespace CouchDB.Driver
         private void VisitIEnumerable<T>(IList<T> list)
         {
             if (list.Count < 1)
+            {
                 return;
+            }
             if (list.Count == 1)
             {
                 _sb.Append(VisitConst(list[0]));
@@ -91,11 +108,12 @@ namespace CouchDB.Driver
                     case TypeCode.String:
                         return $"\"{o}\"";
                     case TypeCode.Object:
-                        throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", o));
+                        throw new NotSupportedException($"The constant for '{o}' is not supported");
                     default:
                         return o.ToString();
                 }
             }
         }
     }
+#pragma warning restore IDE0058 // Expression value is never used
 }

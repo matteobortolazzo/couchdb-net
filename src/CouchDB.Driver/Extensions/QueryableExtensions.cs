@@ -12,6 +12,9 @@ namespace CouchDB.Driver.Extensions
     {
         #region Helper methods to obtain MethodInfo in a safe way
 
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable CA1801 // Review unused parameters
+#pragma warning disable IDE0051 // Remove unused private members
         private static MethodInfo GetMethodInfo<T1, T2>(Func<T1, T2> f, T1 unused1)
         {
             return f.Method;
@@ -41,6 +44,9 @@ namespace CouchDB.Driver.Extensions
         {
             return f.Method;
         }
+#pragma warning restore CA1801 // Review unused parameters
+#pragma warning restore IDE0060 // Remove unused parameter
+#pragma warning restore IDE0051 // Remove unused private members
 
         #endregion
 
@@ -80,9 +86,13 @@ namespace CouchDB.Driver.Extensions
         public static IQueryable<TSource> UseBookmark<TSource>(this IQueryable<TSource> source, string bookmark)
         {
             if (source == null)
+            {
                 throw new ArgumentNullException(nameof(source));
+            }
             if (string.IsNullOrEmpty(bookmark))
+            {
                 throw new ArgumentNullException(nameof(bookmark));
+            }
 
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
@@ -98,9 +108,13 @@ namespace CouchDB.Driver.Extensions
         public static IQueryable<TSource> WithReadQuorum<TSource>(this IQueryable<TSource> source, int quorum)
         {
             if (source == null)
+            {
                 throw new ArgumentNullException(nameof(source));
+            }
             if (quorum < 1)
-                throw new ArgumentException(nameof(quorum), "Read quorum cannot be less than 1.");
+            {
+                throw new ArgumentException("Read quorum cannot be less than 1.", nameof(quorum));
+            }
 
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
@@ -115,7 +129,9 @@ namespace CouchDB.Driver.Extensions
         public static IQueryable<TSource> WithoutIndexUpdate<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
+            {
                 throw new ArgumentNullException(nameof(source));
+            }
 
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
@@ -130,7 +146,9 @@ namespace CouchDB.Driver.Extensions
         public static IQueryable<TSource> FromStable<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
+            {
                 throw new ArgumentNullException(nameof(source));
+            }
 
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
@@ -146,11 +164,17 @@ namespace CouchDB.Driver.Extensions
         public static IQueryable<TSource> UseIndex<TSource>(this IQueryable<TSource> source, params string[] indexes)
         {
             if (source == null)
+            {
                 throw new ArgumentNullException(nameof(source));
+            }
             if (indexes == null)
+            {
                 throw new ArgumentNullException(nameof(indexes));
+            }
             if (indexes.Length != 1 && indexes.Length != 2)
-                throw new ArgumentException(nameof(indexes), "Only 1 or 2 parameters are allowed. \"<design_document>\" or [\"<design_document>\",\"<index_name>\"]");
+            {
+                throw new ArgumentException("Only 1 or 2 parameters are allowed. \"<design_document>\" or [\"<design_document>\",\"<index_name>\"]", nameof(indexes));
+            }
 
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
@@ -165,7 +189,9 @@ namespace CouchDB.Driver.Extensions
         public static IQueryable<TSource> IncludeExecutionStats<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
+            {
                 throw new ArgumentNullException(nameof(source));
+            }
 
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
@@ -180,7 +206,9 @@ namespace CouchDB.Driver.Extensions
         public static IQueryable<TSource> IncludeConflicts<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
+            {
                 throw new ArgumentNullException(nameof(source));
+            }
 
             return source.Provider.CreateQuery<TSource>(
                 Expression.Call(
