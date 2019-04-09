@@ -151,7 +151,7 @@ If the Where method is not called in the expression, it will at an empty selecto
 | $ne            | !=                 |
 | $gte           | >=                 |
 | $gt            | >                  |
-| $exists        | o.FieldExists()    |
+| $exists        | o.FieldExists(s)   |
 | $type          | o.IsCouchType(...) |
 | $in            | o.In(list)         |
 | $nin           | !o.In(list)        |

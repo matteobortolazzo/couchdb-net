@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CouchDB.Driver.Types
 {
+#pragma warning disable CA1710
+    /// Identifiers should have correct suffix
     /// <summary>
     /// Represents a Couch query response.
     /// </summary>
@@ -42,4 +43,5 @@ namespace CouchDB.Driver.Types
             return _source.GetEnumerator();
         }
     }
+#pragma warning restore CA1710 // Identifiers should have correct suffix
 }

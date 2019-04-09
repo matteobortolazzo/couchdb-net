@@ -3,6 +3,7 @@ using CouchDB.Driver.Types;
 using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
@@ -18,6 +19,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                httpTest.RespondWithJson(new { ok = true });
                 using (var client = new CouchClient("http://localhost"))
                 {
                     Assert.Equal("http://localhost", client.ConnectionString);
@@ -44,6 +46,9 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
                 using (var client = new CouchClient("http://localhost", s =>
                 s.UseBasicAuthentication("root", "relax")))
                 {
@@ -56,6 +61,9 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
                 using (var client = new CouchClient("http://localhost", s =>
                 s.UseCookieAuthentication("root", "relax")))
                 {
@@ -73,6 +81,9 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
                 using (var client = new CouchClient("http://localhost"))
                 {
                     var rebels = client.GetDatabase<Rebel>();
@@ -86,6 +97,9 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
                 using (var client = new CouchClient("http://localhost", s =>
                 s.SetPropertyCase(PropertyCaseType.None)))
                 {
@@ -100,6 +114,9 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
                 using (var client = new CouchClient("http://localhost"))
                 {
                     var rebels = client.GetDatabase<OtherRebel>();
@@ -118,7 +135,10 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
+                // Find
+                httpTest.RespondWithJson(new { Docs = new List<string>() });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost"))
                 {
@@ -136,7 +156,10 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
+                // Find
+                httpTest.RespondWithJson(new { Docs = new List<string>() });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost", s => s.DisableDocumentPluralization()))
                 {
@@ -154,7 +177,10 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
+                // Find
+                httpTest.RespondWithJson(new { Docs = new List<string>() });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost", s => s
                     .SetDocumentCase(DocumentCaseType.None)))
@@ -173,7 +199,10 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
+                // Find
+                httpTest.RespondWithJson(new { Docs = new List<string>() });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost"))
                 {
@@ -191,7 +220,10 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
+                // Find
+                httpTest.RespondWithJson(new { Docs = new List<string>() });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost"))
                 {
@@ -214,7 +246,12 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                // Databases
                 httpTest.RespondWithJson(new [] { "sith" });
+                // Create database
+                httpTest.RespondWithJson(new { ok = true });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost", s => s.
                     EnsureDatabaseExists()))

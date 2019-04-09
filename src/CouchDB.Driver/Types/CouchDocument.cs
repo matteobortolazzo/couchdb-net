@@ -25,7 +25,9 @@ namespace CouchDB.Driver.Types
         public virtual string Id { get; set; }
         [DataMember]
         [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
+#pragma warning disable IDE0051 // Remove unused private members
         private string IdOther { set => Id = value; }
+#pragma warning restore IDE0051 // Remove unused private members
 
         /// <summary>
         /// The current document revision ID.
@@ -35,7 +37,9 @@ namespace CouchDB.Driver.Types
         public string Rev { get; set; }
         [DataMember]
         [JsonProperty("rev", NullValueHandling = NullValueHandling.Ignore)]
+#pragma warning disable IDE0051 // Remove unused private members
         private string RevOther { set => Rev = value; }
+#pragma warning restore IDE0051 // Remove unused private members
 
         [DataMember]
         [JsonProperty("_conflicts")]
@@ -44,7 +48,7 @@ namespace CouchDB.Driver.Types
 
     internal static class CouchDocumentExtensions
     {
-        public static CouchDocument ProcessSaveResponse(this CouchDocument item, DocumentSaveResponse response)
+        public static void ProcessSaveResponse(this CouchDocument item, DocumentSaveResponse response)
         {
             if (!response.Ok)
             {
@@ -53,7 +57,6 @@ namespace CouchDB.Driver.Types
 
             item.Id = response.Id;
             item.Rev = response.Rev;
-            return item;
         }
     }
 }

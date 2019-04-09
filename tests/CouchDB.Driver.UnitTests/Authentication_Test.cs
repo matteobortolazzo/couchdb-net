@@ -1,6 +1,7 @@
 ﻿using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -15,7 +16,10 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
+                // ToList
+                httpTest.RespondWithJson(new { Docs = new List<string>() });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost", s => s.UseBasicAuthentication("root", "relax")))
                 {
@@ -33,7 +37,10 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                httpTest.RespondWithJson(new { Docs = new string[0] });
+                // ToList
+                httpTest.RespondWithJson(new { Docs = new List<string>() });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost", s => s.UseBasicAuthentication("root", "relax")))
                 {
@@ -54,12 +61,16 @@ namespace CouchDB.Driver.UnitTests
 
             using (var httpTest = new HttpTest())
             {
+                // Cookie response
                 var cookieResponse = new HttpResponseMessage();
                 cookieResponse.Headers.Add("Content-Typ", "application/json");
                 cookieResponse.Headers.Add("Set-Cookie", $"AuthSession={token}; Version=1; Path=/; HttpOnly");
                 cookieResponse.Content = new StringContent("{}");
                 httpTest.ResponseQueue.Enqueue(cookieResponse);
-                httpTest.RespondWithJson(new { Docs = new string[0] });
+                // ToList
+                httpTest.RespondWithJson(new { Docs = new List<string>() });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
 
                 using (var client = new CouchClient("http://localhost", s => s.UseCookieAuthentication("root", "relax")))
                 {

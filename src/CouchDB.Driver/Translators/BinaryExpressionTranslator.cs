@@ -34,7 +34,9 @@ namespace CouchDB.Driver
                         return b;
                     }
                     else
+                    {
                         throw new NotSupportedException($"The document field must be an integer.");
+                    }
                 }
                 else
                 {
@@ -92,9 +94,13 @@ namespace CouchDB.Driver
                 case ExpressionType.Or:
                 case ExpressionType.OrElse:
                     if (not)
+                    {
                         _sb.Append("\"$nor\":[");
+                    }
                     else
+                    {
                         _sb.Append("\"$or\":[");
+                    }
                     break;
             }
 
@@ -125,7 +131,7 @@ namespace CouchDB.Driver
                     _sb.Append("\"$gte\":");
                     break;
                 default:
-                    throw new NotSupportedException(string.Format("The binary operator '{0}' is not supported", b.NodeType));
+                    throw new NotSupportedException($"The binary operator '{b.NodeType}' is not supported");
             }
 
             Visit(b.Right);

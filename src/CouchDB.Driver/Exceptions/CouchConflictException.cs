@@ -11,5 +11,17 @@
         /// <param name="message">Error message</param>
         /// <param name="reason">Error reason</param>
         public CouchConflictException(string message, string reason) : base(message, reason) { }
+
+        public CouchConflictException()
+        {
+        }
+
+        public CouchConflictException(string message) : base(message)
+        {
+        }
+
+        public CouchConflictException(string message, System.Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

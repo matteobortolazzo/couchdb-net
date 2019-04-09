@@ -8,17 +8,20 @@ namespace CouchDB.Driver.Helpers
         internal static Type GetElementType(Type seqType)
         {
             Type ienum = FindIEnumerable(seqType);
-            if (ienum == null) return seqType;
-            return ienum.GetGenericArguments()[0];
+            return ienum == null ? seqType : ienum.GetGenericArguments()[0];
         }
 
         private static Type FindIEnumerable(Type seqType)
         {
             if (seqType == null || seqType == typeof(string))
+            {
                 return null;
+            }
 
             if (seqType.IsArray)
+            {
                 return typeof(IEnumerable<>).MakeGenericType(seqType.GetElementType());
+            }
 
             if (seqType.IsGenericType)
             {
@@ -40,7 +43,10 @@ namespace CouchDB.Driver.Helpers
                 foreach (Type iface in ifaces)
                 {
                     Type ienum = FindIEnumerable(iface);
-                    if (ienum != null) return ienum;
+                    if (ienum != null)
+                    {
+                        return ienum;
+                    }
                 }
             }
 

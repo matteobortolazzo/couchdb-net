@@ -16,9 +16,13 @@ namespace CouchDB.Driver.Extensions
         public static bool Contains<T>(this IEnumerable<T> source, IEnumerable<T> input) where T : IConvertible
         {
             if (source == null)
+            {
                 throw new ArgumentNullException(nameof(source));
+            }
             if (input == null)
+            {
                 throw new ArgumentNullException(nameof(input));
+            }
 
             return input.All(s => source.Contains(s));
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
@@ -18,18 +19,18 @@ namespace CouchDB.Driver.Helpers
         {
             try
             {
-                return await asyncRequest;
+                return await asyncRequest.ConfigureAwait(false);
             }
             catch (FlurlHttpException ex)
             {
                 CouchError couchError;
                 try
                 {
-                    couchError = await ex.GetResponseJsonAsync<CouchError>();
+                    couchError = await ex.GetResponseJsonAsync<CouchError>().ConfigureAwait(false);
                 }
                 catch
                 {
-                    throw ex;
+                    throw;
                 }
 
                 if (couchError != null)
@@ -42,7 +43,9 @@ namespace CouchDB.Driver.Helpers
                             throw couchError.NewCouchExteption(typeof(CouchNotFoundException));
                         case HttpStatusCode.BadRequest:
                             if (couchError.Error == "no_usable_index")
+                            {
                                 throw couchError.NewCouchExteption(typeof(CouchNoIndexException));
+                            }
                             break;
                     }
                 }
@@ -52,7 +55,7 @@ namespace CouchDB.Driver.Helpers
 
         private static Exception NewCouchExteption(this CouchError e, Type type)
         {
-            var ctor = type.GetConstructor(new[] { typeof(string), typeof(string) });
+            ConstructorInfo ctor = type.GetConstructor(new[] { typeof(string), typeof(string) });
             var exception = (CouchException)ctor.Invoke(new string[] { e.Error, e.Reason });
             return exception;
         }

@@ -43,9 +43,13 @@ namespace CouchDB.Driver.Settings
         public CouchSettings UseBasicAuthentication(string username, string password)
         {
             if (string.IsNullOrEmpty(username))
+            {
                 throw new ArgumentNullException(nameof(username));
+            }
             if (string.IsNullOrEmpty(password))
+            {
                 throw new ArgumentNullException(nameof(password));
+            }
 
             AuthenticationType = AuthenticationType.Basic;
             Username = username;
@@ -63,11 +67,17 @@ namespace CouchDB.Driver.Settings
         public CouchSettings UseCookieAuthentication(string username, string password, int cookieDuration = 10)
         {
             if (string.IsNullOrEmpty(username))
+            {
                 throw new ArgumentNullException(nameof(username));
+            }
             if (string.IsNullOrEmpty(password))
+            {
                 throw new ArgumentNullException(nameof(password));
+            }
             if (cookieDuration < 1)
-                throw new ArgumentException(nameof(cookieDuration), "Cookie duration must be greater than zero.");
+            {
+                throw new ArgumentException("Cookie duration must be greater than zero.", nameof(cookieDuration));
+            }
 
             AuthenticationType = AuthenticationType.Cookie;
             Username = username;
