@@ -242,6 +242,7 @@ namespace CouchDB.Driver
                     .AppendPathSegment("_find")
                     .PostJsonAsync(mangoQuery)
                     .ReceiveJson<FindResult<TSource>>()
+                    .SendRequestAsync()
                     .ConfigureAwait(false);
 
             return findResult.Docs.ToList();
