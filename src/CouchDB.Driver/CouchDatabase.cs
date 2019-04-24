@@ -236,6 +236,17 @@ namespace CouchDB.Driver
             }
         }
 
+        public async Task<List<TSource>> QueryAsync(object mangoQuery)
+        {
+            var findResult = await NewRequest()
+                    .AppendPathSegment("_find")
+                    .PostJsonAsync(mangoQuery)
+                    .ReceiveJson<FindResult<TSource>>()
+                    .ConfigureAwait(false);
+
+            return findResult.Docs.ToList();
+        }
+
         #endregion
 
         #region Writing
