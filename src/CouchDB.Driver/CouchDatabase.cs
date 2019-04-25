@@ -236,7 +236,12 @@ namespace CouchDB.Driver
             }
         }
 
-        public async Task<List<TSource>> FindManyAsync(string[] docIds)
+        /// <summary>
+        /// Finds all documents with given IDs.
+        /// </summary>
+        /// <param name="docIds">The collection of documents IDs.</param>
+        /// <returns></returns>
+        public async Task<List<TSource>> FindManyAsync(IEnumerable<string> docIds)
         {
             var bulkGetResult = await NewRequest()
                 .AppendPathSegment("_bulk_get")
