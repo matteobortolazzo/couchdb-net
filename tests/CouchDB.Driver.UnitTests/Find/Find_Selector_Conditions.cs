@@ -90,6 +90,12 @@ namespace CouchDB.Driver.UnitTests.Find
             Assert.Equal(@"{""selector"":{""guid"":{""$in"":[""00000000-0000-0000-0000-000000000000"",""11111111-1111-1111-1111-111111111111""]}}}", json);
         }
         [Fact]
+        public void Array_InSingleItem()
+        {
+            var json = _rebels.Where(r => r.Age.In(new[] { 20 })).ToString();
+            Assert.Equal(@"{""selector"":{""age"":{""$in"":[20]}}}", json);
+        }
+        [Fact]
         public void Array_NotIn()
         {
             var json = _rebels.Where(r => !r.Age.In(new[] { 20, 30 })).ToString();

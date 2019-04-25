@@ -1,6 +1,8 @@
 ﻿using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Types;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -315,7 +317,29 @@ namespace CouchDB.Driver
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"use_index\":");
-            Visit(m.Arguments[1]);
+            if (!(m.Arguments[1] is ConstantExpression indexArgsExpression))
+            {
+                throw new ArgumentException("UseIndex requires an IList<string> argument");
+            }
+
+            if (!(indexArgsExpression.Value is IList<string> indexArgs))
+            {
+                throw new ArgumentException("UseIndex requires an IList<string> argument");
+            }
+            else if (indexArgs.Count == 1)
+            {
+                // use_index expects the value with [ or ] when it's a single item array
+                Visit(Expression.Constant(indexArgs[0]));
+            }
+            else if (indexArgs.Count == 2)
+            {
+                Visit(indexArgsExpression);
+            }
+            else
+            {
+                throw new ArgumentException("UseIndex requires 1 or 2 strings");
+            }
+
             _sb.Append(",");
             return m;
         }
