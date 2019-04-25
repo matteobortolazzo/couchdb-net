@@ -236,6 +236,25 @@ namespace CouchDB.Driver
             }
         }
 
+        /// <summary>
+        /// Finds all documents with given IDs.
+        /// </summary>
+        /// <param name="docIds">The collection of documents IDs.</param>
+        /// <returns></returns>
+        public async Task<List<TSource>> FindManyAsync(IEnumerable<string> docIds)
+        {
+            var bulkGetResult = await NewRequest()
+                .AppendPathSegment("_bulk_get")
+                .PostJsonAsync(new
+                {
+                    docs = docIds.Select(id => new { id })
+                }).ReceiveJson<BulkGetResult<TSource>>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            return bulkGetResult.Results.SelectMany(r => r.Docs).Select(d => d.Item).ToList();
+        }
+
         #endregion
 
         #region Writing
@@ -345,7 +364,7 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-            IEnumerable<(TSource Document, DocumentSaveResponse SaveResponse)> zipped = 
+            IEnumerable<(TSource Document, DocumentSaveResponse SaveResponse)> zipped =
                 documents.Zip(response, (doc, saveResponse) => (Document: doc, SaveResponse: saveResponse));
 
             foreach ((TSource document, DocumentSaveResponse saveResponse) in zipped)

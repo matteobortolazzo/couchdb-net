@@ -205,6 +205,7 @@ await rebels.CreateOrUpdateAsync(rebel);
 await rebels.DeleteAsync(rebel);
 var rebel = await rebels.FindAsync(id);
 var rebel = await rebels.FindAsync(id, withConflicts: true);
+var rebels = await rebels.FindManyAsync(ids);
 // Bulk
 await rebels.CreateOrUpdateRangeAsync(moreRebels);
 // Utils
