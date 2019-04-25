@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace CouchDB.Driver
@@ -236,14 +237,40 @@ namespace CouchDB.Driver
             }
         }
 
-        public async Task<List<TSource>> QueryAsync(object mangoQuery)
+        /// <summary>
+        /// Finds all documents matching the MangoQuery.
+        /// </summary>
+        /// <param name="mangoQueryJson">The JSON representing the Mango query.</param>
+        /// <retuns>A task that represents the asynchronous operation. The task result contains a List<T> that contains elements from the database.</retuns>
+        public Task<List<TSource>> QueryAsync(string mangoQueryJson)
         {
-            var findResult = await NewRequest()
-                    .AppendPathSegment("_find")
-                    .PostJsonAsync(mangoQuery)
-                    .ReceiveJson<FindResult<TSource>>()
-                    .SendRequestAsync()
-                    .ConfigureAwait(false);
+            return SendQueryAsync(r => r
+                .WithHeader("Content-Type", "application/json")
+                .PostStringAsync(mangoQueryJson));
+        }
+
+        /// <summary>
+        /// Finds all documents matching the MangoQuery.
+        /// </summary>
+        /// <param name="mangoQuery">The object representing the Mango query.</param>
+        /// <retuns>A task that represents the asynchronous operation. The task result contains a List<T> that contains elements from the database.</retuns>
+        public Task<List<TSource>> QueryAsync(object mangoQuery)
+        {
+            return SendQueryAsync(r => r
+                .PostJsonAsync(mangoQuery));
+        }
+
+        private async Task<List<TSource>> SendQueryAsync(Func<IFlurlRequest, Task<HttpResponseMessage>> requestFunc)
+        {
+            var request = NewRequest()
+                .AppendPathSegment("_find");
+
+            var message = requestFunc(request);
+
+            var findResult = await message
+                .ReceiveJson<FindResult<TSource>>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
 
             return findResult.Docs.ToList();
         }
