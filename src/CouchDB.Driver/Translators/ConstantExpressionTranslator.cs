@@ -84,20 +84,9 @@ namespace CouchDB.Driver
 
         private void VisitIEnumerable<T>(IList<T> list)
         {
-            if (list.Count < 1)
-            {
-                return;
-            }
-            if (list.Count == 1)
-            {
-                _sb.Append(VisitConst(list[0]));
-            }
-            else
-            {
-                _sb.Append("[");
-                _sb.Append(string.Join(",", list.Select(e => VisitConst(e))));
-                _sb.Append("]");
-            }
+            _sb.Append("[");
+            _sb.Append(string.Join(",", list.Select(e => VisitConst(e))));
+            _sb.Append("]");
 
             string VisitConst(object o)
             {
