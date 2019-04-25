@@ -15,7 +15,7 @@ namespace CouchDB.Driver.Extensions
         /// <param name="value">The value to locate in the input.</param>
         /// <param name="input">A sequence in which to locate the value.</param>
         /// <returns>true if the input sequence contains an element that has the specified value; otherwise, false.</returns>
-        public static bool In<T>(this T value, IEnumerable<T> input) where T : IConvertible
+        public static bool In<T>(this T value, IEnumerable<T> input)
         {
             if (value == null)
             {
