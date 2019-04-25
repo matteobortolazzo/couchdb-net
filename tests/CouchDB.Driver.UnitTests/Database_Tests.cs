@@ -153,6 +153,43 @@ namespace CouchDB.Driver.UnitTests
             }
         }
 
+        [Fact]
+        public async Task QueryJson()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                var expected = new List<Rebel>() { new Rebel { Id = Guid.NewGuid().ToString() } };
+                httpTest.RespondWithJson(new { Docs = expected });
+
+                var query = @"{""selector"":{""age"":19}}";
+                var result = await _rebels.QueryAsync(query);
+                httpTest
+                    .ShouldHaveCalled("http://localhost/rebels/_find")
+                    .WithVerb(HttpMethod.Post)
+                    .WithRequestBody(@"{""selector"":{""age"":19}}");
+                Assert.Equal(expected.Count, result.Count);
+                Assert.Equal(expected[0].Id, result[0].Id);
+            }
+        }
+        [Fact]
+        public async Task QueryObject()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                var expected = new List<Rebel>() { new Rebel { Id = Guid.NewGuid().ToString() } };
+                httpTest.RespondWithJson(new { Docs = expected });
+
+                var query = new { selector = new { age = 19 } };
+                var result = await _rebels.QueryAsync(query);
+                httpTest
+                    .ShouldHaveCalled("http://localhost/rebels/_find")
+                    .WithVerb(HttpMethod.Post)
+                    .WithRequestBody(@"{""selector"":{""age"":19}}");
+                Assert.Equal(expected.Count, result.Count);
+                Assert.Equal(expected[0].Id, result[0].Id);
+            }
+        }
+
         #endregion
 
         #region Bulk

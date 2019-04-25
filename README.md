@@ -205,7 +205,9 @@ await rebels.CreateOrUpdateAsync(rebel);
 await rebels.DeleteAsync(rebel);
 var rebel = await rebels.FindAsync(id);
 var rebel = await rebels.FindAsync(id, withConflicts: true);
-var rebels = await rebels.FindManyAsync(ids);
+var list = await rebels.FindManyAsync(ids);
+var list = await rebels.QueryAsync(someMangoJson);
+var list = await rebels.QueryAsync(someMangoObject);
 // Bulk
 await rebels.CreateOrUpdateRangeAsync(moreRebels);
 // Utils
