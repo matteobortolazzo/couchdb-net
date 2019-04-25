@@ -82,6 +82,12 @@ namespace CouchDB.Driver.UnitTests.Find
             Assert.Equal(@"{""selector"":{""age"":{""$in"":[20,30]}}}", json);
         }
         [Fact]
+        public void Array_InSingleItem()
+        {
+            var json = _rebels.Where(r => r.Age.In(new[] { 20 })).ToString();
+            Assert.Equal(@"{""selector"":{""age"":{""$in"":[20]}}}", json);
+        }
+        [Fact]
         public void Array_NotIn()
         {
             var json = _rebels.Where(r => !r.Age.In(new[] { 20, 30 })).ToString();
