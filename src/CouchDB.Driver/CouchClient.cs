@@ -23,7 +23,7 @@ namespace CouchDB.Driver
         private DateTime? _cookieCreationDate;
         private string _cookieToken;
         private readonly CouchSettings _settings;
-        private readonly FlurlClient _flurlClient;
+        private readonly IFlurlClient _flurlClient;
         private readonly string[] _systemDatabases = new[] { "_users", "_replicator", "_global_changes" };
         public string ConnectionString { get; private set; }
 
@@ -44,9 +44,7 @@ namespace CouchDB.Driver
             couchSettingsFunc?.Invoke(_settings);
 
             ConnectionString = connectionString;
-            _flurlClient = new FlurlClient(connectionString);
-
-            _flurlClient.Configure(s =>
+            _flurlClient = new FlurlClient(connectionString).Configure(s =>
             {
                 s.BeforeCall = OnBeforeCall;
                 if (_settings.ServerCertificateCustomValidationCallback != null)

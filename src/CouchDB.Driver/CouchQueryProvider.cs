@@ -12,12 +12,12 @@ namespace CouchDB.Driver
 {
     internal class CouchQueryProvider : QueryProvider
     {
-        private readonly FlurlClient _flurlClient;
+        private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
         private readonly string _db;
 
-        public CouchQueryProvider(FlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
+        public CouchQueryProvider(IFlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
         {
             _flurlClient = flurlClient ?? throw new ArgumentNullException(nameof(flurlClient));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -33,7 +33,7 @@ namespace CouchDB.Driver
         public override object Execute(Expression e, bool completeResponse)
         {
             var body = Translate(e);
-            var elementType = TypeSystem.GetElementType(e.Type);
+            Type elementType = TypeSystem.GetElementType(e.Type);
 
             MethodInfo method = typeof(CouchQueryProvider).GetMethod("GetCouchList");
             MethodInfo generic = method.MakeGenericMethod(elementType);
@@ -48,7 +48,7 @@ namespace CouchDB.Driver
 
         public CouchList<T> GetCouchList<T>(string body)
         {
-            var result = _flurlClient
+            FindResult<T> result = _flurlClient
                 .Request(_connectionString)
                 .AppendPathSegments(_db, "_find")
                 .WithHeader("Content-Type", "application/json")

@@ -22,7 +22,7 @@ namespace CouchDB.Driver
     public class CouchDatabase<TSource> where TSource : CouchDocument
     {
         private readonly QueryProvider _queryProvider;
-        private readonly FlurlClient _flurlClient;
+        private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
 
@@ -36,7 +36,7 @@ namespace CouchDB.Driver
         /// </summary>
         public CouchSecurity Security { get; }
 
-        internal CouchDatabase(FlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
+        internal CouchDatabase(IFlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
         {
             _flurlClient = flurlClient ?? throw new ArgumentNullException(nameof(flurlClient));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -262,12 +262,12 @@ namespace CouchDB.Driver
 
         private async Task<List<TSource>> SendQueryAsync(Func<IFlurlRequest, Task<HttpResponseMessage>> requestFunc)
         {
-            var request = NewRequest()
+            IFlurlRequest request = NewRequest()
                 .AppendPathSegment("_find");
 
-            var message = requestFunc(request);
+            Task<HttpResponseMessage> message = requestFunc(request);
 
-            var findResult = await message
+            FindResult<TSource> findResult = await message
                 .ReceiveJson<FindResult<TSource>>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
@@ -281,7 +281,7 @@ namespace CouchDB.Driver
         /// <returns></returns>
         public async Task<List<TSource>> FindManyAsync(IEnumerable<string> docIds)
         {
-            var bulkGetResult = await NewRequest()
+            BulkGetResult<TSource> bulkGetResult = await NewRequest()
                 .AppendPathSegment("_bulk_get")
                 .PostJsonAsync(new
                 {
