@@ -329,4 +329,4 @@ Action<ClientFlurlHttpSettings> flurlConfigFunc
 
 ## Contributors
 
-Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and others.
+Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and many others.
