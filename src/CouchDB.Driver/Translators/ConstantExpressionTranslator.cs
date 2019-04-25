@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,113 +8,76 @@ using System.Linq.Expressions;
 
 namespace CouchDB.Driver
 {
-#pragma warning disable IDE0058 // Expression value is never used
     internal partial class QueryTranslator
     {
         protected override Expression VisitConstant(ConstantExpression c)
         {
-            if (c.Value is IQueryable)
+            HandleConstant(c.Value);
+
+            return c;
+        }
+
+        private void HandleConstant(object constant)
+        {
+            if (constant is IQueryable)
             {
                 // assume constant nodes w/ IQueryables are table references
                 // q.ElementType.Name
             }
-            else if (c.Value == null)
+            else if (constant == null)
             {
                 _sb.Append("null");
             }
             else
             {
-                switch (Type.GetTypeCode(c.Value.GetType()))
+                switch (Type.GetTypeCode(constant.GetType()))
                 {
                     case TypeCode.Boolean:
-                        _sb.Append(((bool)c.Value) ? "true" : "false");
+                        _sb.Append(((bool)constant) ? "true" : "false");
                         break;
                     case TypeCode.String:
-                        _sb.Append($"\"{c.Value}\"");
+                        _sb.Append($"\"{constant}\"");
                         break;
                     case TypeCode.DateTime:
-                        _sb.Append(JsonConvert.SerializeObject(c.Value));
+                        _sb.Append(JsonConvert.SerializeObject(constant));
                         break;
                     case TypeCode.Object:
-                        if (c.Value is IList<bool>)
+                        if (constant is IEnumerable enumerable)
                         {
-                            VisitIEnumerable(c.Value as IList<bool>);
+                            VisitIEnumerable(enumerable);
                         }
-                        else if (c.Value is IList<int>)
+                        else if (constant is Guid)
                         {
-                            VisitIEnumerable(c.Value as IList<int>);
-                        }
-                        else if (c.Value is IList<long>)
-                        {
-                            VisitIEnumerable(c.Value as IList<long>);
-                        }
-                        else if (c.Value is IList<decimal>)
-                        {
-                            VisitIEnumerable(c.Value as IList<decimal>);
-                        }
-                        else if (c.Value is IList<float>)
-                        {
-                            VisitIEnumerable(c.Value as IList<float>);
-                        }
-                        else if (c.Value is IList<double>)
-                        {
-                            VisitIEnumerable(c.Value as IList<double>);
-                        }
-                        else if (c.Value is IList<string>)
-                        {
-                            VisitIEnumerable(c.Value as IList<string>);
-                        }
-                        else if (c.Value is Guid)
-                        {
-                            _sb.Append(JsonConvert.SerializeObject(c.Value));
+                            _sb.Append(JsonConvert.SerializeObject(constant));
                         }
                         else
                         {
-                            Debug.WriteLine($"The constant for '{c.Value}' not ufficially supported.");
-                            _sb.Append(JsonConvert.SerializeObject(c.Value));
+                            Debug.WriteLine($"The constant for '{constant}' not ufficially supported.");
+                            _sb.Append(JsonConvert.SerializeObject(constant));
                         }
                         break;
                     default:
-                        _sb.Append(c.Value);
+                        _sb.Append(constant);
                         break;
                 }
             }
 
-            return c;
         }
 
-        private void VisitIEnumerable<T>(IList<T> list)
+        private void VisitIEnumerable(IEnumerable list)
         {
-            if (list.Count < 1)
+            _sb.Append("[");
+            bool needsComma = false;
+            foreach (var item in list)
             {
-                return;
-            }
-            if (list.Count == 1)
-            {
-                _sb.Append(VisitConst(list[0]));
-            }
-            else
-            {
-                _sb.Append("[");
-                _sb.Append(string.Join(",", list.Select(e => VisitConst(e))));
-                _sb.Append("]");
-            }
-
-            string VisitConst(object o)
-            {
-                switch (Type.GetTypeCode(o.GetType()))
+                if (needsComma)
                 {
-                    case TypeCode.Boolean:
-                        return (bool)o ? "true" : "false";
-                    case TypeCode.String:
-                        return $"\"{o}\"";
-                    case TypeCode.Object:
-                        throw new NotSupportedException($"The constant for '{o}' is not supported");
-                    default:
-                        return o.ToString();
+                    _sb.Append(",");
                 }
+                HandleConstant(item);
+                needsComma = true;
             }
+            _sb.Append("]");
         }
     }
-#pragma warning restore IDE0058 // Expression value is never used
 }

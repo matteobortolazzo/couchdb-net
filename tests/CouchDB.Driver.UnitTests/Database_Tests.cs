@@ -49,6 +49,31 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
+        public async Task FindMany()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWith(@"{""results"":[{""id"":""1"",""docs"":[{""ok"":{""_id"":""1"",""Name"":""Luke""}}]},{""id"":""2"",""docs"":[{""ok"":{""_id"":""2"",""Name"":""Leia""}}]}]}");
+                var ids = new string[] { "1", "2" };
+                var result = await _rebels.FindManyAsync(ids);
+                httpTest
+                    .ShouldHaveCalled("http://localhost/rebels/_bulk_get")
+                    .WithRequestJson(new
+                    {
+                        docs = new[]
+                        {
+                            new { id = "1" },
+                            new { id = "2" },
+                        }
+                    })
+                    .WithVerb(HttpMethod.Post);
+
+                Assert.Equal(2, result.Count);
+                Assert.Equal("Luke", result[0].Name);
+                Assert.Equal("Leia", result[1].Name);
+            }
+        }
+        [Fact]
         public async Task Create()
         {
             using (var httpTest = new HttpTest())

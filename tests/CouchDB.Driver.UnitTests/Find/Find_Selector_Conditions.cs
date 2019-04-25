@@ -1,6 +1,7 @@
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Types;
 using CouchDB.Driver.UnitTests.Models;
+using System;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Find
@@ -80,6 +81,19 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var json = _rebels.Where(r => r.Age.In(new[] { 20, 30 })).ToString();
             Assert.Equal(@"{""selector"":{""age"":{""$in"":[20,30]}}}", json);
+        }
+
+        [Fact]
+        public void Array_In_Guid()
+        {
+            var json = _rebels.Where(r => r.Guid.In(new[] { Guid.Parse("00000000-0000-0000-0000-000000000000"), Guid.Parse("11111111-1111-1111-1111-111111111111") })).ToString();
+            Assert.Equal(@"{""selector"":{""guid"":{""$in"":[""00000000-0000-0000-0000-000000000000"",""11111111-1111-1111-1111-111111111111""]}}}", json);
+        }
+        [Fact]
+        public void Array_InSingleItem()
+        {
+            var json = _rebels.Where(r => r.Age.In(new[] { 20 })).ToString();
+            Assert.Equal(@"{""selector"":{""age"":{""$in"":[20]}}}", json);
         }
         [Fact]
         public void Array_NotIn()
