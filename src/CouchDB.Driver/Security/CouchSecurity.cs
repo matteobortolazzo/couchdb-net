@@ -1,4 +1,6 @@
-﻿using CouchDB.Driver.Helpers;
+﻿using CouchDB.Driver.DTOs;
+using CouchDB.Driver.Exceptions;
+using CouchDB.Driver.Helpers;
 using Flurl.Http;
 using System;
 using System.Threading.Tasks;
@@ -39,11 +41,17 @@ namespace CouchDB.Driver.Security
                 throw new ArgumentNullException(nameof(info));
             }
 
-            await _newRequest()
+            OperationResult result = await _newRequest()
                    .AppendPathSegment("_security")
                    .PutJsonAsync(info)
+                   .ReceiveJson<OperationResult>()
                    .SendRequestAsync()
                    .ConfigureAwait(false);
+
+            if (!result.Ok)
+            {
+                throw new CouchDeleteException();
+            }
         }
     }
 }

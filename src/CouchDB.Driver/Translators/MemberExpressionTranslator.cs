@@ -1,10 +1,9 @@
-﻿using CouchDB.Driver.Types;
-using Humanizer;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
+#pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver
 {
     internal partial class QueryTranslator
@@ -14,18 +13,16 @@ namespace CouchDB.Driver
             string GetPropertyName(MemberInfo memberInfo)
             {
                 var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
-                var jsonProperty = jsonPropertyAttributes.Length > 0 ? jsonPropertyAttributes[0] as JsonPropertyAttribute : null;
+                JsonPropertyAttribute jsonProperty = jsonPropertyAttributes.Length > 0 ? jsonPropertyAttributes[0] as JsonPropertyAttribute : null;
 
-                if (jsonProperty != null)
-                {
-                    return jsonProperty.PropertyName;
-                }
-                return _settings.PropertiesCase.Convert(memberInfo.Name);
+                return jsonProperty != null ? 
+                    jsonProperty.PropertyName : 
+                    _settings.PropertiesCase.Convert(memberInfo.Name);
             }
 
             var members = new List<string> { GetPropertyName(m.Member) };
 
-            var currentExpression = m.Expression;
+            Expression currentExpression = m.Expression;
 
             while (currentExpression is MemberExpression cm)
             {
@@ -41,3 +38,4 @@ namespace CouchDB.Driver
         }
     }
 }
+#pragma warning restore IDE0058 // Expression value is never used
