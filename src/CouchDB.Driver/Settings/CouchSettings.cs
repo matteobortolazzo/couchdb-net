@@ -29,7 +29,7 @@ namespace CouchDB.Driver.Settings
         {
             AuthenticationType = AuthenticationType.None;
             PluralizeEntitis = true;
-            DocumentsCaseType = (DocumentCaseType)DocumentCaseType.UnderscoreCase;
+            DocumentsCaseType = DocumentCaseType.UnderscoreCase;
             PropertiesCase = PropertyCaseType.CamelCase;
         }
 

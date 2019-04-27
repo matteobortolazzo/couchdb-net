@@ -12,6 +12,7 @@ using System.Linq;
 using CouchDB.Driver.Settings;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver
 {
@@ -46,6 +47,10 @@ namespace CouchDB.Driver
             ConnectionString = connectionString;
             _flurlClient = new FlurlClient(connectionString).Configure(s =>
             {
+                s.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
+                {
+                    ContractResolver = new CouchContractResolver(_settings.PropertiesCase)
+                });
                 s.BeforeCall = OnBeforeCall;
                 if (_settings.ServerCertificateCustomValidationCallback != null)
                 {
