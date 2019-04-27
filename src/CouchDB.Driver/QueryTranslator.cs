@@ -1,11 +1,12 @@
 ﻿using CouchDB.Driver.Settings;
 using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 #pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver
-{
+{    
     internal partial class QueryTranslator : ExpressionVisitor
     {
         private readonly CouchSettings _settings;
@@ -21,7 +22,7 @@ namespace CouchDB.Driver
             _sb = new StringBuilder();
             _sb.Append("{");
             Visit(expression);
-
+            
             // If no Where() calls
             if (!_isSelectorSet)
             {

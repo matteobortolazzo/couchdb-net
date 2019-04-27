@@ -32,8 +32,7 @@ namespace CouchDB.Driver.E2E
                 luke = await rebels.CreateOrUpdateAsync(luke).ConfigureAwait(false);
                 Assert.Equal("Skywalker", luke.Surname);
 
-                luke = rebels.Where(n => n.Name == "Luke").First();
-                //luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
+                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
                 Assert.Equal(19, luke.Age);
 
                 await rebels.DeleteAsync(luke).ConfigureAwait(false);
