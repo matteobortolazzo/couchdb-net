@@ -1,4 +1,9 @@
-﻿# 1.0.1-beta.4 (2019-04-25)
+﻿# 1.0.1 (2019-04-27)
+
+## Bug Fixes
+* **Everywhere:** Flurl JSON serialization based on CouchSettings' PropertyCaseType.
+
+# 1.0.1-beta.4 (2019-04-25)
 
 ## Features
 * **CouchClient:** add FindManyAsync(ids) ([#PR33](https://github.com/matteobortolazzo/couchdb-net/pull/33)).

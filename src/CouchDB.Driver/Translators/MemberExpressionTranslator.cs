@@ -1,4 +1,6 @@
-﻿using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Settings;
+using CouchDB.Driver.Types;
 using Humanizer;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -11,25 +13,15 @@ namespace CouchDB.Driver
     {
         protected override Expression VisitMember(MemberExpression m)
         {
-            string GetPropertyName(MemberInfo memberInfo)
-            {
-                var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
-                var jsonProperty = jsonPropertyAttributes.Length > 0 ? jsonPropertyAttributes[0] as JsonPropertyAttribute : null;
+            PropertyCaseType caseType = _settings.PropertiesCase;
 
-                if (jsonProperty != null)
-                {
-                    return jsonProperty.PropertyName;
-                }
-                return _settings.PropertiesCase.Convert(memberInfo.Name);
-            }
-
-            var members = new List<string> { GetPropertyName(m.Member) };
+            var members = new List<string> { m.Member.GetCouchPropertyName(caseType) };
 
             var currentExpression = m.Expression;
 
             while (currentExpression is MemberExpression cm)
             {
-                members.Add(GetPropertyName(cm.Member));
+                members.Add(cm.Member.GetCouchPropertyName(caseType));
                 currentExpression = cm.Expression;
             }
 
