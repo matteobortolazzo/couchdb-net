@@ -1,14 +1,13 @@
 ﻿using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Types;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
+#pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver
 {
-#pragma warning disable IDE0058 // Expression value is never used
     internal partial class QueryTranslator
     {
         private static Expression StripQuotes(Expression e)
@@ -443,5 +442,5 @@ namespace CouchDB.Driver
 
         #endregion
     }
-#pragma warning restore IDE0058 // Expression value is never used
 }
+#pragma warning restore IDE0058 // Expression value is never used
