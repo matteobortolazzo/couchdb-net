@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace CouchDB.Driver
@@ -21,7 +22,7 @@ namespace CouchDB.Driver
     public class CouchDatabase<TSource> where TSource : CouchDocument
     {
         private readonly QueryProvider _queryProvider;
-        private readonly FlurlClient _flurlClient;
+        private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
 
@@ -35,7 +36,7 @@ namespace CouchDB.Driver
         /// </summary>
         public CouchSecurity Security { get; }
 
-        internal CouchDatabase(FlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
+        internal CouchDatabase(IFlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
         {
             _flurlClient = flurlClient ?? throw new ArgumentNullException(nameof(flurlClient));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -217,20 +218,79 @@ namespace CouchDB.Driver
         {
             try
             {
-                var request = NewRequest()
+                IFlurlRequest request = NewRequest()
                         .AppendPathSegment(docId);
 
                 if (withConflicts)
+                {
                     request = request.SetQueryParam("conflicts", true);
+                }
 
                 return await request
                     .GetJsonAsync<TSource>()
-                    .SendRequestAsync();
+                    .SendRequestAsync()
+                    .ConfigureAwait(false);
             }
             catch (CouchNotFoundException)
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Finds all documents matching the MangoQuery.
+        /// </summary>
+        /// <param name="mangoQueryJson">The JSON representing the Mango query.</param>
+        /// <retuns>A task that represents the asynchronous operation. The task result contains a List<T> that contains elements from the database.</retuns>
+        public Task<List<TSource>> QueryAsync(string mangoQueryJson)
+        {
+            return SendQueryAsync(r => r
+                .WithHeader("Content-Type", "application/json")
+                .PostStringAsync(mangoQueryJson));
+        }
+
+        /// <summary>
+        /// Finds all documents matching the MangoQuery.
+        /// </summary>
+        /// <param name="mangoQuery">The object representing the Mango query.</param>
+        /// <retuns>A task that represents the asynchronous operation. The task result contains a List<T> that contains elements from the database.</retuns>
+        public Task<List<TSource>> QueryAsync(object mangoQuery)
+        {
+            return SendQueryAsync(r => r
+                .PostJsonAsync(mangoQuery));
+        }
+
+        private async Task<List<TSource>> SendQueryAsync(Func<IFlurlRequest, Task<HttpResponseMessage>> requestFunc)
+        {
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegment("_find");
+
+            Task<HttpResponseMessage> message = requestFunc(request);
+
+            FindResult<TSource> findResult = await message
+                .ReceiveJson<FindResult<TSource>>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            return findResult.Docs.ToList();
+        }
+        
+        /// Finds all documents with given IDs.
+        /// </summary>
+        /// <param name="docIds">The collection of documents IDs.</param>
+        /// <returns></returns>
+        public async Task<List<TSource>> FindManyAsync(IEnumerable<string> docIds)
+        {
+            BulkGetResult<TSource> bulkGetResult = await NewRequest()
+                .AppendPathSegment("_bulk_get")
+                .PostJsonAsync(new
+                {
+                    docs = docIds.Select(id => new { id })
+                }).ReceiveJson<BulkGetResult<TSource>>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            return bulkGetResult.Results.SelectMany(r => r.Docs).Select(d => d.Item).ToList();
         }
 
         #endregion
@@ -246,20 +306,26 @@ namespace CouchDB.Driver
         public async Task<TSource> CreateAsync(TSource document, bool batch = false)
         {
             if (!string.IsNullOrEmpty(document.Id))
-                return await CreateOrUpdateAsync(document);
+            {
+                return await CreateOrUpdateAsync(document)
+                    .ConfigureAwait(false);
+            }
 
-            var request = NewRequest();
+            IFlurlRequest request = NewRequest();
 
             if (batch)
             {
-                request.SetQueryParam("batch", "ok");
+                request = request.SetQueryParam("batch", "ok");
             }
 
-            var response = await request
+            DocumentSaveResponse response = await request
                 .PostJsonAsync(document)
                 .ReceiveJson<DocumentSaveResponse>()
-                .SendRequestAsync();
-            return (TSource)document.ProcessSaveResponse(response);
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            document.ProcessSaveResponse(response);
+            return document;
         }
 
         /// <summary>
@@ -271,22 +337,26 @@ namespace CouchDB.Driver
         public async Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false)
         {
             if (string.IsNullOrEmpty(document.Id))
+            {
                 throw new InvalidOperationException("Cannot add or update a document without an ID.");
+            }
 
-            var request = NewRequest()
+            IFlurlRequest request = NewRequest()
                 .AppendPathSegment(document.Id);
 
             if (batch)
             {
-                request.SetQueryParam("batch", "ok");
+                request = request.SetQueryParam("batch", "ok");
             }
 
-            var response = await request
+            DocumentSaveResponse response = await request
                 .PutJsonAsync(document)
                 .ReceiveJson<DocumentSaveResponse>()
-                .SendRequestAsync();
+                .SendRequestAsync()
+                .ConfigureAwait(false);
 
-            return (TSource)document.ProcessSaveResponse(response);
+            document.ProcessSaveResponse(response);
+            return document;
         }
 
         /// <summary>
@@ -297,18 +367,25 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task DeleteAsync(TSource document, bool batch = false)
         {
-            var request = NewRequest()
+            IFlurlRequest request = NewRequest()
                 .AppendPathSegment(document.Id);
 
             if (batch)
             {
-                request.SetQueryParam("batch", "ok");
+                request = request.SetQueryParam("batch", "ok");
             }
 
-            await request
+            OperationResult result = await request
                 .SetQueryParam("rev", document.Rev)
                 .DeleteAsync()
-                .SendRequestAsync();
+                .SendRequestAsync()
+                .ReceiveJson<OperationResult>()
+                .ConfigureAwait(false);
+
+            if (!result.Ok)
+            {
+                throw new CouchDeleteException();
+            }
         }
 
         /// <summary>
@@ -318,15 +395,21 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation. The task result contains the elements created or updated.</returns>
         public async Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IEnumerable<TSource> documents)
         {
-            var response = await NewRequest()
+            DocumentSaveResponse[] response = await NewRequest()
                 .AppendPathSegment("_bulk_docs")
                 .PostJsonAsync(new { docs = documents })
                 .ReceiveJson<DocumentSaveResponse[]>()
-                .SendRequestAsync();
+                .SendRequestAsync()
+                .ConfigureAwait(false);
 
-            var zipped = documents.Zip(response, (doc, saveResponse) => (Document: doc, SaveResponse: saveResponse));
-            foreach (var (document, saveResponse) in zipped)
+            IEnumerable<(TSource Document, DocumentSaveResponse SaveResponse)> zipped =
+                documents.Zip(response, (doc, saveResponse) => (Document: doc, SaveResponse: saveResponse));
+
+            foreach ((TSource document, DocumentSaveResponse saveResponse) in zipped)
+            {
                 document.ProcessSaveResponse(saveResponse);
+            }
+
             return documents;
         }
 
@@ -337,10 +420,17 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task EnsureFullCommitAsync()
         {
-            await NewRequest()
+            OperationResult result = await NewRequest()
                 .AppendPathSegment("_ensure_full_commit")
                 .PostAsync(null)
-                .SendRequestAsync();
+                .ReceiveJson<OperationResult>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (!result.Ok)
+            {
+                throw new CouchException("Something wrong happend while ensuring full commits.");
+            }
         }
 
         #endregion
@@ -353,10 +443,17 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task CompactAsync()
         {
-            await NewRequest()
+            OperationResult result = await NewRequest()
                 .AppendPathSegment("_compact")
                 .PostJsonAsync(null)
-                .SendRequestAsync();
+                .ReceiveJson<OperationResult>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (!result.Ok)
+            {
+                throw new CouchException("Something wrong happende while compacting.");
+            }
         }
 
         /// <summary>
@@ -367,7 +464,8 @@ namespace CouchDB.Driver
         {
             return await NewRequest()
                 .GetJsonAsync<CouchDatabaseInfo>()
-                .SendRequestAsync();
+                .SendRequestAsync()
+                .ConfigureAwait(false);
         }
 
         #endregion

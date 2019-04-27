@@ -10,6 +10,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
 using CouchDB.Driver.Settings;
+using CouchDB.Driver.DTOs;
+using CouchDB.Driver.Exceptions;
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver
 {
@@ -21,7 +24,7 @@ namespace CouchDB.Driver
         private DateTime? _cookieCreationDate;
         private string _cookieToken;
         private readonly CouchSettings _settings;
-        private readonly FlurlClient _flurlClient;
+        private readonly IFlurlClient _flurlClient;
         private readonly string[] _systemDatabases = new[] { "_users", "_replicator", "_global_changes" };
         public string ConnectionString { get; private set; }
 
@@ -34,16 +37,20 @@ namespace CouchDB.Driver
         public CouchClient(string connectionString, Action<CouchSettings> couchSettingsFunc = null, Action<ClientFlurlHttpSettings> flurlSettingsFunc = null)
         {
             if (string.IsNullOrEmpty(connectionString))
+            {
                 throw new ArgumentNullException(nameof(connectionString));
+            }
 
             _settings = new CouchSettings();
             couchSettingsFunc?.Invoke(_settings);
 
             ConnectionString = connectionString;
-            _flurlClient = new FlurlClient(connectionString);
-
-            _flurlClient.Configure(s =>
+            _flurlClient = new FlurlClient(connectionString).Configure(s =>
             {
+                s.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
+                {
+                    ContractResolver = new CouchContractResolver(_settings.PropertiesCase)
+                });
                 s.BeforeCall = OnBeforeCall;
                 if (_settings.ServerCertificateCustomValidationCallback != null)
                 {
@@ -68,11 +75,13 @@ namespace CouchDB.Driver
         public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
             if (database == null)
+            {
                 throw new ArgumentNullException(nameof(database));
+            }
 
             if (_settings.CheckDatabaseExists)
             {
-                var dbs = AsyncContext.Run(() => GetDatabasesNamesAsync());
+                IEnumerable<string> dbs = AsyncContext.Run(() => GetDatabasesNamesAsync());
                 if (!dbs.Contains(database))
                 {
                     return AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database));
@@ -94,28 +103,37 @@ namespace CouchDB.Driver
         public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
         {
             if (database == null)
+            {
                 throw new ArgumentNullException(nameof(database));
+            }
 
             if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
             {
-                throw new ArgumentException(nameof(database), $"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db");
+                throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
             }
 
-            var request = NewRequest()
+            IFlurlRequest request = NewRequest()
                 .AppendPathSegment(database);
 
             if (shards.HasValue)
             {
-                request.SetQueryParam("q", shards.Value);
+                request = request.SetQueryParam("q", shards.Value);
             }
             if (replicas.HasValue)
             {
-                request.SetQueryParam("n", replicas.Value);
+                request = request.SetQueryParam("n", replicas.Value);
             }
 
-            await request
+            OperationResult result = await request
                 .PutAsync(null)
-                .SendRequestAsync();
+                .ReceiveJson<OperationResult>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (!result.Ok)
+            {
+                throw new CouchException("Something went wrong during the creation");
+            }
 
             return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
@@ -129,12 +147,20 @@ namespace CouchDB.Driver
         public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument
         {
             if (database == null)
+            {
                 throw new ArgumentNullException(nameof(database));
+            }
 
-            await NewRequest()
+            OperationResult result = await NewRequest()
                 .AppendPathSegment(database)
                 .DeleteAsync()
-                .SendRequestAsync();
+                .ReceiveJson<OperationResult>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (!result.Ok) {
+                throw new CouchException("Something went wrong during the delete.", "S");
+            }
         }
 
         #endregion
@@ -175,7 +201,7 @@ namespace CouchDB.Driver
         }
         private string GetClassName<TSource>()
         {
-            var type = typeof(TSource);
+            Type type = typeof(TSource);
             return type.GetName(_settings);
         }
 
@@ -216,13 +242,14 @@ namespace CouchDB.Driver
         {
             try
             {
-                await NewRequest()
+                StatusResult result = await NewRequest()
                     .AppendPathSegment("/_up")
-                    .GetAsync()
-                    .SendRequestAsync();
-                return true;
+                    .GetJsonAsync<StatusResult>()
+                    .SendRequestAsync()
+                    .ConfigureAwait(false);
+                return result.Status == "ok";
             }
-            catch
+            catch(CouchNotFoundException)
             {
                 return false;
             }
@@ -237,7 +264,8 @@ namespace CouchDB.Driver
             return await NewRequest()
                 .AppendPathSegment("_all_dbs")
                 .GetJsonAsync<IEnumerable<string>>()
-                .SendRequestAsync();
+                .SendRequestAsync()
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -249,16 +277,17 @@ namespace CouchDB.Driver
             return await NewRequest()
                 .AppendPathSegment("_active_tasks")
                 .GetJsonAsync<IEnumerable<CouchActiveTask>>()
-                .SendRequestAsync();
+                .SendRequestAsync()
+                .ConfigureAwait(false);
         }
 
         #endregion
-        
+
         #endregion
-        
+
         #region Implementations
 
-            private IFlurlRequest NewRequest()
+        private IFlurlRequest NewRequest()
         {
             return _flurlClient.Request(ConnectionString);
         }
@@ -268,8 +297,19 @@ namespace CouchDB.Driver
         /// </summary>
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
             AsyncContext.Run(() => LogoutAsync());
             _flurlClient.Dispose();
+        }
+
+        ~CouchClient()
+        {
+            Dispose(false);
         }
 
         #endregion

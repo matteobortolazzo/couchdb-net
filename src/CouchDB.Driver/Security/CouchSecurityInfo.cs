@@ -18,13 +18,13 @@ namespace CouchDB.Driver.Security
         /// List of CouchDB user names.
         /// </summary>
         [JsonProperty("names")]
-        public List<string> Names { get; set; }
+        public List<string> Names { get; }
 
         /// <summary>
         /// List of users roles.
         /// </summary>
         [JsonProperty("roles")]
-        public List<string> Roles { get; set; }
+        public List<string> Roles { get; }
     }
 
     /// <summary>

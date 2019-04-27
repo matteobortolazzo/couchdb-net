@@ -1,8 +1,8 @@
 | Stage      | Status  |
 |:-----------|:--------|
-| dev        | [![Build status](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_apis/build/status/CI%20-%20Beta)](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_build/latest?definitionId=17)       |
+| dev        | [![Build status](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_apis/build/status/CI%20-%20Beta)](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_build/latest?definitionId=18)       |
 | master     | [![Build status](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_apis/build/status/CI%20-%20Production)](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_build/latest?definitionId=15) |
-| Beta       | ![Release Beta status](https://matteobortolazzo.vsrm.visualstudio.com/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/4/5)                                                           |
+| Beta       | ![Release Beta status](https://matteobortolazzo.vsrm.visualstudio.com/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/5/6)                                                           |
 | Production | ![Release Stable status](https://matteobortolazzo.vsrm.visualstudio.com/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/3/4)                                                         |
 
 
@@ -151,7 +151,7 @@ If the Where method is not called in the expression, it will at an empty selecto
 | $ne            | !=                 |
 | $gte           | >=                 |
 | $gt            | >                  |
-| $exists        | o.FieldExists()    |
+| $exists        | o.FieldExists(s)   |
 | $type          | o.IsCouchType(...) |
 | $in            | o.In(list)         |
 | $nin           | !o.In(list)        |
@@ -205,6 +205,9 @@ await rebels.CreateOrUpdateAsync(rebel);
 await rebels.DeleteAsync(rebel);
 var rebel = await rebels.FindAsync(id);
 var rebel = await rebels.FindAsync(id, withConflicts: true);
+var list = await rebels.FindManyAsync(ids);
+var list = await rebels.QueryAsync(someMangoJson);
+var list = await rebels.QueryAsync(someMangoObject);
 // Bulk
 await rebels.CreateOrUpdateRangeAsync(moreRebels);
 // Utils
@@ -326,4 +329,4 @@ Action<ClientFlurlHttpSettings> flurlConfigFunc
 
 ## Contributors
 
-Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and others.
+Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and many others.

@@ -57,13 +57,21 @@ namespace CouchDB.Driver.Settings
 
         internal override string Convert(string str)
         {
-            if (this == DocumentCaseType.None)
+#pragma warning disable CA1308 // Normalize strings to uppercase
+            if (this == None)
+            {
                 return str.ToLowerInvariant();
-            if (this == DocumentCaseType.UnderscoreCase)
-                return str.ToLowerInvariant().Underscore();            
-            if (this == DocumentCaseType.KebabCase)
+            }
+            if (this == UnderscoreCase)
+            {
+                return str.ToLowerInvariant().Underscore();
+            }
+            if (this == KebabCase)
+            {
                 return str.ToLowerInvariant().Kebaberize();
+            }
             throw new NotSupportedException($"Value {Value} not supported.");
+#pragma warning restore CA1308 // Normalize strings to uppercase
         }
     }
     /// <summary>
@@ -100,18 +108,31 @@ namespace CouchDB.Driver.Settings
 
         internal override string Convert(string str)
         {
-            if (this == PropertyCaseType.None)
+            if (this == None)
+            {
                 return str;
-            if (this == PropertyCaseType.UnderscoreCase)
+            }
+            if (this == UnderscoreCase)
+            {
                 return str.Underscore();
-            if (this == PropertyCaseType.DashCase)
+            }
+            if (this == DashCase)
+            {
                 return str.Dasherize();
-            if (this == PropertyCaseType.KebabCase)
+            }
+            if (this == KebabCase)
+            {
                 return str.Kebaberize();
-            if (this == PropertyCaseType.PascalCase)
+            }
+            if (this == PascalCase)
+            {
                 return str.Pascalize();
-            if (this == PropertyCaseType.CamelCase)
+            }
+            if (this == CamelCase)
+            {
                 return str.Camelize();
+            }
+
             throw new NotSupportedException($"Value {Value} not supported.");
         }
     }

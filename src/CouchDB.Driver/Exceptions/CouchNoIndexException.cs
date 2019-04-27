@@ -11,5 +11,17 @@
         /// <param name="message">Error message</param>
         /// <param name="reason">Error reason</param>
         public CouchNoIndexException(string message, string reason) : base(message, reason) { }
+
+        public CouchNoIndexException()
+        {
+        }
+
+        public CouchNoIndexException(string message) : base(message)
+        {
+        }
+
+        public CouchNoIndexException(string message, System.Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

@@ -4,6 +4,7 @@ using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -12,12 +13,12 @@ namespace CouchDB.Driver
 {
     internal class CouchQueryProvider : QueryProvider
     {
-        private readonly FlurlClient _flurlClient;
+        private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
         private readonly string _db;
 
-        public CouchQueryProvider(FlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
+        public CouchQueryProvider(IFlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
         {
             _flurlClient = flurlClient ?? throw new ArgumentNullException(nameof(flurlClient));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
@@ -32,23 +33,42 @@ namespace CouchDB.Driver
 
         public override object Execute(Expression e, bool completeResponse)
         {
+            MethodInfo _filterMethodInfo = null;
+            Expression[] _filteringExpressions = Array.Empty<Expression>();
+            if (e is MethodCallExpression m)
+            {
+                if (
+                    m.Method.Name == "First" ||
+                    m.Method.Name == "FirstOrDefault" ||
+                    m.Method.Name == "Last" ||
+                    m.Method.Name == "LastOrDefault" ||
+                    m.Method.Name == "Single" ||
+                    m.Method.Name == "SingleOrDefault")
+                {
+                    _filterMethodInfo = m.Method;
+                    _filteringExpressions = m.Arguments.Skip(1).ToArray();
+                    e = m.Arguments[0];
+                }
+            }
+
             var body = Translate(e);
-            var elementType = TypeSystem.GetElementType(e.Type);
+            Type elementType = TypeSystem.GetElementType(e.Type);
 
-            MethodInfo method = typeof(CouchQueryProvider).GetMethod("GetCouchList");
+            MethodInfo method = typeof(CouchQueryProvider).GetMethod(nameof(CouchQueryProvider.GetCouchListOrFiltered));
             MethodInfo generic = method.MakeGenericMethod(elementType);
-            return generic.Invoke(this, new[] { body });
+            var result = generic.Invoke(this, new[] { body, (object)_filterMethodInfo, _filteringExpressions });
+            return result;
         }
-
+        
         private string Translate(Expression expression)
         {
             expression = Evaluator.PartialEval(expression);
             return new QueryTranslator(_settings).Translate(expression);
         }
 
-        public CouchList<T> GetCouchList<T>(string body)
+        public object GetCouchListOrFiltered<T>(string body, MethodInfo filteringMethodInfo, Expression[] filteringExpressions)
         {
-            var result = _flurlClient
+            FindResult<T> result = _flurlClient
                 .Request(_connectionString)
                 .AppendPathSegments(_db, "_find")
                 .WithHeader("Content-Type", "application/json")
@@ -56,7 +76,49 @@ namespace CouchDB.Driver
                 .SendRequest();
 
             var couchList = new CouchList<T>(result.Docs.ToList(), result.Bookmark, result.ExecutionStats);
-            return couchList;
+
+            if (filteringMethodInfo == null)
+            {
+                return couchList;
+            }
+
+            var filteringMethods = typeof(Enumerable).GetMethods()
+                .Where(m => 
+                    m.Name == filteringMethodInfo.Name && 
+                    m.GetParameters().Length - 1 == filteringExpressions.Length)
+                .OrderBy(m => m.GetParameters().Length).ToList();
+
+
+            var invokeParameter = new object[filteringExpressions.Length + 1];
+            invokeParameter[0] = couchList;
+
+            bool IsRightOverload(MethodInfo m)
+            {
+                ParameterInfo[] parameters = m.GetParameters();
+                for (var i = 0; i < filteringExpressions.Length; i++)
+                {
+                    var lamdaExpression = filteringExpressions[i] as UnaryExpression;
+                    if (lamdaExpression == null)
+                    {
+                        return false;
+                    }
+
+                    if (lamdaExpression.Operand.Type != parameters[i + 1].ParameterType)
+                    {
+                        return false;
+                    }
+                    invokeParameter[i + 1] = lamdaExpression.Operand;
+                }
+                return true;
+            }
+
+            MethodInfo rightOverload = filteringMethods.Single(IsRightOverload);
+
+            MethodInfo enumerableGenericFilteringMethod = rightOverload.MakeGenericMethod(typeof(T));
+
+
+            var filtered = enumerableGenericFilteringMethod.Invoke(null, invokeParameter);
+            return filtered;
         }
     }
 }

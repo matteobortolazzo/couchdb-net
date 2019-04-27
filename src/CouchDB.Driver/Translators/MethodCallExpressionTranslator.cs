@@ -1,9 +1,11 @@
 ﻿using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Types;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
+#pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver
 {
     internal partial class QueryTranslator
@@ -25,65 +27,107 @@ namespace CouchDB.Driver
             if (m.Method.DeclaringType == typeof(Queryable))
             {
                 if (m.Method.Name == "Where")
+                {
                     return VisitWhereMethod(m);
+                }
                 else if (m.Method.Name == "OrderBy" || m.Method.Name == "ThenBy")
+                {
                     return VisitOrderAscendingMethod(m);
+                }
                 else if (m.Method.Name == "OrderByDescending" || m.Method.Name == "ThenByDescending")
+                {
                     return VisitOrderDescendingMethod(m);
+                }
                 else if (m.Method.Name == "Skip")
+                {
                     return VisitSkipMethod(m);
+                }
                 else if (m.Method.Name == "Take")
+                {
                     return VisitTakeMethod(m);
+                }
                 else if (m.Method.Name == "Select")
+                {
                     return VisitSelectMethod(m);
+                }
             }
             else if (m.Method.DeclaringType == typeof(Enumerable))
             {
                 if (m.Method.Name == "Any")
+                {
                     return VisitAnyMethod(m);
+                }
                 else if (m.Method.Name == "All")
+                {
                     return VisitAllMethod(m);
+                }
             }
             else if (m.Method.DeclaringType == typeof(QueryableExtensions))
             {
                 if (m.Method.Name == "UseBookmark")
+                {
                     return VisitUseBookmarkMethod(m);
+                }
                 else if (m.Method.Name == "WithReadQuorum")
+                {
                     return VisitWithQuorumMethod(m);
+                }
                 else if (m.Method.Name == "WithoutIndexUpdate")
+                {
                     return VisitWithoutIndexUpdateMethod(m);
+                }
                 else if (m.Method.Name == "FromStable")
+                {
                     return VisitFromStableMethod(m);
+                }
                 else if (m.Method.Name == "UseIndex")
+                {
                     return VisitUseIndexMethod(m);
+                }
                 else if (m.Method.Name == "IncludeExecutionStats")
+                {
                     return VisitIncludeExecutionStatsMethod(m);
+                }
                 else if (m.Method.Name == nameof(QueryableExtensions.IncludeConflicts))
+                {
                     return VisitIncludeConflictsMethod(m);
+                }
             }
             else if (m.Method.DeclaringType == typeof(EnumerableExtensions))
             {
                 if (m.Method.Name == "Contains")
+                {
                     return VisitEnumarableContains(m);
+                }
             }
             else if (m.Method.DeclaringType == typeof(ObjectExtensions))
             {
                 if (m.Method.Name == "FieldExists")
+                {
                     return VisitFieldExistsMethod(m);
+                }
                 else if (m.Method.Name == "IsCouchType")
+                {
                     return VisitIsCouchTypeMethod(m);
+                }
                 else if (m.Method.Name == "In")
+                {
                     return VisitInMethod(m);
+                }
             }
             else if (m.Method.DeclaringType == typeof(StringExtensions))
             {
                 if (m.Method.Name == "IsMatch")
+                {
                     return VisitIsMatchMethod(m);
+                }
             }
             else
             {
                 if (m.Method.Name == "Contains")
+                {
                     return VisitContainsMethod(m);
+                }
             }
 
             throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
@@ -124,7 +168,10 @@ namespace CouchDB.Driver
                     Visit(lambda.Body);
                 }
                 else
+                {
                     return;
+                }
+
                 _sb.Append(",");
             }
 
@@ -160,7 +207,10 @@ namespace CouchDB.Driver
                     _sb.Append(":\"desc\"}");
                 }
                 else
+                {
                     return;
+                }
+
                 _sb.Append(",");
             }
 
@@ -186,12 +236,13 @@ namespace CouchDB.Driver
             Visit(m.Arguments[0]);
             _sb.Append("\"fields\":[");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            var n = lambda.Body as NewExpression;
 
-            if (n == null)
+            if (!(lambda.Body is NewExpression n))
+            {
                 throw new NotSupportedException($"The expression of type {lambda.Body.GetType()} is not supported in the Select method.");
+            }
 
-            foreach (var a in n.Arguments)
+            foreach (Expression a in n.Arguments)
             {
                 Visit(a);
                 _sb.Append(",");
@@ -265,7 +316,29 @@ namespace CouchDB.Driver
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"use_index\":");
-            Visit(m.Arguments[1]);
+            if (!(m.Arguments[1] is ConstantExpression indexArgsExpression))
+            {
+                throw new ArgumentException("UseIndex requires an IList<string> argument");
+            }
+
+            if (!(indexArgsExpression.Value is IList<string> indexArgs))
+            {
+                throw new ArgumentException("UseIndex requires an IList<string> argument");
+            }
+            else if (indexArgs.Count == 1)
+            {
+                // use_index expects the value with [ or ] when it's a single item array
+                Visit(Expression.Constant(indexArgs[0]));
+            }
+            else if (indexArgs.Count == 2)
+            {
+                Visit(indexArgsExpression);
+            }
+            else
+            {
+                throw new ArgumentException("UseIndex requires 1 or 2 strings");
+            }
+
             _sb.Append(",");
             return m;
         }
@@ -302,9 +375,14 @@ namespace CouchDB.Driver
             _sb.Append("{");
             Visit(m.Arguments[0]);
             if (not)
+            {
                 _sb.Append(":{\"$nin\":");
+            }
             else
+            {
                 _sb.Append(":{\"$in\":");
+            }
+
             Visit(m.Arguments[1]);
             _sb.Append("}}");
             return m;
@@ -317,9 +395,8 @@ namespace CouchDB.Driver
         private Expression VisitFieldExistsMethod(MethodCallExpression m)
         {
             _sb.Append("{");
-            Visit(m.Arguments[0]);
-            _sb.Append(":{\"$exists\":");
             Visit(m.Arguments[1]);
+            _sb.Append(":{\"$exists\":true");
             _sb.Append("}}");
             return m;
         }
@@ -366,3 +443,4 @@ namespace CouchDB.Driver
         #endregion
     }
 }
+#pragma warning restore IDE0058 // Expression value is never used

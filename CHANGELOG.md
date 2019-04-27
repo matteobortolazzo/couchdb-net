@@ -1,4 +1,36 @@
-﻿### 1.0.0 (2019-03-30)
+﻿# 1.0.1 (2019-04-27)
+
+## Bug Fixes
+* **Everywhere:** Flurl JSON serialization based on CouchSettings' PropertyCaseType.
+
+# 1.0.1-beta.4 (2019-04-25)
+
+## Features
+* **CouchClient:** add FindManyAsync(ids) ([#PR33](https://github.com/matteobortolazzo/couchdb-net/pull/33)).
+* **CouchClient:** add QueryAsync(someMangoJson) ([#PR32](https://github.com/matteobortolazzo/couchdb-net/pull/32)).
+* **CouchClient:** add QueryAsync(someMangoObject) ([b4dd1b2](https://github.com/matteobortolazzo/couchdb-net/commit/b4dd1b2)).
+
+## Bug Fixes
+* **_find:** removed T : IComparable from In() and Contains() methods ([#PR31](https://github.com/matteobortolazzo/couchdb-net/pull/31)).
+* **_find:** fix single element array queries. ([#PR34](https://github.com/matteobortolazzo/couchdb-net/pull/34)).
+
+# 1.0.1-beta.3 (2019-04-03)
+
+## Breaking Changes
+* **_find:** from r.prop.FieldExists() to r.FieldExists("someprop").
+
+## Features
+* **CouchClient:** implements protected virtual void Dispose(bool disposing).
+
+## Improvements
+* **Global:** FxCop analizers add to the project.
+
+# 1.0.1-beta.2 (2019-04-03)
+
+## Bug Fixes
+* **_find:** Guid support, and all other constants  ([#PR26](https://github.com/matteobortolazzo/couchdb-net/pull/26))
+
+# 1.0.0 (2019-03-30)
 
 ### Features
 Enjoy! 🎈

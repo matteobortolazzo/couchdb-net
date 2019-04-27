@@ -33,7 +33,7 @@ namespace CouchDB.Driver
                     Visit(u.Operand);
                     break;
                 default:
-                    throw new NotSupportedException(string.Format("The unary operator '{0}' is not supported", u.NodeType));
+                    throw new NotSupportedException($"The unary operator '{u.NodeType}' is not supported");
             }
             return u;
         }

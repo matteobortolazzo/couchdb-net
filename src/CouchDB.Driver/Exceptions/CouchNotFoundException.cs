@@ -11,5 +11,17 @@
         /// <param name="message">Error message</param>
         /// <param name="reason">Error reason</param>
         public CouchNotFoundException(string message, string reason) : base(message, reason) { }
+
+        public CouchNotFoundException()
+        {
+        }
+
+        public CouchNotFoundException(string message) : base(message)
+        {
+        }
+
+        public CouchNotFoundException(string message, System.Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

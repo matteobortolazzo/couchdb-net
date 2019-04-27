@@ -11,7 +11,7 @@ namespace CouchDB.Driver.Types
     [JsonObject("_users")]
     public class CouchUser : CouchDocument
     {
-        internal static readonly string Prefix = "org.couchdb.user:";
+        internal const string Prefix = "org.couchdb.user:";
       
         internal CouchUser()
         {
