@@ -68,5 +68,32 @@ namespace CouchDB.Driver.E2E
                 await client.DeleteDatabaseAsync<CouchUser>().ConfigureAwait(false);
             }
         }
+
+        [Fact]
+        public async Task InMemoryLINQ()
+        {
+            using (var client = new CouchClient("http://localhost:5984"))
+            {
+                IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
+                CouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>();
+
+                if (dbs.Contains(rebels.Database))
+                {
+                    await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
+                }
+
+                rebels = await client.CreateDatabaseAsync<Rebel>().ConfigureAwait(false);
+
+                Rebel luke = await rebels.CreateAsync(new Rebel { Name = "Luke", Age = 19 }).ConfigureAwait(false);
+                Assert.Equal("Luke", luke.Name);
+
+                luke = rebels
+                    .Where(c => c.Name == "Luke").Take(1) // Couch query
+                    .GroupBy(e => e.Name).OrderBy(g => g.Key).First().First(); // In-memory
+                Assert.Equal(19, luke.Age);
+
+                await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
+            }
+        }
     }
 }

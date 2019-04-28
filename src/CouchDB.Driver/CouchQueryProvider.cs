@@ -34,13 +34,40 @@ namespace CouchDB.Driver
 
         public override object Execute(Expression e, bool completeResponse)
         {
-            var m = e as MethodCallExpression;
-            MethodCallExpression inMemoryCalls = null;
-            if (!QueryTranslator.NativeIQueryableMethods.Contains(m.Method.Name))
+            var inMemoryCalls = new List<MethodCallExpression>();
+
+            // Search for method calls to run in-memory,
+            // Once one is found all method calls after that must run in-memory.
+            // The expression to translate in JSON ends with the last not in-memory call.
+            bool InspectInmemoryCalls(Expression ex)
             {
-                inMemoryCalls = m;
-                e = m.Arguments[0];
+                if (ex is MethodCallExpression m)
+                {
+                    Expression previousCall = m.Arguments[0];
+                    var needInMemory = InspectInmemoryCalls(previousCall);
+                    if (needInMemory)
+                    {
+                        inMemoryCalls.Add(m);
+                        return needInMemory;
+                    }
+                    if (!QueryTranslator.NativeIQueryableMethods.Contains(m.Method.Name))
+                    {
+                        inMemoryCalls.Add(m);
+                        e = previousCall;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
             }
+
+            var needInMemoryOperations = InspectInmemoryCalls(e);
 
             var body = Translate(e);
             Type elementType = TypeSystem.GetElementType(e.Type);
@@ -49,14 +76,17 @@ namespace CouchDB.Driver
             MethodInfo generic = method.MakeGenericMethod(elementType);
             var result = generic.Invoke(this, new[] { body });
 
-            // If no in-memory method found
-            if (inMemoryCalls == null)
+            if (!needInMemoryOperations)
             {
                 return result;
             }
-            return ApplyInMemoryQuery(result, inMemoryCalls);
+
+            foreach(MethodCallExpression inMemoryCall in inMemoryCalls)
+            {
+                result = ApplyInMemoryQuery(result, inMemoryCall);
+            }
+            return result;
         }
-        
         private string Translate(Expression expression)
         {
             expression = Evaluator.PartialEval(expression);
@@ -82,6 +112,19 @@ namespace CouchDB.Driver
             Expression[] methodArguments = callExp.Arguments.ToArray();
             MethodInfo enumarableMethod = GetEnumerableEquivalent(callExp);
 
+            object GetMethodParameter(Expression e)
+            {
+                if (e is ConstantExpression c)
+                {
+                    return c.Value;
+                }
+                if (e is UnaryExpression u && u.Operand is LambdaExpression l)
+                {
+                    return l.Compile();
+                }
+                throw new NotImplementedException($"Expression of type {e.NodeType} not supported.");
+            }
+
             // For every parameter, convert the expression to a executable method.
             var invokeParameter = new List<object> { result };
             IEnumerable<object> callParams = methodArguments.Skip(1).Select(GetMethodParameter);
@@ -93,19 +136,6 @@ namespace CouchDB.Driver
             MethodInfo enumarableGenericMethod = enumarableMethod.MakeGenericMethod(usableParameters);
             var filtered = enumarableGenericMethod.Invoke(null, invokeParameter.ToArray());
             return filtered;
-        }
-
-        private static object GetMethodParameter(Expression e)
-        {
-            if (e is ConstantExpression c)
-            {
-                return c.Value;
-            }
-            if (e is UnaryExpression u && u.Operand is LambdaExpression l)
-            {
-                return l.Compile();
-            }
-            throw new NotImplementedException($"Expression of type {e.NodeType} not supported.");
         }
 
         private static MethodInfo GetEnumerableEquivalent(MethodCallExpression callExp)
