@@ -10,6 +10,16 @@ namespace CouchDB.Driver
 {
     internal partial class QueryTranslator
     {
+        internal static List<string> NativeIQueryableMethods { get; } = new List<string>
+        {
+            "Where",
+            "OrderBy", "ThenByWhere",
+            "OrderByDescending", "ThenByDescending",
+            "Skip",
+            "Take",
+            "Select"
+        };
+
         private static Expression StripQuotes(Expression e)
         {
             while (e.NodeType == ExpressionType.Quote)

@@ -5,6 +5,7 @@ using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -33,25 +34,12 @@ namespace CouchDB.Driver
 
         public override object Execute(Expression e, bool completeResponse)
         {
-            MethodInfo inMemoryMethodInfo = null;
-            Expression[] inMemoryMethodParameters = Array.Empty<Expression>();
-            if (e is MethodCallExpression m)
+            var m = e as MethodCallExpression;
+            MethodCallExpression inMemoryCalls = null;
+            if (!QueryTranslator.NativeIQueryableMethods.Contains(m.Method.Name))
             {
-                // If the last method is one of the supported in-memory one
-                if (
-                    m.Method.Name == "First" ||
-                    m.Method.Name == "FirstOrDefault" ||
-                    m.Method.Name == "Last" ||
-                    m.Method.Name == "LastOrDefault" ||
-                    m.Method.Name == "Single" ||
-                    m.Method.Name == "SingleOrDefault")
-                {
-                    // Save method and params.
-                    // Skip the current method in the translation
-                    inMemoryMethodInfo = m.Method;
-                    inMemoryMethodParameters = m.Arguments.Skip(1).ToArray();
-                    e = m.Arguments[0];
-                }
+                inMemoryCalls = m;
+                e = m.Arguments[0];
             }
 
             var body = Translate(e);
@@ -59,8 +47,14 @@ namespace CouchDB.Driver
 
             MethodInfo method = typeof(CouchQueryProvider).GetMethod(nameof(CouchQueryProvider.GetCouchListOrFiltered));
             MethodInfo generic = method.MakeGenericMethod(elementType);
-            var result = generic.Invoke(this, new[] { body, (object)inMemoryMethodInfo, inMemoryMethodParameters });
-            return result;
+            var result = generic.Invoke(this, new[] { body });
+
+            // If no in-memory method found
+            if (inMemoryCalls == null)
+            {
+                return result;
+            }
+            return ApplyInMemoryQuery(result, inMemoryCalls);
         }
         
         private string Translate(Expression expression)
@@ -69,8 +63,8 @@ namespace CouchDB.Driver
             return new QueryTranslator(_settings).Translate(expression);
         }
 
-        public object GetCouchListOrFiltered<T>(string body, MethodInfo inMemoryMethodInfo, Expression[] inMemoryMethodParameters)
-        {
+        public object GetCouchListOrFiltered<T>(string body)
+        {            
             FindResult<T> result = _flurlClient
                 .Request(_connectionString)
                 .AppendPathSegments(_db, "_find")
@@ -79,31 +73,111 @@ namespace CouchDB.Driver
                 .SendRequest();
 
             var couchList = new CouchList<T>(result.Docs.ToList(), result.Bookmark, result.ExecutionStats);
+            return couchList;            
+        }
 
-            // If no in-memory method found
-            if (inMemoryMethodInfo == null)
-            {
-                return couchList;
-            }
-
-            // Find the same method in the Enumerable class
-            MethodInfo enumarableMethod = typeof(Enumerable).GetMethods().Single(m =>
-                m.Name == inMemoryMethodInfo.Name && m.GetParameters().Length - 1 == inMemoryMethodParameters.Length);
+        private object ApplyInMemoryQuery(object result, MethodCallExpression callExp)
+        {
+            MethodInfo methodInfo = callExp.Method;
+            Expression[] methodArguments = callExp.Arguments.ToArray();
+            MethodInfo enumarableMethod = GetEnumerableEquivalent(callExp);
 
             // For every parameter, convert the expression to a executable method.
-            var invokeParameter = new List<object> { couchList };
-            IEnumerable<Delegate> callParams = inMemoryMethodParameters.Select(e =>
-            {
-                var unaryExpression = e as UnaryExpression;
-                var lambdaExpression = unaryExpression.Operand as LambdaExpression;
-                Delegate compiledLamda = lambdaExpression.Compile();
-                return compiledLamda;
-            });
+            var invokeParameter = new List<object> { result };
+            IEnumerable<object> callParams = methodArguments.Skip(1).Select(GetMethodParameter);
             invokeParameter.AddRange(callParams);
 
-            MethodInfo enumarableGenericMethod = enumarableMethod.MakeGenericMethod(typeof(T));
+            Type[] requestedGenericParameters = enumarableMethod.GetGenericMethodDefinition().GetGenericArguments();
+            Type[] genericParameters = methodInfo.GetGenericArguments();
+            Type[] usableParameters = genericParameters.Take(requestedGenericParameters.Length).ToArray();
+            MethodInfo enumarableGenericMethod = enumarableMethod.MakeGenericMethod(usableParameters);
             var filtered = enumarableGenericMethod.Invoke(null, invokeParameter.ToArray());
             return filtered;
+        }
+
+        private static object GetMethodParameter(Expression e)
+        {
+            if (e is ConstantExpression c)
+            {
+                return c.Value;
+            }
+            if (e is UnaryExpression u && u.Operand is LambdaExpression l)
+            {
+                return l.Compile();
+            }
+            throw new NotImplementedException($"Expression of type {e.NodeType} not supported.");
+        }
+
+        private static MethodInfo GetEnumerableEquivalent(MethodCallExpression callExp)
+        {
+            MethodInfo methodInfo = callExp.Method;
+            Expression[] methodArguments = callExp.Arguments.ToArray();
+
+            bool IsCorrectMethod(MethodInfo m)
+            {
+                // Must have the same name
+                if (m.Name != methodInfo.Name)
+                {
+                    return false;
+                }
+
+                // Must have the same number of parameters
+                ParameterInfo[] parameters = m.GetParameters();
+                if (parameters.Length != methodArguments.Length)
+                {
+                    return false;
+                }
+                for (var i = 1; i < parameters.Length; i++)
+                {
+                    Expression currentExpression = methodArguments[i];
+
+                    // If the expression is constant, check the type
+                    if (currentExpression is ConstantExpression c)
+                    {
+                        if (c.Type != parameters[i].ParameterType)
+                        {
+                            return false;
+                        }
+                    }
+                    // If it's a lambda expression
+                    else if (currentExpression is UnaryExpression u && u.Operand is LambdaExpression l)
+                    {
+                        Type[] currentParamType = parameters[i].ParameterType.GetGenericArguments();
+                        ReadOnlyCollection<ParameterExpression> lambdaParameters = l.Parameters;
+                        Type lambdaReturnType = l.ReturnType;
+
+                        // The return type must be the same
+                        var enumerableReturnType = currentParamType[currentParamType.Length - 1];
+                        if (!enumerableReturnType.IsGenericParameter && enumerableReturnType != lambdaReturnType)
+                        {
+                            return false;
+                        }
+
+                        // For every parameter, the type must be generic or the same
+                        for (var j = 0; j < currentParamType.Length - 1; j++)
+                        {
+                            Type enumerableType = currentParamType[j];
+                            Type callType = lambdaParameters[j].Type;
+                            if (enumerableType.IsGenericParameter)
+                            {
+                                continue;
+                            }
+                            if (enumerableType != callType)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                return true;
+            }
+
+            MethodInfo enumarableMethod = typeof(Enumerable).GetMethods().SingleOrDefault(IsCorrectMethod);
+            if (enumarableMethod == null)
+            {
+                throw new NotSupportedException($"The method '{methodInfo.Name}' is not supported");
+            }
+            return enumarableMethod;
         }
     }
 }
