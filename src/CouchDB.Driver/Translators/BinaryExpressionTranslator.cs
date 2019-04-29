@@ -80,9 +80,9 @@ namespace CouchDB.Driver
                     return;
                 }
 
-                Visit(e.Left);
+                ForceToBinaryExpressionAndVisit(e.Left);
                 _sb.Append(",");
-                Visit(e.Right);
+                ForceToBinaryExpressionAndVisit(e.Right);
             }
 
             switch (b.NodeType)
@@ -106,6 +106,15 @@ namespace CouchDB.Driver
 
             InspectBinaryChildren(b, b.NodeType);
             _sb.Append("]");
+        }
+
+        private void ForceToBinaryExpressionAndVisit(Expression expression)
+        {
+            if (expression is MemberExpression)
+            {
+                expression = Expression.MakeBinary(ExpressionType.Equal, expression, Expression.Constant(true));
+            }
+            Visit(expression);
         }
 
         private void VisitBinaryConditionOperator(BinaryExpression b)

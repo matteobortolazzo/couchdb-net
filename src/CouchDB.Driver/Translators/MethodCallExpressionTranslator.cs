@@ -140,7 +140,7 @@ namespace CouchDB.Driver
             Visit(m.Arguments[0]);
             _sb.Append("\"selector\":");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            Visit(lambda.Body);
+            ForceToBinaryExpressionAndVisit(lambda.Body);
             _sb.Append(",");
             _isSelectorSet = true;
             return m;
