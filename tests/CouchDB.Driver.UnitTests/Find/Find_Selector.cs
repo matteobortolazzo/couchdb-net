@@ -45,6 +45,12 @@ namespace CouchDB.Driver.UnitTests.Find
             Assert.Equal(@"{""selector"":{""isJedi"":true}}", json);
         }
         [Fact]
+        public void Variable_NotBool()
+        {
+            var json = rebels.Where(r => !r.IsJedi).ToString();
+            Assert.Equal(@"{""selector"":{""isJedi"":false}}", json);
+        }
+        [Fact]
         public void Variable_Object()
         {
             var luke = new Rebel { Age = 19 };
