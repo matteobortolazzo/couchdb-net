@@ -26,9 +26,10 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var json = rebels.Where(r =>
             r.Age == 19 &&
+            r.IsJedi &&
             (r.Name == "Luke" || r.Name == "Leia") &&
             r.Skills.Contains("force")).ToString();
-            Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""$or"":[{""name"":""Luke""},{""name"":""Leia""}]},{""skills"":{""$all"":[""force""]}}]}}", json);
+            Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""isJedi"":true},{""$or"":[{""name"":""Luke""},{""name"":""Leia""}]},{""skills"":{""$all"":[""force""]}}]}}", json);
         }
         [Fact]
         public void Variable_Const()
@@ -36,6 +37,12 @@ namespace CouchDB.Driver.UnitTests.Find
             var age = 19;
             var json = rebels.Where(r => r.Age == age).ToString();
             Assert.Equal(@"{""selector"":{""age"":19}}", json);
+        }
+        [Fact]
+        public void Variable_Bool()
+        {
+            var json = rebels.Where(r => r.IsJedi).ToString();
+            Assert.Equal(@"{""selector"":{""isJedi"":true}}", json);
         }
         [Fact]
         public void Variable_Object()
