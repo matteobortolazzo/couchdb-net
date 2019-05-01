@@ -157,6 +157,16 @@ namespace CouchDB.Driver
                 {
                     return false;
                 }
+
+                if (methodInfo.ReturnType != m.ReturnType)
+                {
+                    if (!methodInfo.ReturnType.IsGenericParameter && !typeof(IQueryable<>).IsAssignableFrom(methodInfo.ReturnType) &&
+                        !m.ReturnType.IsGenericParameter && !typeof(IEnumerable<>).IsAssignableFrom(m.ReturnType))
+                    {
+                        return false;
+                    }
+                }
+                
                 for (var i = 1; i < parameters.Length; i++)
                 {
                     Expression currentExpression = methodArguments[i];
@@ -176,9 +186,14 @@ namespace CouchDB.Driver
                         ReadOnlyCollection<ParameterExpression> lambdaParameters = l.Parameters;
                         Type lambdaReturnType = l.ReturnType;
 
+                        if (currentParamType.Length - 1 > lambdaParameters.Count)
+                        {
+                            return false;
+                        }
+
                         // The return type must be the same
                         var enumerableReturnType = currentParamType[currentParamType.Length - 1];
-                        if (!enumerableReturnType.IsGenericParameter && enumerableReturnType != lambdaReturnType)
+                        if (!enumerableReturnType.IsGenericType && !enumerableReturnType.IsGenericParameter && enumerableReturnType != lambdaReturnType)
                         {
                             return false;
                         }
@@ -202,7 +217,8 @@ namespace CouchDB.Driver
                 return true;
             }
 
-            MethodInfo enumarableMethod = typeof(Enumerable).GetMethods().SingleOrDefault(IsCorrectMethod);
+            var enumarableMethods = typeof(Enumerable).GetMethods().Where(IsCorrectMethod).ToList();
+            MethodInfo enumarableMethod = enumarableMethods.First();
             if (enumarableMethod == null)
             {
                 throw new NotSupportedException($"The method '{methodInfo.Name}' is not supported");

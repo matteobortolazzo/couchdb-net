@@ -87,9 +87,10 @@ namespace CouchDB.Driver.E2E
                 Rebel luke = await rebels.CreateAsync(new Rebel { Name = "Luke", Age = 19 }).ConfigureAwait(false);
                 Assert.Equal("Luke", luke.Name);
 
-                luke = rebels
+                var x = rebels
                     .Where(c => c.Name == "Luke").Take(1) // Couch query
-                    .GroupBy(e => e.Name).OrderBy(g => g.Key).First().First(); // In-memory
+                    .GroupBy(e => e.Name).OrderBy(g => g.Key).SelectMany(g => g)
+                    .Average(g => g.Age); // In-memory
                 Assert.Equal(19, luke.Age);
 
                 await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
