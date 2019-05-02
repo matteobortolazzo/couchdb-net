@@ -20,6 +20,16 @@ namespace CouchDB.Driver.ExpressionVisitors
             return base.VisitMethodCall(m);
         }
 
+        protected override Expression VisitBinary(BinaryExpression expression)
+        {
+            if (expression.Right is ConstantExpression c && c.Type == typeof(bool) && 
+                (expression.NodeType == ExpressionType.Equal || expression.NodeType == ExpressionType.NotEqual))
+            {
+                return expression;
+            }
+            return base.VisitBinary(expression);
+        }
+
         protected override Expression VisitMember(MemberExpression expression)
         {
             if (IsWhereBooleanExpression(expression))

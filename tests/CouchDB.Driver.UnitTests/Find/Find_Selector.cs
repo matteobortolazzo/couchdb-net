@@ -98,5 +98,17 @@ namespace CouchDB.Driver.UnitTests.Find
             var json = rebels.Where(r => r.IsJedi == false).OrderBy(r => r.IsJedi).ToString();
             Assert.Equal(@"{""selector"":{""isJedi"":false},""sort"":[""isJedi""]}", json);
         }
+        [Fact]
+        public void Variable_Bool_ExplicitNotTrue()
+        {
+            var json = rebels.Where(r => r.IsJedi != true).OrderBy(r => r.IsJedi).ToString();
+            Assert.Equal(@"{""selector"":{""isJedi"":{""$ne"":true}},""sort"":[""isJedi""]}", json);
+        }
+        [Fact]
+        public void Variable_Bool_ExplicitNotFalse()
+        {
+            var json = rebels.Where(r => r.IsJedi != false).OrderBy(r => r.IsJedi).ToString();
+            Assert.Equal(@"{""selector"":{""isJedi"":{""$ne"":false}},""sort"":[""isJedi""]}", json);
+        }
     }
 }
