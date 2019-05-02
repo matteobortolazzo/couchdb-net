@@ -1,4 +1,5 @@
 ﻿using CouchDB.Driver.DTOs;
+using CouchDB.Driver.ExpressionVisitors;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
@@ -59,13 +60,16 @@ namespace CouchDB.Driver
             var result = generic.Invoke(this, new[] { body, (object)_filterMethodInfo, _filteringExpressions });
             return result;
         }
-        
-        private string Translate(Expression expression)
-        {
-            expression = Evaluator.PartialEval(expression);
-            return new QueryTranslator(_settings).Translate(expression);
-        }
 
+        private string Translate(Expression e)
+        {
+            e = Evaluator.PartialEval(e);
+            var whereVisitor = new WhereExpressionVisitor();
+            e = whereVisitor.Visit(e);
+
+            return new QueryTranslator(_settings).Translate(e);
+        }
+        
         public object GetCouchListOrFiltered<T>(string body, MethodInfo filteringMethodInfo, Expression[] filteringExpressions)
         {
             FindResult<T> result = _flurlClient

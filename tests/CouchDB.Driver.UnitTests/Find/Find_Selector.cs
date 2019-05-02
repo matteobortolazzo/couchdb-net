@@ -1,5 +1,6 @@
 using CouchDB.Driver.UnitTests.Models;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using Xunit;
 
@@ -72,6 +73,18 @@ namespace CouchDB.Driver.UnitTests.Find
             var guid = Guid.Parse(guidString);
             var json = rebels.Where(r => r.Guid == guid).ToString();
             Assert.Equal(@"{""selector"":{""guid"":""83c79283-f634-41e3-8aab-674bdbae3413""}}", json);
+        }
+        [Fact]
+        public void Variable_Bool_True()
+        {
+            var json = rebels.Where(r => r.IsJedi).OrderBy(r => r.IsJedi).ToString();
+            Assert.Equal(@"{""selector"":{""isJedi"":true},""sort"":[""isJedi""]}", json);
+        }
+        [Fact]
+        public void Variable_Bool_False()
+        {
+            var json = rebels.Where(r => !r.IsJedi).OrderBy(r => r.IsJedi).ToString();
+            Assert.Equal(@"{""selector"":{""isJedi"":false},""sort"":[""isJedi""]}", json);
         }
     }
 }
