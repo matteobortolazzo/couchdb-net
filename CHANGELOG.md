@@ -1,4 +1,9 @@
-﻿# 1.0.1 (2019-04-27)
+﻿# 1.0.2 (2019-05-02)
+
+## Bug Fixes
+* **_find:** Boolean member expressions converted to binary expressions in Where (Fix [#PR36](https://github.com/matteobortolazzo/couchdb-net/pull/36)).
+
+# 1.0.1 (2019-04-27)
 
 ## Bug Fixes
 * **Everywhere:** Flurl JSON serialization based on CouchSettings' PropertyCaseType.
