@@ -9,14 +9,13 @@
     <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-ne</RepositoryUrl>
     <PackageTags>couchdb,driver,nosql,netstandard,pouchdb,xamarin</PackageTags>
-    <PackageReleaseNotes>Complete rewrite.
-IQueryable support.
-All selectors support.</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
     <PackageIconUrl>http://couchdb.apache.org/image/couch@2x.png</PackageIconUrl>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />
     <NeutralLanguage>en</NeutralLanguage>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

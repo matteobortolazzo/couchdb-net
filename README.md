@@ -218,6 +218,12 @@ await rebels.Security.SetInfoAsync(securityInfo);
 var securityInfo = await rebels.Security.GetInfoAsync();
 ```
 
+### Other IQueryable methods?
+
+IQueryable methods that are not natively supported by CouchDB are evaluated in-memory using the IEnumerable counterpart, if possible.
+**WARN** Max and Min are not working now because the mapping from IQueryable to IEnumerable is not 1 to 1.
+
+
 ## Authentication
 
 If authentication is needed currently there are two ways: Basic and Cookie authentication.

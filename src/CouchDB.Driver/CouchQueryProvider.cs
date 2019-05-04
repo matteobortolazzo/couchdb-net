@@ -119,7 +119,7 @@ namespace CouchDB.Driver
             MethodInfo queryableMethodInfo = methodCallExpression.Method;
             Expression[] queryableMethodArguments = methodCallExpression.Arguments.ToArray();
             // Find the equivalent method in Enumerable
-            MethodInfo enumarableMethodInfo = typeof(Enumerable).GetMethods().SingleOrDefault(enumerableMethodInfo =>
+            MethodInfo enumarableMethodInfo = typeof(Enumerable).GetMethods().Single(enumerableMethodInfo =>
             {
                 return 
                     queryableMethodInfo.Name ==  enumerableMethodInfo.Name &&

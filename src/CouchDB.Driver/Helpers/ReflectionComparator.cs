@@ -69,7 +69,7 @@ namespace CouchDB.Driver.Helpers
             }
 
             // If the target type is generic
-            if (!targetType.IsGenericType)
+            if (targetType.IsGenericType)
             {
                 Type[] sourceGenericParameters = sourceType.GetGenericArguments();
                 Type[] targetGenericParameters = targetType.GetGenericArguments();

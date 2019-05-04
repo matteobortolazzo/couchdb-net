@@ -14,5 +14,14 @@ namespace CouchDB.Driver.UnitTests.Models
         public Guid Guid { get; set; }
         public List<string> Skills { get; set; }
         public List<Battle> Battles { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Rebel r)
+            {
+                return r.Id == Id;
+            }
+            return base.Equals(obj);
+        }
     }
 }
