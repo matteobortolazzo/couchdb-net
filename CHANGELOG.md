@@ -3,7 +3,6 @@
 ## Features
 * **_find:** IQueryable method that are not supported by CouchDB are evalueted in-memory using the IEnumerable counterpart, if possible.
 
-
 # 1.0.2 (2019-05-02)
 
 ## Bug Fixes

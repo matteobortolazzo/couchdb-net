@@ -59,7 +59,8 @@ namespace CouchDB.Driver
             }
             return result;
         }
-        private string Translate(Expression expression)
+
+        private string Translate(Expression e)
         {
             e = Evaluator.PartialEval(e);
             var whereVisitor = new WhereExpressionVisitor();
