@@ -1,4 +1,5 @@
 ﻿using CouchDB.Driver.DTOs;
+using CouchDB.Driver.ExpressionVisitors;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
@@ -60,8 +61,11 @@ namespace CouchDB.Driver
         }
         private string Translate(Expression expression)
         {
-            expression = Evaluator.PartialEval(expression);
-            return new QueryTranslator(_settings).Translate(expression);
+            e = Evaluator.PartialEval(e);
+            var whereVisitor = new WhereExpressionVisitor();
+            e = whereVisitor.Visit(e);
+
+            return new QueryTranslator(_settings).Translate(e);
         }
 
         public object GetCouchList<T>(string body)
