@@ -10,7 +10,7 @@ namespace CouchDB.Driver
 {
     internal partial class QueryTranslator
     {
-        internal static List<string> NativeIQueryableMethods { get; } = new List<string>
+        internal static List<string> NativeQueryableMethods { get; } = new List<string>
         {
             "Where",
             "OrderBy", "ThenByWhere",

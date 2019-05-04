@@ -5,7 +5,6 @@ using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -32,58 +31,30 @@ namespace CouchDB.Driver
             return Translate(expression);
         }
 
-        public override object Execute(Expression e, bool completeResponse)
+        public override object Execute(Expression expression, bool completeResponse)
         {
-            var inMemoryCalls = new List<MethodCallExpression>();
+            // Remove from the expressions tree all IQueryable methods not supported by CouchDB and put them into the list
+            var unsupportedMethodCallExpressions = new List<MethodCallExpression>();
+            expression = RemoveUnsupportedMethodExpressions(expression, out var hasUnsupportedMethods, unsupportedMethodCallExpressions);
+            
+            var body = Translate(expression);
+            Type elementType = TypeSystem.GetElementType(expression.Type);
 
-            // Search for method calls to run in-memory,
-            // Once one is found all method calls after that must run in-memory.
-            // The expression to translate in JSON ends with the last not in-memory call.
-            bool InspectInmemoryCalls(Expression ex)
-            {
-                if (ex is MethodCallExpression m)
-                {
-                    Expression previousCall = m.Arguments[0];
-                    var needInMemory = InspectInmemoryCalls(previousCall);
-                    if (needInMemory)
-                    {
-                        inMemoryCalls.Add(m);
-                        return needInMemory;
-                    }
-                    if (!QueryTranslator.NativeIQueryableMethods.Contains(m.Method.Name))
-                    {
-                        inMemoryCalls.Add(m);
-                        e = previousCall;
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            var needInMemoryOperations = InspectInmemoryCalls(e);
-
-            var body = Translate(e);
-            Type elementType = TypeSystem.GetElementType(e.Type);
-
-            MethodInfo method = typeof(CouchQueryProvider).GetMethod(nameof(CouchQueryProvider.GetCouchListOrFiltered));
+            // Create generic GetCouchList method and invoke it, sending the request to CouchDB
+            MethodInfo method = typeof(CouchQueryProvider).GetMethod(nameof(CouchQueryProvider.GetCouchList));
             MethodInfo generic = method.MakeGenericMethod(elementType);
             var result = generic.Invoke(this, new[] { body });
 
-            if (!needInMemoryOperations)
+            // If no unsupported methods, return the result
+            if (!hasUnsupportedMethods)
             {
                 return result;
             }
 
-            foreach(MethodCallExpression inMemoryCall in inMemoryCalls)
+            // For every unsupported method expression, execute it on the result
+            foreach (MethodCallExpression inMemoryCall in unsupportedMethodCallExpressions)
             {
-                result = ApplyInMemoryQuery(result, inMemoryCall);
+                result = InvokeUnsupportedMethodCallExpression(result, inMemoryCall);
             }
             return result;
         }
@@ -93,7 +64,7 @@ namespace CouchDB.Driver
             return new QueryTranslator(_settings).Translate(expression);
         }
 
-        public object GetCouchListOrFiltered<T>(string body)
+        public object GetCouchList<T>(string body)
         {            
             FindResult<T> result = _flurlClient
                 .Request(_connectionString)
@@ -106,124 +77,81 @@ namespace CouchDB.Driver
             return couchList;            
         }
 
-        private object ApplyInMemoryQuery(object result, MethodCallExpression callExp)
+        private Expression RemoveUnsupportedMethodExpressions(Expression expression, out bool hasUnsupportedMethods, IList<MethodCallExpression> unsupportedMethodCallExpressions)
         {
-            MethodInfo methodInfo = callExp.Method;
-            Expression[] methodArguments = callExp.Arguments.ToArray();
-            MethodInfo enumarableMethod = MethodsFinder.ToEnumerable(methodInfo);
-
-            object GetMethodParameter(Expression e)
+            if (unsupportedMethodCallExpressions == null)
             {
-                if (e is ConstantExpression c)
-                {
-                    return c.Value;
-                }
-                if (e is UnaryExpression u && u.Operand is LambdaExpression l)
-                {
-                    return l.Compile();
-                }
-                throw new NotImplementedException($"Expression of type {e.NodeType} not supported.");
+                throw new ArgumentNullException(nameof(unsupportedMethodCallExpressions));
             }
 
-            // For every parameter, convert the expression to a executable method.
-            var invokeParameter = new List<object> { result };
-            IEnumerable<object> callParams = methodArguments.Skip(1).Select(GetMethodParameter);
-            invokeParameter.AddRange(callParams);
+            // Search for method calls to run in-memory,
+            // Once one is found all method calls after that must run in-memory.
+            // The expression to translate in JSON ends with the last not in-memory call.
+            bool IsUnsupportedMethodCallExpression(Expression ex)
+            {
+                if (ex is MethodCallExpression m)
+                {
+                    Expression nextCall = m.Arguments[0];
+                    // Check if the next expression is unsupported
+                    var isUnsupported = IsUnsupportedMethodCallExpression(nextCall);
+                    if (isUnsupported)
+                    {
+                        unsupportedMethodCallExpressions.Add(m);
+                        return isUnsupported;
+                    }
+                    // If the next call is supported and the current is not in the supported list
+                    if (!QueryTranslator.NativeQueryableMethods.Contains(m.Method.Name))
+                    {
+                        unsupportedMethodCallExpressions.Add(m);
+                        expression = nextCall;
+                        return true;
+                    }
+                }
+                return false;
+            }
 
-            Type[] requestedGenericParameters = enumarableMethod.GetGenericMethodDefinition().GetGenericArguments();
-            Type[] genericParameters = methodInfo.GetGenericArguments();
+            hasUnsupportedMethods = IsUnsupportedMethodCallExpression(expression);
+            return expression;
+        }
+
+        private object InvokeUnsupportedMethodCallExpression(object result, MethodCallExpression methodCallExpression)
+        {
+            MethodInfo queryableMethodInfo = methodCallExpression.Method;
+            Expression[] queryableMethodArguments = methodCallExpression.Arguments.ToArray();
+            // Find the equivalent method in Enumerable
+            MethodInfo enumarableMethodInfo = typeof(Enumerable).GetMethods().SingleOrDefault(enumerableMethodInfo =>
+            {
+                return 
+                    queryableMethodInfo.Name ==  enumerableMethodInfo.Name &&
+                    ReflectionComparator.IsCompatible(queryableMethodInfo, enumerableMethodInfo);
+            });
+
+            // Add the list as first parameter of the call
+            var invokeParameter = new List<object> { result };
+            // Convert everty other parameter expression to real values
+            IEnumerable<object> enumerableParameters = queryableMethodArguments.Skip(1).Select(GetArgumentValueFromExpression);
+            // Add the other parameter to the complete list
+            invokeParameter.AddRange(enumerableParameters);
+
+            Type[] requestedGenericParameters = enumarableMethodInfo.GetGenericMethodDefinition().GetGenericArguments();
+            Type[] genericParameters = queryableMethodInfo.GetGenericArguments();
             Type[] usableParameters = genericParameters.Take(requestedGenericParameters.Length).ToArray();
-            MethodInfo enumarableGenericMethod = enumarableMethod.MakeGenericMethod(usableParameters);
+            MethodInfo enumarableGenericMethod = enumarableMethodInfo.MakeGenericMethod(usableParameters);
             var filtered = enumarableGenericMethod.Invoke(null, invokeParameter.ToArray());
             return filtered;
         }
-
-        //private static MethodInfo GetEnumerableEquivalent(MethodCallExpression callExp)
-        //{
-        //    MethodInfo methodInfo = callExp.Method;
-        //    Expression[] methodArguments = callExp.Arguments.ToArray();
-
-        //    bool IsCorrectMethod(MethodInfo m)
-        //    {
-        //        // Must have the same name
-        //        if (m.Name != methodInfo.Name)
-        //        {
-        //            return false;
-        //        }
-
-        //        // Must have the same number of parameters
-        //        ParameterInfo[] parameters = m.GetParameters();
-        //        if (parameters.Length != methodArguments.Length)
-        //        {
-        //            return false;
-        //        }
-
-        //        if (methodInfo.ReturnType != m.ReturnType)
-        //        {
-        //            if (!methodInfo.ReturnType.IsGenericParameter && !typeof(IQueryable<>).IsAssignableFrom(methodInfo.ReturnType) &&
-        //                !m.ReturnType.IsGenericParameter && !typeof(IEnumerable<>).IsAssignableFrom(m.ReturnType))
-        //            {
-        //                return false;
-        //            }
-        //        }
-                
-        //        for (var i = 1; i < parameters.Length; i++)
-        //        {
-        //            Expression currentExpression = methodArguments[i];
-
-        //            // If the expression is constant, check the type
-        //            if (currentExpression is ConstantExpression c)
-        //            {
-        //                if (c.Type != parameters[i].ParameterType)
-        //                {
-        //                    return false;
-        //                }
-        //            }
-        //            // If it's a lambda expression
-        //            else if (currentExpression is UnaryExpression u && u.Operand is LambdaExpression l)
-        //            {
-        //                Type[] currentParamType = parameters[i].ParameterType.GetGenericArguments();
-        //                ReadOnlyCollection<ParameterExpression> lambdaParameters = l.Parameters;
-        //                Type lambdaReturnType = l.ReturnType;
-
-        //                if (currentParamType.Length - 1 > lambdaParameters.Count)
-        //                {
-        //                    return false;
-        //                }
-
-        //                // The return type must be the same
-        //                var enumerableReturnType = currentParamType[currentParamType.Length - 1];
-        //                if (!enumerableReturnType.IsGenericType && !enumerableReturnType.IsGenericParameter && enumerableReturnType != lambdaReturnType)
-        //                {
-        //                    return false;
-        //                }
-
-        //                // For every parameter, the type must be generic or the same
-        //                for (var j = 0; j < currentParamType.Length - 1; j++)
-        //                {
-        //                    Type enumerableType = currentParamType[j];
-        //                    Type callType = lambdaParameters[j].Type;
-        //                    if (enumerableType.IsGenericParameter)
-        //                    {
-        //                        continue;
-        //                    }
-        //                    if (enumerableType != callType)
-        //                    {
-        //                        return false;
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        return true;
-        //    }
-
-        //    var enumarableMethods = typeof(Enumerable).GetMethods().Where(IsCorrectMethod).ToList();
-        //    MethodInfo enumarableMethod = enumarableMethods.First();
-        //    if (enumarableMethod == null)
-        //    {
-        //        throw new NotSupportedException($"The method '{methodInfo.Name}' is not supported");
-        //    }
-        //    return enumarableMethod;
-        //}
+        
+        private object GetArgumentValueFromExpression(Expression e)
+        {
+            if (e is ConstantExpression c)
+            {
+                return c.Value;
+            }
+            if (e is UnaryExpression u && u.Operand is LambdaExpression l)
+            {
+                return l.Compile();
+            }
+            throw new NotImplementedException($"Expression of type {e.NodeType} not supported.");
+        }
     }
 }
