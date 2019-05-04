@@ -110,7 +110,7 @@ namespace CouchDB.Driver
         {
             MethodInfo methodInfo = callExp.Method;
             Expression[] methodArguments = callExp.Arguments.ToArray();
-            MethodInfo enumarableMethod = GetEnumerableEquivalent(callExp);
+            MethodInfo enumarableMethod = MethodsFinder.ToEnumerable(methodInfo);
 
             object GetMethodParameter(Expression e)
             {
@@ -138,92 +138,92 @@ namespace CouchDB.Driver
             return filtered;
         }
 
-        private static MethodInfo GetEnumerableEquivalent(MethodCallExpression callExp)
-        {
-            MethodInfo methodInfo = callExp.Method;
-            Expression[] methodArguments = callExp.Arguments.ToArray();
+        //private static MethodInfo GetEnumerableEquivalent(MethodCallExpression callExp)
+        //{
+        //    MethodInfo methodInfo = callExp.Method;
+        //    Expression[] methodArguments = callExp.Arguments.ToArray();
 
-            bool IsCorrectMethod(MethodInfo m)
-            {
-                // Must have the same name
-                if (m.Name != methodInfo.Name)
-                {
-                    return false;
-                }
+        //    bool IsCorrectMethod(MethodInfo m)
+        //    {
+        //        // Must have the same name
+        //        if (m.Name != methodInfo.Name)
+        //        {
+        //            return false;
+        //        }
 
-                // Must have the same number of parameters
-                ParameterInfo[] parameters = m.GetParameters();
-                if (parameters.Length != methodArguments.Length)
-                {
-                    return false;
-                }
+        //        // Must have the same number of parameters
+        //        ParameterInfo[] parameters = m.GetParameters();
+        //        if (parameters.Length != methodArguments.Length)
+        //        {
+        //            return false;
+        //        }
 
-                if (methodInfo.ReturnType != m.ReturnType)
-                {
-                    if (!methodInfo.ReturnType.IsGenericParameter && !typeof(IQueryable<>).IsAssignableFrom(methodInfo.ReturnType) &&
-                        !m.ReturnType.IsGenericParameter && !typeof(IEnumerable<>).IsAssignableFrom(m.ReturnType))
-                    {
-                        return false;
-                    }
-                }
+        //        if (methodInfo.ReturnType != m.ReturnType)
+        //        {
+        //            if (!methodInfo.ReturnType.IsGenericParameter && !typeof(IQueryable<>).IsAssignableFrom(methodInfo.ReturnType) &&
+        //                !m.ReturnType.IsGenericParameter && !typeof(IEnumerable<>).IsAssignableFrom(m.ReturnType))
+        //            {
+        //                return false;
+        //            }
+        //        }
                 
-                for (var i = 1; i < parameters.Length; i++)
-                {
-                    Expression currentExpression = methodArguments[i];
+        //        for (var i = 1; i < parameters.Length; i++)
+        //        {
+        //            Expression currentExpression = methodArguments[i];
 
-                    // If the expression is constant, check the type
-                    if (currentExpression is ConstantExpression c)
-                    {
-                        if (c.Type != parameters[i].ParameterType)
-                        {
-                            return false;
-                        }
-                    }
-                    // If it's a lambda expression
-                    else if (currentExpression is UnaryExpression u && u.Operand is LambdaExpression l)
-                    {
-                        Type[] currentParamType = parameters[i].ParameterType.GetGenericArguments();
-                        ReadOnlyCollection<ParameterExpression> lambdaParameters = l.Parameters;
-                        Type lambdaReturnType = l.ReturnType;
+        //            // If the expression is constant, check the type
+        //            if (currentExpression is ConstantExpression c)
+        //            {
+        //                if (c.Type != parameters[i].ParameterType)
+        //                {
+        //                    return false;
+        //                }
+        //            }
+        //            // If it's a lambda expression
+        //            else if (currentExpression is UnaryExpression u && u.Operand is LambdaExpression l)
+        //            {
+        //                Type[] currentParamType = parameters[i].ParameterType.GetGenericArguments();
+        //                ReadOnlyCollection<ParameterExpression> lambdaParameters = l.Parameters;
+        //                Type lambdaReturnType = l.ReturnType;
 
-                        if (currentParamType.Length - 1 > lambdaParameters.Count)
-                        {
-                            return false;
-                        }
+        //                if (currentParamType.Length - 1 > lambdaParameters.Count)
+        //                {
+        //                    return false;
+        //                }
 
-                        // The return type must be the same
-                        var enumerableReturnType = currentParamType[currentParamType.Length - 1];
-                        if (!enumerableReturnType.IsGenericType && !enumerableReturnType.IsGenericParameter && enumerableReturnType != lambdaReturnType)
-                        {
-                            return false;
-                        }
+        //                // The return type must be the same
+        //                var enumerableReturnType = currentParamType[currentParamType.Length - 1];
+        //                if (!enumerableReturnType.IsGenericType && !enumerableReturnType.IsGenericParameter && enumerableReturnType != lambdaReturnType)
+        //                {
+        //                    return false;
+        //                }
 
-                        // For every parameter, the type must be generic or the same
-                        for (var j = 0; j < currentParamType.Length - 1; j++)
-                        {
-                            Type enumerableType = currentParamType[j];
-                            Type callType = lambdaParameters[j].Type;
-                            if (enumerableType.IsGenericParameter)
-                            {
-                                continue;
-                            }
-                            if (enumerableType != callType)
-                            {
-                                return false;
-                            }
-                        }
-                    }
-                }
-                return true;
-            }
+        //                // For every parameter, the type must be generic or the same
+        //                for (var j = 0; j < currentParamType.Length - 1; j++)
+        //                {
+        //                    Type enumerableType = currentParamType[j];
+        //                    Type callType = lambdaParameters[j].Type;
+        //                    if (enumerableType.IsGenericParameter)
+        //                    {
+        //                        continue;
+        //                    }
+        //                    if (enumerableType != callType)
+        //                    {
+        //                        return false;
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        return true;
+        //    }
 
-            var enumarableMethods = typeof(Enumerable).GetMethods().Where(IsCorrectMethod).ToList();
-            MethodInfo enumarableMethod = enumarableMethods.First();
-            if (enumarableMethod == null)
-            {
-                throw new NotSupportedException($"The method '{methodInfo.Name}' is not supported");
-            }
-            return enumarableMethod;
-        }
+        //    var enumarableMethods = typeof(Enumerable).GetMethods().Where(IsCorrectMethod).ToList();
+        //    MethodInfo enumarableMethod = enumarableMethods.First();
+        //    if (enumarableMethod == null)
+        //    {
+        //        throw new NotSupportedException($"The method '{methodInfo.Name}' is not supported");
+        //    }
+        //    return enumarableMethod;
+        //}
     }
 }
