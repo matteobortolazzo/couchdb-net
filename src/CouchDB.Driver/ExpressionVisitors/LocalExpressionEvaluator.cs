@@ -5,9 +5,9 @@ using System.Linq;
 using System.Linq.Expressions;
 
 #pragma warning disable IDE0058 // Expression value is never used
-namespace CouchDB.Driver.Helpers
+namespace CouchDB.Driver.CompositeExpressionsEvaluator
 {
-    internal static class Evaluator
+    internal static class Local
     {
         /// <summary>
         /// Performs evaluation & replacement of independent sub-trees
@@ -27,7 +27,7 @@ namespace CouchDB.Driver.Helpers
         /// /// <returns>A new tree with sub-trees evaluated and replaced.</returns>
         public static Expression PartialEval(Expression expression)
         {
-            return PartialEval(expression, Evaluator.CanBeEvaluatedLocally);
+            return PartialEval(expression, Local.CanBeEvaluatedLocally);
         }
 
         private static bool CanBeEvaluatedLocally(Expression expression)

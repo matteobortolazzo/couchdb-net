@@ -1,5 +1,5 @@
 ﻿using CouchDB.Driver.DTOs;
-using CouchDB.Driver.ExpressionVisitors;
+using CouchDB.Driver.CompositeExpressionsEvaluator;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
@@ -62,8 +62,8 @@ namespace CouchDB.Driver
 
         private string Translate(ref Expression e)
         {
-            e = Evaluator.PartialEval(e);
-            var whereVisitor = new WhereExpressionVisitor();
+            e = Local.PartialEval(e);
+            var whereVisitor = new BoolMemberToConstantEvaluator();
             e = whereVisitor.Visit(e);
 
             var pretranslator = new QueryPretranslator();

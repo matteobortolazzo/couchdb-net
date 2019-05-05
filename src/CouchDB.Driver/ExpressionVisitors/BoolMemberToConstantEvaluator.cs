@@ -2,15 +2,15 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace CouchDB.Driver.ExpressionVisitors
+namespace CouchDB.Driver.CompositeExpressionsEvaluator
 {
-    internal  class WhereExpressionVisitor : ExpressionVisitor
+    internal  class BoolMemberToConstantEvaluator : ExpressionVisitor
     {
         private bool _visitingWhereMethod;
 
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
-            _visitingWhereMethod = m.Method.Name == "Where" && m.Method.DeclaringType == typeof(Queryable);
+            _visitingWhereMethod = m.Method.Name == nameof(Queryable.Where) && m.Method.DeclaringType == typeof(Queryable);
             if (_visitingWhereMethod)
             {
                 Expression result = base.VisitMethodCall(m);
@@ -22,7 +22,7 @@ namespace CouchDB.Driver.ExpressionVisitors
 
         protected override Expression VisitBinary(BinaryExpression expression)
         {
-            if (expression.Right is ConstantExpression c && c.Type == typeof(bool) && 
+            if (_visitingWhereMethod && expression.Right is ConstantExpression c && c.Type == typeof(bool) && 
                 (expression.NodeType == ExpressionType.Equal || expression.NodeType == ExpressionType.NotEqual))
             {
                 return expression;
