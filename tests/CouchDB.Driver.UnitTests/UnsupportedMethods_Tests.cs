@@ -84,6 +84,17 @@ namespace CouchDB.Driver.UnitTests
             using (var httpTest = new HttpTest())
             {
                 httpTest.RespondWithJson(_response);
+                var result = _rebels.AsQueryable().Count();
+                Assert.Equal(1, result);
+            }
+        }
+
+        [Fact]
+        public async Task CountExpr()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(_response);
                 var result = _rebels.AsQueryable().Count(r => r.Age == 19);
                 Assert.Equal(1, result);
             }
@@ -111,7 +122,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task ElementAt_OrDefault()
+        public async Task ElementAtOrDefault()
         {
             using (var httpTest = new HttpTest())
             {
