@@ -179,10 +179,30 @@ If the Where method is not called in the expression, it will at an empty selecto
 | execution_stats | IncludeExecutionStats()                              |
 | conflicts       | IncludeConflicts()                                   |
 
-### Other IQueryable methods?
+### Composite methods
+
+Some methods that are not directly supported by CouchDB are converted to a composition of supported ones.
+
+| Input                             | Output                                |
+|:----------------------------------|:--------------------------------------|
+| Min(r => r.Age)                   | OrderBy(r => r.Age).Take(1)           |
+| Max(r => r.Age)                   | OrderByDescending(r => r.Age).Take(1) |
+| Single()                          | Take(1)								|
+| SingleOrDefault()                 | Take(1)								|
+| Single(r => r.Age == 19)			| Where(r => r.Age == 19).Take(1)       |
+| SingleOrDefault(r => r.Age == 19) | Where(r => r.Age == 19).Take(1)       |
+
+**WARN**: Do not call a method twice, for example: `Where(func).Single(func)` won't work.
+
+**WARN**: Since Max and Min use **sort**, an *index* must be created.
+
+
+### All other IQueryables
 
 IQueryable methods that are not natively supported by CouchDB are evaluated in-memory using the IEnumerable counterpart, if possible.
-**WARN** Max and Min are not working now because the mapping from IQueryable to IEnumerable is not 1 to 1.
+
+For example: `All` `Any` `Avg` `Count` `DefaultIfEmpty` `ElementAt` `ElementAtOrDefault` `GroupBy` `Last` `Reverse` `SelectMany` `Sum`
+
 
 ## Client operations
 

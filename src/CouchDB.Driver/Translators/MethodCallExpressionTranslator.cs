@@ -12,12 +12,22 @@ namespace CouchDB.Driver
     {
         internal static List<string> NativeQueryableMethods { get; } = new List<string>
         {
-            "Where",
-            "OrderBy", "ThenByWhere",
-            "OrderByDescending", "ThenByDescending",
-            "Skip",
-            "Take",
-            "Select"
+            nameof(Queryable.Where),
+            nameof(Queryable.OrderBy),
+            nameof(Queryable.ThenBy),
+            nameof(Queryable.OrderByDescending),
+            nameof(Queryable.ThenByDescending),
+            nameof(Queryable.Skip),
+            nameof(Queryable.Take),
+            nameof(Queryable.Select)
+        };
+
+        internal static List<string> CompositeQueryableMethods { get; } = new List<string>
+        {
+            nameof(Queryable.Max),
+            nameof(Queryable.Min),
+            nameof(Queryable.First),
+            nameof(Queryable.FirstOrDefault)
         };
 
         private static Expression StripQuotes(Expression e)

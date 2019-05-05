@@ -1,5 +1,5 @@
 ﻿using CouchDB.Driver.DTOs;
-using CouchDB.Driver.ExpressionVisitors;
+using CouchDB.Driver.CompositeExpressionsEvaluator;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
@@ -29,7 +29,7 @@ namespace CouchDB.Driver
 
         public override string GetQueryText(Expression expression)
         {
-            return Translate(expression);
+            return Translate(ref expression);
         }
 
         public override object Execute(Expression expression, bool completeResponse)
@@ -38,7 +38,7 @@ namespace CouchDB.Driver
             var unsupportedMethodCallExpressions = new List<MethodCallExpression>();
             expression = RemoveUnsupportedMethodExpressions(expression, out var hasUnsupportedMethods, unsupportedMethodCallExpressions);
             
-            var body = Translate(expression);
+            var body = Translate(ref expression);
             Type elementType = TypeSystem.GetElementType(expression.Type);
 
             // Create generic GetCouchList method and invoke it, sending the request to CouchDB
@@ -60,11 +60,14 @@ namespace CouchDB.Driver
             return result;
         }
 
-        private string Translate(Expression e)
+        private string Translate(ref Expression e)
         {
-            e = Evaluator.PartialEval(e);
-            var whereVisitor = new WhereExpressionVisitor();
+            e = Local.PartialEval(e);
+            var whereVisitor = new BoolMemberToConstantEvaluator();
             e = whereVisitor.Visit(e);
+
+            var pretranslator = new QueryPretranslator();
+            e = pretranslator.Visit(e);
 
             return new QueryTranslator(_settings).Translate(e);
         }
@@ -104,6 +107,12 @@ namespace CouchDB.Driver
                         unsupportedMethodCallExpressions.Add(m);
                         return isUnsupported;
                     }
+                    // If the next call is supported and the current is in the composite list
+                    if (QueryTranslator.CompositeQueryableMethods.Contains(m.Method.Name))
+                    {
+                        unsupportedMethodCallExpressions.Add(m);
+                        return true;
+                    }
                     // If the next call is supported and the current is not in the supported list
                     if (!QueryTranslator.NativeQueryableMethods.Contains(m.Method.Name))
                     {
@@ -123,13 +132,25 @@ namespace CouchDB.Driver
         {
             MethodInfo queryableMethodInfo = methodCallExpression.Method;
             Expression[] queryableMethodArguments = methodCallExpression.Arguments.ToArray();
-            // Find the equivalent method in Enumerable
-            MethodInfo enumarableMethodInfo = typeof(Enumerable).GetMethods().Single(enumerableMethodInfo =>
+
+            // Since Max and Min are not map 1 to 1 from Queryable to Enumerable 
+            // they need to be handled differently
+            MethodInfo FindEnumerableMethod()
             {
-                return 
-                    queryableMethodInfo.Name ==  enumerableMethodInfo.Name &&
-                    ReflectionComparator.IsCompatible(queryableMethodInfo, enumerableMethodInfo);
-            });
+                if (queryableMethodInfo.Name == nameof(Queryable.Max) || queryableMethodInfo.Name == nameof(Queryable.Min))
+                {
+                    return FindEnumerableMinMax(queryableMethodInfo);
+                }
+                return typeof(Enumerable).GetMethods().Single(enumerableMethodInfo =>
+                {
+                    return
+                        queryableMethodInfo.Name == enumerableMethodInfo.Name &&
+                        ReflectionComparator.IsCompatible(queryableMethodInfo, enumerableMethodInfo);
+                });
+            }
+
+            // Find the equivalent method in Enumerable
+            MethodInfo enumarableMethodInfo = FindEnumerableMethod();
 
             // Add the list as first parameter of the call
             var invokeParameter = new List<object> { result };
@@ -158,5 +179,19 @@ namespace CouchDB.Driver
             }
             throw new NotImplementedException($"Expression of type {e.NodeType} not supported.");
         }
+        
+        private static MethodInfo FindEnumerableMinMax(MethodInfo queryableMethodInfo)
+        {
+            Type[] genericParams = queryableMethodInfo.GetGenericArguments();
+            MethodInfo finalMethodInfo = typeof(Enumerable).GetMethods().Single(enumerableMethodInfo =>
+            {
+                Type[] enumerableArguments = enumerableMethodInfo.GetGenericArguments();
+                return
+                    enumerableMethodInfo.Name == queryableMethodInfo.Name &&
+                    enumerableArguments.Length == genericParams.Length - 1 &&
+                    enumerableMethodInfo.ReturnType == genericParams[1];
+            });
+            return finalMethodInfo;
+        }           
     }
 }
