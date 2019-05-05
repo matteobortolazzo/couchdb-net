@@ -34,10 +34,8 @@ namespace CouchDB.Driver.Helpers
         {
             if (expression is MethodCallExpression c)
             {
-                return
-                    c.Method.Name != nameof(Queryable.Where) &&
-                    c.Method.Name != nameof(Queryable.Skip) &&
-                    c.Method.Name != nameof(Queryable.Take) &&
+                return !QueryTranslator.CompositeQueryableMethods.Contains(c.Method.Name) &&
+                    !QueryTranslator.NativeQueryableMethods.Contains(c.Method.Name) &&
                     c.Method.Name != nameof(QueryableExtensions.WithReadQuorum) &&
                     c.Method.Name != nameof(QueryableExtensions.WithoutIndexUpdate) &&
                     c.Method.Name != nameof(QueryableExtensions.UseBookmark) &&

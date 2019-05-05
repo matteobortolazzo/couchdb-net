@@ -58,5 +58,49 @@ namespace CouchDB.Driver.UnitTests
                 Assert.Equal(_mainRebel.Age, result);
             }
         }
+
+        [Fact]
+        public async Task First()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(_response);
+                var result = _rebels.AsQueryable().First();
+                Assert.Equal(_mainRebel.Age, result.Age);
+            }
+        }
+
+        [Fact]
+        public async Task First_Expr()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(_response);
+                var result = _rebels.AsQueryable().First(r => r.Age == 19);
+                Assert.Equal(_mainRebel.Age, result.Age);
+            }
+        }
+
+        [Fact]
+        public async Task FirstOrDefault()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+                var result = _rebels.AsQueryable().FirstOrDefault();
+                Assert.Null(result);
+            }
+        }
+
+        [Fact]
+        public async Task FirstOrDefault_Expr()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+                var result = _rebels.AsQueryable().FirstOrDefault(r => r.Age == 20);
+                Assert.Null(result);
+            }
+        }
     }
 }

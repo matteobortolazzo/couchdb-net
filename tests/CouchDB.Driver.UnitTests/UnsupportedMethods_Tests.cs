@@ -122,27 +122,6 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task First()
-        {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().First();
-                Assert.Equal(_mainRebel, result);
-            }
-        }
-        [Fact]
-        public async Task First_Expr()
-        {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().First(c => c.Name == _mainRebel.Name);
-                Assert.Equal(_mainRebel, result);
-            }
-        }
-
-        [Fact]
         public async Task GroupBy()
         {
             using (var httpTest = new HttpTest())
