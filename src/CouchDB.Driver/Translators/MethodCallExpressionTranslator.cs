@@ -20,6 +20,16 @@ namespace CouchDB.Driver
             "Select"
         };
 
+        internal static List<string> CompositeQueryableMethods { get; } = new List<string>
+        {
+            "Max",
+            "Min",
+            //"First",
+            //"FirstOrDefault",
+            //"Last",
+            //"LastOrDefault"
+        };
+
         private static Expression StripQuotes(Expression e)
         {
             while (e.NodeType == ExpressionType.Quote)
