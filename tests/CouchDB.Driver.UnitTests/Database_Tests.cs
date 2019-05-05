@@ -277,6 +277,8 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                httpTest.RespondWithJson(new { ok = true });
+
                 var securityInfo = new CouchSecurityInfo();
                 securityInfo.Admins.Names.Add("user1");
 

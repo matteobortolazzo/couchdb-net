@@ -1,4 +1,9 @@
-﻿# 1.0.2 (2019-05-02)
+﻿# 1.1.0 (2019-05-05)
+
+## Features
+* **_find:** IQueryable methods that are not supported by CouchDB are evaluated in-memory using the IEnumerable counterpart, if possible.
+
+# 1.0.2 (2019-05-02)
 
 ## Bug Fixes
 * **_find:** Boolean member expressions converted to binary expressions in Where (Fix [#PR36](https://github.com/matteobortolazzo/couchdb-net/pull/36)).
