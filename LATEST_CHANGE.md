@@ -1,2 +1,2 @@
-﻿## Bug Fixes
-* **_find:** Boolean member expression converted to binary expression in Where (Fix [#PR36](https://github.com/matteobortolazzo/couchdb-net/pull/36)).
+﻿## Features
+* **_find:** IQueryable methods that are not supported by CouchDB are evaluated in-memory using the IEnumerable counterpart, if possible.

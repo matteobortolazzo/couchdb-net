@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
+#pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver.Helpers
 {
     internal static class Evaluator
@@ -134,3 +135,4 @@ namespace CouchDB.Driver.Helpers
         }
     }
 }
+#pragma warning restore IDE0058 // Expression value is never used

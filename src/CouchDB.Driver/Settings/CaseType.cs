@@ -23,11 +23,7 @@ namespace CouchDB.Driver.Settings
         }
         public override bool Equals(object obj)
         {
-            if (!(obj is CaseType item))
-            {
-                return false;
-            }
-            return Value == item.Value;
+            return obj is CaseType item && Value == item.Value;
         }
         public override int GetHashCode()
         {

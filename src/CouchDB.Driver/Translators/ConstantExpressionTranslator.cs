@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
+#pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver
 {
     internal partial class QueryTranslator
@@ -67,7 +67,7 @@ namespace CouchDB.Driver
         private void VisitIEnumerable(IEnumerable list)
         {
             _sb.Append("[");
-            bool needsComma = false;
+            var needsComma = false;
             foreach (var item in list)
             {
                 if (needsComma)
@@ -81,3 +81,4 @@ namespace CouchDB.Driver
         }
     }
 }
+#pragma warning restore IDE0058 // Expression value is never used

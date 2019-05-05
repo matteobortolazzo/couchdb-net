@@ -179,6 +179,11 @@ If the Where method is not called in the expression, it will at an empty selecto
 | execution_stats | IncludeExecutionStats()                              |
 | conflicts       | IncludeConflicts()                                   |
 
+### Other IQueryable methods?
+
+IQueryable methods that are not natively supported by CouchDB are evaluated in-memory using the IEnumerable counterpart, if possible.
+**WARN** Max and Min are not working now because the mapping from IQueryable to IEnumerable is not 1 to 1.
+
 ## Client operations
 
 ```csharp

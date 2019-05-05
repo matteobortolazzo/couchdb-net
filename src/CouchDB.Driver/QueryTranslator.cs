@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
+#pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver
 {    
     internal partial class QueryTranslator : ExpressionVisitor
@@ -50,3 +51,4 @@ namespace CouchDB.Driver
         }
     }
 }
+#pragma warning restore IDE0058 // Expression value is never used

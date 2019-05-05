@@ -4,6 +4,7 @@ using CouchDB.Driver.Settings;
 using Flurl.Http;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -25,7 +26,7 @@ namespace CouchDB.Driver
                 case AuthenticationType.None:
                     break;
                 case AuthenticationType.Basic:
-                    httpCall.FlurlRequest.WithBasicAuth(_settings.Username, _settings.Password);
+                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithBasicAuth(_settings.Username, _settings.Password);
                     break;
                 case AuthenticationType.Cookie:
                     var isTokenExpired =
@@ -35,7 +36,7 @@ namespace CouchDB.Driver
                     {
                         AsyncContext.Run(() => LoginAsync());
                     }
-                    httpCall.FlurlRequest.EnableCookies().WithCookie("AuthSession", _cookieToken);
+                    httpCall.FlurlRequest = httpCall.FlurlRequest.EnableCookies().WithCookie("AuthSession", _cookieToken);
                     break;
                 default:
                     throw new NotSupportedException($"Authentication of type {_settings.AuthenticationType} is not supported.");
@@ -55,7 +56,7 @@ namespace CouchDB.Driver
 
             _cookieCreationDate = DateTime.Now;
 
-            if (response.Headers.TryGetValues("Set-Cookie", out var values))
+            if (response.Headers.TryGetValues("Set-Cookie", out IEnumerable<string> values))
             {
                 var dirtyToken = values.First();
                 var regex = new Regex(@"^AuthSession=(.+); Version=1; .*Path=\/; HttpOnly$");

@@ -10,6 +10,16 @@ namespace CouchDB.Driver
 {
     internal partial class QueryTranslator
     {
+        internal static List<string> NativeQueryableMethods { get; } = new List<string>
+        {
+            "Where",
+            "OrderBy", "ThenByWhere",
+            "OrderByDescending", "ThenByDescending",
+            "Skip",
+            "Take",
+            "Select"
+        };
+
         private static Expression StripQuotes(Expression e)
         {
             while (e.NodeType == ExpressionType.Quote)
@@ -237,17 +247,20 @@ namespace CouchDB.Driver
             _sb.Append("\"fields\":[");
             var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
 
-            if (!(lambda.Body is NewExpression n))
+            if (lambda.Body is NewExpression n)
+            {
+                foreach (Expression a in n.Arguments)
+                {
+                    Visit(a);
+                    _sb.Append(",");
+                }
+                _sb.Length--;
+            }
+            else
             {
                 throw new NotSupportedException($"The expression of type {lambda.Body.GetType()} is not supported in the Select method.");
             }
 
-            foreach (Expression a in n.Arguments)
-            {
-                Visit(a);
-                _sb.Append(",");
-            }
-            _sb.Length--;
             _sb.Append("],");
 
             return m;
