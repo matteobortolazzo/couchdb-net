@@ -8,6 +8,7 @@ using Xunit;
 
 namespace CouchDB.Driver.E2E
 {
+    [Trait("Category", "Integration")]
     public class ClientTests
     {
         [Fact]
@@ -54,10 +55,10 @@ namespace CouchDB.Driver.E2E
                 {
                     users = await client.CreateDatabaseAsync<CouchUser>().ConfigureAwait(false);
                 }
-                
+
                 var luke = await users.CreateAsync(new CouchUser(name: "luke", password: "lasersword")).ConfigureAwait(false);
                 Assert.Equal("luke", luke.Name);
-                
+
                 luke = await users.FindAsync(luke.Id).ConfigureAwait(false);
                 Assert.Equal("luke", luke.Name);
 

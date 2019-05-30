@@ -4,25 +4,31 @@ using System.Reflection;
 
 namespace CouchDB.Driver.CompositeExpressionsEvaluator
 {
-    internal  class BoolMemberToConstantEvaluator : ExpressionVisitor
+    internal class BoolMemberToConstantEvaluator : ExpressionVisitor
     {
-        private bool _visitingWhereMethod;
+        private bool _isVisitingWhereMethodOrChild;
 
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
-            _visitingWhereMethod = m.Method.Name == nameof(Queryable.Where) && m.Method.DeclaringType == typeof(Queryable);
-            if (_visitingWhereMethod)
+            bool isRootWhereMethod = !_isVisitingWhereMethodOrChild && m.Method.Name == nameof(Queryable.Where) && m.Method.DeclaringType == typeof(Queryable);
+            if (isRootWhereMethod)
             {
-                Expression result = base.VisitMethodCall(m);
-                _visitingWhereMethod = false;
-                return result;
+                _isVisitingWhereMethodOrChild = true;
             }
-            return base.VisitMethodCall(m);
+
+            Expression result = base.VisitMethodCall(m);
+
+            if (isRootWhereMethod)
+            {
+                _isVisitingWhereMethodOrChild = false;
+            }
+
+            return result;
         }
 
         protected override Expression VisitBinary(BinaryExpression expression)
         {
-            if (_visitingWhereMethod && expression.Right is ConstantExpression c && c.Type == typeof(bool) && 
+            if (_isVisitingWhereMethodOrChild && expression.Right is ConstantExpression c && c.Type == typeof(bool) &&
                 (expression.NodeType == ExpressionType.Equal || expression.NodeType == ExpressionType.NotEqual))
             {
                 return expression;
@@ -50,8 +56,8 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
 
         private bool IsWhereBooleanExpression(MemberExpression expression)
         {
-            return _visitingWhereMethod && 
-                expression.Member is PropertyInfo info && 
+            return _isVisitingWhereMethodOrChild &&
+                expression.Member is PropertyInfo info &&
                 info.PropertyType == typeof(bool);
         }
     }
