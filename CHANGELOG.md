@@ -4,7 +4,8 @@
 * **Single/SingleOrDefault:** Methods implementated as composite supported methods (Where and Take(2)).
 
 ## Bug Fixes
-* **Microsoft.CodeAnalysis.FxCopAnalyzers**: Removed from NuGet dependencies.
+* **Queries:** Implicit bools in nested methods. ([#PR41](https://github.com/matteobortolazzo/couchdb-net/pull/41))
+* **FxCopAnalyzers:** Removed from NuGet dependencies.
 
 # 1.1.0 (2019-05-05)
 
