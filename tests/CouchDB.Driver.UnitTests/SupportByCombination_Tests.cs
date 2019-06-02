@@ -102,5 +102,67 @@ namespace CouchDB.Driver.UnitTests
                 Assert.Null(result);
             }
         }
+
+        [Fact]
+        public async Task Single()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(_response);
+                var result = _rebels.AsQueryable().Single();
+                Assert.Equal(_mainRebel.Age, result.Age);
+            }
+        }
+
+        [Fact]
+        public async Task Single_Exception()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(_response);
+                var result = _rebels.AsQueryable().Single();
+                Assert.Equal(_mainRebel.Age, result.Age);
+            }
+        }
+
+        [Fact]
+        public async Task Single_Expr()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new
+                {
+                    Docs = new List<Rebel>
+                    {
+                        new Rebel(),
+                        new Rebel()
+                    }
+                });
+                var ex = Assert.Throws<InvalidOperationException>(() => _rebels.AsQueryable().Single());
+                Assert.Equal("Sequence contains more than one element", ex.Message);
+            }
+        }
+
+        [Fact]
+        public async Task SingleOrDefault()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+                var result = _rebels.AsQueryable().SingleOrDefault();
+                Assert.Null(result);
+            }
+        }
+
+        [Fact]
+        public async Task SingleOrDefault_Expr()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+                var result = _rebels.AsQueryable().SingleOrDefault(r => r.Age == 20);
+                Assert.Null(result);
+            }
+        }
     }
 }

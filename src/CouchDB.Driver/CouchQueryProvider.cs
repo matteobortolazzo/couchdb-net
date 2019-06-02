@@ -163,8 +163,19 @@ namespace CouchDB.Driver
             Type[] genericParameters = queryableMethodInfo.GetGenericArguments();
             Type[] usableParameters = genericParameters.Take(requestedGenericParameters.Length).ToArray();
             MethodInfo enumarableGenericMethod = enumarableMethodInfo.MakeGenericMethod(usableParameters);
-            var filtered = enumarableGenericMethod.Invoke(null, invokeParameter.ToArray());
-            return filtered;
+            try
+            {
+                var filtered = enumarableGenericMethod.Invoke(null, invokeParameter.ToArray());
+                return filtered;
+            }
+            catch (TargetInvocationException e)
+            {
+                if (e.InnerException != null)
+                {
+                    throw e.InnerException;
+                }
+                throw;
+            }
         }
         
         private object GetArgumentValueFromExpression(Expression e)
