@@ -26,7 +26,7 @@
   <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="2.4.1" />
     <PackageReference Include="Humanizer.Core" Version="2.6.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" PrivateAssets="All" Version="2.9.1" />
     <PackageReference Include="Nito.AsyncEx.Context" Version="1.1.0" />
   </ItemGroup>
 

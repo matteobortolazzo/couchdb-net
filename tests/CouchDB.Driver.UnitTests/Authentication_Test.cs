@@ -16,7 +16,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
-                // ToList
+                // ToListAssert
                 httpTest.RespondWithJson(new { Docs = new List<string>() });
                 // Logout
                 httpTest.RespondWithJson(new { ok = true });

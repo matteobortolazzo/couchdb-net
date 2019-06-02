@@ -13,7 +13,7 @@ namespace CouchDB.Driver.UnitTests
         private readonly CouchDatabase<Rebel> _rebels;
         private readonly Rebel _mainRebel;
         private readonly List<Rebel> _rebelsList;
-        private object _response;
+        private readonly object _response;
 
         public UnsupportedMethods_Tests()
         {
@@ -37,7 +37,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task All()
+        public void All()
         {
             using (var httpTest = new HttpTest())
             {
@@ -47,7 +47,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task Any()
+        public void Any()
         {
             using (var httpTest = new HttpTest())
             {
@@ -57,7 +57,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task Any_Selector()
+        public void Any_Selector()
         {
             using (var httpTest = new HttpTest())
             {
@@ -68,7 +68,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task Avg_Expr()
+        public void Avg_Expr()
         {
             using (var httpTest = new HttpTest())
             {
@@ -79,7 +79,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task Count()
+        public void Count()
         {
             using (var httpTest = new HttpTest())
             {
@@ -90,7 +90,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task CountExpr()
+        public void CountExpr()
         {
             using (var httpTest = new HttpTest())
             {
@@ -101,7 +101,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task DefaultIfEmpty()
+        public void DefaultIfEmpty()
         {
             using (var httpTest = new HttpTest())
             {
@@ -112,7 +112,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task ElementAt()
+        public void ElementAt()
         {
             using (var httpTest = new HttpTest())
             {
@@ -122,7 +122,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task ElementAtOrDefault()
+        public void ElementAtOrDefault()
         {
             using (var httpTest = new HttpTest())
             {
@@ -133,18 +133,18 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task GroupBy()
+        public void GroupBy()
         {
             using (var httpTest = new HttpTest())
             {
                 httpTest.RespondWithJson(_response);
                 var result = _rebels.AsQueryable().GroupBy(c => c.Id);
-                Assert.Equal(1, result.Count());
+                Assert.Single(result);
             }
         }
 
         [Fact]
-        public async Task Last()
+        public void Last()
         {
             using (var httpTest = new HttpTest())
             {
@@ -154,7 +154,7 @@ namespace CouchDB.Driver.UnitTests
             }
         }
         [Fact]
-        public async Task Last_Expr()
+        public void Last_Expr()
         {
             using (var httpTest = new HttpTest())
             {
@@ -165,7 +165,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task LongCount()
+        public void LongCount()
         {
             using (var httpTest = new HttpTest())
             {
@@ -176,7 +176,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task Reverse()
+        public void Reverse()
         {
             using (var httpTest = new HttpTest())
             {
@@ -187,7 +187,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task SelectMany()
+        public void SelectMany()
         {
             using (var httpTest = new HttpTest())
             {
@@ -198,7 +198,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task Sum()
+        public void Sum()
         {
             using (var httpTest = new HttpTest())
             {

@@ -14,7 +14,7 @@ namespace CouchDB.Driver.UnitTests
         private readonly CouchDatabase<Rebel> _rebels;
         private readonly Rebel _mainRebel;
         private readonly List<Rebel> _rebelsList;
-        private object _response;
+        private readonly object _response;
 
         public SupportByCombination_Tests()
         {
@@ -38,7 +38,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task Max()
+        public void Max()
         {
             using (var httpTest = new HttpTest())
             {
@@ -49,7 +49,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task Min()
+        public void Min()
         {
             using (var httpTest = new HttpTest())
             {
@@ -60,7 +60,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task First()
+        public void First()
         {
             using (var httpTest = new HttpTest())
             {
@@ -71,7 +71,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task First_Expr()
+        public void First_Expr()
         {
             using (var httpTest = new HttpTest())
             {
@@ -82,7 +82,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task FirstOrDefault()
+        public void FirstOrDefault()
         {
             using (var httpTest = new HttpTest())
             {
@@ -93,7 +93,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task FirstOrDefault_Expr()
+        public void FirstOrDefault_Expr()
         {
             using (var httpTest = new HttpTest())
             {
@@ -104,7 +104,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task Single()
+        public void Single()
         {
             using (var httpTest = new HttpTest())
             {
@@ -115,7 +115,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task Single_Exception()
+        public void Single_Exception()
         {
             using (var httpTest = new HttpTest())
             {
@@ -126,7 +126,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task Single_Expr()
+        public void Single_Expr()
         {
             using (var httpTest = new HttpTest())
             {
@@ -144,7 +144,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task SingleOrDefault()
+        public void SingleOrDefault()
         {
             using (var httpTest = new HttpTest())
             {
@@ -155,7 +155,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task SingleOrDefault_Expr()
+        public void SingleOrDefault_Expr()
         {
             using (var httpTest = new HttpTest())
             {
