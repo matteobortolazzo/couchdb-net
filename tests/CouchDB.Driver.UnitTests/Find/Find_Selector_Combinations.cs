@@ -59,10 +59,40 @@ namespace CouchDB.Driver.UnitTests.Find
             Assert.Equal(@"{""selector"":{""battles"":{""$elemMatch"":{""planet"":""Naboo""}}}}", json);
         }
         [Fact]
+        public void ElemMatchImplicitBool()
+        {
+            var json = _rebels.Where(r => r.Battles.Any(b => b.DidWin)).ToString();
+            Assert.Equal(@"{""selector"":{""battles"":{""$elemMatch"":{""didWin"":true}}}}", json);
+        }
+        [Fact]
+        public void ElemMatchBoolExplicit()
+        {
+            var json = _rebels.Where(r => r.Battles.Any(b => b.DidWin == true)).ToString();
+            Assert.Equal(@"{""selector"":{""battles"":{""$elemMatch"":{""didWin"":true}}}}", json);
+        }
+        [Fact]
+        public void ElemMatchNested()
+        {
+            var json = _rebels.Where(r => r.Battles.Any(b => b.Vehicles.Any(v => v.CanFly == true))).ToString();
+            Assert.Equal(@"{""selector"":{""battles"":{""$elemMatch"":{""vehicles"":{""$elemMatch"":{""canFly"":true}}}}}}", json);
+        }
+        [Fact]
+        public void ElemMatchNestedImplicitBool()
+        {
+            var json = _rebels.Where(r => r.Battles.Any(b => b.Vehicles.Any(v => v.CanFly))).ToString();
+            Assert.Equal(@"{""selector"":{""battles"":{""$elemMatch"":{""vehicles"":{""$elemMatch"":{""canFly"":true}}}}}}", json);
+        }
+        [Fact]
         public void AllMatch()
         {
             var json = _rebels.Where(r => r.Battles.All(b => b.Planet == "Naboo")).ToString();
             Assert.Equal(@"{""selector"":{""battles"":{""$allMatch"":{""planet"":""Naboo""}}}}", json);
+        }
+        [Fact]
+        public void AllMatchImplicitBool()
+        {
+            var json = _rebels.Where(r => r.Battles.All(b => b.DidWin)).ToString();
+            Assert.Equal(@"{""selector"":{""battles"":{""$allMatch"":{""didWin"":true}}}}", json);
         }
     }
 }

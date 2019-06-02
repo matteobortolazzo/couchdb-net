@@ -12,9 +12,9 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
             var numberOfParameters = node.Method.GetParameters().Length;
 
             // Return an expression representing Queryable<T>.Take(1)
-            MethodCallExpression GetTakeOneExpression(Expression previousExpression)
+            MethodCallExpression GetTakeOneExpression(Expression previousExpression, int numberOfElements = 1)
             {
-                return Expression.Call(typeof(Queryable), nameof(Queryable.Take), genericArgs.Take(1).ToArray(), previousExpression, Expression.Constant(1));
+                return Expression.Call(typeof(Queryable), nameof(Queryable.Take), genericArgs.Take(1).ToArray(), previousExpression, Expression.Constant(numberOfElements));
             }
 
             // Min(e => e.P) == OrderBy(e => e.P).Take(1) + Min
@@ -29,7 +29,7 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
                 MethodCallExpression orderBy = Expression.Call(typeof(Queryable), nameof(Queryable.OrderByDescending), genericArgs, node.Arguments[0], node.Arguments[1]);
                 return GetTakeOneExpression(orderBy);
             }
-            // Single and SingleOrDefault have the same behaviour
+            // First and FirstOrDefault have the same behaviour
             if (node.Method.Name == nameof(Queryable.First) || node.Method.Name == nameof(Queryable.FirstOrDefault))
             {
                 // First() == Take(1) + First
@@ -42,6 +42,21 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
                 {
                     MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where), genericArgs, node.Arguments[0], node.Arguments[1]);
                     return GetTakeOneExpression(whereExpression);
+                }
+            }
+            // Single and SingleOrDefault have the same behaviour
+            if (node.Method.Name == nameof(Queryable.Single) || node.Method.Name == nameof(Queryable.SingleOrDefault))
+            {
+                // Single() == Take(2) + Single
+                if (numberOfParameters == 1)
+                {
+                    return GetTakeOneExpression(node.Arguments[0], 2);
+                }
+                // SingleOrDefault(e => e.P) == Where(e => e.P).Take(2) + Single
+                else if (numberOfParameters == 2)
+                {
+                    MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where), genericArgs, node.Arguments[0], node.Arguments[1]);
+                    return GetTakeOneExpression(whereExpression, 2);
                 }
             }
             return base.VisitMethodCall(node);

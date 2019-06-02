@@ -181,16 +181,21 @@ If the Where method is not called in the expression, it will at an empty selecto
 
 ### Composite methods
 
-Some methods that are not directly supported by CouchDB are converted to a composition of supported ones.
+Some methods that are not directly supported by CouchDB are converted to a composition of supported ones,
+and the in-memory LINQ method will be executed at the end.
 
 | Input                             | Output                                |
 |:----------------------------------|:--------------------------------------|
 | Min(r => r.Age)                   | OrderBy(r => r.Age).Take(1)           |
 | Max(r => r.Age)                   | OrderByDescending(r => r.Age).Take(1) |
-| Single()                          | Take(1)								|
-| SingleOrDefault()                 | Take(1)								|
-| Single(r => r.Age == 19)			| Where(r => r.Age == 19).Take(1)       |
-| SingleOrDefault(r => r.Age == 19) | Where(r => r.Age == 19).Take(1)       |
+| First()                           | Take(1)								|
+| FirstOrDefault()                  | Take(1)								|
+| First(r => r.Age == 19)			| Where(r => r.Age == 19).Take(1)       |
+| FirstOrDefault(r => r.Age == 19)  | Where(r => r.Age == 19).Take(1)       |
+| Single()                          | Take(2)								|
+| SingleOrDefault()                 | Take(2)								|
+| Single(r => r.Age == 19)			| Where(r => r.Age == 19).Take(2)       |
+| SingleOrDefault(r => r.Age == 19) | Where(r => r.Age == 19).Take(2)       |
 
 **WARN**: Do not call a method twice, for example: `Where(func).Single(func)` won't work.
 
