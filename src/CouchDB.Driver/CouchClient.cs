@@ -303,7 +303,7 @@ namespace CouchDB.Driver
 
         protected virtual void Dispose(bool disposing)
         {
-            if (_settings.LogOutOnDispose)
+            if (_settings.AuthenticationType == AuthenticationType.Cookie && _settings.LogOutOnDispose)
             {
                 AsyncContext.Run(() => LogoutAsync().ConfigureAwait(false));
             }
