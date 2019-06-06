@@ -303,7 +303,7 @@ namespace CouchDB.Driver
 
         protected virtual void Dispose(bool disposing)
         {
-            AsyncContext.Run(() => LogoutAsync());
+            AsyncContext.Run(() => LogoutAsync().ConfigureAwait(false));
             _flurlClient.Dispose();
         }
 
