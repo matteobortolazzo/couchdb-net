@@ -1,4 +1,9 @@
-﻿# 1.1.1 (2019-06-02)
+﻿# 1.1.2 (2019-06-08)
+
+## Bug Fixes
+* **Client:** Prevent deadlocks when run against .NET Framework. ([#PR43](https://github.com/matteobortolazzo/couchdb-net/pull/43))
+
+# 1.1.1 (2019-06-02)
 
 ## Features
 * **Single/SingleOrDefault:** Methods implementated as composite supported methods (Where and Take(2)).

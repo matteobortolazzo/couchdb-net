@@ -297,6 +297,7 @@ var client = new CouchClient("http://localhost", s => s
 | SetDocumentCase                | Sets the format case for documents.           |
 | SetPropertyCase                | Sets the format case for properties.          |
 | EnsureDatabaseExists           | If a database doesn't exists, it creates it.  |
+| DisableLogOutOnDispose         | Disables log out on client dispose.           | 
 
 - **DocumentCaseTypes**: None, UnderscoreCase *(default)*, DashCase, KebabCase.
 - **PropertyCaseTypes**: None, CamelCase *(default)*, PascalCase, UnderscoreCase, DashCase, KebabCase.
