@@ -146,7 +146,10 @@ namespace CouchDB.Driver.Settings
             CheckDatabaseExists = true;
             return this;
         }
-
+        /// <summary>
+        /// Disables log out on client dispose. 
+        /// </summary>
+        /// <returns>The current settings</returns>
         public CouchSettings DisableLogOutOnDispose()
         {
             LogOutOnDispose = false;
