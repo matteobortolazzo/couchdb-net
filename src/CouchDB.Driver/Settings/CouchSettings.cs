@@ -23,6 +23,7 @@ namespace CouchDB.Driver.Settings
         internal DocumentCaseType DocumentsCaseType { get; private set; }
         internal PropertyCaseType PropertiesCase { get; private set; }
         internal bool CheckDatabaseExists { get; private set; }
+        internal bool LogOutOnDispose { get; private set; }
         internal Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback { get; private set; }
 
         internal CouchSettings()
@@ -31,6 +32,7 @@ namespace CouchDB.Driver.Settings
             PluralizeEntitis = true;
             DocumentsCaseType = DocumentCaseType.UnderscoreCase;
             PropertiesCase = PropertyCaseType.CamelCase;
+            LogOutOnDispose = true;
         }
 
         /// <summary>
@@ -142,6 +144,12 @@ namespace CouchDB.Driver.Settings
         public CouchSettings EnsureDatabaseExists()
         {
             CheckDatabaseExists = true;
+            return this;
+        }
+
+        public CouchSettings DisableLogOutOnDispose()
+        {
+            LogOutOnDispose = false;
             return this;
         }
     }
