@@ -43,12 +43,5 @@ namespace CouchDB.Driver.Helpers
                 }
             }
         }
-
-        private static Exception NewCouchExteption(this CouchError e, Type type)
-        {
-            ConstructorInfo ctor = type.GetConstructor(new[] { typeof(string), typeof(string) });
-            var exception = (CouchException)ctor.Invoke(new string[] { e.Error, e.Reason });
-            return exception;
-        }
     }
 }
