@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CouchDB.Driver.DTOs;
+using System;
 
 namespace CouchDB.Driver.Exceptions
 {
@@ -12,18 +13,31 @@ namespace CouchDB.Driver.Exceptions
         /// </summary>
         /// <param name="message">Error message</param>
         /// <param name="reason">Error reason</param>
-        public CouchException(string message, string reason) : base(message, new Exception(reason)) { }
-
-        public CouchException()
+        public CouchException(string message, string reason) : this(message, reason, null)
         {
         }
 
-        public CouchException(string message) : base(message)
+        public CouchException() : this(null, null, null)
         {
         }
 
-        public CouchException(string message, Exception innerException) : base(message, innerException)
+        public CouchException(string message) : this(message, null, null)
         {
         }
+
+        public CouchException(string message, Exception innerException) : this(message, null, innerException)
+        {
+        }
+
+        internal CouchException(CouchError couchError, Exception innerException) : this(couchError?.Error, couchError?.Reason, innerException)
+        {
+        }
+
+        public CouchException(string message, string reason, Exception innerException) : base(message, innerException)
+        {
+            Reason = reason;
+        }
+
+        public string Reason { get; }
     }
 }

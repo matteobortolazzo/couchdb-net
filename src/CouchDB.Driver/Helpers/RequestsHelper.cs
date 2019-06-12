@@ -33,13 +33,13 @@ namespace CouchDB.Driver.Helpers
                 switch (ex.Call.HttpStatus)
                 {
                     case HttpStatusCode.Conflict:
-                        throw couchError.NewCouchExteption(typeof(CouchConflictException));
+                        throw new CouchConflictException(couchError, ex);
                     case HttpStatusCode.NotFound:
-                        throw couchError.NewCouchExteption(typeof(CouchNotFoundException));
+                        throw new CouchNotFoundException(couchError, ex);
                     case HttpStatusCode.BadRequest when couchError.Error == "no_usable_index":
-                        throw couchError.NewCouchExteption(typeof(CouchNoIndexException));
+                        throw new CouchNoIndexException(couchError, ex);
                     default:
-                        throw new CouchException(couchError.Error, couchError.Reason);
+                        throw new CouchException(couchError, ex);
                 }
             }
         }
