@@ -189,7 +189,8 @@ namespace CouchDB.Driver.UnitTests
 
                 using (var client = new CouchClient("http://localhost"))
                 {
-                    await Assert.ThrowsAsync<CouchConflictException>(() => client.CreateDatabaseAsync<Rebel>());
+                    var couchException = await Assert.ThrowsAsync<CouchConflictException>(() => client.CreateDatabaseAsync<Rebel>());
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
                 }
             }
         }
@@ -203,7 +204,8 @@ namespace CouchDB.Driver.UnitTests
 
                 using (var client = new CouchClient("http://localhost"))
                 {
-                    await Assert.ThrowsAsync<CouchNotFoundException>(() => client.DeleteDatabaseAsync<Rebel>());
+                    var couchException = await Assert.ThrowsAsync<CouchNotFoundException>(() => client.DeleteDatabaseAsync<Rebel>());
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
                 }
             }
         }
@@ -218,7 +220,8 @@ namespace CouchDB.Driver.UnitTests
                 using (var client = new CouchClient("http://localhost"))
                 {
                     var db = client.GetDatabase<Rebel>();
-                    Assert.Throws<CouchNoIndexException>(() => db.UseIndex("aoeu").ToList());
+                    var couchException = Assert.Throws<CouchNoIndexException>(() => db.UseIndex("aoeu").ToList());
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
                 }
             }
         }
@@ -237,6 +240,8 @@ namespace CouchDB.Driver.UnitTests
                     var db = client.GetDatabase<Rebel>();
                     var couchException = await Assert.ThrowsAsync<CouchException>(() => db.FindAsync("aoeu"));
                     Assert.Equal(message, couchException.Message);
+                    Assert.Equal(reason, couchException.Reason);
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
                 }
             }
         }
@@ -252,6 +257,7 @@ namespace CouchDB.Driver.UnitTests
                 {
                     var db = client.GetDatabase<Rebel>();
                     var couchException = await Assert.ThrowsAsync<CouchException>(() => db.FindAsync("aoeu"));
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
                 }
             }
         }
