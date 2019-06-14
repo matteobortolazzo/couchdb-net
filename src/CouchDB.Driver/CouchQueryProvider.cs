@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace CouchDB.Driver
 {
@@ -37,14 +38,22 @@ namespace CouchDB.Driver
             // Remove from the expressions tree all IQueryable methods not supported by CouchDB and put them into the list
             var unsupportedMethodCallExpressions = new List<MethodCallExpression>();
             expression = RemoveUnsupportedMethodExpressions(expression, out var hasUnsupportedMethods, unsupportedMethodCallExpressions);
-            
+
             var body = Translate(ref expression);
             Type elementType = TypeSystem.GetElementType(expression.Type);
 
             // Create generic GetCouchList method and invoke it, sending the request to CouchDB
             MethodInfo method = typeof(CouchQueryProvider).GetMethod(nameof(CouchQueryProvider.GetCouchList));
             MethodInfo generic = method.MakeGenericMethod(elementType);
-            var result = generic.Invoke(this, new[] { body });
+            object result = null;
+            try
+            {
+                result = generic.Invoke(this, new[] { body });
+            }
+            catch (TargetInvocationException ex)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            }
 
             // If no unsupported methods, return the result
             if (!hasUnsupportedMethods)
@@ -73,7 +82,7 @@ namespace CouchDB.Driver
         }
 
         public object GetCouchList<T>(string body)
-        {            
+        {
             FindResult<T> result = _flurlClient
                 .Request(_connectionString)
                 .AppendPathSegments(_db, "_find")
@@ -82,7 +91,7 @@ namespace CouchDB.Driver
                 .SendRequest();
 
             var couchList = new CouchList<T>(result.Docs.ToList(), result.Bookmark, result.ExecutionStats);
-            return couchList;            
+            return couchList;
         }
 
         private Expression RemoveUnsupportedMethodExpressions(Expression expression, out bool hasUnsupportedMethods, IList<MethodCallExpression> unsupportedMethodCallExpressions)
@@ -177,7 +186,7 @@ namespace CouchDB.Driver
                 throw;
             }
         }
-        
+
         private object GetArgumentValueFromExpression(Expression e)
         {
             if (e is ConstantExpression c)
@@ -190,7 +199,7 @@ namespace CouchDB.Driver
             }
             throw new NotImplementedException($"Expression of type {e.NodeType} not supported.");
         }
-        
+
         private static MethodInfo FindEnumerableMinMax(MethodInfo queryableMethodInfo)
         {
             Type[] genericParams = queryableMethodInfo.GetGenericArguments();
@@ -203,6 +212,6 @@ namespace CouchDB.Driver
                     enumerableMethodInfo.ReturnType == genericParams[1];
             });
             return finalMethodInfo;
-        }           
+        }
     }
 }

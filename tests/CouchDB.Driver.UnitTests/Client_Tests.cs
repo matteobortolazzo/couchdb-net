@@ -1,7 +1,10 @@
-﻿using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Exceptions;
+using CouchDB.Driver.Types;
 using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
@@ -110,7 +113,7 @@ namespace CouchDB.Driver.UnitTests
 
                 using (var client = new CouchClient("http://localhost"))
                 {
-                    var result = await client.IsUpAsync();                    
+                    var result = await client.IsUpAsync();
                     Assert.True(result);
                 }
             }
@@ -127,7 +130,7 @@ namespace CouchDB.Driver.UnitTests
 
                 using (var client = new CouchClient("http://localhost"))
                 {
-                    httpTest.RespondWith("Not found",  404);
+                    httpTest.RespondWith("Not found", 404);
                     var result = await client.IsUpAsync();
                     Assert.False(result);
                 }
@@ -174,6 +177,90 @@ namespace CouchDB.Driver.UnitTests
             }
         }
 
+        #endregion
+
+        #region Error Handling
+        [Fact]
+        public async Task ConflictException()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWith(status: (int)HttpStatusCode.Conflict);
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var couchException = await Assert.ThrowsAsync<CouchConflictException>(() => client.CreateDatabaseAsync<Rebel>());
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task NotFoundException()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWith(status: (int)HttpStatusCode.NotFound);
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var couchException = await Assert.ThrowsAsync<CouchNotFoundException>(() => client.DeleteDatabaseAsync<Rebel>());
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+                }
+            }
+        }
+
+        [Fact]
+        public void BadRequestException()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWith(@"{error: ""no_usable_index""}", (int)HttpStatusCode.BadRequest);
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var db = client.GetDatabase<Rebel>();
+                    var couchException = Assert.Throws<CouchNoIndexException>(() => db.UseIndex("aoeu").ToList());
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task GenericExceptionWithMessage()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                string message = "message text";
+                string reason = "reason text";
+                httpTest.RespondWith($"{{error: \"{message}\", reason: \"{reason}\"}}", (int)HttpStatusCode.InternalServerError);
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var db = client.GetDatabase<Rebel>();
+                    var couchException = await Assert.ThrowsAsync<CouchException>(() => db.FindAsync("aoeu"));
+                    Assert.Equal(message, couchException.Message);
+                    Assert.Equal(reason, couchException.Reason);
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task GenericExceptionNoMessage()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                httpTest.RespondWith(status: (int)HttpStatusCode.InternalServerError);
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    var db = client.GetDatabase<Rebel>();
+                    var couchException = await Assert.ThrowsAsync<CouchException>(() => db.FindAsync("aoeu"));
+                    Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+                }
+            }
+        }
         #endregion
     }
 }

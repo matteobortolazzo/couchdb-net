@@ -23,41 +23,25 @@ namespace CouchDB.Driver.Helpers
             }
             catch (FlurlHttpException ex)
             {
-                CouchError couchError;
-                try
+                CouchError couchError = await ex.GetResponseJsonAsync<CouchError>().ConfigureAwait(false);
+
+                if (couchError == null)
                 {
-                    couchError = await ex.GetResponseJsonAsync<CouchError>().ConfigureAwait(false);
-                }
-                catch
-                {
-                    throw;
+                    couchError = new CouchError();
                 }
 
-                if (couchError != null)
+                switch (ex.Call.HttpStatus)
                 {
-                    switch (ex.Call.HttpStatus)
-                    {
-                        case HttpStatusCode.Conflict:
-                            throw couchError.NewCouchExteption(typeof(CouchConflictException));
-                        case HttpStatusCode.NotFound:
-                            throw couchError.NewCouchExteption(typeof(CouchNotFoundException));
-                        case HttpStatusCode.BadRequest:
-                            if (couchError.Error == "no_usable_index")
-                            {
-                                throw couchError.NewCouchExteption(typeof(CouchNoIndexException));
-                            }
-                            break;
-                    }
+                    case HttpStatusCode.Conflict:
+                        throw new CouchConflictException(couchError, ex);
+                    case HttpStatusCode.NotFound:
+                        throw new CouchNotFoundException(couchError, ex);
+                    case HttpStatusCode.BadRequest when couchError.Error == "no_usable_index":
+                        throw new CouchNoIndexException(couchError, ex);
+                    default:
+                        throw new CouchException(couchError, ex);
                 }
-                throw new CouchException(couchError.Error, couchError.Reason);                
             }
-        }
-
-        private static Exception NewCouchExteption(this CouchError e, Type type)
-        {
-            ConstructorInfo ctor = type.GetConstructor(new[] { typeof(string), typeof(string) });
-            var exception = (CouchException)ctor.Invoke(new string[] { e.Error, e.Reason });
-            return exception;
         }
     }
 }
