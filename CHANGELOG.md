@@ -1,4 +1,9 @@
-﻿# 1.1.2 (2019-06-08)
+﻿# 1.1.3 (2019-06-14)
+
+## Bug Fixes
+* **Exception:** Fixing null reference exception and poor exception handling. ([#PR45](https://github.com/matteobortolazzo/couchdb-net/pull/45))
+
+# 1.1.2 (2019-06-08)
 
 ## Bug Fixes
 * **Client:** Prevent deadlocks when run against .NET Framework. ([#PR43](https://github.com/matteobortolazzo/couchdb-net/pull/43))

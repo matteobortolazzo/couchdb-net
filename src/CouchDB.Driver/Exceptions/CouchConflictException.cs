@@ -1,16 +1,14 @@
-﻿namespace CouchDB.Driver.Exceptions
+﻿using CouchDB.Driver.DTOs;
+using System;
+
+namespace CouchDB.Driver.Exceptions
 {
     /// <summary>
     /// The exception that is thrown when there is a conflict.
     /// </summary>
     public class CouchConflictException : CouchException
     {
-        /// <summary>
-        /// Creates a new instance of CouchConflictException.
-        /// </summary>
-        /// <param name="message">Error message</param>
-        /// <param name="reason">Error reason</param>
-        public CouchConflictException(string message, string reason) : base(message, reason) { }
+        internal CouchConflictException(CouchError couchError, Exception innerException) : base(couchError, innerException) { }
 
         public CouchConflictException()
         {
@@ -20,7 +18,7 @@
         {
         }
 
-        public CouchConflictException(string message, System.Exception innerException) : base(message, innerException)
+        public CouchConflictException(string message, Exception innerException) : base(message, innerException)
         {
         }
     }
