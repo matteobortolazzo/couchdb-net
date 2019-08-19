@@ -56,6 +56,9 @@ namespace CouchDB.Driver
                             _sb.Append(JsonConvert.SerializeObject(constant));
                         }
                         break;
+                    case TypeCode.Int32:
+                        _sb.Append((int)constant);
+                        break;
                     default:
                         _sb.Append(constant);
                         break;
