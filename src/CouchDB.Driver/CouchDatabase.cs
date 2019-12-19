@@ -274,7 +274,7 @@ namespace CouchDB.Driver
 
             return findResult.Docs.ToList();
         }
-        
+
         /// Finds all documents with given IDs.
         /// </summary>
         /// <param name="docIds">The collection of documents IDs.</param>
@@ -487,7 +487,7 @@ namespace CouchDB.Driver
 
         private IFlurlRequest NewRequest()
         {
-            return _flurlClient.Request(_connectionString).AppendPathSegment(Database);
+            return _flurlClient.Request(_connectionString).AppendPathSegment(Uri.EscapeDataString(Database));
         }
 
         #endregion

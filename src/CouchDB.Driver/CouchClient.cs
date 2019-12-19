@@ -66,7 +66,7 @@ namespace CouchDB.Driver
         #region CRUD
 
         /// <summary>
-        /// Returns an instance of the CouchDB database with the given name. 
+        /// Returns an instance of the CouchDB database with the given name.
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
@@ -113,7 +113,7 @@ namespace CouchDB.Driver
             }
 
             IFlurlRequest request = NewRequest()
-                .AppendPathSegment(database);
+                .AppendPathSegment(Uri.EscapeDataString(database));
 
             if (shards.HasValue)
             {
@@ -152,13 +152,14 @@ namespace CouchDB.Driver
             }
 
             OperationResult result = await NewRequest()
-                .AppendPathSegment(database)
+                .AppendPathSegment(Uri.EscapeDataString(database))
                 .DeleteAsync()
                 .ReceiveJson<OperationResult>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-            if (!result.Ok) {
+            if (!result.Ok)
+            {
                 throw new CouchException("Something went wrong during the delete.", "S");
             }
         }
@@ -168,7 +169,7 @@ namespace CouchDB.Driver
         #region CRUD reflection
 
         /// <summary>
-        /// Returns an instance of the CouchDB database of the given type. 
+        /// Returns an instance of the CouchDB database of the given type.
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
@@ -179,7 +180,7 @@ namespace CouchDB.Driver
         }
 
         /// <summary>
-        /// Creates a new database of the given type in the server. 
+        /// Creates a new database of the given type in the server.
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
@@ -235,7 +236,7 @@ namespace CouchDB.Driver
         #region Utils
 
         /// <summary>
-        /// Determines whether the server is up, running, and ready to respond to requests. 
+        /// Determines whether the server is up, running, and ready to respond to requests.
         /// </summary>
         /// <returns>true is the server is not in maintenance_mode; otherwise, false.</returns>
         public async Task<bool> IsUpAsync()
@@ -249,7 +250,7 @@ namespace CouchDB.Driver
                     .ConfigureAwait(false);
                 return result.Status == "ok";
             }
-            catch(CouchNotFoundException)
+            catch (CouchNotFoundException)
             {
                 return false;
             }
@@ -305,7 +306,7 @@ namespace CouchDB.Driver
         {
             if (_settings.AuthenticationType == AuthenticationType.Cookie && _settings.LogOutOnDispose)
             {
-                AsyncContext.Run(() => LogoutAsync().ConfigureAwait(false));
+                _ = AsyncContext.Run(() => LogoutAsync().ConfigureAwait(false));
             }
             _flurlClient.Dispose();
         }

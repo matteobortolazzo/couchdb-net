@@ -85,7 +85,7 @@ namespace CouchDB.Driver
         {
             FindResult<T> result = _flurlClient
                 .Request(_connectionString)
-                .AppendPathSegments(_db, "_find")
+                .AppendPathSegments(Uri.EscapeDataString(_db), "_find")
                 .WithHeader("Content-Type", "application/json")
                 .PostStringAsync(body).ReceiveJson<FindResult<T>>()
                 .SendRequest();
@@ -142,7 +142,7 @@ namespace CouchDB.Driver
             MethodInfo queryableMethodInfo = methodCallExpression.Method;
             Expression[] queryableMethodArguments = methodCallExpression.Arguments.ToArray();
 
-            // Since Max and Min are not map 1 to 1 from Queryable to Enumerable 
+            // Since Max and Min are not map 1 to 1 from Queryable to Enumerable
             // they need to be handled differently
             MethodInfo FindEnumerableMethod()
             {
