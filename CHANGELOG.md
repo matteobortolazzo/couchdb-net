@@ -1,4 +1,4 @@
-﻿# 1.1.5 (2019-12-19)
+# 1.1.5 (2019-12-19)
 
 ## Bug Fixes
 * **Database:** Fixing special characters escaping in databases names. ([#PR54](https://github.com/matteobortolazzo/couchdb-net/pull/54))
