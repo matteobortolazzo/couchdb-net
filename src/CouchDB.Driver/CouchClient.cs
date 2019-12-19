@@ -107,13 +107,18 @@ namespace CouchDB.Driver
                 throw new ArgumentNullException(nameof(database));
             }
 
-            if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
+            //if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
+            //{
+            //    throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
+            //}
+
+            if (_systemDatabases.Contains(database))
             {
                 throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
             }
 
             IFlurlRequest request = NewRequest()
-                .AppendPathSegment(Uri.EscapeDataString(database));
+                .AppendPathSegment(database);
 
             if (shards.HasValue)
             {
@@ -152,7 +157,7 @@ namespace CouchDB.Driver
             }
 
             OperationResult result = await NewRequest()
-                .AppendPathSegment(Uri.EscapeDataString(database))
+                .AppendPathSegment(database)
                 .DeleteAsync()
                 .ReceiveJson<OperationResult>()
                 .SendRequestAsync()

@@ -487,7 +487,7 @@ namespace CouchDB.Driver
 
         private IFlurlRequest NewRequest()
         {
-            return _flurlClient.Request(_connectionString).AppendPathSegment(Uri.EscapeDataString(Database));
+            return _flurlClient.Request(_connectionString).AppendPathSegment(Database);
         }
 
         #endregion
