@@ -1,4 +1,13 @@
-﻿# 1.1.3 (2019-06-14)
+﻿# 1.1.5 (2019-12-19)
+
+## Bug Fixes
+* **Database:** Fixing special characters escaping in databases names. ([#PR54](https://github.com/matteobortolazzo/couchdb-net/pull/54))
+
+# 1.1.4 (2019-08-19)
+﻿## Bug Fixes
+* **Queries:** Fixing enums serialized as string instead of int bug. ([#PR49](https://github.com/matteobortolazzo/couchdb-net/pull/49))
+
+# 1.1.3 (2019-06-14)
 
 ## Bug Fixes
 * **Exception:** Fixing null reference exception and poor exception handling. ([#PR45](https://github.com/matteobortolazzo/couchdb-net/pull/45))

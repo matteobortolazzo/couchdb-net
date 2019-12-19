@@ -66,7 +66,7 @@ namespace CouchDB.Driver
         #region CRUD
 
         /// <summary>
-        /// Returns an instance of the CouchDB database with the given name. 
+        /// Returns an instance of the CouchDB database with the given name.
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
@@ -74,10 +74,7 @@ namespace CouchDB.Driver
         /// <returns>An instance of the CouchDB database with given name.</returns>
         public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException(nameof(database));
-            }
+            database = EscapeDatabaseName(database);
 
             if (_settings.CheckDatabaseExists)
             {
@@ -102,15 +99,7 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
         public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException(nameof(database));
-            }
-
-            if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
-            {
-                throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
-            }
+            database = EscapeDatabaseName(database);
 
             IFlurlRequest request = NewRequest()
                 .AppendPathSegment(database);
@@ -119,6 +108,7 @@ namespace CouchDB.Driver
             {
                 request = request.SetQueryParam("q", shards.Value);
             }
+
             if (replicas.HasValue)
             {
                 request = request.SetQueryParam("n", replicas.Value);
@@ -146,10 +136,7 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException(nameof(database));
-            }
+            database = EscapeDatabaseName(database);
 
             OperationResult result = await NewRequest()
                 .AppendPathSegment(database)
@@ -158,7 +145,8 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-            if (!result.Ok) {
+            if (!result.Ok) 
+            {
                 throw new CouchException("Something went wrong during the delete.", "S");
             }
         }
@@ -168,7 +156,7 @@ namespace CouchDB.Driver
         #region CRUD reflection
 
         /// <summary>
-        /// Returns an instance of the CouchDB database of the given type. 
+        /// Returns an instance of the CouchDB database of the given type.
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
@@ -179,7 +167,7 @@ namespace CouchDB.Driver
         }
 
         /// <summary>
-        /// Creates a new database of the given type in the server. 
+        /// Creates a new database of the given type in the server.
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
@@ -235,7 +223,7 @@ namespace CouchDB.Driver
         #region Utils
 
         /// <summary>
-        /// Determines whether the server is up, running, and ready to respond to requests. 
+        /// Determines whether the server is up, running, and ready to respond to requests.
         /// </summary>
         /// <returns>true is the server is not in maintenance_mode; otherwise, false.</returns>
         public async Task<bool> IsUpAsync()
@@ -249,7 +237,7 @@ namespace CouchDB.Driver
                     .ConfigureAwait(false);
                 return result.Status == "ok";
             }
-            catch(CouchNotFoundException)
+            catch (CouchNotFoundException)
             {
                 return false;
             }
@@ -292,6 +280,21 @@ namespace CouchDB.Driver
             return _flurlClient.Request(ConnectionString);
         }
 
+        private string EscapeDatabaseName(string database)
+        {
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
+            {
+                throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
+            }
+
+            return Uri.EscapeDataString(database);
+        }
+
         /// <summary>
         /// Performs the logout and disposes the HTTP client.
         /// </summary>
@@ -305,7 +308,7 @@ namespace CouchDB.Driver
         {
             if (_settings.AuthenticationType == AuthenticationType.Cookie && _settings.LogOutOnDispose)
             {
-                AsyncContext.Run(() => LogoutAsync().ConfigureAwait(false));
+                _ = AsyncContext.Run(() => LogoutAsync().ConfigureAwait(false));
             }
             _flurlClient.Dispose();
         }

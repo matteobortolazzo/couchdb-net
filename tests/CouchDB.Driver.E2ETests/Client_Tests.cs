@@ -43,6 +43,42 @@ namespace CouchDB.Driver.E2E
                 await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
             }
         }
+
+        [Fact]
+        public async Task Crud_SpecialCharacters()
+        {
+            var databaseName = "rebel0_$()+/-";
+
+            using (var client = new CouchClient("http://localhost:5984"))
+            {
+                IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
+                CouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>(databaseName);
+
+                if (dbs.Contains(rebels.Database))
+                {
+                    await client.DeleteDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
+                }
+
+                rebels = await client.CreateDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
+
+                Rebel luke = await rebels.CreateAsync(new Rebel { Name = "Luke", Age = 19 }).ConfigureAwait(false);
+                Assert.Equal("Luke", luke.Name);
+
+                luke.Surname = "Skywalker";
+                luke = await rebels.CreateOrUpdateAsync(luke).ConfigureAwait(false);
+                Assert.Equal("Skywalker", luke.Surname);
+
+                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
+                Assert.Equal(19, luke.Age);
+
+                await rebels.DeleteAsync(luke).ConfigureAwait(false);
+                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
+                Assert.Null(luke);
+
+                await client.DeleteDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
+            }
+        }
+
         [Fact]
         public async Task Users()
         {
