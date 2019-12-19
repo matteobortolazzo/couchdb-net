@@ -142,7 +142,7 @@ namespace CouchDB.Driver
             MethodInfo queryableMethodInfo = methodCallExpression.Method;
             Expression[] queryableMethodArguments = methodCallExpression.Arguments.ToArray();
 
-            // Since Max and Min are not map 1 to 1 from Queryable to Enumerable 
+            // Since Max and Min are not map 1 to 1 from Queryable to Enumerable
             // they need to be handled differently
             MethodInfo FindEnumerableMethod()
             {
