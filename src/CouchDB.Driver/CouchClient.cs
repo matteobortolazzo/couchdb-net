@@ -74,10 +74,7 @@ namespace CouchDB.Driver
         /// <returns>An instance of the CouchDB database with given name.</returns>
         public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException(nameof(database));
-            }
+            database = EscapeDatabaseName(database);
 
             if (_settings.CheckDatabaseExists)
             {
@@ -102,20 +99,7 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
         public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException(nameof(database));
-            }
-
-            //if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
-            //{
-            //    throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
-            //}
-
-            if (_systemDatabases.Contains(database))
-            {
-                throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
-            }
+            database = EscapeDatabaseName(database);
 
             IFlurlRequest request = NewRequest()
                 .AppendPathSegment(database);
@@ -124,6 +108,7 @@ namespace CouchDB.Driver
             {
                 request = request.SetQueryParam("q", shards.Value);
             }
+
             if (replicas.HasValue)
             {
                 request = request.SetQueryParam("n", replicas.Value);
@@ -151,10 +136,7 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException(nameof(database));
-            }
+            database = EscapeDatabaseName(database);
 
             OperationResult result = await NewRequest()
                 .AppendPathSegment(database)
@@ -163,7 +145,7 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-            if (!result.Ok)
+            if (!result.Ok) 
             {
                 throw new CouchException("Something went wrong during the delete.", "S");
             }
@@ -296,6 +278,21 @@ namespace CouchDB.Driver
         private IFlurlRequest NewRequest()
         {
             return _flurlClient.Request(ConnectionString);
+        }
+
+        private string EscapeDatabaseName(string database)
+        {
+            if (database == null)
+            {
+                throw new ArgumentNullException(nameof(database));
+            }
+
+            if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
+            {
+                throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
+            }
+
+            return Uri.EscapeDataString(database);
         }
 
         /// <summary>

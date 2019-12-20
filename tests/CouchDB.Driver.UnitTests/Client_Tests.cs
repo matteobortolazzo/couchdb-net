@@ -2,6 +2,7 @@
 using CouchDB.Driver.Types;
 using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,6 +14,48 @@ namespace CouchDB.Driver.UnitTests
 {
     public class Client_Tests
     {
+        #region Get
+
+        [Fact]
+        public void GetDatabase_CustomCharacterName()
+        {
+            var databaseName = "rebel0_$()+/-";
+
+            using (var httpTest = new HttpTest())
+            {
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    httpTest.RespondWithJson(new { ok = true });
+                    var rebels = client.GetDatabase<Rebel>(databaseName);                    
+                    Assert.Equal(databaseName, rebels.Database);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetDatabase_InvalidCharacters_ThrowsArgumentException()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                // Operation result
+                httpTest.RespondWithJson(new { ok = true });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    Action action = () => client.GetDatabase<Rebel>("rebel.");
+                    var ex = Assert.Throws<ArgumentException>(action);
+                    Assert.Contains("invalid characters", ex.Message);
+                }
+            }
+        }
+
+        #endregion
+
         #region Create
 
         [Fact]
@@ -34,6 +77,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             }
         }
+
         [Fact]
         public async Task CreateDatabase_CustomName()
         {
@@ -50,6 +94,47 @@ namespace CouchDB.Driver.UnitTests
                         .ShouldHaveCalled("http://localhost/some_rebels")
                         .WithVerb(HttpMethod.Put);
                     Assert.Equal("some_rebels", rebels.Database);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task CreateDatabase_CustomCharacterName()
+        {
+            var databaseName = "rebel0_$()+/-";
+
+            using (var httpTest = new HttpTest())
+            {
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    httpTest.RespondWithJson(new { ok = true });
+                    var rebels = await client.CreateDatabaseAsync<Rebel>(databaseName);
+                    httpTest
+                        .ShouldHaveCalled("http://localhost/rebel0_%24%28%29%2B%2F-")
+                        .WithVerb(HttpMethod.Put);
+                    Assert.Equal(databaseName, rebels.Database);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task CreateDatabase_InvalidCharacters_ThrowsArgumentException()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                // Operation result
+                httpTest.RespondWithJson(new { ok = true });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    Func<Task> action = () => client.CreateDatabaseAsync<Rebel>("rebel.");
+                    var ex = await Assert.ThrowsAsync<ArgumentException>(action);
+                    Assert.Contains("invalid characters", ex.Message);
                 }
             }
         }
@@ -77,6 +162,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             }
         }
+
         [Fact]
         public async Task DeleteDatabase_CustomName()
         {
@@ -93,6 +179,45 @@ namespace CouchDB.Driver.UnitTests
                     httpTest
                         .ShouldHaveCalled("http://localhost/some_rebels")
                         .WithVerb(HttpMethod.Delete);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task DeleteDatabase_CustomCharacterName()
+        {            
+            using (var httpTest = new HttpTest())
+            {
+                // Operation result
+                httpTest.RespondWithJson(new { ok = true });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    await client.DeleteDatabaseAsync<Rebel>("rebel0_$()+/-");
+                    httpTest
+                        .ShouldHaveCalled("http://localhost/rebel0_%24%28%29%2B%2F-")
+                        .WithVerb(HttpMethod.Delete);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task DeleteDatabase_InvalidCharacters_ThrowsArgumentException()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                // Operation result
+                httpTest.RespondWithJson(new { ok = true });
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
+                using (var client = new CouchClient("http://localhost"))
+                {
+                    Func<Task> action = () => client.DeleteDatabaseAsync<Rebel>("rebel.");
+                    var ex = await Assert.ThrowsAsync<ArgumentException>(action);
+                    Assert.Contains("invalid characters", ex.Message);
                 }
             }
         }
@@ -118,6 +243,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             }
         }
+
         [Fact]
         public async Task IsNotUp()
         {
@@ -157,6 +283,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             }
         }
+
         [Fact]
         public async Task ActiveTasks()
         {
@@ -180,6 +307,7 @@ namespace CouchDB.Driver.UnitTests
         #endregion
 
         #region Error Handling
+
         [Fact]
         public async Task ConflictException()
         {

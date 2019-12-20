@@ -25,6 +25,7 @@ namespace CouchDB.Driver
         private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
+        private string _database;
 
         /// <summary>
         /// The database name.
@@ -41,9 +42,10 @@ namespace CouchDB.Driver
             _flurlClient = flurlClient ?? throw new ArgumentNullException(nameof(flurlClient));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
-            Database = db ?? throw new ArgumentNullException(nameof(db));
-            _queryProvider = new CouchQueryProvider(flurlClient, _settings, connectionString, Database);
+            _database = db ?? throw new ArgumentNullException(nameof(db));
+            _queryProvider = new CouchQueryProvider(flurlClient, _settings, connectionString, _database);
 
+            Database = Uri.UnescapeDataString(_database);
             Security = new CouchSecurity(NewRequest);
         }
 
@@ -487,7 +489,7 @@ namespace CouchDB.Driver
 
         private IFlurlRequest NewRequest()
         {
-            return _flurlClient.Request(_connectionString).AppendPathSegment(Database);
+            return _flurlClient.Request(_connectionString).AppendPathSegment(_database);
         }
 
         #endregion
