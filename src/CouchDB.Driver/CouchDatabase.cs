@@ -1,4 +1,6 @@
-﻿using CouchDB.Driver.DTOs;
+﻿using System.Net.Http.Headers;
+using System.IO;
+using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
@@ -359,6 +361,125 @@ namespace CouchDB.Driver
 
             document.ProcessSaveResponse(response);
             return document;
+        }
+
+        /// <summary>
+        /// Create a new document with attachment and returns it.
+        /// </summary>
+        /// <param name="document">The document to create. The document type should be CouchDocumentAttachment.</param>
+        /// <param name="batch">Stores document in batch mode.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
+        public async Task<TSource> CreateWithAttachmentAsync(TSource document, bool batch = false)
+        {
+            var documentAttachment = document as CouchDocumentAttachment;
+
+            if (string.IsNullOrEmpty(documentAttachment.Id))
+            {
+                throw new InvalidOperationException("Cannot add or update a document without an ID.");
+            }
+
+            foreach (var attachments in documentAttachment.Attachments)
+            {
+                var fileTobeAttach = attachments.Value.FileTobeAttach;
+                var contentType = attachments.Value.ContentType;
+
+                // do not apply the attachment if don't have file to be attach
+                if (string.IsNullOrEmpty(fileTobeAttach))
+                    continue;
+
+                if (!File.Exists(fileTobeAttach))
+                {
+                    throw new InvalidOperationException($"File {fileTobeAttach} not found.");
+                }
+
+                var contentStream = new StreamContent(
+                    new FileStream(attachments.Value.FileTobeAttach, FileMode.Open));
+
+                // apply the content type if defined
+                if (!string.IsNullOrEmpty(contentType))
+                {
+                    contentStream.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+                }
+
+                IFlurlRequest request =
+                    NewRequest()
+                    .AppendPathSegment(documentAttachment.Id)
+                    .AppendPathSegment(attachments.Key,
+                        true);
+
+                if (!string.IsNullOrEmpty(documentAttachment.Rev))
+                {
+                    request.SetQueryParam("rev", documentAttachment.Rev);
+                }
+
+                if (batch)
+                {
+                    request = request.SetQueryParam("batch", "ok");
+                }
+
+                DocumentSaveResponse response = await request
+                    .PutAsync(contentStream)
+                    .ReceiveJson<DocumentSaveResponse>()
+                    .SendRequestAsync()
+                    .ConfigureAwait(false);
+
+                document.ProcessSaveResponse(response);
+            }
+
+            return documentAttachment as TSource;
+        }
+
+        /// <summary>
+        /// Deletes attachment the document with the given attachment ID.
+        /// </summary>
+        /// <param name="document">The document to delete.</param>
+        /// <param name="batch">Stores document in batch mode.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        public async Task DeleteAttachmentAsync(TSource document, bool batch = false)
+        {
+            var documentAttachment = document as CouchDocumentAttachment;
+
+            if (string.IsNullOrEmpty(documentAttachment.Id))
+            {
+                throw new InvalidOperationException("Cannot add or update a document without an ID.");
+            }
+
+            List<string> errorMsg = new List<string>();
+
+            foreach (var attachments in documentAttachment.Attachments)
+            {
+                IFlurlRequest request =
+                    NewRequest()
+                    .AppendPathSegment(documentAttachment.Id)
+                    .AppendPathSegment(attachments.Key,
+                        true);
+
+                if (!string.IsNullOrEmpty(documentAttachment.Rev))
+                {
+                    request.SetQueryParam("rev", documentAttachment.Rev);
+                }
+
+                if (batch)
+                {
+                    request = request.SetQueryParam("batch", "ok");
+                }
+
+                OperationResult result = await request
+                    .DeleteAsync()
+                    .SendRequestAsync()
+                    .ReceiveJson<OperationResult>()
+                    .ConfigureAwait(false);
+
+                if (!result.Ok)
+                {
+                    errorMsg.Add(attachments.Key);
+                }
+            }
+
+            if (errorMsg.Any())
+            {
+                throw new CouchDeleteException($"Went wrong when delete this files: {string.Join(", ", errorMsg.ToArray())}");
+            }
         }
 
         /// <summary>

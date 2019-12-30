@@ -145,7 +145,7 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-            if (!result.Ok) 
+            if (!result.Ok)
             {
                 throw new CouchException("Something went wrong during the delete.", "S");
             }
