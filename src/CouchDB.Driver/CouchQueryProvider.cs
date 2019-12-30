@@ -85,7 +85,7 @@ namespace CouchDB.Driver
         {
             FindResult<T> result = _flurlClient
                 .Request(_connectionString)
-                .AppendPathSegments(Uri.EscapeDataString(_db), "_find")
+                .AppendPathSegments(_db, "_find")
                 .WithHeader("Content-Type", "application/json")
                 .PostStringAsync(body).ReceiveJson<FindResult<T>>()
                 .SendRequest();
