@@ -14,7 +14,7 @@ namespace CouchDB.Driver.Types
     {
         public CouchDocument()
         {
-            Conflicts = new List<string>();
+            _conflicts = new List<string>();
         }
 
         /// <summary>
@@ -43,7 +43,10 @@ namespace CouchDB.Driver.Types
 
         [DataMember]
         [JsonProperty("_conflicts")]
-        public List<string> Conflicts { get; set; }
+        private List<string> _conflicts;
+
+        [JsonIgnore]
+        public IReadOnlyCollection<string> Conflicts => _conflicts.AsReadOnly();
     }
 
     internal static class CouchDocumentExtensions
