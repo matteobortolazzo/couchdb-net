@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Mime;
 using System.Runtime.Serialization;
-using CouchDB.Driver.DTOs;
-using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
@@ -15,6 +14,8 @@ namespace CouchDB.Driver.Types
         public CouchDocument()
         {
             _conflicts = new List<string>();
+            _attachments = new Dictionary<string, CouchAttachment>();
+            Attachments = new CouchAttachmentsCollection();
         }
 
         /// <summary>
@@ -47,19 +48,19 @@ namespace CouchDB.Driver.Types
 
         [JsonIgnore]
         public IReadOnlyCollection<string> Conflicts => _conflicts.AsReadOnly();
-    }
 
-    internal static class CouchDocumentExtensions
-    {
-        public static void ProcessSaveResponse(this CouchDocument item, DocumentSaveResponse response)
+        [DataMember]
+        [JsonProperty("_attachments")]
+        private Dictionary<string, CouchAttachment> _attachments;
+        public CouchAttachmentsCollection Attachments { get; internal set; }
+
+        [OnDeserialized]
+        internal void InitializeAttachments()
         {
-            if (!response.Ok)
+            if (_attachments != null && _attachments.Count > 0)
             {
-                throw new CouchException(response.Error, response.Reason);
+                Attachments = new CouchAttachmentsCollection(_attachments);
             }
-
-            item.Id = response.Id;
-            item.Rev = response.Rev;
         }
     }
 }
