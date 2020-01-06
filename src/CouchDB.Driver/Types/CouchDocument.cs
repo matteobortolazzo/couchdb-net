@@ -52,10 +52,12 @@ namespace CouchDB.Driver.Types
         [DataMember]
         [JsonProperty("_attachments")]
         private Dictionary<string, CouchAttachment> _attachments;
+
+        [JsonIgnore]
         public CouchAttachmentsCollection Attachments { get; internal set; }
 
         [OnDeserialized]
-        internal void InitializeAttachments()
+        internal void OnDeserializedMethod(StreamingContext context)
         {
             if (_attachments != null && _attachments.Count > 0)
             {

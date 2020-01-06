@@ -7,7 +7,7 @@ namespace CouchDB.Driver.Types
 {
     public class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
     {
-        private Dictionary<string, CouchAttachment> _attachments;
+        internal Dictionary<string, CouchAttachment> _attachments;
 
         internal CouchAttachmentsCollection() 
         {
@@ -23,19 +23,32 @@ namespace CouchDB.Driver.Types
             }
         }
 
-        public void Add(FileInfo fileInfo, string contentType)
+        public void AddOrUpdate(FileInfo fileInfo)
         {
-            Add(fileInfo.Name, fileInfo, contentType);
+            AddOrUpdate(fileInfo.Name, fileInfo, null);
         }
 
-        public void Add(string attachmentName, FileInfo fileInfo, string contentType)
+        public void AddOrUpdate(string attachmentName, FileInfo fileInfo)
         {
-            _attachments.Add(attachmentName, new CouchAttachment
+            AddOrUpdate(attachmentName, fileInfo, null);
+        }
+
+        public void AddOrUpdate(FileInfo fileInfo, string contentType)
+        {
+            AddOrUpdate(fileInfo.Name, fileInfo, contentType);
+        }
+
+        public void AddOrUpdate(string attachmentName, FileInfo fileInfo, string contentType)
+        {
+            if (!_attachments.ContainsKey(attachmentName))
             {
-                Name = attachmentName,
-                ContentType = contentType,
-                FileInfo = fileInfo
-            });
+                _attachments.Add(attachmentName, new CouchAttachment());
+            }
+
+            var attachment = _attachments[attachmentName];
+            attachment.Name = attachmentName;
+            attachment.FileInfo = fileInfo;
+            attachment.ContentType = contentType;
         }
 
         public void Delete(string attachmentName)

@@ -8,6 +8,7 @@ using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -228,10 +229,13 @@ namespace CouchDB.Driver
                     request = request.SetQueryParam("conflicts", true);
                 }
 
-                return await request
+                TSource document = await request
                     .GetJsonAsync<TSource>()
                     .SendRequestAsync()
                     .ConfigureAwait(false);
+
+                SetAttachmentUri(document);
+                return document;
             }
             catch (CouchNotFoundException)
             {
@@ -274,7 +278,14 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-            return findResult.Docs.ToList();
+            var documents = findResult.Docs.ToList();
+
+            foreach (TSource document in documents)
+            {
+                SetAttachmentUri(document);
+            }
+
+            return documents;
         }
 
         /// Finds all documents with given IDs.
@@ -291,8 +302,27 @@ namespace CouchDB.Driver
                 }).ReceiveJson<BulkGetResult<TSource>>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
+                       
+            var documents = bulkGetResult.Results
+                .SelectMany(r => r.Docs)
+                .Select(d => d.Item)
+                .ToList();
 
-            return bulkGetResult.Results.SelectMany(r => r.Docs).Select(d => d.Item).ToList();
+            foreach (TSource document in documents)
+            {
+                SetAttachmentUri(document);
+            }
+
+            return documents;
+        }
+
+        private void SetAttachmentUri(TSource document)
+        {
+            foreach (var attachment in document.Attachments._attachments)
+            {
+                var path = $"{_connectionString}/{_database}/{document.Id}/{Uri.EscapeUriString(attachment.Key)}";
+                attachment.Value.Uri = new Uri(path);
+            }
         }
 
         #endregion
@@ -325,8 +355,11 @@ namespace CouchDB.Driver
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
-
             document.ProcessSaveResponse(response);
+
+            await UpdateAttachments(document)
+                .ConfigureAwait(false);
+
             return document;
         }
 
@@ -356,8 +389,11 @@ namespace CouchDB.Driver
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
-
             document.ProcessSaveResponse(response);
+
+            await UpdateAttachments(document)
+                .ConfigureAwait(false);
+
             return document;
         }
 
@@ -410,6 +446,9 @@ namespace CouchDB.Driver
             foreach ((TSource document, DocumentSaveResponse saveResponse) in zipped)
             {
                 document.ProcessSaveResponse(saveResponse);
+
+                await UpdateAttachments(document)
+                    .ConfigureAwait(false);
             }
 
             return documents;
@@ -432,6 +471,50 @@ namespace CouchDB.Driver
             if (!result.Ok)
             {
                 throw new CouchException("Something wrong happend while ensuring full commits.");
+            }
+        }
+
+        private async Task UpdateAttachments(TSource document)
+        {
+            var toAddUpdate = document.Attachments._attachments
+                .Where(kv => kv.Value.FileInfo != null)
+                .Select(kv => kv.Value)
+                .ToArray();
+            foreach (CouchAttachment attachment in toAddUpdate)
+            {
+                var stream = new StreamContent(
+                    new FileStream(attachment.FileInfo.FullName, FileMode.Open));
+
+                var contentType = attachment.ContentType ?? stream.Headers.ContentType?.MediaType;
+
+                if (contentType == null)
+                {
+                    throw new InvalidOperationException("Content type cannot be null.");
+                }
+
+                await NewRequest()
+                    .AppendPathSegment(document.Id)
+                    .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
+                    .WithHeader("Content-Type", contentType)
+                    .WithHeader("If-Match", document.Rev)
+                    .PutAsync(stream)
+                    .ConfigureAwait(false);
+                attachment.FileInfo = null;
+            }
+
+            var toDelete = document.Attachments._attachments
+                .Where(kv => kv.Value.Deleted)
+                .Select(kv => kv.Value)
+                .ToArray();
+            foreach (CouchAttachment attachment in toDelete)
+            {
+                await NewRequest()
+                    .AppendPathSegment(document.Id)
+                    .AppendPathSegment(attachment.Name)
+                    .WithHeader("If-Match", document.Rev)
+                    .DeleteAsync()
+                    .ConfigureAwait(false);
+                document.Attachments._attachments.Remove(attachment.Name);
             }
         }
 

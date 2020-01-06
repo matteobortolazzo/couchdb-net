@@ -32,7 +32,7 @@ namespace CouchDB.Driver.UnitTests
         public void AddedAttachment_ShouldBeInList()
         {
             var r = new Rebel { Name = "Luke" };
-            r.Attachments.Add(new FileInfo("luke.txt"), MediaTypeNames.Text.Plain);
+            r.Attachments.AddOrUpdate(new FileInfo("luke.txt"), MediaTypeNames.Text.Plain);
             Assert.NotEmpty(r.Attachments);
         }
 
@@ -40,7 +40,7 @@ namespace CouchDB.Driver.UnitTests
         public void RemovedAttachment_ShouldBeNotInList()
         {
             var r = new Rebel { Name = "Luke" };
-            r.Attachments.Add(new FileInfo("luke.txt"), MediaTypeNames.Text.Plain);
+            r.Attachments.AddOrUpdate(new FileInfo("luke.txt"), MediaTypeNames.Text.Plain);
             r.Attachments.Delete("luke.txt");
             Assert.Empty(r.Attachments);
 

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
@@ -13,7 +14,10 @@ namespace CouchDB.Driver.Types
         internal bool Deleted { get; set; }
 
         [JsonIgnore]
-        public string Name { get; set; }
+        public string Name { get; internal set; }
+
+        [JsonIgnore]
+        public Uri Uri { get; internal set; }
 
         [DataMember]
         [JsonProperty("content_type")]
