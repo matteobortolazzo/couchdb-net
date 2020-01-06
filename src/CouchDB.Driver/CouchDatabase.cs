@@ -234,7 +234,7 @@ namespace CouchDB.Driver
                     .SendRequestAsync()
                     .ConfigureAwait(false);
 
-                SetAttachmentUri(document);
+                InitAttachments(document);
                 return document;
             }
             catch (CouchNotFoundException)
@@ -282,7 +282,7 @@ namespace CouchDB.Driver
 
             foreach (TSource document in documents)
             {
-                SetAttachmentUri(document);
+                InitAttachments(document);
             }
 
             return documents;
@@ -310,18 +310,20 @@ namespace CouchDB.Driver
 
             foreach (TSource document in documents)
             {
-                SetAttachmentUri(document);
+                InitAttachments(document);
             }
 
             return documents;
         }
 
-        private void SetAttachmentUri(TSource document)
+        private void InitAttachments(TSource document)
         {
-            foreach (var attachment in document.Attachments._attachments)
+            foreach (CouchAttachment attachment in document.Attachments)
             {
-                var path = $"{_connectionString}/{_database}/{document.Id}/{Uri.EscapeUriString(attachment.Key)}";
-                attachment.Value.Uri = new Uri(path);
+                attachment.DocumentId = document.Id;
+                attachment.DocumentRev = document.Rev;
+                var path = $"{_connectionString}/{_database}/{document.Id}/{Uri.EscapeUriString(attachment.Name)}";
+                attachment.Uri = new Uri(path);
             }
         }
 
@@ -485,17 +487,10 @@ namespace CouchDB.Driver
                 var stream = new StreamContent(
                     new FileStream(attachment.FileInfo.FullName, FileMode.Open));
 
-                var contentType = attachment.ContentType ?? stream.Headers.ContentType?.MediaType;
-
-                if (contentType == null)
-                {
-                    throw new InvalidOperationException("Content type cannot be null.");
-                }
-
                 await NewRequest()
                     .AppendPathSegment(document.Id)
                     .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
-                    .WithHeader("Content-Type", contentType)
+                    .WithHeader("Content-Type", attachment.ContentType)
                     .WithHeader("If-Match", document.Rev)
                     .PutAsync(stream)
                     .ConfigureAwait(false);
@@ -516,11 +511,36 @@ namespace CouchDB.Driver
                     .ConfigureAwait(false);
                 document.Attachments._attachments.Remove(attachment.Name);
             }
+
+            InitAttachments(document);
         }
 
         #endregion
 
         #region Utils
+
+        /// <summary>
+        ///  Asynchronously downloads a specific attachment.
+        /// </summary>
+        /// <param name="attachment">The attachment to download.</param>
+        /// <param name="localFolderPath">Path of local folder where file is to be downloaded.</param>
+        /// <param name="localFileName">Name of local file. If not specified, the source filename (from Content-Dispostion header, or last segment of the URL) is used.</param>
+        /// <param name="bufferSize">Buffer size in bytes. Default is 4096.</param>
+        /// <returns>The path of the downloaded file.</returns>
+        public async Task<string> DownloadAttachment(CouchAttachment attachment, string localFolderPath, string localFileName = null, int bufferSize = 4096)
+        {
+            if (attachment.Uri == null)
+            {
+                throw new InvalidOperationException("The attachment is not uploaded yet.");
+            }
+
+            return await NewRequest()
+                .AppendPathSegment(attachment.DocumentId)
+                .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
+                .WithHeader("If-Match", attachment.DocumentRev)
+                .DownloadFileAsync(localFolderPath, localFileName, bufferSize)
+                .ConfigureAwait(false); ;
+        }
 
         /// <summary>
         /// Requests compaction of the specified database.

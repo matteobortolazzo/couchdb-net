@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -123,21 +124,26 @@ namespace CouchDB.Driver.E2E
                 rebels = await client.CreateDatabaseAsync<Rebel>().ConfigureAwait(false);
 
                 var luke = new Rebel { Name = "Luke", Age = 19 };
-                luke.Attachments.AddOrUpdate(new FileInfo(@"C:\Users\servi\Downloads\luke.txt"), "text/plain");
+                var runningPath = Directory.GetCurrentDirectory();
+
+                luke.Attachments.AddOrUpdate($@"{runningPath}\Assets\luke.txt", MediaTypeNames.Text.Plain);
                 luke = await rebels.CreateAsync(luke).ConfigureAwait(false);
                 
                 Assert.Equal("Luke", luke.Name);
+                Assert.NotEmpty(luke.Attachments);
+
+                CouchAttachment attachment = luke.Attachments.First();
+                Assert.NotNull(attachment);
+                Assert.NotNull(attachment.Uri);
+
+                var downloadFilePath = await rebels.DownloadAttachment(attachment, $@"{runningPath}\Assets", "luke-downloaded.txt");
+
+                Assert.True(File.Exists(downloadFilePath));
+                File.Delete(downloadFilePath);
 
                 //luke.Surname = "Skywalker";
                 //luke = await rebels.CreateOrUpdateAsync(luke).ConfigureAwait(false);
                 //Assert.Equal("Skywalker", luke.Surname);
-
-                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
-                Assert.Equal(19, luke.Age);
-
-                await rebels.DeleteAsync(luke).ConfigureAwait(false);
-                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
-                Assert.Null(luke);
 
                 await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
             }

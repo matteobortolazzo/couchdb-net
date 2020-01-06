@@ -8,6 +8,12 @@ namespace CouchDB.Driver.Types
     public class CouchAttachment
     {
         [JsonIgnore]
+        internal string DocumentId { get; set; }
+
+        [JsonIgnore]
+        internal string DocumentRev { get; set; }
+
+        [JsonIgnore]
         internal FileInfo FileInfo { get; set; }
 
         [JsonIgnore]

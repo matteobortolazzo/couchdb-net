@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,23 +24,16 @@ namespace CouchDB.Driver.Types
             }
         }
 
-        public void AddOrUpdate(FileInfo fileInfo)
+        public void AddOrUpdate(string path, string contentType)
         {
-            AddOrUpdate(fileInfo.Name, fileInfo, null);
+            var info = GetFileInfo(path, contentType);
+            AddOrUpdate(info.Name, path, contentType);
         }
 
-        public void AddOrUpdate(string attachmentName, FileInfo fileInfo)
+        public void AddOrUpdate(string attachmentName, string path, string contentType)
         {
-            AddOrUpdate(attachmentName, fileInfo, null);
-        }
+            var info = GetFileInfo(path, contentType);
 
-        public void AddOrUpdate(FileInfo fileInfo, string contentType)
-        {
-            AddOrUpdate(fileInfo.Name, fileInfo, contentType);
-        }
-
-        public void AddOrUpdate(string attachmentName, FileInfo fileInfo, string contentType)
-        {
             if (!_attachments.ContainsKey(attachmentName))
             {
                 _attachments.Add(attachmentName, new CouchAttachment());
@@ -47,7 +41,7 @@ namespace CouchDB.Driver.Types
 
             var attachment = _attachments[attachmentName];
             attachment.Name = attachmentName;
-            attachment.FileInfo = fileInfo;
+            attachment.FileInfo = info;
             attachment.ContentType = contentType;
         }
 
@@ -73,6 +67,24 @@ namespace CouchDB.Driver.Types
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        private static FileInfo GetFileInfo(string path, string contentType)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+            if (string.IsNullOrEmpty(contentType))
+            {
+                throw new ArgumentNullException(nameof(contentType));
+            }
+            if (!File.Exists(path))
+            {
+                throw new InvalidOperationException($"File does not exists: {path}");
+            }
+
+            return new FileInfo(path);
         }
     }
 }
