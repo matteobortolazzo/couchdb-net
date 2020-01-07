@@ -478,38 +478,42 @@ namespace CouchDB.Driver
 
         private async Task UpdateAttachments(TSource document)
         {
-            var toAddUpdate = document.Attachments._attachments
-                .Where(kv => kv.Value.FileInfo != null)
-                .Select(kv => kv.Value)
-                .ToArray();
-            foreach (CouchAttachment attachment in toAddUpdate)
+            foreach (CouchAttachment attachment in document.Attachments.GetAddedAttachments())
             {
                 var stream = new StreamContent(
                     new FileStream(attachment.FileInfo.FullName, FileMode.Open));
 
-                await NewRequest()
+                AttachmentResult response = await NewRequest()
                     .AppendPathSegment(document.Id)
                     .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                     .WithHeader("Content-Type", attachment.ContentType)
                     .WithHeader("If-Match", document.Rev)
                     .PutAsync(stream)
+                    .ReceiveJson<AttachmentResult>()
                     .ConfigureAwait(false);
-                attachment.FileInfo = null;
+
+                if (response.Ok)
+                {
+                    document.Rev = response.Rev;
+                    attachment.FileInfo = null;
+                }
             }
 
-            var toDelete = document.Attachments._attachments
-                .Where(kv => kv.Value.Deleted)
-                .Select(kv => kv.Value)
-                .ToArray();
-            foreach (CouchAttachment attachment in toDelete)
+            foreach (CouchAttachment attachment in document.Attachments.GetDeletedAttachments())
             {
-                await NewRequest()
+                AttachmentResult response = await NewRequest()
                     .AppendPathSegment(document.Id)
                     .AppendPathSegment(attachment.Name)
                     .WithHeader("If-Match", document.Rev)
                     .DeleteAsync()
+                    .ReceiveJson<AttachmentResult>()
                     .ConfigureAwait(false);
-                document.Attachments._attachments.Remove(attachment.Name);
+
+                if (response.Ok)
+                {
+                    document.Rev = response.Rev;
+                    document.Attachments.RemoveAttachment(attachment);
+                }                
             }
 
             InitAttachments(document);
@@ -539,7 +543,7 @@ namespace CouchDB.Driver
                 .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                 .WithHeader("If-Match", attachment.DocumentRev)
                 .DownloadFileAsync(localFolderPath, localFileName, bufferSize)
-                .ConfigureAwait(false); ;
+                .ConfigureAwait(false); 
         }
 
         /// <summary>

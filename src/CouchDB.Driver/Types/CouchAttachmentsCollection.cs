@@ -8,7 +8,7 @@ namespace CouchDB.Driver.Types
 {
     public class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
     {
-        internal Dictionary<string, CouchAttachment> _attachments;
+        private Dictionary<string, CouchAttachment> _attachments;
 
         internal CouchAttachmentsCollection() 
         {
@@ -26,20 +26,20 @@ namespace CouchDB.Driver.Types
 
         public void AddOrUpdate(string path, string contentType)
         {
-            var info = GetFileInfo(path, contentType);
+            FileInfo info = GetFileInfo(path, contentType);
             AddOrUpdate(info.Name, path, contentType);
         }
 
         public void AddOrUpdate(string attachmentName, string path, string contentType)
         {
-            var info = GetFileInfo(path, contentType);
+            FileInfo info = GetFileInfo(path, contentType);
 
             if (!_attachments.ContainsKey(attachmentName))
             {
                 _attachments.Add(attachmentName, new CouchAttachment());
             }
 
-            var attachment = _attachments[attachmentName];
+            CouchAttachment attachment = _attachments[attachmentName];
             attachment.Name = attachmentName;
             attachment.FileInfo = info;
             attachment.ContentType = contentType;
@@ -47,7 +47,7 @@ namespace CouchDB.Driver.Types
 
         public void Delete(string attachmentName)
         {
-            var attachment = _attachments[attachmentName];
+            CouchAttachment attachment = _attachments[attachmentName];
             attachment.Deleted = true;
         }
 
@@ -67,6 +67,27 @@ namespace CouchDB.Driver.Types
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        internal CouchAttachment[] GetAddedAttachments()
+        {
+            return _attachments
+                .Where(kv => kv.Value.FileInfo != null)
+                .Select(kv => kv.Value)
+                .ToArray();
+        }
+
+        internal CouchAttachment[] GetDeletedAttachments()
+        {
+            return _attachments
+                .Where(kv => kv.Value.Deleted)
+                .Select(kv => kv.Value)
+                .ToArray();
+        }
+
+        internal void RemoveAttachment(CouchAttachment attachment)
+        {
+            _ = _attachments.Remove(attachment.Name);
         }
 
         private static FileInfo GetFileInfo(string path, string contentType)

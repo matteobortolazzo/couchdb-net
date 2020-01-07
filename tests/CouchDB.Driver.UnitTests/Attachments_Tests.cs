@@ -59,6 +59,13 @@ namespace CouchDB.Driver.UnitTests
                     }
                 });
 
+                httpTest.RespondWithJson(new
+                {
+                    Id = "1",
+                    Ok = true,
+                    Rev = "xxx2",
+                });
+
                 var r = new Rebel { Id = "1", Name = "Luke" };
                 r.Attachments.AddOrUpdate("Assets/luke.txt", MediaTypeNames.Text.Plain);
                 

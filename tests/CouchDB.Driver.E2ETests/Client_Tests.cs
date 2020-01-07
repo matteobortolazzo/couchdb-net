@@ -141,9 +141,9 @@ namespace CouchDB.Driver.E2E
                 Assert.True(File.Exists(downloadFilePath));
                 File.Delete(downloadFilePath);
 
-                //luke.Surname = "Skywalker";
-                //luke = await rebels.CreateOrUpdateAsync(luke).ConfigureAwait(false);
-                //Assert.Equal("Skywalker", luke.Surname);
+                luke.Surname = "Skywalker";
+                luke = await rebels.CreateOrUpdateAsync(luke).ConfigureAwait(false);
+                Assert.Equal("Skywalker", luke.Surname);
 
                 await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
             }
