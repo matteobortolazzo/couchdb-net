@@ -26,7 +26,7 @@ namespace CouchDB.Driver
         private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
-        private string _database;
+        private readonly string _database;
 
         /// <summary>
         /// The database name.

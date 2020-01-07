@@ -8,7 +8,7 @@ namespace CouchDB.Driver.Types
 {
     public class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
     {
-        private Dictionary<string, CouchAttachment> _attachments;
+        private readonly Dictionary<string, CouchAttachment> _attachments;
 
         internal CouchAttachmentsCollection() 
         {
@@ -18,7 +18,7 @@ namespace CouchDB.Driver.Types
         internal CouchAttachmentsCollection(Dictionary<string, CouchAttachment> attachments)
         {
             _attachments = attachments;
-            foreach (var item in _attachments)
+            foreach (KeyValuePair<string, CouchAttachment> item in _attachments)
             {
                 item.Value.Name = item.Key;
             }

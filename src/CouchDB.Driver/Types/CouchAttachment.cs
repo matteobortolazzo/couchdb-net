@@ -28,5 +28,13 @@ namespace CouchDB.Driver.Types
         [DataMember]
         [JsonProperty("content_type")]
         public string ContentType { get; set; }
+
+        [DataMember]
+        [JsonProperty("digest")]
+        public string Digest { get; private set; }
+
+        [DataMember]
+        [JsonProperty("length")]
+        public int? Length { get; private set; }
     }
 }

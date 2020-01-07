@@ -44,14 +44,23 @@ namespace CouchDB.Driver.Types
 
         [DataMember]
         [JsonProperty("_conflicts")]
-        private List<string> _conflicts;
+        private readonly List<string> _conflicts;
 
         [JsonIgnore]
         public IReadOnlyCollection<string> Conflicts => _conflicts.AsReadOnly();
 
+
+#pragma warning disable IDE0051 // Remove unused private members
+        // This must be Deserilizable-only field
+        [JsonIgnore]
+        private Dictionary<string, CouchAttachment> _attachments;
         [DataMember]
         [JsonProperty("_attachments")]
-        private Dictionary<string, CouchAttachment> _attachments;
+        private Dictionary<string, CouchAttachment> AttachmentsSetter
+        {
+            set { _attachments = value; }
+        }
+#pragma warning restore IDE0051 // Remove unused private members
 
         [JsonIgnore]
         public CouchAttachmentsCollection Attachments { get; internal set; }
