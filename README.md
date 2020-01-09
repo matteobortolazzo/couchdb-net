@@ -345,6 +345,37 @@ public class OtherRebel : Rebel
 public DateTime BirthDate { get; set; }
 ```
 
+## Attachments
+
+The driver fully support attachments, you can list, create, delete and download them.
+
+```csharp
+// Get a document
+var luke = new Rebel { Name = "Luke", Age = 19 };
+
+// Add in memory
+var pathToDocument = @".\luke.txt"
+luke.Attachments.AddOrUpdate(pathToDocument, MediaTypeNames.Text.Plain);
+
+// Delete in memory
+luke.Attachments.Delete("yoda.txt");
+
+// Save
+luke = await rebels.CreateOrUpdateAsync(luke);
+
+// Get
+CouchAttachment lukeTxt = luke.Attachments["luke.txt"];
+
+// Iterate
+foreach (CouchAttachment attachment in luke.Attachments)
+{ 
+  ...
+}
+
+// Download
+string downloadFilePath = await rebels.DownloadAttachment(attachment, downloadFolderPath, "luke-downloaded.txt");
+```
+
 ## Advanced
 
 If requests have to be modified before each call, it's possible to override OnBeforeCall.
