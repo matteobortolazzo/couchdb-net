@@ -1,3 +1,8 @@
+# 1.2.0 (2020-01-24)
+
+## Features
+* **Attachments:** Adds support for attachments. ([#PR56](https://github.com/matteobortolazzo/couchdb-net/pull/56))
+
 # 1.1.5 (2019-12-19)
 
 ## Bug Fixes
