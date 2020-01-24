@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Mime;
 using System.Runtime.Serialization;
-using CouchDB.Driver.DTOs;
-using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
@@ -14,7 +13,9 @@ namespace CouchDB.Driver.Types
     {
         public CouchDocument()
         {
-            Conflicts = new List<string>();
+            _conflicts = new List<string>();
+            _attachments = new Dictionary<string, CouchAttachment>();
+            Attachments = new CouchAttachmentsCollection();
         }
 
         /// <summary>
@@ -43,20 +44,34 @@ namespace CouchDB.Driver.Types
 
         [DataMember]
         [JsonProperty("_conflicts")]
-        public List<string> Conflicts { get; set; }
-    }
+        private readonly List<string> _conflicts;
 
-    internal static class CouchDocumentExtensions
-    {
-        public static void ProcessSaveResponse(this CouchDocument item, DocumentSaveResponse response)
+        [JsonIgnore]
+        public IReadOnlyCollection<string> Conflicts => _conflicts.AsReadOnly();
+
+
+#pragma warning disable IDE0051 // Remove unused private members
+        // This must be Deserilizable-only field
+        [JsonIgnore]
+        private Dictionary<string, CouchAttachment> _attachments;
+        [DataMember]
+        [JsonProperty("_attachments")]
+        private Dictionary<string, CouchAttachment> AttachmentsSetter
         {
-            if (!response.Ok)
-            {
-                throw new CouchException(response.Error, response.Reason);
-            }
+            set { _attachments = value; }
+        }
+#pragma warning restore IDE0051 // Remove unused private members
 
-            item.Id = response.Id;
-            item.Rev = response.Rev;
+        [JsonIgnore]
+        public CouchAttachmentsCollection Attachments { get; internal set; }
+
+        [OnDeserialized]
+        internal void OnDeserializedMethod(StreamingContext context)
+        {
+            if (_attachments != null && _attachments.Count > 0)
+            {
+                Attachments = new CouchAttachmentsCollection(_attachments);
+            }
         }
     }
 }

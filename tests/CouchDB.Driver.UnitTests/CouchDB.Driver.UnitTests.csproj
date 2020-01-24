@@ -23,4 +23,14 @@
     <ProjectReference Include="..\..\src\CouchDB.Driver\CouchDB.Driver.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Assets\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\luke.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

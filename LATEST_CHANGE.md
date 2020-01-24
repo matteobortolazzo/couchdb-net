@@ -1,2 +1,2 @@
-﻿## Bug Fixes
-* **Database:** Fixing special characters escaping in databases names. ([#PR54](https://github.com/matteobortolazzo/couchdb-net/pull/54))
+﻿## Features
+* **Attachments:** Adds support for attachments. ([#PR56](https://github.com/matteobortolazzo/couchdb-net/pull/56))
