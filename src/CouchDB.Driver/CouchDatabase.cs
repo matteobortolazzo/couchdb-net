@@ -8,6 +8,7 @@ using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -25,7 +26,7 @@ namespace CouchDB.Driver
         private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
         private readonly string _connectionString;
-        private string _database;
+        private readonly string _database;
 
         /// <summary>
         /// The database name.
@@ -228,10 +229,13 @@ namespace CouchDB.Driver
                     request = request.SetQueryParam("conflicts", true);
                 }
 
-                return await request
+                TSource document = await request
                     .GetJsonAsync<TSource>()
                     .SendRequestAsync()
                     .ConfigureAwait(false);
+
+                InitAttachments(document);
+                return document;
             }
             catch (CouchNotFoundException)
             {
@@ -274,7 +278,14 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-            return findResult.Docs.ToList();
+            var documents = findResult.Docs.ToList();
+
+            foreach (TSource document in documents)
+            {
+                InitAttachments(document);
+            }
+
+            return documents;
         }
 
         /// Finds all documents with given IDs.
@@ -291,8 +302,29 @@ namespace CouchDB.Driver
                 }).ReceiveJson<BulkGetResult<TSource>>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
+                       
+            var documents = bulkGetResult.Results
+                .SelectMany(r => r.Docs)
+                .Select(d => d.Item)
+                .ToList();
 
-            return bulkGetResult.Results.SelectMany(r => r.Docs).Select(d => d.Item).ToList();
+            foreach (TSource document in documents)
+            {
+                InitAttachments(document);
+            }
+
+            return documents;
+        }
+
+        private void InitAttachments(TSource document)
+        {
+            foreach (CouchAttachment attachment in document.Attachments)
+            {
+                attachment.DocumentId = document.Id;
+                attachment.DocumentRev = document.Rev;
+                var path = $"{_connectionString}/{_database}/{document.Id}/{Uri.EscapeUriString(attachment.Name)}";
+                attachment.Uri = new Uri(path);
+            }
         }
 
         #endregion
@@ -325,8 +357,11 @@ namespace CouchDB.Driver
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
-
             document.ProcessSaveResponse(response);
+
+            await UpdateAttachments(document)
+                .ConfigureAwait(false);
+
             return document;
         }
 
@@ -356,8 +391,11 @@ namespace CouchDB.Driver
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
-
             document.ProcessSaveResponse(response);
+
+            await UpdateAttachments(document)
+                .ConfigureAwait(false);
+
             return document;
         }
 
@@ -410,6 +448,9 @@ namespace CouchDB.Driver
             foreach ((TSource document, DocumentSaveResponse saveResponse) in zipped)
             {
                 document.ProcessSaveResponse(saveResponse);
+
+                await UpdateAttachments(document)
+                    .ConfigureAwait(false);
             }
 
             return documents;
@@ -435,9 +476,75 @@ namespace CouchDB.Driver
             }
         }
 
+        private async Task UpdateAttachments(TSource document)
+        {
+            foreach (CouchAttachment attachment in document.Attachments.GetAddedAttachments())
+            {
+                var stream = new StreamContent(
+                    new FileStream(attachment.FileInfo.FullName, FileMode.Open));
+
+                AttachmentResult response = await NewRequest()
+                    .AppendPathSegment(document.Id)
+                    .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
+                    .WithHeader("Content-Type", attachment.ContentType)
+                    .WithHeader("If-Match", document.Rev)
+                    .PutAsync(stream)
+                    .ReceiveJson<AttachmentResult>()
+                    .ConfigureAwait(false);
+
+                if (response.Ok)
+                {
+                    document.Rev = response.Rev;
+                    attachment.FileInfo = null;
+                }
+            }
+
+            foreach (CouchAttachment attachment in document.Attachments.GetDeletedAttachments())
+            {
+                AttachmentResult response = await NewRequest()
+                    .AppendPathSegment(document.Id)
+                    .AppendPathSegment(attachment.Name)
+                    .WithHeader("If-Match", document.Rev)
+                    .DeleteAsync()
+                    .ReceiveJson<AttachmentResult>()
+                    .ConfigureAwait(false);
+
+                if (response.Ok)
+                {
+                    document.Rev = response.Rev;
+                    document.Attachments.RemoveAttachment(attachment);
+                }                
+            }
+
+            InitAttachments(document);
+        }
+
         #endregion
 
         #region Utils
+
+        /// <summary>
+        ///  Asynchronously downloads a specific attachment.
+        /// </summary>
+        /// <param name="attachment">The attachment to download.</param>
+        /// <param name="localFolderPath">Path of local folder where file is to be downloaded.</param>
+        /// <param name="localFileName">Name of local file. If not specified, the source filename (from Content-Dispostion header, or last segment of the URL) is used.</param>
+        /// <param name="bufferSize">Buffer size in bytes. Default is 4096.</param>
+        /// <returns>The path of the downloaded file.</returns>
+        public async Task<string> DownloadAttachment(CouchAttachment attachment, string localFolderPath, string localFileName = null, int bufferSize = 4096)
+        {
+            if (attachment.Uri == null)
+            {
+                throw new InvalidOperationException("The attachment is not uploaded yet.");
+            }
+
+            return await NewRequest()
+                .AppendPathSegment(attachment.DocumentId)
+                .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
+                .WithHeader("If-Match", attachment.DocumentRev)
+                .DownloadFileAsync(localFolderPath, localFileName, bufferSize)
+                .ConfigureAwait(false); 
+        }
 
         /// <summary>
         /// Requests compaction of the specified database.

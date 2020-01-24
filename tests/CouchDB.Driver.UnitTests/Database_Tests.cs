@@ -28,6 +28,14 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                httpTest.RespondWithJson(new
+                {
+                    Attachments = new Dictionary<string, object>
+                    {
+                        { "luke.txt", new { ContentType = "text/plain" } }
+                    }
+                });
+
                 var a = new List<Rebel>();
                 var newR = await _rebels.FindAsync("1");
                 httpTest
@@ -41,6 +49,14 @@ namespace CouchDB.Driver.UnitTests
         {
             using (var httpTest = new HttpTest())
             {
+                httpTest.RespondWithJson(new
+                {
+                    Attachments = new Dictionary<string, object>
+                    {
+                        { "luke.txt", new { ContentType = "text/plain" } }
+                    }
+                });
+
                 var newR = await _rebels.FindAsync("1", true);
                 httpTest
                     .ShouldHaveCalled("http://localhost/rebels/1")
