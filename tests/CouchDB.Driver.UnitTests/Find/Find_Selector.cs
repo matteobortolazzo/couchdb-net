@@ -110,5 +110,11 @@ namespace CouchDB.Driver.UnitTests.Find
             var json = _rebels.Where(r => r.IsJedi != false).OrderBy(r => r.IsJedi).ToString();
             Assert.Equal(@"{""selector"":{""isJedi"":{""$ne"":false}},""sort"":[""isJedi""]}", json);
         }
+        [Fact]
+        public void Variable_String_IsJsonEscaped()
+        {
+            var json = _rebels.Where(r => r.Name == @"Chewbacca (""Chewie"")").ToString();
+            Assert.Equal(@"{""selector"":{""name"":""Chewbacca (\""Chewie\"")""}}", json);
+        }
     }
 }
