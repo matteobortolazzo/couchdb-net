@@ -36,7 +36,7 @@ namespace CouchDB.Driver
                         _sb.Append(((bool)constant) ? "true" : "false");
                         break;
                     case TypeCode.String:
-                        _sb.Append($"\"{constant}\"");
+                        _sb.Append(JsonConvert.SerializeObject(constant));
                         break;
                     case TypeCode.DateTime:
                         _sb.Append(JsonConvert.SerializeObject(constant));
