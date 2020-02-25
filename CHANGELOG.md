@@ -1,3 +1,8 @@
+# 1.2.1 (2020-02-25)
+
+## Bug Fix
+* **JSON content:** Fix issue with JSON content as a value. ([#PR59](https://github.com/matteobortolazzo/couchdb-net/pull/59))
+
 # 1.2.0 (2020-01-24)
 
 ## Features

@@ -1,2 +1,2 @@
-﻿## Features
-* **Attachments:** Adds support for attachments. ([#PR56](https://github.com/matteobortolazzo/couchdb-net/pull/56))
+﻿## Bug Fix
+* **JSON content:** Fix issue with JSON content as a value. ([#PR59](https://github.com/matteobortolazzo/couchdb-net/pull/59))
