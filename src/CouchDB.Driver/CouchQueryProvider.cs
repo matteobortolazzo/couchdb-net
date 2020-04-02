@@ -146,11 +146,9 @@ namespace CouchDB.Driver
             // they need to be handled differently
             MethodInfo FindEnumerableMethod()
             {
-                if (queryableMethodInfo.Name == nameof(Queryable.Max) || queryableMethodInfo.Name == nameof(Queryable.Min))
-                {
-                    return FindEnumerableMinMax(queryableMethodInfo);
-                }
-                return typeof(Enumerable).GetMethods().Single(enumerableMethodInfo =>
+                return queryableMethodInfo.Name == nameof(Queryable.Max) || queryableMethodInfo.Name == nameof(Queryable.Min)
+                    ? FindEnumerableMinMax(queryableMethodInfo)
+                    : typeof(Enumerable).GetMethods().Single(enumerableMethodInfo =>
                 {
                     return
                         queryableMethodInfo.Name == enumerableMethodInfo.Name &&

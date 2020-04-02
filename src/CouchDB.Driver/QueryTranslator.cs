@@ -1,7 +1,6 @@
 ﻿using CouchDB.Driver.Settings;
 using System;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 
 #pragma warning disable IDE0058 // Expression value is never used
@@ -44,10 +43,10 @@ namespace CouchDB.Driver
             return body;
         }
 
-        protected override Expression VisitLambda<T>(Expression<T> l)
+        protected override Expression VisitLambda<T>(Expression<T> node)
         {
-            Visit(l.Body);
-            return l;
+            Visit(node.Body);
+            return node;
         }
     }
 }
