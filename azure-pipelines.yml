@@ -72,11 +72,12 @@ stages:
           testResultsFiles: '*.trx'
           searchFolder: '$(Agent.TempDirectory)\TestResults'
           buildConfiguration: '$(BuildConfiguration)'
+      
       - task: DotNetCoreCLI@2
         displayName: Build Package
         inputs:
           command: 'pack'
-          packagesToPack: '*/src/**/*.csproj'
+          packagesToPack: '**/*.csproj;!**/*.Tests.csproj'
           versioningScheme: 'off'
           majorVersion: $(Major)
           minorVersion: $(Minor)
