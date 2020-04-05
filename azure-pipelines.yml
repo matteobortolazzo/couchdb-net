@@ -76,7 +76,7 @@ stages:
         displayName: Build Package
         inputs:
           command: 'pack'
-          packagesToPack: '''**/src/**/*.csproj'''
+          packagesToPack: '*/src/**/*.csproj'
           versioningScheme: 'off'
           majorVersion: $(Major)
           minorVersion: $(Minor)
