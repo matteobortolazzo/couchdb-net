@@ -1,10 +1,4 @@
-| Stage      | Status  |
-|:-----------|:--------|
-| dev        | [![Build status](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_apis/build/status/CI%20-%20Beta)](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_build/latest?definitionId=18)       |
-| master     | [![Build status](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_apis/build/status/CI%20-%20Production)](https://matteobortolazzo.visualstudio.com/CouchDB.NET/_build/latest?definitionId=15) |
-| Beta       | ![Release Beta status](https://matteobortolazzo.vsrm.visualstudio.com/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/5/6)                                                           |
-| Production | ![Release Stable status](https://matteobortolazzo.vsrm.visualstudio.com/_apis/public/Release/badge/ff4c14e0-5b2c-4782-b8ad-eb540731c000/3/4)                                                         |
-
+[![Downloads](https://img.shields.io/nuget/dt/CouchDB.NET.svg)](https://www.nuget.org/packages/CouchDB.NET/)
 
 # CouchDB.NET
 
