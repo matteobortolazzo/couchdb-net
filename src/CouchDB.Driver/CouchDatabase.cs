@@ -217,7 +217,7 @@ namespace CouchDB.Driver
         /// <param name="docId">The document ID.</param>
         /// <param name="withConflicts">Set if conflicts array should be included.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null.</returns>
-        public async Task<TSource> FindAsync(string docId, bool withConflicts = false)
+        public async Task<TSource?> FindAsync(string docId, bool withConflicts = false)
         {
             try
             {
@@ -288,6 +288,7 @@ namespace CouchDB.Driver
             return documents;
         }
 
+        /// <summary>
         /// Finds all documents with given IDs.
         /// </summary>
         /// <param name="docIds">The collection of documents IDs.</param>
@@ -339,6 +340,11 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
         public async Task<TSource> CreateAsync(TSource document, bool batch = false)
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             if (!string.IsNullOrEmpty(document.Id))
             {
                 return await CreateOrUpdateAsync(document)
@@ -373,6 +379,11 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
         public async Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false)
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             if (string.IsNullOrEmpty(document.Id))
             {
                 throw new InvalidOperationException("Cannot add or update a document without an ID.");
@@ -407,6 +418,11 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task DeleteAsync(TSource document, bool batch = false)
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
             IFlurlRequest request = NewRequest()
                 .AppendPathSegment(document.Id);
 
@@ -433,8 +449,13 @@ namespace CouchDB.Driver
         /// </summary>
         /// <param name="documents">Documents to create or update</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the elements created or updated.</returns>
-        public async Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IEnumerable<TSource> documents)
+        public async Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents)
         {
+            if (documents == null)
+            {
+                throw new ArgumentNullException(nameof(documents));
+            }
+
             DocumentSaveResponse[] response = await NewRequest()
                 .AppendPathSegment("_bulk_docs")
                 .PostJsonAsync(new { docs = documents })
@@ -480,7 +501,12 @@ namespace CouchDB.Driver
         {
             foreach (CouchAttachment attachment in document.Attachments.GetAddedAttachments())
             {
-                var stream = new StreamContent(
+                if (attachment.FileInfo == null)
+                {
+                    continue;
+                }
+
+                using var stream = new StreamContent(
                     new FileStream(attachment.FileInfo.FullName, FileMode.Open));
 
                 AttachmentResult response = await NewRequest()
@@ -531,8 +557,13 @@ namespace CouchDB.Driver
         /// <param name="localFileName">Name of local file. If not specified, the source filename (from Content-Dispostion header, or last segment of the URL) is used.</param>
         /// <param name="bufferSize">Buffer size in bytes. Default is 4096.</param>
         /// <returns>The path of the downloaded file.</returns>
-        public async Task<string> DownloadAttachment(CouchAttachment attachment, string localFolderPath, string localFileName = null, int bufferSize = 4096)
+        public async Task<string> DownloadAttachment(CouchAttachment attachment, string localFolderPath, string? localFileName = null, int bufferSize = 4096)
         {
+            if (attachment == null)
+            {
+                throw new ArgumentNullException(nameof(attachment));
+            }
+
             if (attachment.Uri == null)
             {
                 throw new InvalidOperationException("The attachment is not uploaded yet.");

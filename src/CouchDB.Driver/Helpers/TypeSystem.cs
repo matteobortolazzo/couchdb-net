@@ -7,11 +7,11 @@ namespace CouchDB.Driver.Helpers
     {
         internal static Type GetElementType(Type seqType)
         {
-            Type ienum = FindIEnumerable(seqType);
-            return ienum == null ? seqType : ienum.GetGenericArguments()[0];
+            Type? enumerableInterface = FindIEnumerable(seqType);
+            return enumerableInterface == null ? seqType : enumerableInterface.GetGenericArguments()[0];
         }
 
-        private static Type FindIEnumerable(Type seqType)
+        private static Type? FindIEnumerable(Type seqType)
         {
             if (seqType == null || seqType == typeof(string))
             {
@@ -27,25 +27,25 @@ namespace CouchDB.Driver.Helpers
             {
                 foreach (Type arg in seqType.GetGenericArguments())
                 {
-                    Type ienum = typeof(IEnumerable<>).MakeGenericType(arg);
+                    Type enumerableInterface = typeof(IEnumerable<>).MakeGenericType(arg);
 
-                    if (ienum.IsAssignableFrom(seqType))
+                    if (enumerableInterface.IsAssignableFrom(seqType))
                     {
-                        return ienum;
+                        return enumerableInterface;
                     }
                 }
             }
 
-            Type[] ifaces = seqType.GetInterfaces();
+            Type[] interfaces = seqType.GetInterfaces();
 
-            if (ifaces != null && ifaces.Length > 0)
+            if (interfaces != null && interfaces.Length > 0)
             {
-                foreach (Type iface in ifaces)
+                foreach (Type @interface in interfaces)
                 {
-                    Type ienum = FindIEnumerable(iface);
-                    if (ienum != null)
+                    Type? enumerableInterface = FindIEnumerable(@interface);
+                    if (enumerableInterface != null)
                     {
-                        return ienum;
+                        return enumerableInterface;
                     }
                 }
             }

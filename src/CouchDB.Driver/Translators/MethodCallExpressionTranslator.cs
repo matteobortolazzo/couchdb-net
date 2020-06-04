@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Authentication;
 
 #pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver
@@ -46,107 +47,88 @@ namespace CouchDB.Driver
         {
             if (m.Method.DeclaringType == typeof(Queryable))
             {
-                if (m.Method.Name == "Where")
+                switch (m.Method.Name)
                 {
-                    return VisitWhereMethod(m);
-                }
-                else if (m.Method.Name == "OrderBy" || m.Method.Name == "ThenBy")
-                {
-                    return VisitOrderAscendingMethod(m);
-                }
-                else if (m.Method.Name == "OrderByDescending" || m.Method.Name == "ThenByDescending")
-                {
-                    return VisitOrderDescendingMethod(m);
-                }
-                else if (m.Method.Name == "Skip")
-                {
-                    return VisitSkipMethod(m);
-                }
-                else if (m.Method.Name == "Take")
-                {
-                    return VisitTakeMethod(m);
-                }
-                else if (m.Method.Name == "Select")
-                {
-                    return VisitSelectMethod(m);
+                    case "Where":
+                        return VisitWhereMethod(m);
+                    case "OrderBy":
+                    case "ThenBy":
+                        return VisitOrderAscendingMethod(m);
+                    case "OrderByDescending":
+                    case "ThenByDescending":
+                        return VisitOrderDescendingMethod(m);
+                    case "Skip":
+                        return VisitSkipMethod(m);
+                    case "Take":
+                        return VisitTakeMethod(m);
+                    case "Select":
+                        return VisitSelectMethod(m);
                 }
             }
             else if (m.Method.DeclaringType == typeof(Enumerable))
             {
-                if (m.Method.Name == "Any")
+                switch (m.Method.Name)
                 {
-                    return VisitAnyMethod(m);
-                }
-                else if (m.Method.Name == "All")
-                {
-                    return VisitAllMethod(m);
+                    case "Any":
+                        return VisitAnyMethod(m);
+                    case "All":
+                        return VisitAllMethod(m);
                 }
             }
             else if (m.Method.DeclaringType == typeof(QueryableExtensions))
             {
-                if (m.Method.Name == "UseBookmark")
+                switch (m.Method.Name)
                 {
-                    return VisitUseBookmarkMethod(m);
-                }
-                else if (m.Method.Name == "WithReadQuorum")
-                {
-                    return VisitWithQuorumMethod(m);
-                }
-                else if (m.Method.Name == "WithoutIndexUpdate")
-                {
-                    return VisitWithoutIndexUpdateMethod(m);
-                }
-                else if (m.Method.Name == "FromStable")
-                {
-                    return VisitFromStableMethod(m);
-                }
-                else if (m.Method.Name == "UseIndex")
-                {
-                    return VisitUseIndexMethod(m);
-                }
-                else if (m.Method.Name == "IncludeExecutionStats")
-                {
-                    return VisitIncludeExecutionStatsMethod(m);
-                }
-                else if (m.Method.Name == nameof(QueryableExtensions.IncludeConflicts))
-                {
-                    return VisitIncludeConflictsMethod(m);
+                    case "UseBookmark":
+                        return VisitUseBookmarkMethod(m);
+                    case "WithReadQuorum":
+                        return VisitWithQuorumMethod(m);
+                    case "WithoutIndexUpdate":
+                        return VisitWithoutIndexUpdateMethod(m);
+                    case "FromStable":
+                        return VisitFromStableMethod(m);
+                    case "UseIndex":
+                        return VisitUseIndexMethod(m);
+                    case "IncludeExecutionStats":
+                        return VisitIncludeExecutionStatsMethod(m);
+                    case "IncludeConflicts":
+                        return VisitIncludeConflictsMethod(m);
                 }
             }
             else if (m.Method.DeclaringType == typeof(EnumerableExtensions))
             {
-                if (m.Method.Name == "Contains")
+                switch (m.Method.Name)
                 {
-                    return VisitEnumarableContains(m);
+                    case "Contains":
+                        return VisitEnumerableContains(m);
                 }
             }
             else if (m.Method.DeclaringType == typeof(ObjectExtensions))
             {
-                if (m.Method.Name == "FieldExists")
+                switch (m.Method.Name)
                 {
-                    return VisitFieldExistsMethod(m);
-                }
-                else if (m.Method.Name == "IsCouchType")
-                {
-                    return VisitIsCouchTypeMethod(m);
-                }
-                else if (m.Method.Name == "In")
-                {
-                    return VisitInMethod(m);
+                    case "FieldExists":
+                        return VisitFieldExistsMethod(m);
+                    case "IsCouchType":
+                        return VisitIsCouchTypeMethod(m);
+                    case "In":
+                        return VisitInMethod(m);
                 }
             }
             else if (m.Method.DeclaringType == typeof(StringExtensions))
             {
-                if (m.Method.Name == "IsMatch")
+                switch (m.Method.Name)
                 {
-                    return VisitIsMatchMethod(m);
+                    case "IsMatch":
+                        return VisitIsMatchMethod(m);
                 }
             }
             else
             {
-                if (m.Method.Name == "Contains")
+                switch (m.Method.Name)
                 {
-                    return VisitContainsMethod(m);
+                    case "Contains":
+                        return VisitContainsMethod(m);
                 }
             }
 
@@ -169,27 +151,24 @@ namespace CouchDB.Driver
         {
             void InspectOrdering(Expression e)
             {
-                var o = e as MethodCallExpression;
+                MethodCallExpression o = e as MethodCallExpression ?? throw new AuthenticationException($"Invalid expression type {e.GetType().Name}");
                 var lambda = (LambdaExpression)StripQuotes(o.Arguments[1]);
 
-                if (o.Method.Name == "OrderBy")
+                switch (o.Method.Name)
                 {
-                    Visit(o.Arguments[0]);
-                    _sb.Append("\"sort\":[");
-                    Visit(lambda.Body);
-                }
-                else if (o.Method.Name == "OrderByDescending")
-                {
-                    throw new InvalidOperationException("Cannot order in different directions.");
-                }
-                else if (o.Method.Name == "ThenBy")
-                {
-                    InspectOrdering(o.Arguments[0]);
-                    Visit(lambda.Body);
-                }
-                else
-                {
-                    return;
+                    case "OrderBy":
+                        Visit(o.Arguments[0]);
+                        _sb.Append("\"sort\":[");
+                        Visit(lambda.Body);
+                        break;
+                    case "OrderByDescending":
+                        throw new InvalidOperationException("Cannot order in different directions.");
+                    case "ThenBy":
+                        InspectOrdering(o.Arguments[0]);
+                        Visit(lambda.Body);
+                        break;
+                    default:
+                        return;
                 }
 
                 _sb.Append(",");
@@ -200,35 +179,31 @@ namespace CouchDB.Driver
             _sb.Append("],");
             return m;
         }
-        private Expression VisitOrderDescendingMethod(MethodCallExpression m)
+        private Expression VisitOrderDescendingMethod(Expression m)
         {
             void InspectOrdering(Expression e)
             {
-                var o = e as MethodCallExpression;
+                MethodCallExpression o = e as MethodCallExpression?? throw new AuthenticationException($"Invalid expression type {e.GetType().Name}");
                 var lambda = (LambdaExpression)StripQuotes(o.Arguments[1]);
 
-                if (o.Method.Name == "OrderBy")
+                switch (o.Method.Name)
                 {
-                    throw new InvalidOperationException("Cannot order in different directions.");
-                }
-                else if (o.Method.Name == "OrderByDescending")
-                {
-                    Visit(o.Arguments[0]);
-                    _sb.Append("\"sort\":[");
-                    _sb.Append("{");
-                    Visit(lambda.Body);
-                    _sb.Append(":\"desc\"}");
-                }
-                else if (o.Method.Name == "ThenByDescending")
-                {
-                    InspectOrdering(o.Arguments[0]);
-                    _sb.Append("{");
-                    Visit(lambda.Body);
-                    _sb.Append(":\"desc\"}");
-                }
-                else
-                {
-                    return;
+                    case "OrderBy":
+                        throw new InvalidOperationException("Cannot order in different directions.");
+                    case "OrderByDescending":
+                        Visit(o.Arguments[0]);
+                        _sb.Append("\"sort\":[{");
+                        Visit(lambda.Body);
+                        _sb.Append(":\"desc\"}");
+                        break;
+                    case "ThenByDescending":
+                        InspectOrdering(o.Arguments[0]);
+                        _sb.Append("{");
+                        Visit(lambda.Body);
+                        _sb.Append(":\"desc\"}");
+                        break;
+                    default:
+                        return;
                 }
 
                 _sb.Append(",");
@@ -348,18 +323,18 @@ namespace CouchDB.Driver
             {
                 throw new ArgumentException("UseIndex requires an IList<string> argument");
             }
-            else if (indexArgs.Count == 1)
+
+            switch (indexArgs.Count)
             {
-                // use_index expects the value with [ or ] when it's a single item array
-                Visit(Expression.Constant(indexArgs[0]));
-            }
-            else if (indexArgs.Count == 2)
-            {
-                Visit(indexArgsExpression);
-            }
-            else
-            {
-                throw new ArgumentException("UseIndex requires 1 or 2 strings");
+                case 1:
+                    // use_index expects the value with [ or ] when it's a single item array
+                    Visit(Expression.Constant(indexArgs[0]));
+                    break;
+                case 2:
+                    Visit(indexArgsExpression);
+                    break;
+                default:
+                    throw new ArgumentException("UseIndex requires 1 or 2 strings");
             }
 
             _sb.Append(",");
@@ -384,7 +359,7 @@ namespace CouchDB.Driver
 
         #region EnumerableExtensions
 
-        private Expression VisitEnumarableContains(MethodCallExpression m)
+        private Expression VisitEnumerableContains(MethodCallExpression m)
         {
             _sb.Append("{");
             Visit(m.Arguments[0]);
@@ -397,14 +372,7 @@ namespace CouchDB.Driver
         {
             _sb.Append("{");
             Visit(m.Arguments[0]);
-            if (not)
-            {
-                _sb.Append(":{\"$nin\":");
-            }
-            else
-            {
-                _sb.Append(":{\"$in\":");
-            }
+            _sb.Append(not ? ":{\"$nin\":" : ":{\"$in\":");
 
             Visit(m.Arguments[1]);
             _sb.Append("}}");
@@ -428,8 +396,8 @@ namespace CouchDB.Driver
             _sb.Append("{");
             Visit(m.Arguments[0]);
             _sb.Append(":{\"$type\":");
-            var cExpression = m.Arguments[1] as ConstantExpression;
-            var couchType = cExpression.Value as CouchType;
+            ConstantExpression cExpression = m.Arguments[1] as ConstantExpression ?? throw new ArgumentException("Argument is not of type ConstantExpression.");
+            CouchType couchType = cExpression.Value as CouchType ?? throw new ArgumentException("Argument is not of type CouchType.");
             _sb.Append($"\"{couchType.Value}\"");
             _sb.Append("}}");
             return m;

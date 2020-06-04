@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace CouchDB.Driver.CompositeExpressionsEvaluator
+namespace CouchDB.Driver.ExpressionVisitors
 {
     internal class BoolMemberToConstantEvaluator : ExpressionVisitor
     {
@@ -10,7 +10,7 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
 
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
-            bool isRootWhereMethod = !_isVisitingWhereMethodOrChild && m.Method.Name == nameof(Queryable.Where) && m.Method.DeclaringType == typeof(Queryable);
+            var isRootWhereMethod = !_isVisitingWhereMethodOrChild && m.Method.Name == nameof(Queryable.Where) && m.Method.DeclaringType == typeof(Queryable);
             if (isRootWhereMethod)
             {
                 _isVisitingWhereMethodOrChild = true;

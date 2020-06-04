@@ -1,25 +1,24 @@
 ﻿using CouchDB.Driver.Settings;
 using System;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 
-#pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver
 {
     internal partial class QueryTranslator : ExpressionVisitor
     {
         private readonly CouchSettings _settings;
-        private StringBuilder _sb;
+        private readonly StringBuilder _sb;
         private bool _isSelectorSet;
 
         internal QueryTranslator(CouchSettings settings)
         {
+            _sb = new StringBuilder();
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
         internal string Translate(Expression expression)
         {
-            _sb = new StringBuilder();
+            _sb.Clear();
             _sb.Append("{");
             Visit(expression);
             
@@ -51,4 +50,3 @@ namespace CouchDB.Driver
         }
     }
 }
-#pragma warning restore IDE0058 // Expression value is never used

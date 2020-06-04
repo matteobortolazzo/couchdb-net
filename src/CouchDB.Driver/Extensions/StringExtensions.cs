@@ -2,7 +2,7 @@
 
 namespace CouchDB.Driver.Extensions
 {
-    public static class StringExtensions
+    internal static class StringExtensions
     {
         /// <summary>
         /// Indicates whether the regular expression finds a match in the input string.

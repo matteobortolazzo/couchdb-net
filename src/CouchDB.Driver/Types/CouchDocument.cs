@@ -1,6 +1,5 @@
-﻿using System;
+﻿#nullable disable
 using System.Collections.Generic;
-using System.Net.Mime;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
@@ -11,7 +10,7 @@ namespace CouchDB.Driver.Types
     /// </summary>
     public abstract class CouchDocument
     {
-        public CouchDocument()
+        protected CouchDocument()
         {
             _conflicts = new List<string>();
             _attachments = new Dictionary<string, CouchAttachment>();
@@ -26,9 +25,7 @@ namespace CouchDB.Driver.Types
         public virtual string Id { get; set; }
         [DataMember]
         [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-#pragma warning disable IDE0051 // Remove unused private members
         private string IdOther { set => Id = value; }
-#pragma warning restore IDE0051 // Remove unused private members
 
         /// <summary>
         /// The current document revision ID.
@@ -38,9 +35,7 @@ namespace CouchDB.Driver.Types
         public string Rev { get; set; }
         [DataMember]
         [JsonProperty("rev", NullValueHandling = NullValueHandling.Ignore)]
-#pragma warning disable IDE0051 // Remove unused private members
         private string RevOther { set => Rev = value; }
-#pragma warning restore IDE0051 // Remove unused private members
 
         [DataMember]
         [JsonProperty("_conflicts")]
@@ -50,7 +45,6 @@ namespace CouchDB.Driver.Types
         public IReadOnlyCollection<string> Conflicts => _conflicts.AsReadOnly();
 
 
-#pragma warning disable IDE0051 // Remove unused private members
         // This must be Deserilizable-only field
         [JsonIgnore]
         private Dictionary<string, CouchAttachment> _attachments;
@@ -60,7 +54,6 @@ namespace CouchDB.Driver.Types
         {
             set { _attachments = value; }
         }
-#pragma warning restore IDE0051 // Remove unused private members
 
         [JsonIgnore]
         public CouchAttachmentsCollection Attachments { get; internal set; }
@@ -75,3 +68,4 @@ namespace CouchDB.Driver.Types
         }
     }
 }
+#nullable restore

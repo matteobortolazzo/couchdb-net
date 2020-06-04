@@ -11,22 +11,22 @@ namespace CouchDB.Driver
             switch (u.NodeType)
             {
                 case ExpressionType.Not:
-                    if (u.Operand is BinaryExpression b && (b.NodeType == ExpressionType.Or || b.NodeType == ExpressionType.OrElse))
+                    switch (u.Operand)
                     {
-                        _sb.Append("{");
-                        VisitBinaryCombinationOperator(b, true);
-                        _sb.Append("}");
-                    }
-                    else if (u.Operand is MethodCallExpression m && m.Method.Name == "In")
-                    {
-                        VisitInMethod(m, true);
-                    }
-                    else
-                    {
-                        _sb.Append("{");
-                        _sb.Append("\"$not\":");
-                        Visit(u.Operand);
-                        _sb.Append("}");
+                        case BinaryExpression b when (b.NodeType == ExpressionType.Or || b.NodeType == ExpressionType.OrElse):
+                            _sb.Append("{");
+                            VisitBinaryCombinationOperator(b, true);
+                            _sb.Append("}");
+                            break;
+                        case MethodCallExpression m when m.Method.Name == "In":
+                            VisitInMethod(m, true);
+                            break;
+                        default:
+                            _sb.Append("{");
+                            _sb.Append("\"$not\":");
+                            Visit(u.Operand);
+                            _sb.Append("}");
+                            break;
                     }
                     break;
                 case ExpressionType.Convert:

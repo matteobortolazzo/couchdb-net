@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CouchDB.NET</AssemblyName>
     <Authors>Matteo Bortolazzo</Authors>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -15,7 +15,8 @@
     <OutputType>Library</OutputType>
     <StartupObject />
     <NeutralLanguage>en</NeutralLanguage>
-    <Version>1.2.0</Version>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -24,9 +25,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Flurl.Http" Version="2.4.1" />
-    <PackageReference Include="Humanizer.Core" Version="2.6.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" PrivateAssets="All" Version="2.9.1" />
+    <PackageReference Include="Flurl.Http" Version="2.4.2" />
+    <PackageReference Include="Humanizer.Core" Version="2.8.26" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" PrivateAssets="All" Version="3.0.0" />
     <PackageReference Include="Nito.AsyncEx.Context" Version="1.1.0" />
   </ItemGroup>
 

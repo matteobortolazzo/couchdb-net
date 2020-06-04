@@ -10,52 +10,53 @@ namespace CouchDB.Driver
         protected override Expression VisitBinary(BinaryExpression b)
         {
             _sb.Append("{");
-            if (b.NodeType == ExpressionType.Equal)
+            switch (b.NodeType)
             {
-                // $size operator = array.Count == size
-                if (b.Left is MemberExpression m && m.Member.Name == "Count")
-                {
-                    Visit(m.Expression);
-                    _sb.Append(":{\"$size\":");
-                    Visit(b.Right);
-                    _sb.Append("}}");
-                    return b;
-                }
-                // $mod operator = prop % divisor = remainder 
-                else if (b.Left is BinaryExpression mb && mb.NodeType == ExpressionType.Modulo)
-                {
-                    if (mb.Left is MemberExpression c && c.Member is PropertyInfo r && r.PropertyType == typeof(int))
+                case ExpressionType.Equal:
+                    switch (b.Left)
                     {
-                        Visit(mb.Left);
-                        _sb.Append(":{\"$mod\":[");
-                        Visit(mb.Right);
-                        _sb.Append(",");
-                        Visit(b.Right);
-                        _sb.Append("]}}");
-                        return b;
+                        // $size operator = array.Count == size
+                        // $mod operator = prop % divisor = remainder 
+                        case MemberExpression m when m.Member.Name == "Count":
+                            Visit(m.Expression);
+                            _sb.Append(":{\"$size\":");
+                            Visit(b.Right);
+                            _sb.Append("}}");
+                            return b;
+                        case BinaryExpression mb when mb.NodeType == ExpressionType.Modulo:
+                        {
+                            if (!(mb.Left is MemberExpression c) || !(c.Member is PropertyInfo r) ||
+                                r.PropertyType != typeof(int))
+                            {
+                                throw new NotSupportedException($"The document field must be an integer.");
+                            }
+
+                            Visit(mb.Left);
+                            _sb.Append(":{\"$mod\":[");
+                            Visit(mb.Right);
+                            _sb.Append(",");
+                            Visit(b.Right);
+                            _sb.Append("]}}");
+                            return b;
+
+                        }
+                        default:
+                            Visit(b.Left);
+                            _sb.Append(":");
+                            Visit(b.Right);
+                            break;
                     }
-                    else
-                    {
-                        throw new NotSupportedException($"The document field must be an integer.");
-                    }
-                }
-                else
-                {
-                    Visit(b.Left);
-                    _sb.Append(":");
-                    Visit(b.Right);
-                }
-            }
-            else if (b.NodeType == ExpressionType.And ||
-                b.NodeType == ExpressionType.AndAlso ||
-                b.NodeType == ExpressionType.Or ||
-                b.NodeType == ExpressionType.OrElse)
-            {
-                VisitBinaryCombinationOperator(b);
-            }
-            else
-            {
-                VisitBinaryConditionOperator(b);
+
+                    break;
+                case ExpressionType.And:
+                case ExpressionType.AndAlso:
+                case ExpressionType.Or:
+                case ExpressionType.OrElse:
+                    VisitBinaryCombinationOperator(b);
+                    break;
+                default:
+                    VisitBinaryConditionOperator(b);
+                    break;
             }
             _sb.Append("}");
             return b;
@@ -94,14 +95,7 @@ namespace CouchDB.Driver
                     break;
                 case ExpressionType.Or:
                 case ExpressionType.OrElse:
-                    if (not)
-                    {
-                        _sb.Append("\"$nor\":[");
-                    }
-                    else
-                    {
-                        _sb.Append("\"$or\":[");
-                    }
+                    _sb.Append(not ? "\"$nor\":[" : "\"$or\":[");
                     break;
             }
 

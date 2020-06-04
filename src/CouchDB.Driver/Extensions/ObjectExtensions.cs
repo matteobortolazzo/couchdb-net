@@ -28,28 +28,33 @@ namespace CouchDB.Driver.Extensions
 
             return input.Contains(value);
         }
+
         /// <summary>
-        /// Determins the field exists in the database. 
+        /// Determines the field exists in the database. 
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <typeparam name="TKey">The type of the key returned by keySelector.</typeparam>
         /// <param name="source">The value to check.</param>
         /// <param name="fieldName">The name of the field to check.</param>
         /// <returns>true if the field exists; otherwise, false.</returns>
         public static bool FieldExists<T>(this T source, string fieldName)
         {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             return source.GetType().GetProperties().Any(p => p.Name == fieldName);
         }
+
         /// <summary>
-        /// Determins the field is of the specified type. 
+        /// Determines the field is of the specified type. 
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="source">The value to check.</param>
-        /// <param name="type">Type couch type to compare.</param>
+        /// <param name="couchType">Type couch type to compare.</param>
         /// <returns>true if the field has the specified type; otherwise, false.</returns>
         public static bool IsCouchType<T>(this T source, CouchType couchType)
         {
-#pragma warning disable IDE0046 // Convert to conditional expression
             if (couchType == CouchType.CNull && source == null)
             {
                 return true;
@@ -71,7 +76,6 @@ namespace CouchDB.Driver.Extensions
                 return true;
             }
             return couchType == CouchType.CObject && typeof(T).IsClass;
-#pragma warning restore IDE0046 // Convert to conditional expression
         }
     }
 }

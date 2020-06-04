@@ -42,18 +42,18 @@ namespace CouchDB.Driver
                         _sb.Append(JsonConvert.SerializeObject(constant));
                         break;
                     case TypeCode.Object:
-                        if (constant is IEnumerable enumerable)
+                        switch (constant)
                         {
-                            VisitIEnumerable(enumerable);
-                        }
-                        else if (constant is Guid)
-                        {
-                            _sb.Append(JsonConvert.SerializeObject(constant));
-                        }
-                        else
-                        {
-                            Debug.WriteLine($"The constant for '{constant}' not ufficially supported.");
-                            _sb.Append(JsonConvert.SerializeObject(constant));
+                            case IEnumerable enumerable:
+                                VisitIEnumerable(enumerable);
+                                break;
+                            case Guid _:
+                                _sb.Append(JsonConvert.SerializeObject(constant));
+                                break;
+                            default:
+                                Debug.WriteLine($"The constant for '{constant}' not officially supported.");
+                                _sb.Append(JsonConvert.SerializeObject(constant));
+                                break;
                         }
                         break;
                     case TypeCode.Int32:

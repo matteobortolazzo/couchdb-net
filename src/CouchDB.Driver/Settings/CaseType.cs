@@ -27,7 +27,7 @@ namespace CouchDB.Driver.Settings
         }
         public override int GetHashCode()
         {
-            return Value.GetHashCode();
+            return Value.GetHashCode(StringComparison.InvariantCultureIgnoreCase);
         }
     }
     /// <summary>
@@ -51,25 +51,26 @@ namespace CouchDB.Driver.Settings
         /// </summary>
         public static readonly DocumentCaseType KebabCase = new DocumentCaseType("KebabCase");
 
+#pragma warning disable CA1308 // Normalize strings to uppercase
         internal override string Convert(string str)
         {
-#pragma warning disable CA1308 // Normalize strings to uppercase
-            if (this == None)
+            if (Equals(this, None))
             {
                 return str.ToLowerInvariant();
             }
-            if (this == UnderscoreCase)
+            if (Equals(this, UnderscoreCase))
             {
                 return str.ToLowerInvariant().Underscore();
             }
-            if (this == KebabCase)
+            if (Equals(this, KebabCase))
             {
                 return str.ToLowerInvariant().Kebaberize();
             }
             throw new NotSupportedException($"Value {Value} not supported.");
-#pragma warning restore CA1308 // Normalize strings to uppercase
         }
+#pragma warning restore CA1308 // Normalize strings to uppercase
     }
+
     /// <summary>
     /// A helper class for specify a case format for properties.
     /// </summary>
@@ -104,27 +105,27 @@ namespace CouchDB.Driver.Settings
 
         internal override string Convert(string str)
         {
-            if (this == None)
+            if (Equals(this, None))
             {
                 return str;
             }
-            if (this == UnderscoreCase)
+            if (Equals(this, UnderscoreCase))
             {
                 return str.Underscore();
             }
-            if (this == DashCase)
+            if (Equals(this, DashCase))
             {
                 return str.Dasherize();
             }
-            if (this == KebabCase)
+            if (Equals(this, KebabCase))
             {
                 return str.Kebaberize();
             }
-            if (this == PascalCase)
+            if (Equals(this, PascalCase))
             {
                 return str.Pascalize();
             }
-            if (this == CamelCase)
+            if (Equals(this, CamelCase))
             {
                 return str.Camelize();
             }

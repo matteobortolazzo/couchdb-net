@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 
 namespace CouchDB.Driver
 {
-    internal class CouchQuery<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable
+    internal class CouchQuery<T> : IOrderedQueryable<T>
     {
         private readonly QueryProvider _provider;
         private readonly Expression _expression;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using CouchDB.Driver.Helpers;
 using Newtonsoft.Json;
 
@@ -72,3 +73,4 @@ namespace CouchDB.Driver.Types
         public DateTime UpdatedOn { get; internal set; }
     }
 }
+#nullable restore

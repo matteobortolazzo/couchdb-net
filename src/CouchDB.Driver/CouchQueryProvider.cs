@@ -1,5 +1,4 @@
 ﻿using CouchDB.Driver.DTOs;
-using CouchDB.Driver.CompositeExpressionsEvaluator;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
@@ -10,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using CouchDB.Driver.ExpressionVisitors;
 
 namespace CouchDB.Driver
 {
@@ -45,7 +45,7 @@ namespace CouchDB.Driver
             // Create generic GetCouchList method and invoke it, sending the request to CouchDB
             MethodInfo method = typeof(CouchQueryProvider).GetMethod(nameof(CouchQueryProvider.GetCouchList));
             MethodInfo generic = method.MakeGenericMethod(elementType);
-            object result = null;
+            object? result = null;
             try
             {
                 result = generic.Invoke(this, new[] { body });
@@ -72,11 +72,12 @@ namespace CouchDB.Driver
         private string Translate(ref Expression e)
         {
             e = Local.PartialEval(e);
+
             var whereVisitor = new BoolMemberToConstantEvaluator();
             e = whereVisitor.Visit(e);
 
-            var pretranslator = new QueryPretranslator();
-            e = pretranslator.Visit(e);
+            var preTranslator = new QueryPreTranslator();
+            e = preTranslator.Visit(e);
 
             return new QueryTranslator(_settings).Translate(e);
         }
@@ -94,7 +95,7 @@ namespace CouchDB.Driver
             return couchList;
         }
 
-        private Expression RemoveUnsupportedMethodExpressions(Expression expression, out bool hasUnsupportedMethods, IList<MethodCallExpression> unsupportedMethodCallExpressions)
+        private static Expression RemoveUnsupportedMethodExpressions(Expression expression, out bool hasUnsupportedMethods, IList<MethodCallExpression> unsupportedMethodCallExpressions)
         {
             if (unsupportedMethodCallExpressions == null)
             {
@@ -106,38 +107,41 @@ namespace CouchDB.Driver
             // The expression to translate in JSON ends with the last not in-memory call.
             bool IsUnsupportedMethodCallExpression(Expression ex)
             {
-                if (ex is MethodCallExpression m)
+                if (!(ex is MethodCallExpression m))
                 {
-                    Expression nextCall = m.Arguments[0];
-                    // Check if the next expression is unsupported
-                    var isUnsupported = IsUnsupportedMethodCallExpression(nextCall);
-                    if (isUnsupported)
-                    {
-                        unsupportedMethodCallExpressions.Add(m);
-                        return isUnsupported;
-                    }
-                    // If the next call is supported and the current is in the composite list
-                    if (QueryTranslator.CompositeQueryableMethods.Contains(m.Method.Name))
-                    {
-                        unsupportedMethodCallExpressions.Add(m);
-                        return true;
-                    }
-                    // If the next call is supported and the current is not in the supported list
-                    if (!QueryTranslator.NativeQueryableMethods.Contains(m.Method.Name))
-                    {
-                        unsupportedMethodCallExpressions.Add(m);
-                        expression = nextCall;
-                        return true;
-                    }
+                    return false;
                 }
-                return false;
+
+                Expression nextCall = m.Arguments[0];
+                // Check if the next expression is unsupported
+                var isUnsupported = IsUnsupportedMethodCallExpression(nextCall);
+                if (isUnsupported)
+                {
+                    unsupportedMethodCallExpressions.Add(m);
+                    return isUnsupported;
+                }
+                // If the next call is supported and the current is in the composite list
+                if (QueryTranslator.CompositeQueryableMethods.Contains(m.Method.Name))
+                {
+                    unsupportedMethodCallExpressions.Add(m);
+                    return true;
+                }
+                // If the next call is supported and the current is not in the supported list
+                if (QueryTranslator.NativeQueryableMethods.Contains(m.Method.Name))
+                {
+                    return false;
+                }
+
+                unsupportedMethodCallExpressions.Add(m);
+                expression = nextCall;
+                return true;
             }
 
             hasUnsupportedMethods = IsUnsupportedMethodCallExpression(expression);
             return expression;
         }
 
-        private object InvokeUnsupportedMethodCallExpression(object result, MethodCallExpression methodCallExpression)
+        private static object InvokeUnsupportedMethodCallExpression(object result, MethodCallExpression methodCallExpression)
         {
             MethodInfo queryableMethodInfo = methodCallExpression.Method;
             Expression[] queryableMethodArguments = methodCallExpression.Arguments.ToArray();
@@ -150,16 +154,12 @@ namespace CouchDB.Driver
                 {
                     return FindEnumerableMinMax(queryableMethodInfo);
                 }
-                return typeof(Enumerable).GetMethods().Single(enumerableMethodInfo =>
-                {
-                    return
-                        queryableMethodInfo.Name == enumerableMethodInfo.Name &&
-                        ReflectionComparator.IsCompatible(queryableMethodInfo, enumerableMethodInfo);
-                });
+                return typeof(Enumerable).GetMethods().Single(info =>
+                    queryableMethodInfo.Name == info.Name && ReflectionComparator.IsCompatible(queryableMethodInfo, info));
             }
 
             // Find the equivalent method in Enumerable
-            MethodInfo enumarableMethodInfo = FindEnumerableMethod();
+            MethodInfo enumerableMethodInfo = FindEnumerableMethod();
 
             // Add the list as first parameter of the call
             var invokeParameter = new List<object> { result };
@@ -168,13 +168,13 @@ namespace CouchDB.Driver
             // Add the other parameter to the complete list
             invokeParameter.AddRange(enumerableParameters);
 
-            Type[] requestedGenericParameters = enumarableMethodInfo.GetGenericMethodDefinition().GetGenericArguments();
+            Type[] requestedGenericParameters = enumerableMethodInfo.GetGenericMethodDefinition().GetGenericArguments();
             Type[] genericParameters = queryableMethodInfo.GetGenericArguments();
             Type[] usableParameters = genericParameters.Take(requestedGenericParameters.Length).ToArray();
-            MethodInfo enumarableGenericMethod = enumarableMethodInfo.MakeGenericMethod(usableParameters);
+            MethodInfo enumerableGenericMethod = enumerableMethodInfo.MakeGenericMethod(usableParameters);
             try
             {
-                var filtered = enumarableGenericMethod.Invoke(null, invokeParameter.ToArray());
+                var filtered = enumerableGenericMethod.Invoke(null, invokeParameter.ToArray());
                 return filtered;
             }
             catch (TargetInvocationException e)
@@ -187,20 +187,17 @@ namespace CouchDB.Driver
             }
         }
 
-        private object GetArgumentValueFromExpression(Expression e)
+        private static object GetArgumentValueFromExpression(Expression e)
         {
-            if (e is ConstantExpression c)
+            return e switch
             {
-                return c.Value;
-            }
-            if (e is UnaryExpression u && u.Operand is LambdaExpression l)
-            {
-                return l.Compile();
-            }
-            throw new NotImplementedException($"Expression of type {e.NodeType} not supported.");
+                ConstantExpression c => c.Value,
+                UnaryExpression u when u.Operand is LambdaExpression l => l.Compile(),
+                _ => throw new NotImplementedException($"Expression of type {e.NodeType} not supported.")
+            };
         }
 
-        private static MethodInfo FindEnumerableMinMax(MethodInfo queryableMethodInfo)
+        private static MethodInfo FindEnumerableMinMax(MethodBase queryableMethodInfo)
         {
             Type[] genericParams = queryableMethodInfo.GetGenericArguments();
             MethodInfo finalMethodInfo = typeof(Enumerable).GetMethods().Single(enumerableMethodInfo =>

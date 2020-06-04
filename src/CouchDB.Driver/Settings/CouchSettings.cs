@@ -7,7 +7,7 @@ namespace CouchDB.Driver.Settings
 { 
     internal enum AuthenticationType
     {
-        None, Basic, Cookie, Proxy
+        None, Basic, Cookie
     }
 
     /// <summary>
@@ -16,20 +16,20 @@ namespace CouchDB.Driver.Settings
     public class CouchSettings
     {
         internal AuthenticationType AuthenticationType { get; private set; }
-        internal string Username { get; private set; }
-        internal string Password { get; private set; }
+        internal string? Username { get; private set; }
+        internal string? Password { get; private set; }
         internal int CookiesDuration { get; private set; }
-        internal bool PluralizeEntitis { get; private set; }
+        internal bool PluralizeEntities { get; private set; }
         internal DocumentCaseType DocumentsCaseType { get; private set; }
         internal PropertyCaseType PropertiesCase { get; private set; }
         internal bool CheckDatabaseExists { get; private set; }
         internal bool LogOutOnDispose { get; private set; }
-        internal Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> ServerCertificateCustomValidationCallback { get; private set; }
+        internal Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>? ServerCertificateCustomValidationCallback { get; private set; }
 
         internal CouchSettings()
         {
             AuthenticationType = AuthenticationType.None;
-            PluralizeEntitis = true;
+            PluralizeEntities = true;
             DocumentsCaseType = DocumentCaseType.UnderscoreCase;
             PropertiesCase = PropertyCaseType.CamelCase;
             LogOutOnDispose = true;
@@ -58,6 +58,7 @@ namespace CouchDB.Driver.Settings
             Password = password;
             return this;
         }
+
         /// <summary>
         /// Enables cookie authentication. 
         /// For cookie authentication (RFC 2109) CouchDB generates a token that the client can use for the next few requests to CouchDB. Tokens are valid until a timeout.
@@ -87,6 +88,7 @@ namespace CouchDB.Driver.Settings
             CookiesDuration = cookieDuration;
             return this;
         }
+
         /// <summary>
         /// Removes any SSL certificate validation.
         /// </summary>
@@ -96,6 +98,7 @@ namespace CouchDB.Driver.Settings
             ServerCertificateCustomValidationCallback = (m,x,c,s) => true;
             return this;
         }
+
         /// <summary>
         /// Sets a custom SSL validation rule.
         /// </summary>
@@ -108,15 +111,17 @@ namespace CouchDB.Driver.Settings
                 throw new ArgumentNullException(nameof(serverCertificateCustomValidationCallback));
             return this;
         }
+
         /// <summary>
         /// Disables documents pluralization in requests.
         /// </summary>
         /// <returns>The current settings</returns>
         public CouchSettings DisableDocumentPluralization()
         {
-            PluralizeEntitis = false;
+            PluralizeEntities = false;
             return this;
         }
+
         /// <summary>
         /// Sets the format case for documents. Default: underscore_case.
         /// </summary>
@@ -127,6 +132,7 @@ namespace CouchDB.Driver.Settings
             DocumentsCaseType = type;
             return this;
         }
+
         /// <summary>
         /// Sets the format case for properties. Default: camelCase.
         /// </summary>
@@ -137,6 +143,7 @@ namespace CouchDB.Driver.Settings
             PropertiesCase = type;
             return this;
         }
+
         /// <summary>
         /// If a database doesn't exists, it creates it.
         /// </summary>
@@ -146,6 +153,7 @@ namespace CouchDB.Driver.Settings
             CheckDatabaseExists = true;
             return this;
         }
+
         /// <summary>
         /// Disables log out on client dispose. 
         /// </summary>

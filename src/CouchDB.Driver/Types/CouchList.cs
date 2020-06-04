@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 namespace CouchDB.Driver.Types
 {
-#pragma warning disable CA1710
-    /// Identifiers should have correct suffix
     /// <summary>
     /// Represents a Couch query response.
     /// </summary>
@@ -27,7 +24,7 @@ namespace CouchDB.Driver.Types
         public bool IsReadOnly => true;
         public TSource this[int index] => _source[index];
 
-        public CouchList(List<TSource> source, string bookmark, ExecutionStats executionStats)
+        public CouchList(IReadOnlyList<TSource> source, string bookmark, ExecutionStats executionStats)
         {
             _source = source;
             Bookmark = bookmark;
@@ -43,5 +40,4 @@ namespace CouchDB.Driver.Types
             return _source.GetEnumerator();
         }
     }
-#pragma warning restore CA1710 // Identifiers should have correct suffix
 }

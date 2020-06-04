@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 using CouchDB.Driver.Settings;
 using Newtonsoft.Json;
 
@@ -12,14 +9,13 @@ namespace CouchDB.Driver.Extensions
         public static string GetCouchPropertyName(this MemberInfo memberInfo, PropertyCaseType propertyCaseType)
         {
             var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
-            JsonPropertyAttribute jsonProperty = jsonPropertyAttributes.Length > 0 ? 
-                jsonPropertyAttributes[0] as JsonPropertyAttribute : null;
+            JsonPropertyAttribute? jsonProperty = jsonPropertyAttributes.Length > 0 
+                ? jsonPropertyAttributes[0] as JsonPropertyAttribute
+                : null;
 
-            if (jsonProperty != null)
-            {
-                return jsonProperty.PropertyName;
-            }
-            return propertyCaseType.Convert(memberInfo.Name);
+            return jsonProperty != null
+                ? jsonProperty.PropertyName
+                : propertyCaseType.Convert(memberInfo.Name);
         }
     }
 }

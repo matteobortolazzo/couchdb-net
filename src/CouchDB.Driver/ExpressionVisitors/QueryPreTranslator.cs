@@ -2,12 +2,17 @@
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace CouchDB.Driver.CompositeExpressionsEvaluator
+namespace CouchDB.Driver.ExpressionVisitors
 {
-    public class QueryPretranslator : ExpressionVisitor
+    public class QueryPreTranslator : ExpressionVisitor
     {
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
             Type[] genericArgs = node.Method.GetGenericArguments();
             var numberOfParameters = node.Method.GetParameters().Length;
 
@@ -38,7 +43,7 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
                     return GetTakeOneExpression(node.Arguments[0]);
                 }
                 // First(e => e.P) == Where(e => e.P).Take(1) + First
-                else if (numberOfParameters == 2)
+                if (numberOfParameters == 2)
                 {
                     MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where), genericArgs, node.Arguments[0], node.Arguments[1]);
                     return GetTakeOneExpression(whereExpression);
@@ -53,7 +58,7 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
                     return GetTakeOneExpression(node.Arguments[0], 2);
                 }
                 // SingleOrDefault(e => e.P) == Where(e => e.P).Take(2) + Single
-                else if (numberOfParameters == 2)
+                if (numberOfParameters == 2)
                 {
                     MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where), genericArgs, node.Arguments[0], node.Arguments[1]);
                     return GetTakeOneExpression(whereExpression, 2);

@@ -19,12 +19,13 @@ namespace CouchDB.Driver.Extensions
             {
                 throw new ArgumentNullException(nameof(source));
             }
+
             if (input == null)
             {
                 throw new ArgumentNullException(nameof(input));
             }
 
-            return input.All(s => source.Contains(s));
+            return input.All(source.Contains!);
         }
     }
 }

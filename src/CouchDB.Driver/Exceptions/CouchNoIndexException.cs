@@ -10,16 +10,9 @@ namespace CouchDB.Driver.Exceptions
     {
         internal CouchNoIndexException(CouchError couchError, Exception innerException) : base(couchError, innerException) { }
 
-        public CouchNoIndexException()
-        {
-        }
+        public CouchNoIndexException() { }
 
-        public CouchNoIndexException(string message) : base(message)
-        {
-        }
-
-        public CouchNoIndexException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public CouchNoIndexException(string message) : base(message) { }
+        public CouchNoIndexException(string message, Exception innerException) : base(message, innerException) { }
     }
 }

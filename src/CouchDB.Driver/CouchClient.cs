@@ -22,11 +22,12 @@ namespace CouchDB.Driver
     public partial class CouchClient : IDisposable
     {
         private DateTime? _cookieCreationDate;
-        private string _cookieToken;
+        private string? _cookieToken;
         private readonly CouchSettings _settings;
         private readonly IFlurlClient _flurlClient;
-        private readonly string[] _systemDatabases = new[] { "_users", "_replicator", "_global_changes" };
-        public string ConnectionString { get; private set; }
+        private readonly string[] _systemDatabases = { "_users", "_replicator", "_global_changes" };
+        public string ConnectionString { get; }
+
 
         /// <summary>
         /// Creates a new CouchDB client.
@@ -34,7 +35,8 @@ namespace CouchDB.Driver
         /// <param name="connectionString">URI to the CouchDB endpoint.</param>
         /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
         /// <param name="flurlSettingsFunc">A function to configure the HTTP client.</param>
-        public CouchClient(string connectionString, Action<CouchSettings> couchSettingsFunc = null, Action<ClientFlurlHttpSettings> flurlSettingsFunc = null)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
+        public CouchClient(string connectionString, Action<CouchSettings>? couchSettingsFunc = null, Action<ClientFlurlHttpSettings>? flurlSettingsFunc = null)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -76,16 +78,15 @@ namespace CouchDB.Driver
         {
             database = EscapeDatabaseName(database);
 
-            if (_settings.CheckDatabaseExists)
+            if (!_settings.CheckDatabaseExists)
             {
-                IEnumerable<string> dbs = AsyncContext.Run(() => GetDatabasesNamesAsync());
-                if (!dbs.Contains(database))
-                {
-                    return AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database));
-                }
+                return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
             }
 
-            return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
+            IEnumerable<string> dbs = AsyncContext.Run(GetDatabasesNamesAsync);
+            return !dbs.Contains(database)
+                ? AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database))
+                : new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
         }
 
         /// <summary>
@@ -147,7 +148,7 @@ namespace CouchDB.Driver
 
             if (!result.Ok) 
             {
-                throw new CouchException("Something went wrong during the delete.", "S");
+                throw new CouchException("Something went wrong during the delete.", null, "S");
             }
         }
 
@@ -171,7 +172,6 @@ namespace CouchDB.Driver
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
-        /// <param name="database">The database name.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
         public Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchDocument
         {
@@ -187,6 +187,7 @@ namespace CouchDB.Driver
         {
             return DeleteDatabaseAsync<TSource>(GetClassName<TSource>());
         }
+
         private string GetClassName<TSource>()
         {
             Type type = typeof(TSource);
@@ -211,7 +212,7 @@ namespace CouchDB.Driver
         /// Returns an instance of the users database.
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
-        /// <typeparam name="TUser">The specic type of user.</typeparam>
+        /// <typeparam name="TUser">The specific type of user.</typeparam>
         /// <returns>The instance of the users database.</returns>
         public CouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser
         {

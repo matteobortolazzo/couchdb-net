@@ -16,8 +16,13 @@ namespace CouchDB.Driver
     {
         protected virtual void OnBeforeCall(HttpCall httpCall)
         {
+            if (httpCall == null)
+            {
+                throw new ArgumentNullException(nameof(httpCall));
+            }
+
             // If session requests no authorization needed
-            if (httpCall.Request.RequestUri.ToString().Contains("_session"))
+            if (httpCall.Request?.RequestUri?.ToString()?.Contains("_session", StringComparison.InvariantCultureIgnoreCase) == true)
             {
                 return;
             }
@@ -34,7 +39,7 @@ namespace CouchDB.Driver
                         _cookieCreationDate.Value.AddMinutes(_settings.CookiesDuration) < DateTime.Now;
                     if (isTokenExpired)
                     {
-                        AsyncContext.Run(() => LoginAsync());
+                        AsyncContext.Run(LoginAsync);
                     }
                     httpCall.FlurlRequest = httpCall.FlurlRequest.EnableCookies().WithCookie("AuthSession", _cookieToken);
                     break;
@@ -56,20 +61,22 @@ namespace CouchDB.Driver
 
             _cookieCreationDate = DateTime.Now;
 
-            if (response.Headers.TryGetValues("Set-Cookie", out IEnumerable<string> values))
+            if (!response.Headers.TryGetValues("Set-Cookie", out IEnumerable<string> values))
             {
-                var dirtyToken = values.First();
-                var regex = new Regex(@"^AuthSession=(.+); Version=1; .*Path=\/; HttpOnly$");
-                Match match = regex.Match(dirtyToken);
-                if (match.Success)
-                {
-                    _cookieToken = match.Groups[1].Value;
-                    return;
-                }
+                throw new InvalidOperationException("Error while trying to log-in.");
             }
 
-            throw new InvalidOperationException("Error while trying to log-in.");
+            var dirtyToken = values.First();
+            var regex = new Regex(@"^AuthSession=(.+); Version=1; .*Path=\/; HttpOnly$");
+            Match match = regex.Match(dirtyToken);
+            if (!match.Success)
+            {
+                throw new InvalidOperationException("Error while trying to log-in.");
+            }
+
+            _cookieToken = match.Groups[1].Value;
         }
+
         private async Task LogoutAsync()
         {
             OperationResult result = await _flurlClient.Request(ConnectionString)

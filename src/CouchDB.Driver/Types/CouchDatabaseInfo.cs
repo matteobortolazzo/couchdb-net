@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿#nullable disable
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
 {
@@ -116,3 +117,4 @@ namespace CouchDB.Driver.Types
         public string UpdateSeq { get; internal set; }
     }
 }
+#nullable restore

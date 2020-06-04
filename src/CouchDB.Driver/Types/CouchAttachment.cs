@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
@@ -38,3 +39,4 @@ namespace CouchDB.Driver.Types
         public int? Length { get; private set; }
     }
 }
+#nullable restore

@@ -1,11 +1,10 @@
-﻿using CouchDB.Driver.Extensions;
+﻿#nullable disable
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
+using CouchDB.Driver.Extensions;
 
-#pragma warning disable IDE0058 // Expression value is never used
-namespace CouchDB.Driver.CompositeExpressionsEvaluator
+namespace CouchDB.Driver.ExpressionVisitors
 {
     internal static class Local
     {
@@ -27,7 +26,7 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
         /// /// <returns>A new tree with sub-trees evaluated and replaced.</returns>
         public static Expression PartialEval(Expression expression)
         {
-            return PartialEval(expression, Local.CanBeEvaluatedLocally);
+            return PartialEval(expression, CanBeEvaluatedLocally);
         }
 
         private static bool CanBeEvaluatedLocally(Expression expression)
@@ -58,23 +57,22 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
             {
                 _candidates = candidates;
             }
+
             internal Expression Eval(Expression exp)
             {
                 return Visit(exp);
             }
+
             public override Expression Visit(Expression exp)
             {
-                if (exp == null)
-                {
-                    return null;
-                }
-                if (_candidates.Contains(exp))
-                {
-                    return Evaluate(exp);
-                }
-                return base.Visit(exp);
+                return exp == null
+                    ? null
+                    : _candidates.Contains(exp)
+                        ? Evaluate(exp)
+                        : base.Visit(exp);
             }
-            private Expression Evaluate(Expression e)
+
+            private static Expression Evaluate(Expression e)
             {
                 if (e.NodeType == ExpressionType.Constant)
                 {
@@ -100,37 +98,41 @@ namespace CouchDB.Driver.CompositeExpressionsEvaluator
             {
                 _fnCanBeEvaluated = fnCanBeEvaluated;
             }
+
             internal HashSet<Expression> Nominate(Expression expression)
             {
                 _candidates = new HashSet<Expression>();
                 Visit(expression);
                 return _candidates;
             }
+
             public override Expression Visit(Expression expression)
             {
-                if (expression != null)
+                if (expression == null)
                 {
-                    var saveCannotBeEvaluated = _cannotBeEvaluated;
-                    _cannotBeEvaluated = false;
-                    base.Visit(expression);
-
-                    if (!_cannotBeEvaluated)
-                    {
-                        if (_fnCanBeEvaluated(expression))
-                        {
-                            _candidates.Add(expression);
-                        }
-                        else
-                        {
-                            _cannotBeEvaluated = true;
-                        }
-                    }
-
-                    _cannotBeEvaluated |= saveCannotBeEvaluated;
+                    return null;
                 }
+
+                var saveCannotBeEvaluated = _cannotBeEvaluated;
+                _cannotBeEvaluated = false;
+                _ = base.Visit(expression);
+
+                if (!_cannotBeEvaluated)
+                {
+                    if (_fnCanBeEvaluated(expression))
+                    {
+                        _candidates.Add(expression);
+                    }
+                    else
+                    {
+                        _cannotBeEvaluated = true;
+                    }
+                }
+
+                _cannotBeEvaluated |= saveCannotBeEvaluated;
                 return expression;
             }
         }
     }
 }
-#pragma warning restore IDE0058 // Expression value is never used
+#nullable restore

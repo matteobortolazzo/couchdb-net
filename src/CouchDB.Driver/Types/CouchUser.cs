@@ -13,11 +13,7 @@ namespace CouchDB.Driver.Types
     {
         internal const string Prefix = "org.couchdb.user:";
       
-        internal CouchUser()
-        {
-            Roles = new List<string>();
-        }
-        public CouchUser(string name, string password, List<string> roles = null, string type = "user")
+        public CouchUser(string name, string password, List<string>? roles = null, string type = "user")
         {
             Id = name != null ? Prefix + name : throw new ArgumentNullException(nameof(name));
             Name = name ?? throw new ArgumentNullException(nameof(name));
