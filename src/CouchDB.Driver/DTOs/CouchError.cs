@@ -7,4 +7,4 @@ namespace CouchDB.Driver.DTOs
         public string Reason { get; set; }
     }
 }
-#nullable enable
+#nullable restore

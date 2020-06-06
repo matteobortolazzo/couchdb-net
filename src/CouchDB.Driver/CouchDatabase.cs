@@ -12,7 +12,10 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver
 {
@@ -543,6 +546,88 @@ namespace CouchDB.Driver
             }
 
             InitAttachments(document);
+        }
+
+        #endregion
+
+        #region Feed
+
+        /// <summary>
+        /// Returns a sorted list of changes made to documents in the database.
+        /// </summary>
+        /// <remarks>
+        /// Only the most recent change for a given document is guaranteed to be provided.
+        /// </remarks>
+        /// <param name="options">Options to apply to the request.</param>
+        /// <param name="filter">A filter to apply to the result.</param>
+        /// <returns></returns>
+        public async Task<ChangesFeedResponse<TSource>> GetChangesAsync(ChangesFeedOptions? options = null, ChangesFeedFilter? filter = null)
+        {
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegment("_changes");
+
+            if (options?.LongPoll == true)
+            {
+                _ = request.SetQueryParam("feed", "longpoll");
+            }
+
+            if (options != null)
+            {
+                request.SetChangesFeedOptions(options);
+            }
+
+            return filter == null
+                ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>()
+                    .ConfigureAwait(false)
+                : await request.QueryWithFilterAsync<TSource>(_settings, filter)
+                    .ConfigureAwait(false);
+        }
+
+
+        /// <summary>
+        /// Returns changes as they happen. A continuous feed stays open and connected to the database until explicitly closed.
+        /// </summary>
+        /// <remarks>
+        /// To stop receiving changes call <c>Cancel()</c> on the <c>CancellationTokenSource</c> used to create the <c>CancellationToken</c>.
+        /// </remarks>
+        /// <param name="options">Options to apply to the request.</param>
+        /// <param name="filter">A filter to apply to the result.</param>
+        /// <param name="cancellationToken">A cancellation token to stop receiving changes.</param>
+        /// <returns></returns>
+        public async IAsyncEnumerable<ChangesFeedResponseResult<TSource>> GetContinuousChangesAsync(ChangesFeedOptions options, ChangesFeedFilter filter,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var infiniteTimeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
+            IFlurlRequest request = NewRequest()
+                .WithTimeout(infiniteTimeout)
+                .AppendPathSegment("_changes")
+                .SetQueryParam("feed", "continuous");
+
+            if (options != null)
+            {
+                request.SetChangesFeedOptions(options);
+            }
+
+            await using Stream stream = filter == null
+                ? await request.GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
+                    .ConfigureAwait(false)
+                : await request.QueryContinuousWithFilterAsync<TSource>(_settings, filter, cancellationToken)
+                    .ConfigureAwait(false);
+
+            using var reader = new StreamReader(stream);
+            while (!cancellationToken.IsCancellationRequested && !reader.EndOfStream)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    continue;
+                }
+
+                var line = await reader.ReadLineAsync().ConfigureAwait(false);
+                if (!string.IsNullOrEmpty(line))
+                {
+                    yield return JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
+                }
+            }
         }
 
         #endregion
