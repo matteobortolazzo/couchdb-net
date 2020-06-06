@@ -493,7 +493,7 @@ namespace CouchDB.Driver
 
             if (!result.Ok)
             {
-                throw new CouchException("Something wrong happend while ensuring full commits.");
+                throw new CouchException("Something wrong happened while ensuring full commits.");
             }
         }
 

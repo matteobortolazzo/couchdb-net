@@ -27,10 +27,10 @@ namespace CouchDB.Driver.Extensions
         #endregion
 
         /// <summary>
-        /// Creates a list of <see cref="TSource"/> from a sequence by enumerating it asynchronously.
+        /// Creates a <see cref="List{TSource}"/> from a sequence by enumerating it asynchronously.
         /// </summary>
         /// <param name="source">The source of items.</param>
-        /// <retuns>A task that represents the asynchronous operation. The task result contains a a list of <see cref="TSource"/> that contains elements from the sequence.</retuns>
+        /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/> that contains elements from the sequence.</retuns>
         public static Task<List<TSource>> ToListAsync<TSource>(this IQueryable<TSource> source)
         {
             return Task<List<TSource>>.Factory.StartNew(source.ToList);
@@ -65,7 +65,7 @@ namespace CouchDB.Driver.Extensions
         /// </summary>
         /// <param name="source">The source of items.</param>
         /// <param name="bookmark">A string that enables you to specify which page of results you require.</param>
-        /// <return>An IQueryable of <see cref="TSource"/> that contains the paginated of elements of the sequence.</return>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the paginated of elements of the sequence.</return>
         public static IQueryable<TSource> UseBookmark<TSource>(this IQueryable<TSource> source, string bookmark)
         {
             if (source == null)
@@ -89,7 +89,7 @@ namespace CouchDB.Driver.Extensions
         /// </summary>
         /// <param name="source">The source of items.</param>
         /// <param name="quorum">Read quorum needed for the result.</param>
-        /// <return>An IQueryable of <see cref="TSource"/> that contains the elements of the sequence after had been read from at least that many replicas.</return>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the elements of the sequence after had been read from at least that many replicas.</return>
         public static IQueryable<TSource> WithReadQuorum<TSource>(this IQueryable<TSource> source, int quorum)
         {
             if (source == null)
@@ -112,7 +112,7 @@ namespace CouchDB.Driver.Extensions
         /// Disables the index update in the sequence.
         /// </summary>
         /// <param name="source">The source of items.</param>
-        /// <return>An IQueryable of <see cref="TSource"/> that contains the instruction to disable index updates in the sequence.</return>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the instruction to disable index updates in the sequence.</return>
         public static IQueryable<TSource> WithoutIndexUpdate<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -131,7 +131,7 @@ namespace CouchDB.Driver.Extensions
         /// Ensures that elements returned is from a "stable" set of shards in the sequence.
         /// </summary>
         /// <param name="source">The source of items.</param>
-        /// <return>An IQueryable of <see cref="TSource"/> that contains the instruction to request elements from a "stable" set of shards in the sequence.</return>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the instruction to request elements from a "stable" set of shards in the sequence.</return>
         public static IQueryable<TSource> FromStable<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -151,7 +151,7 @@ namespace CouchDB.Driver.Extensions
         /// </summary>
         /// <param name="source">The source of items.</param>
         /// <param name="indexes">Array representing the design document and, optionally, the index name.</param>
-        /// <return>An IQueryable of <see cref="TSource"/> that contains the index to use when requesting elements from the sequence.</return>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the index to use when requesting elements from the sequence.</return>
         public static IQueryable<TSource> UseIndex<TSource>(this IQueryable<TSource> source, params string[] indexes)
         {
             if (source == null)
@@ -178,7 +178,7 @@ namespace CouchDB.Driver.Extensions
         /// Asks for execution stats when requesting elements from the sequence.
         /// </summary>
         /// <param name="source">The source of items.</param>
-        /// <return>An IQueryable of <see cref="TSource"/> that contains the request to ask for execution stats when requesting elements from the sequence.</return>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the request to ask for execution stats when requesting elements from the sequence.</return>
         public static IQueryable<TSource> IncludeExecutionStats<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -197,7 +197,7 @@ namespace CouchDB.Driver.Extensions
         /// Asks for conflicts when requesting elements from the sequence.
         /// </summary>
         /// <param name="source">The source of items.</param>
-        /// <return>An IQueryable of <see cref="TSource"/> that contains the request to ask for conflicts when requesting elements from the sequence.</return>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the request to ask for conflicts when requesting elements from the sequence.</return>
         public static IQueryable<TSource> IncludeConflicts<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
