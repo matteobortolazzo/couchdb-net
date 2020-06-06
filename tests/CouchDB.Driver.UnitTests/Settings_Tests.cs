@@ -22,19 +22,9 @@ namespace CouchDB.Driver.UnitTests
                 httpTest.RespondWithJson(new { ok = true });
                 using (var client = new CouchClient("http://localhost"))
                 {
-                    Assert.Equal("http://localhost", client.ConnectionString);
+                    Assert.Equal("http://localhost/", client.DatabaseUri.AbsoluteUri);
                 }
             }
-        }
-        [Fact]
-        public void Creation_NullConnectionString()
-        {
-            var exception = Record.Exception(() =>
-            {
-                new CouchClient(null);
-            });
-            Assert.NotNull(exception);
-            Assert.IsType<ArgumentNullException>(exception);
         }
 
         #endregion
@@ -52,7 +42,7 @@ namespace CouchDB.Driver.UnitTests
                 using (var client = new CouchClient("http://localhost", s =>
                 s.UseBasicAuthentication("root", "relax")))
                 {
-                    Assert.Equal("http://localhost", client.ConnectionString);
+                    Assert.Equal("http://localhost/", client.DatabaseUri.AbsoluteUri);
                 }
             }
         }
@@ -67,7 +57,7 @@ namespace CouchDB.Driver.UnitTests
                 using (var client = new CouchClient("http://localhost", s =>
                 s.UseCookieAuthentication("root", "relax")))
                 {
-                    Assert.Equal("http://localhost", client.ConnectionString);
+                    Assert.Equal("http://localhost/", client.DatabaseUri.AbsoluteUri);
                 }
             }
         }

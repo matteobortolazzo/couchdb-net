@@ -8,7 +8,7 @@ namespace CouchDB.Driver.UnitTests.Find
 {
     public class Find_Selector
     {
-        private readonly CouchDatabase<Rebel> _rebels;
+        private readonly ICouchDatabase<Rebel> _rebels;
 
         public Find_Selector()
         {

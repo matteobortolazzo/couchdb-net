@@ -17,15 +17,15 @@ namespace CouchDB.Driver
     {
         private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
-        private readonly string _connectionString;
-        private readonly string _db;
+        private readonly Uri _databaseUri;
+        private readonly string _database;
 
-        public CouchQueryProvider(IFlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
+        public CouchQueryProvider(IFlurlClient flurlClient, CouchSettings settings, Uri databaseUri, string database)
         {
-            _flurlClient = flurlClient ?? throw new ArgumentNullException(nameof(flurlClient));
-            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
-            _db = db ?? throw new ArgumentNullException(nameof(db));
+            _flurlClient = flurlClient;
+            _settings = settings;
+            _databaseUri = databaseUri;
+            _database = database;
         }
 
         public override string GetQueryText(Expression expression)
@@ -85,8 +85,8 @@ namespace CouchDB.Driver
         public object GetCouchList<T>(string body)
         {
             FindResult<T> result = _flurlClient
-                .Request(_connectionString)
-                .AppendPathSegments(_db, "_find")
+                .Request(_databaseUri)
+                .AppendPathSegments(_database, "_find")
                 .WithHeader("Content-Type", "application/json")
                 .PostStringAsync(body).ReceiveJson<FindResult<T>>()
                 .SendRequest();
@@ -174,8 +174,7 @@ namespace CouchDB.Driver
             MethodInfo enumerableGenericMethod = enumerableMethodInfo.MakeGenericMethod(usableParameters);
             try
             {
-                var filtered = enumerableGenericMethod.Invoke(null, invokeParameter.ToArray());
-                return filtered;
+                return enumerableGenericMethod.Invoke(null, invokeParameter.ToArray());
             }
             catch (TargetInvocationException e)
             {

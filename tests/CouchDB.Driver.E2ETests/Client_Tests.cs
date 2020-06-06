@@ -19,7 +19,7 @@ namespace CouchDB.Driver.E2E
             using (var client = new CouchClient("http://localhost:5984"))
             {
                 IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
-                CouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>();
+                ICouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>();
 
                 if (dbs.Contains(rebels.Database))
                 {
@@ -54,7 +54,7 @@ namespace CouchDB.Driver.E2E
             using (var client = new CouchClient("http://localhost:5984"))
             {
                 IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
-                CouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>(databaseName);
+                ICouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>(databaseName);
 
                 if (dbs.Contains(rebels.Database))
                 {
@@ -87,7 +87,7 @@ namespace CouchDB.Driver.E2E
             using (var client = new CouchClient("http://localhost:5984"))
             {
                 IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
-                CouchDatabase<CouchUser> users = client.GetUsersDatabase();
+                ICouchDatabase<CouchUser> users = client.GetUsersDatabase();
 
                 if (!dbs.Contains(users.Database))
                 {
@@ -114,7 +114,7 @@ namespace CouchDB.Driver.E2E
             using (var client = new CouchClient("http://localhost:5984"))
             {
                 IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
-                CouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>();
+                ICouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>();
 
                 if (dbs.Contains(rebels.Database))
                 {

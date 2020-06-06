@@ -7,7 +7,7 @@ namespace CouchDB.Driver.UnitTests.Find
 {
     public class Find_Sort
     {
-        private readonly CouchDatabase<Rebel> _rebels;
+        private readonly ICouchDatabase<Rebel> _rebels;
 
         public Find_Sort()
         {

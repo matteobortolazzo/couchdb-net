@@ -23,188 +23,138 @@ namespace CouchDB.Driver
     /// Represents a CouchDB database.
     /// </summary>
     /// <typeparam name="TSource">The type of database documents.</typeparam>
-    public class CouchDatabase<TSource> where TSource : CouchDocument
+    public class CouchDatabase<TSource>: ICouchDatabase<TSource>
+        where TSource : CouchDocument
     {
         private readonly QueryProvider _queryProvider;
         private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
-        private readonly string _connectionString;
+        private readonly Uri _databaseUri;
         private readonly string _database;
 
-        /// <summary>
-        /// The database name.
-        /// </summary>
+        /// <inheritdoc />
         public string Database { get; }
 
-        /// <summary>
-        /// Section to handle security operations.
-        /// </summary>
-        public CouchSecurity Security { get; }
+        /// <inheritdoc />
+        public ICouchSecurity Security { get; }
 
-        internal CouchDatabase(IFlurlClient flurlClient, CouchSettings settings, string connectionString, string db)
+        internal CouchDatabase(IFlurlClient flurlClient, CouchSettings settings, Uri databaseUri, string database)
         {
-            _flurlClient = flurlClient ?? throw new ArgumentNullException(nameof(flurlClient));
-            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
-            _database = db ?? throw new ArgumentNullException(nameof(db));
-            _queryProvider = new CouchQueryProvider(flurlClient, _settings, connectionString, _database);
+            _flurlClient = flurlClient;
+            _settings = settings;
+            _databaseUri = databaseUri;
+            _database = database;
+            _queryProvider = new CouchQueryProvider(flurlClient, _settings, databaseUri, _database);
 
             Database = Uri.UnescapeDataString(_database);
             Security = new CouchSecurity(NewRequest);
         }
 
-        /// <summary>
-        /// Converts the database to an IQueryable.
-        /// </summary>
-        /// <returns>An IQueryable that represents the database.</returns>
+        /// <inheritdoc />
         public IQueryable<TSource> AsQueryable()
         {
             return new CouchQuery<TSource>(_queryProvider);
         }
 
         #region Query
-
-        /// <summary>
-        /// Creates a List<T> from the database.
-        /// </summary>
-        /// <returns>A List<T> that contains elements from the database.</returns>
+        
+        /// <inheritdoc />
         public List<TSource> ToList()
         {
             return AsQueryable().ToList();
         }
-        /// <summary>
-        /// Creates a List<T> from a database by enumerating it asynchronously.
-        /// </summary>
-        /// <retuns>A task that represents the asynchronous operation. The task result contains a List<T> that contains elements from the database.</retuns>
+
+        /// <inheritdoc />
         public Task<List<TSource>> ToListAsync()
         {
             return AsQueryable().ToListAsync();
         }
-        /// <summary>
-        /// Creates a CouchList<T> from the database.
-        /// </summary>
-        /// <returns>A CouchList<T> that contains elements from the database.</returns>
+
+        /// <inheritdoc />
         public CouchList<TSource> ToCouchList()
         {
             return AsQueryable().ToCouchList();
         }
-        /// <summary>
-        /// Creates a CouchList<T> from a database by enumerating it asynchronously.
-        /// </summary>
-        /// <retuns>A task that represents the asynchronous operation. The task result contains a CouchList<T> that contains elements from the database.</retuns>
+
+        /// <inheritdoc />
         public Task<CouchList<TSource>> ToCouchListAsync()
         {
             return AsQueryable().ToCouchListAsync();
         }
-        /// <summary>
-        /// Filters the database based on a predicate. Each element's index is used in the logic of the predicate function.
-        /// </summary>
-        /// <param name="predicate">A function to test each element for a condition.</param>
-        /// <returns>An IQueryable<T> that contains elements from the database that satisfy the condition specified by predicate.</returns>
+
+        /// <inheritdoc />
         public IQueryable<TSource> Where(Expression<Func<TSource, bool>> predicate)
         {
             return AsQueryable().Where(predicate);
         }
-        /// <summary>
-        /// Sorts the elements of the database in ascending order according to a key.
-        /// </summary>
-        /// <param name="keySelector">A function to extract a key from an element.</param>
-        /// <returns>An IOrderedQueryable<T> whose elements are sorted according to a key.</returns>
+
+        /// <inheritdoc />
         public IOrderedQueryable<TSource> OrderBy<TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
             return AsQueryable().OrderBy(keySelector);
         }
-        /// <summary>
-        /// Sorts the elements of the database in descending order according to a key.
-        /// </summary>
-        /// <param name="keySelector">A function to extract a key from an element.</param>
-        /// <returns>An IOrderedQueryable<T> whose elements are sorted according to a key.</returns>
+
+        /// <inheritdoc />
         public IOrderedQueryable<TSource> OrderByDescending<TKey>(Expression<Func<TSource, TKey>> keySelector)
         {
             return AsQueryable().OrderByDescending(keySelector);
         }
-        /// <summary>
-        /// Projects each element of the database into a new form.
-        /// </summary>
-        /// <param name="selector">A projection function to apply to each element.</param>
-        /// <returns>An IQueryable<T> whose elements are the result of invoking a projection function on each element the database.</returns>
+
+        /// <inheritdoc />
         public IQueryable<TResult> Select<TResult>(Expression<Func<TSource, TResult>> selector)
         {
             return AsQueryable().Select(selector);
         }
-        /// <summary>
-        /// Bypasses a specific number of elements in the database and then returns the remaining elements.
-        /// </summary>
-        /// <param name="count">The number of elements to skip before returning the remaining elements.</param>
-        /// <return>An IQueryable<T> that contains elements that occur after the specified index in the database.</return>
+
+        /// <inheritdoc />
         public IQueryable<TSource> Skip(int count)
         {
             return AsQueryable().Skip(count);
         }
-        /// <summary>
-        /// Returns a specified number of contiguous elements from the start of the database.
-        /// </summary>
-        /// <param name="count">The number of elements to return.</param>
-        /// <return>An IQueryable<T> that contains the specified number of elements from the start of the database.</return>
+
+        /// <inheritdoc />
         public IQueryable<TSource> Take(int count)
         {
             return AsQueryable().Take(count);
         }
-        /// <summary>
-        /// Paginates elements in the database using a bookmark.
-        /// </summary>
-        /// <param name="bookmark">A string that enables you to specify which page of results you require.</param>
-        /// <return>An IQueryable<T> that contains the paginated of elements of the database.</return>
+
+        /// <inheritdoc />
         public IQueryable<TSource> UseBookmark(string bookmark)
         {
             return AsQueryable().UseBookmark(bookmark);
         }
-        /// <summary>
-        /// Ensures that elements from the database will be read from at least that many replicas.
-        /// </summary>
-        /// <param name="quorum">Read quorum needed for the result.</param>
-        /// <return>An IQueryable<T> that contains the elements of the database after had been read from at least that many replicas.</return>
+
+        /// <inheritdoc />
         public IQueryable<TSource> WithReadQuorum(int quorum)
         {
             return AsQueryable().WithReadQuorum(quorum);
         }
-        /// <summary>
-        /// Disables the index update in the database.
-        /// </summary>
-        /// <return>An IQueryable<T> that contains the instruction to disable index updates in the database.</return>
+
+        /// <inheritdoc />
         public IQueryable<TSource> WithoutIndexUpdate()
         {
             return AsQueryable().WithoutIndexUpdate();
         }
-        /// <summary>
-        /// Ensures that elements returned is from a "stable" set of shards in the database.
-        /// </summary>
-        /// <return>An IQueryable<T> that contains the instruction to request elements from a "stable" set of shards in the database.</return>
+
+        /// <inheritdoc />
         public IQueryable<TSource> FromStable()
         {
             return AsQueryable().FromStable();
         }
-        /// <summary>
-        /// Applies an index when requesting elements from the database.
-        /// </summary>
-        /// <param name="indexes">Array representing the design document and, optionally, the index name.</param>
-        /// <return>An IQueryable<T> that contains the index to use when requesting elements from the database.</return>
+
+        /// <inheritdoc />
         public IQueryable<TSource> UseIndex(params string[] indexes)
         {
             return AsQueryable().UseIndex(indexes);
         }
-        /// <summary>
-        /// Asks for exection stats when requesting elements from the database.
-        /// </summary>
-        /// <return>An IQueryable<T> that contains the request to ask for execution stats when requesting elements from the database.</return>
+
+        /// <inheritdoc />
         public IQueryable<TSource> IncludeExecutionStats()
         {
             return AsQueryable().IncludeExecutionStats();
         }
-        /// <summary>
-        /// Asks for conflicts when requesting elements from the database.
-        /// </summary>
-        /// <return>An IQueryable<T> that contains the request to ask for conflicts when requesting elements from the database.</return>
+
+        /// <inheritdoc />
         public IQueryable<TSource> IncludeConflicts()
         {
             return AsQueryable().IncludeConflicts();
@@ -214,12 +164,7 @@ namespace CouchDB.Driver
 
         #region Find
 
-        /// <summary>
-        /// Finds the document with the given ID. If no document is found, then null is returned.
-        /// </summary>
-        /// <param name="docId">The document ID.</param>
-        /// <param name="withConflicts">Set if conflicts array should be included.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null.</returns>
+        /// <inheritdoc />
         public async Task<TSource?> FindAsync(string docId, bool withConflicts = false)
         {
             try
@@ -246,11 +191,7 @@ namespace CouchDB.Driver
             }
         }
 
-        /// <summary>
-        /// Finds all documents matching the MangoQuery.
-        /// </summary>
-        /// <param name="mangoQueryJson">The JSON representing the Mango query.</param>
-        /// <retuns>A task that represents the asynchronous operation. The task result contains a List<T> that contains elements from the database.</retuns>
+        /// <inheritdoc />
         public Task<List<TSource>> QueryAsync(string mangoQueryJson)
         {
             return SendQueryAsync(r => r
@@ -258,44 +199,14 @@ namespace CouchDB.Driver
                 .PostStringAsync(mangoQueryJson));
         }
 
-        /// <summary>
-        /// Finds all documents matching the MangoQuery.
-        /// </summary>
-        /// <param name="mangoQuery">The object representing the Mango query.</param>
-        /// <retuns>A task that represents the asynchronous operation. The task result contains a List<T> that contains elements from the database.</retuns>
+        /// <inheritdoc />
         public Task<List<TSource>> QueryAsync(object mangoQuery)
         {
             return SendQueryAsync(r => r
                 .PostJsonAsync(mangoQuery));
         }
 
-        private async Task<List<TSource>> SendQueryAsync(Func<IFlurlRequest, Task<HttpResponseMessage>> requestFunc)
-        {
-            IFlurlRequest request = NewRequest()
-                .AppendPathSegment("_find");
-
-            Task<HttpResponseMessage> message = requestFunc(request);
-
-            FindResult<TSource> findResult = await message
-                .ReceiveJson<FindResult<TSource>>()
-                .SendRequestAsync()
-                .ConfigureAwait(false);
-
-            var documents = findResult.Docs.ToList();
-
-            foreach (TSource document in documents)
-            {
-                InitAttachments(document);
-            }
-
-            return documents;
-        }
-
-        /// <summary>
-        /// Finds all documents with given IDs.
-        /// </summary>
-        /// <param name="docIds">The collection of documents IDs.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<List<TSource>> FindManyAsync(IEnumerable<string> docIds)
         {
             BulkGetResult<TSource> bulkGetResult = await NewRequest()
@@ -320,14 +231,36 @@ namespace CouchDB.Driver
             return documents;
         }
 
+        private async Task<List<TSource>> SendQueryAsync(Func<IFlurlRequest, Task<HttpResponseMessage>> requestFunc)
+        {
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegment("_find");
+
+            Task<HttpResponseMessage> message = requestFunc(request);
+
+            FindResult<TSource> findResult = await message
+                .ReceiveJson<FindResult<TSource>>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            var documents = findResult.Docs.ToList();
+
+            foreach (TSource document in documents)
+            {
+                InitAttachments(document);
+            }
+
+            return documents;
+        }
+
         private void InitAttachments(TSource document)
         {
             foreach (CouchAttachment attachment in document.Attachments)
             {
                 attachment.DocumentId = document.Id;
                 attachment.DocumentRev = document.Rev;
-                var path = $"{_connectionString}/{_database}/{document.Id}/{Uri.EscapeUriString(attachment.Name)}";
-                attachment.Uri = new Uri(path);
+                var path = $"{_database}/{document.Id}/{Uri.EscapeUriString(attachment.Name)}";
+                attachment.Uri = new Uri(_databaseUri, path);
             }
         }
 
@@ -335,12 +268,7 @@ namespace CouchDB.Driver
 
         #region Writing
 
-        /// <summary>
-        /// Creates a new document and returns it.
-        /// </summary>
-        /// <param name="document">The document to create.</param>
-        /// <param name="batch">Stores document in batch mode.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
+        /// <inheritdoc />
         public async Task<TSource> CreateAsync(TSource document, bool batch = false)
         {
             if (document == null)
@@ -374,12 +302,7 @@ namespace CouchDB.Driver
             return document;
         }
 
-        /// <summary>
-        /// Creates or updates the document with the given ID.
-        /// </summary>
-        /// <param name="document">The document to create or update</param>
-        /// <param name="batch">Stores document in batch mode.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
+        /// <inheritdoc />
         public async Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false)
         {
             if (document == null)
@@ -413,12 +336,7 @@ namespace CouchDB.Driver
             return document;
         }
 
-        /// <summary>
-        /// Deletes the document with the given ID.
-        /// </summary>
-        /// <param name="document">The document to delete.</param>
-        /// <param name="batch">Stores document in batch mode.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <inheritdoc />
         public async Task DeleteAsync(TSource document, bool batch = false)
         {
             if (document == null)
@@ -447,11 +365,7 @@ namespace CouchDB.Driver
             }
         }
 
-        /// <summary>
-        /// Creates or updates a sequence of documents based on their IDs.
-        /// </summary>
-        /// <param name="documents">Documents to create or update</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the elements created or updated.</returns>
+        /// <inheritdoc />
         public async Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents)
         {
             if (documents == null)
@@ -480,11 +394,7 @@ namespace CouchDB.Driver
             return documents;
         }
 
-        /// <summary>
-        /// Commits any recent changes to the specified database to disk. You should call this if you want to ensure that recent changes have been flushed.
-        /// This function is likely not required, assuming you have the recommended configuration setting of delayed_commits=false, which requires CouchDB to ensure changes are written to disk before a 200 or similar result is returned.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <inheritdoc />
         public async Task EnsureFullCommitAsync()
         {
             OperationResult result = await NewRequest()
@@ -552,15 +462,7 @@ namespace CouchDB.Driver
 
         #region Feed
 
-        /// <summary>
-        /// Returns a sorted list of changes made to documents in the database.
-        /// </summary>
-        /// <remarks>
-        /// Only the most recent change for a given document is guaranteed to be provided.
-        /// </remarks>
-        /// <param name="options">Options to apply to the request.</param>
-        /// <param name="filter">A filter to apply to the result.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<ChangesFeedResponse<TSource>> GetChangesAsync(ChangesFeedOptions? options = null, ChangesFeedFilter? filter = null)
         {
             IFlurlRequest request = NewRequest()
@@ -583,17 +485,7 @@ namespace CouchDB.Driver
                     .ConfigureAwait(false);
         }
 
-
-        /// <summary>
-        /// Returns changes as they happen. A continuous feed stays open and connected to the database until explicitly closed.
-        /// </summary>
-        /// <remarks>
-        /// To stop receiving changes call <c>Cancel()</c> on the <c>CancellationTokenSource</c> used to create the <c>CancellationToken</c>.
-        /// </remarks>
-        /// <param name="options">Options to apply to the request.</param>
-        /// <param name="filter">A filter to apply to the result.</param>
-        /// <param name="cancellationToken">A cancellation token to stop receiving changes.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async IAsyncEnumerable<ChangesFeedResponseResult<TSource>> GetContinuousChangesAsync(ChangesFeedOptions options, ChangesFeedFilter filter,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -634,14 +526,7 @@ namespace CouchDB.Driver
 
         #region Utils
 
-        /// <summary>
-        ///  Asynchronously downloads a specific attachment.
-        /// </summary>
-        /// <param name="attachment">The attachment to download.</param>
-        /// <param name="localFolderPath">Path of local folder where file is to be downloaded.</param>
-        /// <param name="localFileName">Name of local file. If not specified, the source filename (from Content-Dispostion header, or last segment of the URL) is used.</param>
-        /// <param name="bufferSize">Buffer size in bytes. Default is 4096.</param>
-        /// <returns>The path of the downloaded file.</returns>
+        /// <inheritdoc />
         public async Task<string> DownloadAttachment(CouchAttachment attachment, string localFolderPath, string? localFileName = null, int bufferSize = 4096)
         {
             if (attachment == null)
@@ -659,13 +544,10 @@ namespace CouchDB.Driver
                 .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                 .WithHeader("If-Match", attachment.DocumentRev)
                 .DownloadFileAsync(localFolderPath, localFileName, bufferSize)
-                .ConfigureAwait(false); 
+                .ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Requests compaction of the specified database.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <inheritdoc />
         public async Task CompactAsync()
         {
             OperationResult result = await NewRequest()
@@ -681,10 +563,7 @@ namespace CouchDB.Driver
             }
         }
 
-        /// <summary>
-        /// Gets information about the specified database.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the database information.</returns>
+        /// <inheritdoc />
         public async Task<CouchDatabaseInfo> GetInfoAsync()
         {
             return await NewRequest()
@@ -712,7 +591,7 @@ namespace CouchDB.Driver
 
         private IFlurlRequest NewRequest()
         {
-            return _flurlClient.Request(_connectionString).AppendPathSegment(_database);
+            return _flurlClient.Request(_databaseUri).AppendPathSegment(_database);
         }
 
         #endregion

@@ -50,7 +50,7 @@ namespace CouchDB.Driver
 
         private async Task LoginAsync()
         {
-            HttpResponseMessage response = await _flurlClient.Request(ConnectionString)
+            HttpResponseMessage response = await _flurlClient.Request(DatabaseUri)
                 .AppendPathSegment("_session")
                 .PostJsonAsync(new
                 {
@@ -79,7 +79,7 @@ namespace CouchDB.Driver
 
         private async Task LogoutAsync()
         {
-            OperationResult result = await _flurlClient.Request(ConnectionString)
+            OperationResult result = await _flurlClient.Request(DatabaseUri)
                 .AppendPathSegment("_session")
                 .DeleteAsync()
                 .ReceiveJson<OperationResult>()

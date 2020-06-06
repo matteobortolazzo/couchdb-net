@@ -10,7 +10,7 @@ namespace CouchDB.Driver.UnitTests
 {
     public class UnsupportedMethods_Tests
     {
-        private readonly CouchDatabase<Rebel> _rebels;
+        private readonly ICouchDatabase<Rebel> _rebels;
         private readonly Rebel _mainRebel;
         private readonly List<Rebel> _rebelsList;
         private readonly object _response;
