@@ -225,7 +225,8 @@ namespace CouchDB.Driver
 
             foreach (TSource document in documents)
             {
-                InitAttachments(document);
+                if (document != null)
+                    InitAttachments(document);
             }
 
             return documents;
