@@ -37,7 +37,6 @@ namespace CouchDB.Driver.Extensions
                     .ReceiveJson<ChangesFeedResponse<TSource>>()
                     .ConfigureAwait(false);
             }
-
             if (filter is DesignChangesFeedFilter)
             {
                 return await request

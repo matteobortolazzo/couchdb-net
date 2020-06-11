@@ -1,4 +1,5 @@
-﻿using CouchDB.Driver.Settings;
+﻿using CouchDB.Driver.ExpressionVisitors;
+using CouchDB.Driver.Settings;
 using System;
 using System.Linq.Expressions;
 using System.Text;
@@ -16,11 +17,20 @@ namespace CouchDB.Driver
             _sb = new StringBuilder();
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
-        internal string Translate(Expression expression)
+
+        internal string Translate(Expression e)
         {
+            e = Local.PartialEval(e);
+
+            var whereVisitor = new BoolMemberToConstantEvaluator();
+            e = whereVisitor.Visit(e);
+
+            var preTranslator = new QueryPreTranslator();
+            e = preTranslator.Visit(e);
+
             _sb.Clear();
             _sb.Append("{");
-            Visit(expression);
+            Visit(e);
             
             // If no Where() calls
             if (!_isSelectorSet)

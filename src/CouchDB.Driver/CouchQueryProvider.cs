@@ -9,7 +9,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using CouchDB.Driver.ExpressionVisitors;
 
 namespace CouchDB.Driver
 {
@@ -70,15 +69,7 @@ namespace CouchDB.Driver
         }
 
         private string Translate(ref Expression e)
-        {
-            e = Local.PartialEval(e);
-
-            var whereVisitor = new BoolMemberToConstantEvaluator();
-            e = whereVisitor.Visit(e);
-
-            var preTranslator = new QueryPreTranslator();
-            e = preTranslator.Visit(e);
-
+        {        
             return new QueryTranslator(_settings).Translate(e);
         }
 
