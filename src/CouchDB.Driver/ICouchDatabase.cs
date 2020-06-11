@@ -192,6 +192,8 @@ namespace CouchDB.Driver
         Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents);
 
         /// <summary>
+        /// Since CouchDB v3, it is deprecated (a no-op).
+        /// 
         /// Commits any recent changes to the specified database to disk. You should call this if you want to ensure that recent changes have been flushed.
         /// This function is likely not required, assuming you have the recommended configuration setting of delayed_commits=false, which requires CouchDB to ensure changes are written to disk before a 200 or similar result is returned.
         /// </summary>
