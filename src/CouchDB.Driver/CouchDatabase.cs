@@ -510,15 +510,21 @@ namespace CouchDB.Driver
             using var reader = new StreamReader(stream);
             while (!cancellationToken.IsCancellationRequested && !reader.EndOfStream)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    continue;
-                }
-
-                var line = await reader.ReadLineAsync().ConfigureAwait(false);
+                var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
                 if (!string.IsNullOrEmpty(line))
                 {
-                    yield return JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
+                    ChangesFeedResponseResult<TSource>? result = null;
+                    try
+                    {
+                        result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
+                    }
+                    // If the token is cancelled before the full JSON is readed
+                    catch (JsonSerializationException) { }
+
+                    if (result != null)
+                    {
+                        yield return result;
+                    }
                 }
             }
         }
