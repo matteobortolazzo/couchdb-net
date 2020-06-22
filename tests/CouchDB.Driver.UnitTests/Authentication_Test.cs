@@ -84,5 +84,33 @@ namespace CouchDB.Driver.UnitTests
                 }
             }
         }
+
+        [Fact]
+        public async Task Proxy()
+        {
+            using (var httpTest = new HttpTest())
+            {
+                // ToList
+                httpTest.RespondWithJson(new { Docs = new List<string>() });
+
+                // Logout
+                httpTest.RespondWithJson(new { ok = true });
+
+                using (var client = new CouchClient("http://localhost", s => s.UseProxyAuthentication("root", new[]
+                {
+                    "role1", "role2"
+                })))
+                {
+                    var rebels = client.GetDatabase<Rebel>();
+                    var all = await rebels.ToListAsync();
+
+                    httpTest
+                        .ShouldHaveCalled("http://localhost/rebels/_find")
+                        .WithVerb(HttpMethod.Post)
+                        .WithHeader("X-Auth-CouchDB-UserName", "root")
+                        .WithHeader("X-Auth-CouchDB-Roles", "role1,role2");
+                }
+            }
+        }
     }
 }

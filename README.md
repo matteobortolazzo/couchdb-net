@@ -270,6 +270,13 @@ var client = new CouchClient("http://localhost:5984", s => s
 )
 ```
 
+### Proxy authentication
+
+```csharp
+var client = new CouchClient("http://localhost:5984", s => s
+  .UseProxyAuthentication("root", new[] { "role1", "role2" })
+```
+
 ### Options
 
 The second parameter of the client constructor is a function to configure CouchSettings fluently.
