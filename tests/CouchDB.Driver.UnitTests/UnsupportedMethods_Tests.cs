@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using Xunit;
@@ -39,173 +38,145 @@ namespace CouchDB.Driver.UnitTests
         [Fact]
         public void All()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().All(r => r.Name == _mainRebel.Name);
-                Assert.True(result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().All(r => r.Name == _mainRebel.Name);
+            Assert.True(result);
         }
+
         [Fact]
         public void Any()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().Any();
-                Assert.True(result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Any();
+            Assert.True(result);
         }
+
         [Fact]
         public void Any_Selector()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().Any(r => r.Name == _mainRebel.Name);
-                Assert.True(result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Any(r => r.Name == _mainRebel.Name);
+            Assert.True(result);
         }
 
         [Fact]
         public void Avg_Expr()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().Average(r => r.Age);
-                Assert.Equal(19, result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Average(r => r.Age);
+            Assert.Equal(19, result);
         }
 
         [Fact]
         public void Count()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().Count();
-                Assert.Equal(1, result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Count();
+            Assert.Equal(1, result);
         }
 
         [Fact]
         public void CountExpr()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().Count(r => r.Age == 19);
-                Assert.Equal(1, result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Count(r => r.Age == 19);
+            Assert.Equal(1, result);
         }
 
         [Fact]
         public void DefaultIfEmpty()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.Where(c => c.Name == "Luce").DefaultIfEmpty(_mainRebel);
-                Assert.Equal(_mainRebel, result.First());
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.Where(c => c.Name == "Luce").DefaultIfEmpty(_mainRebel);
+            Assert.Equal(_mainRebel, result.First());
         }
 
         [Fact]
         public void ElementAt()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().ElementAt(0);
-                Assert.Equal(_mainRebel, result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().ElementAt(0);
+            Assert.Equal(_mainRebel, result);
         }
+
         [Fact]
         public void ElementAtOrDefault()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().ElementAtOrDefault(2);
-                Assert.Null(result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().ElementAtOrDefault(2);
+            Assert.Null(result);
         }
 
         [Fact]
         public void GroupBy()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().GroupBy(c => c.Id);
-                Assert.Single(result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().GroupBy(c => c.Id);
+            Assert.Single(result);
         }
 
         [Fact]
         public void Last()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().Last();
-                Assert.Equal(_mainRebel, result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Last();
+            Assert.Equal(_mainRebel, result);
         }
+
         [Fact]
         public void Last_Expr()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().Last(c => c.Name == _mainRebel.Name);
-                Assert.Equal(_mainRebel, result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Last(c => c.Name == _mainRebel.Name);
+            Assert.Equal(_mainRebel, result);
         }
 
         [Fact]
         public void LongCount()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().LongCount(r => r.Age == 19);
-                Assert.Equal(1, result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().LongCount(r => r.Age == 19);
+            Assert.Equal(1, result);
         }
 
         [Fact]
         public void Reverse()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().Reverse();
-                Assert.Equal(_mainRebel, result.First());
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Reverse();
+            Assert.Equal(_mainRebel, result.First());
         }
 
         [Fact]
         public void SelectMany()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().SelectMany(r => r.Skills).ToList();
-                Assert.Single(result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().SelectMany(r => r.Skills).ToList();
+            Assert.Single(result);
         }
 
         [Fact]
         public void Sum()
         {
-            using (var httpTest = new HttpTest())
-            {
-                httpTest.RespondWithJson(_response);
-                var result = _rebels.AsQueryable().Sum(r => r.Age);
-                Assert.Equal(19, result);
-            }
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Sum(r => r.Age);
+            Assert.Equal(19, result);
         }
     }
 }

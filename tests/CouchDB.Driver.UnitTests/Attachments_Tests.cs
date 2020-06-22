@@ -1,5 +1,6 @@
 ﻿using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -9,14 +10,15 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests
 {
-    public class Attachments_Tests
+    public class Attachments_Tests: IDisposable
     {
+        private readonly ICouchClient _client;
         private readonly ICouchDatabase<Rebel> _rebels;
 
         public Attachments_Tests()
         {
-            var client = new CouchClient("http://localhost");
-            _rebels = client.GetDatabase<Rebel>();
+            _client = new CouchClient("http://localhost");
+            _rebels = _client.GetDatabase<Rebel>();
         }
 
         [Fact]
@@ -46,48 +48,51 @@ namespace CouchDB.Driver.UnitTests
         [Fact]
         public async Task DownloadAttachment()
         {
-            using (var httpTest = new HttpTest())
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new
             {
-                httpTest.RespondWithJson(new 
-                { 
-                    Id = "1", 
-                    Ok = true, 
-                    Rev = "xxx",
-                    Attachments = new Dictionary<string, object>
+                Id = "1",
+                Ok = true,
+                Rev = "xxx",
+                Attachments = new Dictionary<string, object>
                     {
                         { "luke.txt", new { ContentType = "text/plain" } }
                     }
-                });
+            });
 
-                httpTest.RespondWithJson(new
-                {
-                    Id = "1",
-                    Ok = true,
-                    Rev = "xxx2",
-                });
+            httpTest.RespondWithJson(new
+            {
+                Id = "1",
+                Ok = true,
+                Rev = "xxx2",
+            });
 
-                var r = new Rebel { Id = "1", Name = "Luke" };
-                r.Attachments.AddOrUpdate("Assets/luke.txt", MediaTypeNames.Text.Plain);
-                
-                r = await _rebels.CreateOrUpdateAsync(r);
+            var r = new Rebel { Id = "1", Name = "Luke" };
+            r.Attachments.AddOrUpdate("Assets/luke.txt", MediaTypeNames.Text.Plain);
 
-                Types.CouchAttachment lukeTxt = r.Attachments.First();
-                var newPath = await _rebels.DownloadAttachment(lukeTxt, "anyfolder");
-                
-                httpTest
-                    .ShouldHaveCalled("http://localhost/rebels/1")
-                    .WithVerb(HttpMethod.Put);
-                httpTest
-                    .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
-                    .WithVerb(HttpMethod.Put)
-                    .WithHeader("If-Match", "xxx");
-                httpTest
-                    .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
-                    .WithVerb(HttpMethod.Get)
-                    .WithHeader("If-Match", "xxx");
+            r = await _rebels.CreateOrUpdateAsync(r);
 
-                Assert.Equal(@"anyfolder\luke.txt", newPath);
-            }
+            Types.CouchAttachment lukeTxt = r.Attachments.First();
+            var newPath = await _rebels.DownloadAttachment(lukeTxt, "anyfolder");
+
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/1")
+                .WithVerb(HttpMethod.Put);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
+                .WithVerb(HttpMethod.Put)
+                .WithHeader("If-Match", "xxx");
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
+                .WithVerb(HttpMethod.Get)
+                .WithHeader("If-Match", "xxx");
+
+            Assert.Equal(@"anyfolder\luke.txt", newPath);
+        }
+
+        public void Dispose()
+        {
+            _client.Dispose();
         }
     }
 }

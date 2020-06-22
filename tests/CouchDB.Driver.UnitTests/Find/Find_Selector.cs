@@ -22,6 +22,7 @@ namespace CouchDB.Driver.UnitTests.Find
             var json = _rebels.ToString();
             Assert.Equal(@"{""selector"":{}}", json);
         }
+
         [Fact]
         public void ComplexQuery()
         {
@@ -31,6 +32,7 @@ namespace CouchDB.Driver.UnitTests.Find
             r.Skills.Contains("force")).ToString();
             Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""$or"":[{""name"":""Luke""},{""name"":""Leia""}]},{""skills"":{""$all"":[""force""]}}]}}", json);
         }
+
         [Fact]
         public void Variable_Const()
         {
@@ -38,6 +40,7 @@ namespace CouchDB.Driver.UnitTests.Find
             var json = _rebels.Where(r => r.Age == age).ToString();
             Assert.Equal(@"{""selector"":{""age"":19}}", json);
         }
+
         [Fact]
         public void Variable_Object()
         {
@@ -45,6 +48,7 @@ namespace CouchDB.Driver.UnitTests.Find
             var json = _rebels.Where(r => r.Age == luke.Age).ToString();
             Assert.Equal(@"{""selector"":{""age"":19}}", json);
         }
+
         [Fact]
         public void ExpressionVariable_Const()
         {
@@ -52,6 +56,7 @@ namespace CouchDB.Driver.UnitTests.Find
             var json = _rebels.Where(filter).ToString();
             Assert.Equal(@"{""selector"":{""age"":19}}", json);
         }
+
         [Fact]
         public void ExpressionVariable_Object()
         {
@@ -60,12 +65,14 @@ namespace CouchDB.Driver.UnitTests.Find
             var json = _rebels.Where(filter).ToString();
             Assert.Equal(@"{""selector"":{""age"":19}}", json);
         }
+
         [Fact]
         public void Enum()
         {
             var json = _rebels.Where(r => r.Species == Species.Human).ToString();
             Assert.Equal(@"{""selector"":{""species"":0}}", json);
         }
+
         [Fact]
         public void GuidQuery()
         {
@@ -74,42 +81,49 @@ namespace CouchDB.Driver.UnitTests.Find
             var json = _rebels.Where(r => r.Guid == guid).ToString();
             Assert.Equal(@"{""selector"":{""guid"":""83c79283-f634-41e3-8aab-674bdbae3413""}}", json);
         }
+
         [Fact]
         public void Variable_Bool_True()
         {
             var json = _rebels.Where(r => r.IsJedi).OrderBy(r => r.IsJedi).ToString();
             Assert.Equal(@"{""selector"":{""isJedi"":true},""sort"":[""isJedi""]}", json);
         }
+
         [Fact]
         public void Variable_Bool_False()
         {
             var json = _rebels.Where(r => !r.IsJedi).OrderBy(r => r.IsJedi).ToString();
             Assert.Equal(@"{""selector"":{""isJedi"":false},""sort"":[""isJedi""]}", json);
         }
+
         [Fact]
         public void Variable_Bool_ExplicitTrue()
         {
             var json = _rebels.Where(r => r.IsJedi == true).OrderBy(r => r.IsJedi).ToString();
             Assert.Equal(@"{""selector"":{""isJedi"":true},""sort"":[""isJedi""]}", json);
         }
+
         [Fact]
         public void Variable_Bool_ExplicitFalse()
         {
             var json = _rebels.Where(r => r.IsJedi == false).OrderBy(r => r.IsJedi).ToString();
             Assert.Equal(@"{""selector"":{""isJedi"":false},""sort"":[""isJedi""]}", json);
         }
+
         [Fact]
         public void Variable_Bool_ExplicitNotTrue()
         {
             var json = _rebels.Where(r => r.IsJedi != true).OrderBy(r => r.IsJedi).ToString();
             Assert.Equal(@"{""selector"":{""isJedi"":{""$ne"":true}},""sort"":[""isJedi""]}", json);
         }
+
         [Fact]
         public void Variable_Bool_ExplicitNotFalse()
         {
             var json = _rebels.Where(r => r.IsJedi != false).OrderBy(r => r.IsJedi).ToString();
             Assert.Equal(@"{""selector"":{""isJedi"":{""$ne"":false}},""sort"":[""isJedi""]}", json);
         }
+
         [Fact]
         public void Variable_String_IsJsonEscaped()
         {
