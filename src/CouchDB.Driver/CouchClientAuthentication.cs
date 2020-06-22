@@ -43,6 +43,14 @@ namespace CouchDB.Driver
                     }
                     httpCall.FlurlRequest = httpCall.FlurlRequest.EnableCookies().WithCookie("AuthSession", _cookieToken);
                     break;
+                case AuthenticationType.Proxy:
+                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("X-Auth-CouchDB-UserName", _settings.Username)
+                        .WithHeader("X-Auth-CouchDB-Roles", string.Join(",", _settings.Roles));
+                    if (_settings.Password != null)
+                    {
+                        httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("X-Auth-CouchDB-Token", _settings.Password);
+                    }
+                    break;
                 default:
                     throw new NotSupportedException($"Authentication of type {_settings.AuthenticationType} is not supported.");
             }

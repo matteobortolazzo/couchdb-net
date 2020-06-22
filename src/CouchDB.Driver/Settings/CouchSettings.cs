@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -28,6 +29,15 @@ namespace CouchDB.Driver.Settings
         /// <param name="cookieDuration">Cookie duration in minutes.</param>
         /// <returns>The current settings</returns>
         ICouchConfiguration UseCookieAuthentication(string username, string password, int cookieDuration = 10);
+
+        /// <summary>
+        /// Enables proxy authentication. 
+        /// </summary>
+        /// <param name="username">Server username.</param>
+        /// <param name="roles">Server roles.</param>
+        /// <param name="token">Computed authentication token.</param>
+        /// <returns>The current settings</returns>
+        ICouchConfiguration UseProxyAuthentication(string username, IReadOnlyCollection<string> roles, string? token = null);
 
         /// <summary>
         /// Removes any SSL certificate validation.
@@ -79,7 +89,7 @@ namespace CouchDB.Driver.Settings
 
     internal enum AuthenticationType
     {
-        None, Basic, Cookie
+        None, Basic, Cookie, Proxy
     }
 
     /// <summary>
@@ -89,6 +99,7 @@ namespace CouchDB.Driver.Settings
     {
         public AuthenticationType AuthenticationType { get; private set; }
         public string? Username { get; private set; }
+        public IReadOnlyCollection<string>? Roles { get; private set; }
         public string? Password { get; private set; }
         public int CookiesDuration { get; private set; }
         public bool PluralizeEntities { get; private set; }
@@ -143,6 +154,20 @@ namespace CouchDB.Driver.Settings
             Username = username;
             Password = password;
             CookiesDuration = cookieDuration;
+            return this;
+        }
+
+        public ICouchConfiguration UseProxyAuthentication(string username, IReadOnlyCollection<string> roles, string? token = null)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                throw new ArgumentNullException(nameof(username));
+            }
+
+            AuthenticationType = AuthenticationType.Proxy;
+            Username = username;
+            Roles = roles ?? throw new ArgumentNullException(nameof(roles));
+            Password = token;
             return this;
         }
 
