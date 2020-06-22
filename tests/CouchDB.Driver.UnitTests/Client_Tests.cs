@@ -17,7 +17,7 @@ namespace CouchDB.Driver.UnitTests
         #region Get
 
         [Fact]
-        public void GetDatabase_CustomCharacterName()
+        public async Task GetDatabase_CustomCharacterName()
         {
             var databaseName = "rebel0_$()+/-";
 
@@ -25,14 +25,14 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             httpTest.RespondWithJson(new { ok = true });
             var rebels = client.GetDatabase<Rebel>(databaseName);
             Assert.Equal(databaseName, rebels.Database);
         }
 
         [Fact]
-        public void GetDatabase_InvalidCharacters_ThrowsArgumentException()
+        public async Task GetDatabase_InvalidCharacters_ThrowsArgumentException()
         {
             using var httpTest = new HttpTest();
             // Operation result
@@ -40,7 +40,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             Action action = () => client.GetDatabase<Rebel>("rebel.");
             var ex = Assert.Throws<ArgumentException>(action);
             Assert.Contains("invalid characters", ex.Message);
@@ -57,7 +57,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             httpTest.RespondWithJson(new { ok = true });
             var rebels = await client.CreateDatabaseAsync<Rebel>();
             httpTest
@@ -73,7 +73,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             httpTest.RespondWithJson(new { ok = true });
             var rebels = await client.CreateDatabaseAsync<Rebel>("some_rebels");
             httpTest
@@ -91,7 +91,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             httpTest.RespondWithJson(new { ok = true });
             var rebels = await client.CreateDatabaseAsync<Rebel>(databaseName);
             httpTest
@@ -109,7 +109,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var rebels = await client.CreateDatabaseAsync<Rebel>();
 
             Assert.NotNull(rebels);
@@ -129,7 +129,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             Func<Task> action = () => client.CreateDatabaseAsync<Rebel>("rebel.");
             var ex = await Assert.ThrowsAsync<ArgumentException>(action);
             Assert.Contains("invalid characters", ex.Message);
@@ -148,7 +148,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             await client.DeleteDatabaseAsync<Rebel>();
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels")
@@ -164,7 +164,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             await client.DeleteDatabaseAsync<Rebel>("some_rebels");
             httpTest
                 .ShouldHaveCalled("http://localhost/some_rebels")
@@ -180,7 +180,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             await client.DeleteDatabaseAsync<Rebel>("rebel0_$()+/-");
             httpTest
                 .ShouldHaveCalled("http://localhost/rebel0_%24%28%29%2B%2F-")
@@ -196,7 +196,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             Func<Task> action = () => client.DeleteDatabaseAsync<Rebel>("rebel.");
             var ex = await Assert.ThrowsAsync<ArgumentException>(action);
             Assert.Contains("invalid characters", ex.Message);
@@ -216,7 +216,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             var db = Guid.NewGuid().ToString();
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var result = await client.ExistsAsync(db);
             Assert.True(result);
 
@@ -234,7 +234,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             var db = Guid.NewGuid().ToString();
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var result = await client.ExistsAsync(db);
             Assert.False(result);
 
@@ -252,7 +252,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var result = await client.IsUpAsync();
             Assert.True(result);
 
@@ -269,7 +269,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var result = await client.IsUpAsync();
             Assert.False(result);
 
@@ -287,7 +287,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var dbs = await client.GetDatabasesNamesAsync();
             httpTest
                 .ShouldHaveCalled("http://localhost/_all_dbs")
@@ -304,7 +304,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var dbs = await client.GetActiveTasksAsync();
             httpTest
                 .ShouldHaveCalled("http://localhost/_active_tasks")
@@ -321,7 +321,7 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             httpTest.RespondWith(status: (int)HttpStatusCode.Conflict);
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var couchException = await Assert.ThrowsAsync<CouchConflictException>(() => client.CreateDatabaseAsync<Rebel>());
             Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
         }
@@ -332,18 +332,18 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             httpTest.RespondWith(status: (int)HttpStatusCode.NotFound);
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var couchException = await Assert.ThrowsAsync<CouchNotFoundException>(() => client.DeleteDatabaseAsync<Rebel>());
             Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
         }
 
         [Fact]
-        public void BadRequestException()
+        public async Task BadRequestException()
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWith(@"{error: ""no_usable_index""}", (int)HttpStatusCode.BadRequest);
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var db = client.GetDatabase<Rebel>();
             var couchException = Assert.Throws<CouchNoIndexException>(() => db.UseIndex("aoeu").ToList());
             Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
@@ -357,7 +357,7 @@ namespace CouchDB.Driver.UnitTests
             string reason = "reason text";
             httpTest.RespondWith($"{{error: \"{message}\", reason: \"{reason}\"}}", (int)HttpStatusCode.InternalServerError);
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var db = client.GetDatabase<Rebel>();
             var couchException = await Assert.ThrowsAsync<CouchException>(() => db.FindAsync("aoeu"));
             Assert.Equal(message, couchException.Message);
@@ -371,7 +371,7 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             httpTest.RespondWith(status: (int)HttpStatusCode.InternalServerError);
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var db = client.GetDatabase<Rebel>();
             var couchException = await Assert.ThrowsAsync<CouchException>(() => db.FindAsync("aoeu"));
             Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);

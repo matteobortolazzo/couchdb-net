@@ -76,13 +76,13 @@ namespace CouchDB.Driver
         public ICouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
             var escapedDatabase = EscapeDatabaseName(database);
+            return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, escapedDatabase);
+        }
 
-            if (!_settings.CheckDatabaseExists)
-            {
-                return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, escapedDatabase);
-            }
-
-            return AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database));
+        /// <inheritdoc />
+        public Task<ICouchDatabase<TSource>> GetSafeDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
+        {
+            return CreateDatabaseAsync<TSource>(database, shards, replicas);
         }
 
         /// <inheritdoc />
@@ -264,24 +264,13 @@ namespace CouchDB.Driver
         /// <summary>
         /// Performs the logout and disposes the HTTP client.
         /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
+        public async ValueTask DisposeAsync()
         {
             if (_settings.AuthenticationType == AuthenticationType.Cookie && _settings.LogOutOnDispose)
             {
-                _ = AsyncContext.Run(() => LogoutAsync().ConfigureAwait(false));
+                await LogoutAsync().ConfigureAwait(false);
             }
             _flurlClient.Dispose();
-        }
-
-        ~CouchClient()
-        {
-            Dispose(false);
         }
 
         #endregion

@@ -3,17 +3,11 @@ using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using Flurl.Http;
-using Nito.AsyncEx;
 
 namespace CouchDB.Driver.Helpers
 {
     internal static class RequestsHelper
     {
-        public static TResult SendRequest<TResult>(this Task<TResult> asyncRequest)
-        {
-            return AsyncContext.Run(asyncRequest.SendRequestAsync);
-        }
-
         public static async Task<TResult> SendRequestAsync<TResult>(this Task<TResult> asyncRequest)
         {
             try

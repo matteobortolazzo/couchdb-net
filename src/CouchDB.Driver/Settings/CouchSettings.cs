@@ -75,12 +75,6 @@ namespace CouchDB.Driver.Settings
         ICouchConfiguration SetPropertyCase(PropertyCaseType type);
 
         /// <summary>
-        /// If a database doesn't exists, it creates it.
-        /// </summary>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration EnsureDatabaseExists();
-
-        /// <summary>
         /// Disables log out on client dispose. 
         /// </summary>
         /// <returns>The current settings</returns>
@@ -105,7 +99,6 @@ namespace CouchDB.Driver.Settings
         public bool PluralizeEntities { get; private set; }
         public DocumentCaseType DocumentsCaseType { get; private set; }
         public PropertyCaseType PropertiesCase { get; private set; }
-        public bool CheckDatabaseExists { get; private set; }
         public bool LogOutOnDispose { get; private set; }
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>? ServerCertificateCustomValidationCallback { get; private set; }
 
@@ -200,12 +193,6 @@ namespace CouchDB.Driver.Settings
         public ICouchConfiguration SetPropertyCase(PropertyCaseType type)
         {
             PropertiesCase = type;
-            return this;
-        }
-
-        public ICouchConfiguration EnsureDatabaseExists()
-        {
-            CheckDatabaseExists = true;
             return this;
         }
 

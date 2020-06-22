@@ -16,7 +16,7 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             SetupListResponse(httpTest);
 
-            using var client = new CouchClient("http://localhost", s => s.UseBasicAuthentication("root", "relax"));
+            await using var client = new CouchClient("http://localhost", s => s.UseBasicAuthentication("root", "relax"));
 
             var rebels = client.GetDatabase<Rebel>();
             var all = await rebels.ToListAsync();
@@ -31,7 +31,7 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             SetupListResponse(httpTest);
 
-            using var client = new CouchClient("http://localhost", s => s.UseBasicAuthentication("root", "relax"));
+            await using var client = new CouchClient("http://localhost", s => s.UseBasicAuthentication("root", "relax"));
             var rebels = client.GetDatabase<Rebel>();
             var all = await rebels.ToListAsync();
 
@@ -54,7 +54,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.ResponseQueue.Enqueue(cookieResponse);
             SetupListResponse(httpTest);
 
-            using var client = new CouchClient("http://localhost", s => s.UseCookieAuthentication("root", "relax"));
+            await using var client = new CouchClient("http://localhost", s => s.UseCookieAuthentication("root", "relax"));
             var rebels = client.GetDatabase<Rebel>();
             var all = await rebels.ToListAsync();
 
@@ -70,7 +70,7 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             SetupListResponse(httpTest);
 
-            using var client = new CouchClient("http://localhost", s => s.UseProxyAuthentication("root", new[] { "role1", "role2" }));
+            await using var client = new CouchClient("http://localhost", s => s.UseProxyAuthentication("root", new[] { "role1", "role2" }));
             var rebels = client.GetDatabase<Rebel>();
             var all = await rebels.ToListAsync();
 

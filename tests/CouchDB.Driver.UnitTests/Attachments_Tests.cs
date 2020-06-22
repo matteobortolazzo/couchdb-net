@@ -10,7 +10,7 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests
 {
-    public class Attachments_Tests: IDisposable
+    public class Attachments_Tests: IAsyncDisposable
     {
         private readonly ICouchClient _client;
         private readonly ICouchDatabase<Rebel> _rebels;
@@ -90,9 +90,9 @@ namespace CouchDB.Driver.UnitTests
             Assert.Equal(@"anyfolder\luke.txt", newPath);
         }
 
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
-            _client.Dispose();
+            return _client.DisposeAsync();
         }
     }
 }

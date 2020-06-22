@@ -5,11 +5,10 @@ using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver
 {
-    public interface ICouchClient: IDisposable
+    public interface ICouchClient: IAsyncDisposable
     {
         /// <summary>
         /// Returns an instance of the CouchDB database with the given name.
-        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>
@@ -17,8 +16,22 @@ namespace CouchDB.Driver
         ICouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument;
 
         /// <summary>
+        /// Returns an instance of the CouchDB database with the given name.
+        /// If no database exists with the given name, it creates it.
+        /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.
+        /// This is equivalent of using <see cref="GetSafeDatabaseAsync"/>.
+        /// </summary>
+        /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <param name="database">The database name.</param>
+        /// <param name="shards">Used when creating. The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
+        /// <param name="replicas">Used when creating. The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
+        /// <returns></returns>
+        Task<ICouchDatabase<TSource>> GetSafeDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument;
+
+        /// <summary>
         /// Creates a new database with the given name in the server.
-        /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
+        /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>

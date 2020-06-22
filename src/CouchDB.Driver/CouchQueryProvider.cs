@@ -80,7 +80,10 @@ namespace CouchDB.Driver
                 .AppendPathSegments(_database, "_find")
                 .WithHeader("Content-Type", "application/json")
                 .PostStringAsync(body).ReceiveJson<FindResult<T>>()
-                .SendRequest();
+                .SendRequestAsync()
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
 
             var couchList = new CouchList<T>(result.Docs.ToList(), result.Bookmark, result.ExecutionStats);
             return couchList;

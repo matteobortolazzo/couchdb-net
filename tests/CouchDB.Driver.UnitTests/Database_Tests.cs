@@ -9,7 +9,7 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests
 {
-    public class Database_Tests: IDisposable
+    public class Database_Tests: IAsyncDisposable
     {
         private readonly ICouchClient _client;
         private readonly ICouchDatabase<Rebel> _rebels;
@@ -147,7 +147,7 @@ namespace CouchDB.Driver.UnitTests
             // Operation response
             httpTest.RespondWithJson(new { ok = true });
 
-            using var client = new CouchClient("http://localhost");
+            await using var client = new CouchClient("http://localhost");
             var rebels = client.GetDatabase<Rebel>();
             var completeResult = await rebels.ToCouchListAsync();
 
@@ -286,9 +286,9 @@ namespace CouchDB.Driver.UnitTests
 
         #endregion
 
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
-            _client.Dispose();
+            return _client.DisposeAsync();
         }
     }
 }
