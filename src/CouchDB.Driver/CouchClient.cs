@@ -75,16 +75,16 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public ICouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
-            database = EscapeDatabaseName(database);
+            var escapedDatabase = EscapeDatabaseName(database);
 
             if (!_settings.CheckDatabaseExists)
             {
-                return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, database);
+                return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, escapedDatabase);
             }
 
-            return AsyncContext.Run(() => ExistsAsync(database))
+            return AsyncContext.Run(() => ExistsAsync(escapedDatabase))
                 ? AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database))
-                : new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, database);
+                : new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, escapedDatabase);
         }
 
         /// <inheritdoc />
