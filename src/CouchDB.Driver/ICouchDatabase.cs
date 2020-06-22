@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
+using Flurl.Http;
 
 namespace CouchDB.Driver
 {
@@ -248,6 +249,12 @@ namespace CouchDB.Driver
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. The task result contains the database information.</returns>
         Task<CouchDatabaseInfo> GetInfoAsync();
+
+        /// <summary>
+        /// Get an empty request that targets the current database.
+        /// </summary>
+        /// <returns>A Flurl request.</returns>
+        IFlurlRequest NewRequest();
 
         /// <summary>
         /// The database name.

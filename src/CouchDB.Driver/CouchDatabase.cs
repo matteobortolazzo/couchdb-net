@@ -595,8 +595,9 @@ namespace CouchDB.Driver
         #endregion
 
         #region Helper
-
-        private IFlurlRequest NewRequest()
+        
+        /// <inheritdoc />
+        public IFlurlRequest NewRequest()
         {
             return _flurlClient.Request(_databaseUri).AppendPathSegment(_database);
         }
