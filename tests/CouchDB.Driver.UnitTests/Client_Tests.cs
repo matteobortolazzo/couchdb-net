@@ -101,6 +101,26 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
+        public async Task CreateDatabase_402_ReturnDatabase()
+        {
+            using var httpTest = new HttpTest();
+            // Operation result
+            httpTest.RespondWith((HttpContent)null, 412);
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            using var client = new CouchClient("http://localhost");
+            var rebels = await client.CreateDatabaseAsync<Rebel>();
+
+            Assert.NotNull(rebels);
+
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels")
+                .WithVerb(HttpMethod.Put);
+            Assert.Equal("rebels", rebels.Database);
+        }
+
+        [Fact]
         public async Task CreateDatabase_InvalidCharacters_ThrowsArgumentException()
         {
             using var httpTest = new HttpTest();

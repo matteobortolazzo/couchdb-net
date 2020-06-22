@@ -82,9 +82,7 @@ namespace CouchDB.Driver
                 return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, escapedDatabase);
             }
 
-            return AsyncContext.Run(() => ExistsAsync(escapedDatabase))
-                ? AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database))
-                : new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, escapedDatabase);
+            return AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database));
         }
 
         /// <inheritdoc />
@@ -105,15 +103,24 @@ namespace CouchDB.Driver
                 request = request.SetQueryParam("n", replicas.Value);
             }
 
-            OperationResult result = await request
+            HttpResponseMessage response = await request
+                .AllowHttpStatus(HttpStatusCode.PreconditionFailed)
                 .PutAsync(null)
-                .ReceiveJson<OperationResult>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
+            // Database already exists
+            if (response.StatusCode == HttpStatusCode.PreconditionFailed)
+            {
+                return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, database);
+            }
+
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            OperationResult result = JsonConvert.DeserializeObject<OperationResult>(content);
+
             if (!result.Ok)
             {
-                throw new CouchException("Something went wrong during the creation");
+                throw new CouchException("Something went wrong during the creation.");
             }
 
             return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, database);
