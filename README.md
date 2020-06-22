@@ -379,9 +379,9 @@ string downloadFilePath = await rebels.DownloadAttachment(attachment, downloadFo
 
 ## Advanced
 
-If requests have to be modified before each call, it's possible to override OnBeforeCall.
+If requests have to be modified before each call, it's possible to override OnBeforeCallAsync.
 ```csharp
-protected virtual void OnBeforeCall(HttpCall call)
+protected virtual Task OnBeforeCallAsync(HttpCall call)
 ```
 
 Also, the constructor accept a ClientFlurlHttpSettings function as third parameter.

@@ -14,7 +14,7 @@ namespace CouchDB.Driver
 {
     public partial class CouchClient
     {
-        protected virtual void OnBeforeCall(HttpCall httpCall)
+        protected virtual async Task OnBeforeCallAsync(HttpCall httpCall)
         {
             if (httpCall == null)
             {
@@ -39,7 +39,7 @@ namespace CouchDB.Driver
                         _cookieCreationDate.Value.AddMinutes(_settings.CookiesDuration) < DateTime.Now;
                     if (isTokenExpired)
                     {
-                        AsyncContext.Run(LoginAsync);
+                        await LoginAsync().ConfigureAwait(false);
                     }
                     httpCall.FlurlRequest = httpCall.FlurlRequest.EnableCookies().WithCookie("AuthSession", _cookieToken);
                     break;

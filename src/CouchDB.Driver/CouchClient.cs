@@ -56,7 +56,7 @@ namespace CouchDB.Driver
                 {
                     ContractResolver = new CouchContractResolver(_settings.PropertiesCase)
                 });
-                s.BeforeCall = OnBeforeCall;
+                s.BeforeCallAsync = OnBeforeCallAsync;
                 if (_settings.ServerCertificateCustomValidationCallback != null)
                 {
                     s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
