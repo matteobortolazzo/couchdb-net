@@ -13,6 +13,8 @@ using CouchDB.Driver.Settings;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
+using System.Net.Http;
+using System.Net;
 
 namespace CouchDB.Driver
 {
@@ -80,8 +82,7 @@ namespace CouchDB.Driver
                 return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, database);
             }
 
-            IEnumerable<string> dbs = AsyncContext.Run(GetDatabasesNamesAsync);
-            return !dbs.Contains(database)
+            return AsyncContext.Run(() => ExistsAsync(database))
                 ? AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database))
                 : new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, database);
         }
@@ -177,6 +178,17 @@ namespace CouchDB.Driver
         #endregion
 
         #region Utils
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsAsync(string database)
+        {
+            HttpResponseMessage? response = await NewRequest()
+                .AllowHttpStatus(HttpStatusCode.NotFound)
+                .AppendPathSegment(database)
+                .HeadAsync()
+                .ConfigureAwait(false);
+            return response.IsSuccessStatusCode;
+        }
 
         /// <inheritdoc />
         public async Task<bool> IsUpAsync()

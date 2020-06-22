@@ -187,6 +187,43 @@ namespace CouchDB.Driver.UnitTests
         #region Utils
 
         [Fact]
+        public async Task Exists()
+        {
+            using var httpTest = new HttpTest();
+            // Operation result
+            httpTest.RespondWithJson(new { status = "ok" });
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            var db = Guid.NewGuid().ToString();
+            using var client = new CouchClient("http://localhost");
+            var result = await client.ExistsAsync(db);
+            Assert.True(result);
+
+            httpTest
+                .ShouldHaveCalled($"http://localhost/{db}")
+                .WithVerb(HttpMethod.Head);
+        }
+
+        [Fact]
+        public async Task NotExists()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWith((HttpContent)null, 404);
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            var db = Guid.NewGuid().ToString();
+            using var client = new CouchClient("http://localhost");
+            var result = await client.ExistsAsync(db);
+            Assert.False(result);
+
+            httpTest
+                .ShouldHaveCalled($"http://localhost/{db}")
+                .WithVerb(HttpMethod.Head);
+        }
+
+        [Fact]
         public async Task IsUp()
         {
             using var httpTest = new HttpTest();
@@ -198,21 +235,27 @@ namespace CouchDB.Driver.UnitTests
             using var client = new CouchClient("http://localhost");
             var result = await client.IsUpAsync();
             Assert.True(result);
+
+            httpTest
+                .ShouldHaveCalled($"http://localhost/_up")
+                .WithVerb(HttpMethod.Get);
         }
 
         [Fact]
         public async Task IsNotUp()
         {
             using var httpTest = new HttpTest();
-            // Operation result
-            httpTest.RespondWithJson(new { ok = true });
+            httpTest.RespondWith((HttpContent)null, 404);
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
             using var client = new CouchClient("http://localhost");
-            httpTest.RespondWith("Not found", 404);
             var result = await client.IsUpAsync();
             Assert.False(result);
+
+            httpTest
+                .ShouldHaveCalled($"http://localhost/_up")
+                .WithVerb(HttpMethod.Get);
         }
 
         [Fact]

@@ -73,7 +73,14 @@ namespace CouchDB.Driver
         /// <typeparam name="TUser">The specific type of user.</typeparam>
         /// <returns>The instance of the users database.</returns>
         ICouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser;
-        
+
+        /// <summary>
+        /// Check if database exists.
+        /// </summary>
+        /// <param name="database">The database name.</param>
+        /// <returns>Return True if the database exists, False otherwise.</returns>
+        Task<bool> ExistsAsync(string database);
+
         /// <summary>
         /// Determines whether the server is up, running, and ready to respond to requests.
         /// </summary>
