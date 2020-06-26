@@ -26,54 +26,43 @@ namespace CouchDB.Driver
     public class CouchDatabase<TSource>: ICouchDatabase<TSource>
         where TSource : CouchDocument
     {
-        private readonly QueryProvider _queryProvider;
+        private readonly IAsyncQueryProvider _queryProvider;
         private readonly IFlurlClient _flurlClient;
         private readonly CouchSettings _settings;
-        private readonly Uri _databaseUri;
-        private readonly string _database;
+        private readonly QueryContext _queryContext;
 
         /// <inheritdoc />
-        public string Database { get; }
+        public string Database => _queryContext.DatabaseName;
 
         /// <inheritdoc />
         public ICouchSecurity Security { get; }
 
-        internal CouchDatabase(IFlurlClient flurlClient, CouchSettings settings, Uri databaseUri, string database)
+        internal CouchDatabase(IFlurlClient flurlClient, CouchSettings settings, QueryContext queryContext)
         {
             _flurlClient = flurlClient;
             _settings = settings;
-            _databaseUri = databaseUri;
-            _database = database;
-            _queryProvider = new CouchQueryProvider(flurlClient, _settings, databaseUri, _database);
+            _queryContext = queryContext;
 
-            Database = Uri.UnescapeDataString(_database);
+            var queryTranslator = new QueryTranslator(settings);
+            var querySender = new QuerySender(flurlClient, queryContext);
+            var queryCompiler = new QueryCompiler(querySender, queryTranslator);
+            _queryProvider = new CouchQueryProvider(queryCompiler);
+
             Security = new CouchSecurity(NewRequest);
         }
 
         /// <inheritdoc />
         public IQueryable<TSource> AsQueryable()
         {
-            return new CouchQuery<TSource>(_queryProvider);
+            return new CouchQueryable<TSource>(_queryProvider);
         }
 
         #region Query
-        
-        /// <inheritdoc />
-        public List<TSource> ToList()
-        {
-            return AsQueryable().ToList();
-        }
-
+      
         /// <inheritdoc />
         public Task<List<TSource>> ToListAsync()
         {
             return AsQueryable().ToListAsync();
-        }
-
-        /// <inheritdoc />
-        public CouchList<TSource> ToCouchList()
-        {
-            return AsQueryable().ToCouchList();
         }
 
         /// <inheritdoc />
@@ -260,8 +249,8 @@ namespace CouchDB.Driver
             {
                 attachment.DocumentId = document.Id;
                 attachment.DocumentRev = document.Rev;
-                var path = $"{_database}/{document.Id}/{Uri.EscapeUriString(attachment.Name)}";
-                attachment.Uri = new Uri(_databaseUri, path);
+                var path = $"{_queryContext.EscapedDatabaseName}/{document.Id}/{Uri.EscapeUriString(attachment.Name)}";
+                attachment.Uri = new Uri(_queryContext.Endpoint, path);
             }
         }
 
@@ -272,10 +261,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public async Task<TSource> CreateAsync(TSource document, bool batch = false)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
+            Check.NotNull(document, nameof(document));
 
             if (!string.IsNullOrEmpty(document.Id))
             {
@@ -306,10 +292,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public async Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
+            Check.NotNull(document, nameof(document));
 
             if (string.IsNullOrEmpty(document.Id))
             {
@@ -340,10 +323,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public async Task DeleteAsync(TSource document, bool batch = false)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
+            Check.NotNull(document, nameof(document));
 
             IFlurlRequest request = NewRequest()
                 .AppendPathSegment(document.Id);
@@ -369,10 +349,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public async Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents)
         {
-            if (documents == null)
-            {
-                throw new ArgumentNullException(nameof(documents));
-            }
+            Check.NotNull(documents, nameof(documents));
 
             DocumentSaveResponse[] response = await NewRequest()
                 .AppendPathSegment("_bulk_docs")
@@ -536,10 +513,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public async Task<string> DownloadAttachment(CouchAttachment attachment, string localFolderPath, string? localFileName = null, int bufferSize = 4096)
         {
-            if (attachment == null)
-            {
-                throw new ArgumentNullException(nameof(attachment));
-            }
+            Check.NotNull(attachment, nameof(attachment));
 
             if (attachment.Uri == null)
             {
@@ -599,7 +573,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public IFlurlRequest NewRequest()
         {
-            return _flurlClient.Request(_databaseUri).AppendPathSegment(_database);
+            return _flurlClient.Request(_queryContext.Endpoint).AppendPathSegment(_queryContext.EscapedDatabaseName);
         }
 
         #endregion

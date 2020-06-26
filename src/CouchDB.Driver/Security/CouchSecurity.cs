@@ -27,10 +27,7 @@ namespace CouchDB.Driver.Security
 
         public async Task SetInfoAsync(CouchSecurityInfo info)
         {
-            if (info == null)
-            {
-                throw new ArgumentNullException(nameof(info));
-            }
+            Check.NotNull(info, nameof(info));
 
             OperationResult result = await _newRequest()
                    .AppendPathSegment("_security")

@@ -115,6 +115,6 @@ namespace CouchDB.Driver
         /// <summary>
         /// URI of the CouchDB endpoint.
         /// </summary>
-        Uri DatabaseUri { get; }
+        Uri Endpoint { get; }
     }
 }

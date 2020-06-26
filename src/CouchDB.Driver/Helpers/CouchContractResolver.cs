@@ -18,10 +18,7 @@ namespace CouchDB.Driver.Helpers
 
         protected override JsonProperty? CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            if (member == null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
+            Check.NotNull(member, nameof(member));
 
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             if (property != null && !property.Ignored)

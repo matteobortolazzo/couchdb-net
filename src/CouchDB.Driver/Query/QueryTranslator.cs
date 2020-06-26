@@ -1,12 +1,16 @@
 ﻿using CouchDB.Driver.ExpressionVisitors;
 using CouchDB.Driver.Settings;
-using System;
 using System.Linq.Expressions;
 using System.Text;
 
 namespace CouchDB.Driver
 {
-    internal partial class QueryTranslator : ExpressionVisitor
+    internal interface IQueryTranslator
+    {
+        string Translate(Expression e);
+    }
+
+    internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
     {
         private readonly CouchSettings _settings;
         private readonly StringBuilder _sb;
@@ -15,10 +19,10 @@ namespace CouchDB.Driver
         internal QueryTranslator(CouchSettings settings)
         {
             _sb = new StringBuilder();
-            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _settings = settings;
         }
 
-        internal string Translate(Expression e)
+        public string Translate(Expression e)
         {
             e = Local.PartialEval(e);
 

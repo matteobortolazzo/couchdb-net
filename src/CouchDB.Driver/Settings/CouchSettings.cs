@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Settings
 {
@@ -113,14 +114,8 @@ namespace CouchDB.Driver.Settings
 
         public ICouchConfiguration UseBasicAuthentication(string username, string password)
         {
-            if (string.IsNullOrEmpty(username))
-            {
-                throw new ArgumentNullException(nameof(username));
-            }
-            if (string.IsNullOrEmpty(password))
-            {
-                throw new ArgumentNullException(nameof(password));
-            }
+            Check.NotNull(username, nameof(username));
+            Check.NotNull(password, nameof(password));
 
             AuthenticationType = AuthenticationType.Basic;
             Username = username;
@@ -130,14 +125,9 @@ namespace CouchDB.Driver.Settings
 
         public ICouchConfiguration UseCookieAuthentication(string username, string password, int cookieDuration = 10)
         {
-            if (string.IsNullOrEmpty(username))
-            {
-                throw new ArgumentNullException(nameof(username));
-            }
-            if (string.IsNullOrEmpty(password))
-            {
-                throw new ArgumentNullException(nameof(password));
-            }
+            Check.NotNull(username, nameof(username));
+            Check.NotNull(password, nameof(password));
+
             if (cookieDuration < 1)
             {
                 throw new ArgumentException("Cookie duration must be greater than zero.", nameof(cookieDuration));
@@ -152,14 +142,12 @@ namespace CouchDB.Driver.Settings
 
         public ICouchConfiguration UseProxyAuthentication(string username, IReadOnlyCollection<string> roles, string? token = null)
         {
-            if (string.IsNullOrEmpty(username))
-            {
-                throw new ArgumentNullException(nameof(username));
-            }
+            Check.NotNull(username, nameof(username));
+            Check.NotNull(roles, nameof(roles));
 
             AuthenticationType = AuthenticationType.Proxy;
             Username = username;
-            Roles = roles ?? throw new ArgumentNullException(nameof(roles));
+            Roles = roles;
             Password = token;
             return this;
         }
@@ -173,8 +161,8 @@ namespace CouchDB.Driver.Settings
         public ICouchConfiguration ConfigureCertificateValidation(Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> 
             serverCertificateCustomValidationCallback)
         {
-            ServerCertificateCustomValidationCallback = serverCertificateCustomValidationCallback ?? 
-                throw new ArgumentNullException(nameof(serverCertificateCustomValidationCallback));
+            Check.NotNull(serverCertificateCustomValidationCallback, nameof(serverCertificateCustomValidationCallback));
+            ServerCertificateCustomValidationCallback = serverCertificateCustomValidationCallback;
             return this;
         }
 

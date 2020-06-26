@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Types
 {
@@ -26,13 +27,13 @@ namespace CouchDB.Driver.Types
 
         public void AddOrUpdate(string path, string contentType)
         {
-            FileInfo info = GetFileInfo(path, contentType);
+            FileInfo info = GetFileInfo(path);
             AddOrUpdate(info.Name, path, contentType);
         }
 
         public void AddOrUpdate(string attachmentName, string path, string contentType)
         {
-            FileInfo info = GetFileInfo(path, contentType);
+            FileInfo info = GetFileInfo(path);
 
             if (!_attachments.ContainsKey(attachmentName))
             {
@@ -90,16 +91,10 @@ namespace CouchDB.Driver.Types
             _ = _attachments.Remove(attachment.Name);
         }
 
-        private static FileInfo GetFileInfo(string path, string contentType)
+        private static FileInfo GetFileInfo(string path)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-            if (string.IsNullOrEmpty(contentType))
-            {
-                throw new ArgumentNullException(nameof(contentType));
-            }
+            Check.NotNull(path, nameof(path));
+
             if (!File.Exists(path))
             {
                 throw new InvalidOperationException($"File does not exists: {path}");

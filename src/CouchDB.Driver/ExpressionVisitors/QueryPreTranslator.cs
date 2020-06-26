@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.ExpressionVisitors
 {
@@ -8,10 +9,7 @@ namespace CouchDB.Driver.ExpressionVisitors
     {
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            if (node == null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
+            Check.NotNull(node, nameof(node));
 
             Type[] genericArgs = node.Method.GetGenericArguments();
             var numberOfParameters = node.Method.GetParameters().Length;

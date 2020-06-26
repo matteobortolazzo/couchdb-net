@@ -20,22 +20,10 @@ namespace CouchDB.Driver
         IQueryable<TSource> AsQueryable();
 
         /// <summary>
-        /// Creates a <see cref="List{TSource}"/> from the database.
-        /// </summary>
-        /// <returns>A <see cref="List{TSource}"/> that contains elements from the database.</returns>
-        List<TSource> ToList();
-
-        /// <summary>
         /// Creates a <see cref="List{TSource}"/> from a database by enumerating it asynchronously.
         /// </summary>
         /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/>  that contains elements from the database.</retuns>
         Task<List<TSource>> ToListAsync();
-
-        /// <summary>
-        /// Creates a <see cref="CouchList{TSource}"/> from the database.
-        /// </summary>
-        /// <returns>A <see cref="CouchList{TSource}"/> that contains elements from the database.</returns>
-        CouchList<TSource> ToCouchList();
 
         /// <summary>
         /// Creates a <see cref="CouchList{TSource}"/>  from a database by enumerating it asynchronously.

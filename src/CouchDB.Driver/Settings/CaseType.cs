@@ -1,5 +1,6 @@
 ﻿using Humanizer;
 using System;
+using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Settings
 {
@@ -15,7 +16,8 @@ namespace CouchDB.Driver.Settings
 
         protected CaseType(string value)
         {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
+            Check.NotNull(value, nameof(value));
+            Value = value;
         }
         internal virtual string Convert(string str)
         {

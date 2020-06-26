@@ -19,7 +19,7 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new { ok = true });
             await using var client = new CouchClient("http://localhost");
-            Assert.Equal("http://localhost/", client.DatabaseUri.AbsoluteUri);
+            Assert.Equal("http://localhost/", client.Endpoint.AbsoluteUri);
         }
 
         #endregion
@@ -34,7 +34,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             await using var client = new CouchClient("http://localhost", s => s.UseBasicAuthentication("root", "relax"));
-            Assert.Equal("http://localhost/", client.DatabaseUri.AbsoluteUri);
+            Assert.Equal("http://localhost/", client.Endpoint.AbsoluteUri);
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             await using var client = new CouchClient("http://localhost", s => s.UseCookieAuthentication("root", "relax"));
-            Assert.Equal("http://localhost/", client.DatabaseUri.AbsoluteUri);
+            Assert.Equal("http://localhost/", client.Endpoint.AbsoluteUri);
         }
 
         #endregion

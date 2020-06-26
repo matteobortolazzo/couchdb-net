@@ -3,7 +3,6 @@ using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using Flurl.Http.Configuration;
-using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -28,7 +27,7 @@ namespace CouchDB.Driver
         private readonly CouchSettings _settings;
         private readonly IFlurlClient _flurlClient;
         private readonly string[] _systemDatabases = { "_users", "_replicator", "_global_changes" };
-        public Uri DatabaseUri { get; }
+        public Uri Endpoint { get; }
 
         /// <summary>
         /// Creates a new CouchDB client.
@@ -42,17 +41,17 @@ namespace CouchDB.Driver
         /// <summary>
         /// Creates a new CouchDB client.
         /// </summary>
-        /// <param name="databaseUri">URI to the CouchDB endpoint.</param>
+        /// <param name="endpoint">URI to the CouchDB endpoint.</param>
         /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
         /// <param name="flurlSettingsFunc">A function to configure the HTTP client.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
-        public CouchClient(Uri databaseUri, Action<ICouchConfiguration>? couchSettingsFunc = null, Action<ClientFlurlHttpSettings>? flurlSettingsFunc = null)
+        public CouchClient(Uri endpoint, Action<ICouchConfiguration>? couchSettingsFunc = null, Action<ClientFlurlHttpSettings>? flurlSettingsFunc = null)
         {
             _settings = new CouchSettings();
             couchSettingsFunc?.Invoke(_settings);
 
-            DatabaseUri = databaseUri;
-            _flurlClient = new FlurlClient(databaseUri.AbsoluteUri).Configure(s =>
+            Endpoint = endpoint;
+            _flurlClient = new FlurlClient(endpoint.AbsoluteUri).Configure(s =>
             {
                 s.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
                 {
@@ -75,8 +74,8 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public ICouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
-            var escapedDatabase = EscapeDatabaseName(database);
-            return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, escapedDatabase);
+            var queryContext = new QueryContext(Endpoint, database);
+            return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
         }
 
         /// <inheritdoc />
@@ -88,10 +87,10 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
         {
-            database = EscapeDatabaseName(database);
+            var queryContext = new QueryContext(Endpoint, database);
 
             IFlurlRequest request = NewRequest()
-                .AppendPathSegment(database);
+                .AppendPathSegment(queryContext.EscapedDatabaseName);
 
             if (shards.HasValue)
             {
@@ -109,10 +108,12 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
+            
+
             // Database already exists
             if (response.StatusCode == HttpStatusCode.PreconditionFailed)
             {
-                return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, database);
+                return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
             }
 
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -123,7 +124,7 @@ namespace CouchDB.Driver
                 throw new CouchException("Something went wrong during the creation.");
             }
 
-            return new CouchDatabase<TSource>(_flurlClient, _settings, DatabaseUri, database);
+            return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
         }
 
         /// <inheritdoc />
@@ -243,15 +244,13 @@ namespace CouchDB.Driver
 
         private IFlurlRequest NewRequest()
         {
-            return _flurlClient.Request(DatabaseUri);
+            return _flurlClient.Request(Endpoint);
         }
 
         private string EscapeDatabaseName(string database)
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException(nameof(database));
-            }
+            Check.NotNull(database, nameof(database));
+
 
             if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
             {

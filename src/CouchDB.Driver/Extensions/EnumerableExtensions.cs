@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Extensions
 {
@@ -15,15 +16,8 @@ namespace CouchDB.Driver.Extensions
         /// <returns>true if the source sequence contains all elements that has specified values; otherwise, false.</returns>
         public static bool Contains<T>(this IEnumerable<T> source, IEnumerable<T> input)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (input == null)
-            {
-                throw new ArgumentNullException(nameof(input));
-            }
+            Check.NotNull(source, nameof(source));
+            Check.NotNull(input, nameof(input));
 
             return input.All(source.Contains!);
         }

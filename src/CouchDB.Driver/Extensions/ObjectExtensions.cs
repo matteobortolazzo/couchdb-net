@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Extensions
 {
@@ -17,14 +18,7 @@ namespace CouchDB.Driver.Extensions
         /// <returns>true if the input sequence contains an element that has the specified value; otherwise, false.</returns>
         public static bool In<T>(this T value, IEnumerable<T> input)
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-            if (input == null)
-            {
-                throw new ArgumentNullException(nameof(input));
-            }
+            Check.NotNull(input, nameof(input));
 
             return input.Contains(value);
         }

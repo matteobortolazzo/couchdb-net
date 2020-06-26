@@ -16,10 +16,7 @@ namespace CouchDB.Driver.Helpers
 
         public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (reader == null)
-            {
-                throw new ArgumentNullException(nameof(reader));
-            }
+            Check.NotNull(reader, nameof(reader));
 
             return reader.Value != null ?                 
                 (object)Epoch.AddMilliseconds((long)reader.Value / 1000d) : 

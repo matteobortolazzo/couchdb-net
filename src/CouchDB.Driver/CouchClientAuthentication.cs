@@ -2,13 +2,13 @@
 using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Settings;
 using Flurl.Http;
-using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver
 {
@@ -16,10 +16,7 @@ namespace CouchDB.Driver
     {
         protected virtual async Task OnBeforeCallAsync(HttpCall httpCall)
         {
-            if (httpCall == null)
-            {
-                throw new ArgumentNullException(nameof(httpCall));
-            }
+            Check.NotNull(httpCall, nameof(httpCall));
 
             // If session requests no authorization needed
             if (httpCall.Request?.RequestUri?.ToString()?.Contains("_session", StringComparison.InvariantCultureIgnoreCase) == true)
@@ -58,7 +55,7 @@ namespace CouchDB.Driver
 
         private async Task LoginAsync()
         {
-            HttpResponseMessage response = await _flurlClient.Request(DatabaseUri)
+            HttpResponseMessage response = await _flurlClient.Request(Endpoint)
                 .AppendPathSegment("_session")
                 .PostJsonAsync(new
                 {
@@ -87,7 +84,7 @@ namespace CouchDB.Driver
 
         private async Task LogoutAsync()
         {
-            OperationResult result = await _flurlClient.Request(DatabaseUri)
+            OperationResult result = await _flurlClient.Request(Endpoint)
                 .AppendPathSegment("_session")
                 .DeleteAsync()
                 .ReceiveJson<OperationResult>()
