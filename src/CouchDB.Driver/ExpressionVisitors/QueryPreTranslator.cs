@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.ExpressionVisitors
@@ -12,56 +13,124 @@ namespace CouchDB.Driver.ExpressionVisitors
             Check.NotNull(node, nameof(node));
 
             Type[] genericArgs = node.Method.GetGenericArguments();
-            var numberOfParameters = node.Method.GetParameters().Length;
 
             // Return an expression representing Queryable<T>.Take(1)
-            MethodCallExpression GetTakeOneExpression(Expression previousExpression, int numberOfElements = 1)
+            MethodCallExpression AddTakeOneExpression(Expression previousExpression, int numberOfElements = 1)
             {
                 return Expression.Call(typeof(Queryable), nameof(Queryable.Take), genericArgs.Take(1).ToArray(), previousExpression, Expression.Constant(numberOfElements));
             }
-
+            
+            MethodCallExpression AddWhereExpression(Expression previousExpression, Expression predicate, bool negate = false)
+            {
+                if (negate)
+                {
+                    predicate = Expression.Not(predicate);
+                }
+                return Expression.Call(typeof(Queryable), nameof(Queryable.Where), genericArgs, previousExpression, predicate);
+            }
+            
             // Min(e => e.P) == OrderBy(e => e.P).Take(1) + Min
-            if (node.Method.Name == nameof(Queryable.Min) && numberOfParameters == 2)
+            if (node.IsMin())
             {
                 MethodCallExpression orderByDesc = Expression.Call(typeof(Queryable), nameof(Queryable.OrderBy), genericArgs, node.Arguments[0], node.Arguments[1]);
-                return GetTakeOneExpression(orderByDesc);
+                return AddTakeOneExpression(orderByDesc);
             }
+
             // Max(e => e.P) == OrderByDescending(e => e.P).Take(1) + Max
-            if (node.Method.Name == nameof(Queryable.Max) && numberOfParameters == 2)
+            if (node.IsMax())
             {
                 MethodCallExpression orderBy = Expression.Call(typeof(Queryable), nameof(Queryable.OrderByDescending), genericArgs, node.Arguments[0], node.Arguments[1]);
-                return GetTakeOneExpression(orderBy);
+                return AddTakeOneExpression(orderBy);
             }
-            // First and FirstOrDefault have the same behaviour
-            if (node.Method.Name == nameof(Queryable.First) || node.Method.Name == nameof(Queryable.FirstOrDefault))
+
+            // Sum(e => e.P) == Select(e => new { e.P }) + Sum
+            if (node.IsSum())
             {
-                // First() == Take(1) + First
-                if (numberOfParameters == 1)
+                return Expression.Call(typeof(Queryable), nameof(Queryable.Select), genericArgs, node.Arguments[0], node.Arguments[1]);
+            }
+
+            // Average(e => e.P) == Select(e => new { e.P }) + Average
+            if (node.IsAverage())
+            {
+                return Expression.Call(typeof(Queryable), nameof(Queryable.Average), genericArgs, node.Arguments[0], node.Arguments[1]);
+            }
+
+            // Any
+            if (node.IsAny())
+            {
+                // Any() == Take(1) + Any
+                if (node.HasParameterNumber(1))
                 {
-                    return GetTakeOneExpression(node.Arguments[0]);
+                    return AddTakeOneExpression(node.Arguments[0]);
                 }
-                // First(e => e.P) == Where(e => e.P).Take(1) + First
-                if (numberOfParameters == 2)
+                // Any(e => e.P) == Where(e => e.P).Take(1) + Any
+                if (node.HasParameterNumber(2))
                 {
-                    MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where), genericArgs, node.Arguments[0], node.Arguments[1]);
-                    return GetTakeOneExpression(whereExpression);
+                    MethodCallExpression whereExpression = AddWhereExpression(node.Arguments[0], node.Arguments[1]);
+                    return AddTakeOneExpression(whereExpression);
                 }
             }
-            // Single and SingleOrDefault have the same behaviour
-            if (node.Method.Name == nameof(Queryable.Single) || node.Method.Name == nameof(Queryable.SingleOrDefault))
+
+            // All
+            if (node.IsAll())
+            {
+                // All() == Take(1) + All
+                if (node.HasParameterNumber(1))
+                {
+                    return AddTakeOneExpression(node.Arguments[0]);
+                }
+                // All(e => e.P) == Where(e => !e.P).Take(1) + All
+                if (node.HasParameterNumber(2))
+                {
+                    MethodCallExpression whereExpression = AddWhereExpression(node.Arguments[0], node.Arguments[1], true);
+                    return AddTakeOneExpression(whereExpression);
+                }
+            }
+
+            // Single
+            if (node.IsSingle())
             {
                 // Single() == Take(2) + Single
-                if (numberOfParameters == 1)
+                if (node.HasParameterNumber(1))
                 {
-                    return GetTakeOneExpression(node.Arguments[0], 2);
+                    return AddTakeOneExpression(node.Arguments[0]);
                 }
-                // SingleOrDefault(e => e.P) == Where(e => e.P).Take(2) + Single
-                if (numberOfParameters == 2)
+                // Single(e => e.P) == Where(e => e.P).Take(2) + Single
+                if (node.HasParameterNumber(2))
                 {
-                    MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where), genericArgs, node.Arguments[0], node.Arguments[1]);
-                    return GetTakeOneExpression(whereExpression, 2);
+                    MethodCallExpression whereExpression = AddWhereExpression(node.Arguments[0], node.Arguments[1]);
+                    return AddTakeOneExpression(whereExpression, 2);
                 }
             }
+
+            // First
+            if (node.IsFirst())
+            {
+                // First() == Take(1) + First
+                if (node.HasParameterNumber(1))
+                {
+                    return AddTakeOneExpression(node.Arguments[0]);
+                }
+                // First(e => e.P) == Where(e => e.P).Take(1) + First
+                if (node.HasParameterNumber(2))
+                {
+                    MethodCallExpression whereExpression = AddWhereExpression(node.Arguments[0], node.Arguments[1]);
+                    return AddTakeOneExpression(whereExpression);
+                }
+            }
+
+            // Last
+            if (node.IsLast())
+            {
+                // Last(e => e.P) == Where(e => e.P) + Last
+                if (node.HasParameterNumber(2))
+                {
+                    MethodCallExpression whereExpression = AddWhereExpression(node.Arguments[0], node.Arguments[1]);
+                    MethodCallExpression orderBy = Expression.Call(typeof(Queryable), nameof(Queryable.OrderByDescending), genericArgs, node.Arguments[0], node.Arguments[1]);
+                    return AddTakeOneExpression(whereExpression);
+                }
+            }
+
             return base.VisitMethodCall(node);
         }
     }
