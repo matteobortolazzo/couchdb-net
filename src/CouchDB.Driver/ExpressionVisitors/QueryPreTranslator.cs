@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -49,8 +50,11 @@ namespace CouchDB.Driver.ExpressionVisitors
         {
             Check.NotNull(node, nameof(node));
             Check.NotNull(wrap, nameof(wrap));
-
-            return Expression.Call(wrap.Method.DeclaringType, wrap.Method.Name, wrap.Method.GetGenericArguments(), node, wrap.Arguments[1]);
+            
+            var arguments = new List<Expression> {node};
+            arguments.AddRange(wrap.Arguments.Skip(1));
+            
+            return Expression.Call(wrap.Method.DeclaringType, wrap.Method.Name, wrap.Method.GetGenericArguments(), arguments.ToArray());
         }
     }
 
@@ -129,7 +133,7 @@ namespace CouchDB.Driver.ExpressionVisitors
                 // Single() == Take(2) + Single
                 if (node.HasParameterNumber(2))
                 {
-                    node = node.WrapInWhere(true);
+                    node = node.WrapInWhere();
                 }
 
                 // Single(e => e.P) == Where(e => e.P).Take(2) + Single
@@ -144,7 +148,7 @@ namespace CouchDB.Driver.ExpressionVisitors
                 // First() == Take(2) + First
                 if (node.HasParameterNumber(2))
                 {
-                    node = node.WrapInWhere(true);
+                    node = node.WrapInWhere();
                 }
 
                 // First(e => e.P) == Where(e => e.P).Take(2) + First
@@ -156,15 +160,15 @@ namespace CouchDB.Driver.ExpressionVisitors
             // Last
             if (node.IsLast())
             {
-                // First() == Take(2) + First
+                // Last(e => e.P) == Where(e => e.P) + Last
                 if (node.HasParameterNumber(2))
                 {
-                    node = node.WrapInWhere(true);
+                    return node
+                        .WrapInWhere()
+                        .WrapInMethodCall(node);
                 }
 
-                // First(e => e.P) == Where(e => e.P).Take(2) + First
-                return node
-                    .WrapInMethodCall(node);
+                return node;
             }
 
             return base.VisitMethodCall(node);

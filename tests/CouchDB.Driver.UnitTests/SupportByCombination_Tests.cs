@@ -152,9 +152,18 @@ namespace CouchDB.Driver.UnitTests
             var result = _rebels.AsQueryable().Single();
             Assert.Equal(_mainRebel.Age, result.Age);
         }
-        
+
         [Fact]
         public void Single_Expr()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Single();
+            Assert.Equal(_mainRebel.Age, result.Age);
+        }
+
+        [Fact]
+        public void Single_Exception()
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new

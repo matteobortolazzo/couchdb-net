@@ -71,7 +71,14 @@ namespace CouchDB.Driver
             parameters.AddRange(lambdaParameters);
 
             // Execute
-            return (TResult)enumerableMethodInfo.Invoke(null, parameters.ToArray());
+            try
+            {
+                return (TResult)enumerableMethodInfo.Invoke(null, parameters.ToArray());
+            }
+            catch (TargetInvocationException targetInvocationException)
+            {
+                throw targetInvocationException.InnerException;
+            }
         }
 
         private static object GetArgumentValueFromExpression(Expression e)
