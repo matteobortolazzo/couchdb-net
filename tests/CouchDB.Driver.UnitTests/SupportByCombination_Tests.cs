@@ -56,6 +56,23 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
+        public void Any()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Any(r => r.Age == 19);
+            Assert.True(result);
+        }
+
+        [Fact] public void All()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().All(r => r.Age == 19);
+            Assert.True(result);
+        }
+
+        [Fact]
         public void First()
         {
             using var httpTest = new HttpTest();
@@ -92,6 +109,42 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
+        public void Last()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Last();
+            Assert.Equal(_mainRebel.Age, result.Age);
+        }
+
+        [Fact]
+        public void Last_Expr()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Last(r => r.Age == 19);
+            Assert.Equal(_mainRebel.Age, result.Age);
+        }
+
+        [Fact]
+        public void LastOrDefault()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+            var result = _rebels.AsQueryable().LastOrDefault();
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void LastOrDefault_Expr()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+            var result = _rebels.AsQueryable().LastOrDefault(r => r.Age == 20);
+            Assert.Null(result);
+        }
+
+        [Fact]
         public void Single()
         {
             using var httpTest = new HttpTest();
@@ -99,16 +152,7 @@ namespace CouchDB.Driver.UnitTests
             var result = _rebels.AsQueryable().Single();
             Assert.Equal(_mainRebel.Age, result.Age);
         }
-
-        [Fact]
-        public void Single_Exception()
-        {
-            using var httpTest = new HttpTest();
-            httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Single();
-            Assert.Equal(_mainRebel.Age, result.Age);
-        }
-
+        
         [Fact]
         public void Single_Expr()
         {

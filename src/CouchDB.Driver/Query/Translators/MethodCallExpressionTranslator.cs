@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Security.Authentication;
 
 #pragma warning disable IDE0058 // Expression value is never used
@@ -27,8 +28,14 @@ namespace CouchDB.Driver
         {
             nameof(Queryable.Max),
             nameof(Queryable.Min),
+            nameof(Queryable.Any),
+            nameof(Queryable.All),
             nameof(Queryable.First),
-            nameof(Queryable.FirstOrDefault)
+            nameof(Queryable.FirstOrDefault),
+            nameof(Queryable.Single),
+            nameof(Queryable.SingleOrDefault),
+            nameof(Queryable.Last),
+            nameof(Queryable.LastOrDefault)
         };
 
         private static Expression StripQuotes(Expression e)
@@ -132,9 +139,14 @@ namespace CouchDB.Driver
                 }
             }
 
+            if (CompositeQueryableMethods.Contains(m.Method.Name))
+            {
+                return Visit(m.Arguments[0]);
+            }
+
             throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
         }
-
+        
         #region Queryable
 
         private Expression VisitWhereMethod(MethodCallExpression m)
