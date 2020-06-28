@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Security.Authentication;
 
 #pragma warning disable IDE0058 // Expression value is never used
@@ -28,6 +27,8 @@ namespace CouchDB.Driver
         {
             nameof(Queryable.Max),
             nameof(Queryable.Min),
+            nameof(Queryable.Sum),
+            nameof(Queryable.Average),
             nameof(Queryable.Any),
             nameof(Queryable.All),
             nameof(Queryable.First),
@@ -252,6 +253,10 @@ namespace CouchDB.Driver
                     _sb.Append(",");
                 }
                 _sb.Length--;
+            }
+            else if (lambda.Body is MemberExpression mb)
+            {
+                Visit(mb);
             }
             else
             {

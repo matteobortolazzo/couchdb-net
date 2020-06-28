@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
+using LambdaExpression = System.Linq.Expressions.LambdaExpression;
 
 namespace CouchDB.Driver.ExpressionVisitors
 {
@@ -24,12 +25,30 @@ namespace CouchDB.Driver.ExpressionVisitors
             return Expression.Call(typeof(Queryable), nameof(Queryable.Take),
                 node.Method.GetGenericArguments().Take(1).ToArray(), node.Arguments[0], Expression.Constant(numberOfElements));
         }
-        
+
+        public static MethodCallExpression WrapInSelect(this MethodCallExpression node)
+        {
+            Check.NotNull(node, nameof(node));
+
+            var success = node.Arguments[1].TryGetSelectorType(out Type? selectorType);
+            if (!success || selectorType == null)
+            {
+                throw new InvalidOperationException("Invalid selector.");
+            }
+
+            Type[] genericArgumentTypes = node.Method
+                .GetGenericArguments()
+                .Append(selectorType)
+                .ToArray();
+
+            return Expression.Call(typeof(Queryable), nameof(Queryable.Select), genericArgumentTypes, node.Arguments[0], node.Arguments[1]);
+        }
+
         public static MethodCallExpression WrapInWhere(this MethodCallExpression node, bool negate = false)
         {
             Check.NotNull(node, nameof(node));
 
-            var predicate = node.Arguments[1];
+            Expression predicate = node.Arguments[1];
 
             if (negate)
             {
@@ -55,6 +74,34 @@ namespace CouchDB.Driver.ExpressionVisitors
             arguments.AddRange(wrap.Arguments.Skip(1));
             
             return Expression.Call(wrap.Method.DeclaringType, wrap.Method.Name, wrap.Method.GetGenericArguments(), arguments.ToArray());
+        }
+
+        public static MethodCallExpression WrapInAverageSum(this MethodCallExpression node, MethodCallExpression wrap)
+        {
+            Check.NotNull(node, nameof(node));
+            Check.NotNull(wrap, nameof(wrap));
+
+            var success = node.Arguments[1].TryGetSelectorType(out Type? selectorType);
+            if (!success || selectorType == null)
+            {
+                throw new InvalidOperationException("Invalid selector.");
+            }
+
+            Type queryableType = typeof(IQueryable<>).MakeGenericType(selectorType);
+            MethodInfo numberMethod = typeof(Queryable).GetMethod(wrap.Method.Name, new []{queryableType});
+            return Expression.Call(numberMethod, node);
+        }
+
+        private static bool TryGetSelectorType(this Expression selector, out Type? type)
+        {
+            if (selector is UnaryExpression u && u.Operand is LambdaExpression l && l.Body is MemberExpression m)
+            {
+                type = m.Type;
+                return true;
+            }
+
+            type = default;
+            return false;
         }
     }
 
@@ -88,17 +135,29 @@ namespace CouchDB.Driver.ExpressionVisitors
                     .WrapInMethodCall(node);
             }
 
-            //// Sum(e => e.P) == Select(e => new { e.P }) + Sum
-            //if (node.IsSum())
-            //{
-            //    return Expression.Call(typeof(Queryable), nameof(Queryable.Select), genericArgs, node.Arguments[0], node.Arguments[1]);
-            //}
+            // Sum
+            if (node.IsSum())
+            {
+                // Sum(e => e.P) == Select(e => new { e.P }) + Sum
+                if (node.HasParameterNumber(2))
+                {
+                    return node
+                        .WrapInSelect()
+                        .WrapInAverageSum(node);
+                }
+            }
 
-            //// Average(e => e.P) == Select(e => new { e.P }) + Average
-            //if (node.IsAverage())
-            //{
-            //    return Expression.Call(typeof(Queryable), nameof(Queryable.Average), genericArgs, node.Arguments[0], node.Arguments[1]);
-            //}
+            // Average
+            if (node.IsAverage())
+            {
+                // Average(e => e.P) == Select(e => new { e.P }) + Average
+                if (node.HasParameterNumber(2))
+                {
+                    return node
+                        .WrapInSelect()
+                        .WrapInAverageSum(node);
+                }
+            }
 
             // Any
             if (node.IsAny())

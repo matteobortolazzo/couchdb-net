@@ -56,6 +56,24 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
+        public void Sum()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Sum(r => r.Age);
+            Assert.Equal(_mainRebel.Age, result);
+        }
+
+        [Fact]
+        public void Average()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = _rebels.AsQueryable().Average(r => r.Age);
+            Assert.Equal(_mainRebel.Age, result);
+        }
+
+        [Fact]
         public void Any()
         {
             using var httpTest = new HttpTest();

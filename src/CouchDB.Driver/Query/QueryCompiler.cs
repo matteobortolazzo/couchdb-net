@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
-using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver
@@ -25,6 +25,9 @@ namespace CouchDB.Driver
             _requestSender = requestSender;
             _queryTranslator = queryTranslator;
         }
+
+        public string ToString(Expression query)
+            => _queryTranslator.Translate(query);
 
         public TResult Execute<TResult>(Expression query)
             => SendRequest<TResult>(query, false, default);
@@ -61,7 +64,7 @@ namespace CouchDB.Driver
             }
 
             // Get Enumerable equivalent of the requested IQueryable method
-            MethodInfo enumerableMethodInfo = GetEnumerableMethod(methodCallExpression.Method);
+            MethodInfo enumerableMethodInfo = methodCallExpression.Method.GetEnumerableMethod(typeof(Enumerable));
 
             // Create parameters
             var parameters = new List<object> {couchList};
@@ -89,43 +92,6 @@ namespace CouchDB.Driver
                 UnaryExpression u when u.Operand is LambdaExpression l => l.Compile(),
                 _ => throw new NotImplementedException($"Expression of type {e.NodeType} not supported.")
             };
-        }
-
-        private static MethodInfo GetEnumerableMethod(MethodInfo queryableMethodInfo)
-        {
-            Check.NotNull(queryableMethodInfo, nameof(queryableMethodInfo));
-
-            MethodInfo FindEnumerableMethod()
-            {
-                if (queryableMethodInfo.Name == nameof(Queryable.Max) || queryableMethodInfo.Name == nameof(Queryable.Min))
-                {
-                    return FindEnumerableMinMax(queryableMethodInfo);
-                }
-                return typeof(Enumerable).GetMethods().Single(info =>
-                    queryableMethodInfo.Name == info.Name && ReflectionComparator.IsCompatible(queryableMethodInfo, info));
-            }
-            
-            MethodInfo genericEnumerableMethodInfo = FindEnumerableMethod();
-
-            Type[] requestedGenericParameters = genericEnumerableMethodInfo.GetGenericMethodDefinition().GetGenericArguments();
-            Type[] genericParameters = queryableMethodInfo.GetGenericArguments();
-            Type[] usableParameters = genericParameters.Take(requestedGenericParameters.Length).ToArray();
-            MethodInfo enumerableMethodInfo = genericEnumerableMethodInfo.MakeGenericMethod(usableParameters);
-
-            return enumerableMethodInfo;
-        }
-
-        private static MethodInfo FindEnumerableMinMax(MethodBase queryableMethodInfo)
-        {
-            Type[] genericParams = queryableMethodInfo.GetGenericArguments();
-            return typeof(Enumerable).GetMethods().Single(enumerableMethodInfo =>
-            {
-                Type[] enumerableArguments = enumerableMethodInfo.GetGenericArguments();
-                return
-                    enumerableMethodInfo.Name == queryableMethodInfo.Name &&
-                    enumerableArguments.Length == genericParams.Length - 1 &&
-                    enumerableMethodInfo.ReturnType == genericParams[1];
-            });
         }
     }
 }

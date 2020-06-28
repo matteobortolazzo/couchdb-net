@@ -31,6 +31,13 @@ namespace CouchDB.Driver.UnitTests.Find
         }
 
         [Fact]
+        public void Field()
+        {
+            var json = _rebels.Select(r => r.Age).ToString();
+            Assert.Equal(@"{""fields"":[""age""],""selector"":{}}", json);
+        }
+
+        [Fact]
         public void Fields()
         {
             var json = _rebels.Select(r => new

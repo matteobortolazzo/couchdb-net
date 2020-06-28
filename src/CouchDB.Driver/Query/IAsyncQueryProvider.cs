@@ -7,5 +7,6 @@ namespace CouchDB.Driver
     internal interface IAsyncQueryProvider: IQueryProvider
     {
         TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default);
+        string ToString(Expression expression);
     }
 }

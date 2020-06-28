@@ -27,6 +27,11 @@ namespace CouchDB.Driver
             _expression = expression;
         }
 
+        public override string ToString()
+        {
+            return _queryProvider.ToString(_expression);
+        }
+
         Expression IQueryable.Expression
         {
             get { return _expression; }

@@ -41,5 +41,8 @@ namespace CouchDB.Driver
 
         public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
             => _queryCompiler.ExecuteAsync<TResult>(expression, cancellationToken);
+
+        public string ToString(Expression expression)
+            => _queryCompiler.ToString(expression);
     }
 }
