@@ -52,6 +52,7 @@ namespace CouchDB.Driver.Shared
                 QueryableMethods.MinWithSelector,
                 QueryableMethods.MaxWithoutSelector,
                 QueryableMethods.MaxWithSelector,
+                QueryableMethods.AnyWithoutPredicate,
                 QueryableMethods.AnyWithPredicate,
                 QueryableMethods.All,
                 QueryableMethods.FirstWithoutPredicate,

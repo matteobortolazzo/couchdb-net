@@ -21,6 +21,8 @@ namespace CouchDB.Driver.ExpressionVisitors
                 throw new NotSupportedException($"Method {node.Method.Name} cannot be converter to a valid query.");
             }
 
+            #region Min/Max
+
             // Min(d => d.Property) == OrderBy(d => d.Property).Take(1).Select(d => d.Property).Min()
             if (genericDefinition == QueryableMethods.MinWithSelector)
             {
@@ -28,7 +30,7 @@ namespace CouchDB.Driver.ExpressionVisitors
                     .SubstituteWithQueryableCall(nameof(Queryable.OrderBy))
                     .WrapInTake(1)
                     .WrapInSelect(node)
-                    .WrapInMethodWithoutSelector(QueryableMethods.MinWithoutSelector);
+                    .WrapInMinMax(QueryableMethods.MinWithoutSelector);
             }
 
             // Max(d => d.Property) == OrderByDescending(d => d.Property).Take(1).Select(d => d.Property).Max()
@@ -38,8 +40,12 @@ namespace CouchDB.Driver.ExpressionVisitors
                     .SubstituteWithQueryableCall(nameof(Queryable.OrderByDescending))
                     .WrapInTake(1)
                     .WrapInSelect(node)
-                    .WrapInMethodWithoutSelector(QueryableMethods.MaxWithoutSelector);
+                    .WrapInMinMax(QueryableMethods.MaxWithoutSelector);
             }
+
+            #endregion
+
+            #region Sum/Average
 
             // Sum(d => d.Property) == Select(d => d.Property).Sum()
             if (QueryableMethods.IsSumWithSelector(genericDefinition))
@@ -57,83 +63,141 @@ namespace CouchDB.Driver.ExpressionVisitors
                     .WrapInAverageSum(node);
             }
 
+            #endregion
+
+            #region Any/All
+
             // Any() => Take(1).Any()
             if (genericDefinition == QueryableMethods.AnyWithoutPredicate)
             {
                 return node
                     .WrapInTake(1)
-                    .WrapInMethodCall(node);
+                    .WrapInMethodWithoutSelector(QueryableMethods.AnyWithoutPredicate);
             }
 
-            // Any(d => condition) == Where(d => condition).Take(1).Any(d => condition)
+            // Any(d => condition) == Where(d => condition).Take(1).Any()
             if (genericDefinition == QueryableMethods.AnyWithPredicate)
             {
                 return node
                     .SubstituteWithWhere()
                     .WrapInTake(1)
-                    .WrapInMethodCall(node);
+                    .WrapInMethodWithoutSelector(QueryableMethods.AnyWithoutPredicate);
             }
 
-            // All(d => condition) == Where(d => condition).Take(1).All(d => condition)
+            // All(d => condition) == Where(d => !condition).Take(1).Any()
             if (genericDefinition == QueryableMethods.All)
             {
                 return node
                     .SubstituteWithWhere(true)
                     .WrapInTake(1)
-                    .WrapInMethodCall(node);
+                    .WrapInMethodWithoutSelector(QueryableMethods.AnyWithoutPredicate);
             }
+
+            #endregion
+
+            #region Single/SingleOrDefault
 
             // Single() == Take(2).Single()
-            if (genericDefinition == QueryableMethods.SingleWithoutPredicate ||
-                genericDefinition == QueryableMethods.SingleOrDefaultWithoutPredicate)
+            if (genericDefinition == QueryableMethods.SingleWithoutPredicate)
             {
                 return node
                     .SubstituteWithTake(2)
-                    .WrapInMethodCall(node);
+                    .WrapInMethodWithoutSelector(QueryableMethods.SingleWithoutPredicate);
             }
 
-            // Single(d => condition) == Where(d => condition).Take(2).Single(d => condition)
-            if (genericDefinition == QueryableMethods.SingleWithPredicate ||
-                genericDefinition == QueryableMethods.SingleOrDefaultWithPredicate)
+            // SingleOrDefault() == Take(2).SingleOrDefault()
+            if (genericDefinition == QueryableMethods.SingleOrDefaultWithoutPredicate)
             {
                 return node
                     .SubstituteWithTake(2)
-                    .WrapInMethodCall(node);
+                    .WrapInMethodWithoutSelector(QueryableMethods.SingleOrDefaultWithoutPredicate);
             }
+
+            // Single(d => condition) == Where(d => condition).Take(2).Single()
+            if (genericDefinition == QueryableMethods.SingleOrDefaultWithPredicate)
+            {
+                return node
+                    .SubstituteWithWhere()
+                    .SubstituteWithTake(2)
+                    .WrapInMethodWithoutSelector(QueryableMethods.SingleWithoutPredicate);
+            }
+
+            // SingleOrDefault(d => condition) == Where(d => condition).Take(2).SingleOrDefault()
+            if (genericDefinition == QueryableMethods.SingleOrDefaultWithPredicate)
+            {
+                return node
+                    .SubstituteWithWhere()
+                    .SubstituteWithTake(2)
+                    .WrapInMethodWithoutSelector(QueryableMethods.SingleOrDefaultWithoutPredicate);
+            }
+
+            #endregion
+
+            #region First/FirstOrDefault
 
             // First() == Take(1).First()
-            if (genericDefinition == QueryableMethods.FirstWithoutPredicate ||
-                genericDefinition == QueryableMethods.FirstOrDefaultWithoutPredicate)
+            if (genericDefinition == QueryableMethods.FirstWithoutPredicate)
             {
                 return node
                     .SubstituteWithTake(1)
-                    .WrapInMethodCall(node);
+                    .WrapInMethodWithoutSelector(QueryableMethods.FirstWithoutPredicate);
             }
 
-            // First(d => condition) == Where(d => condition).Take(1).First(d => condition)
-            if (genericDefinition == QueryableMethods.FirstWithPredicate ||
-                genericDefinition == QueryableMethods.FirstOrDefaultWithPredicate)
+            // FirstOrDefault() == Take(1).FirstOrDefault()
+            if (genericDefinition == QueryableMethods.FirstOrDefaultWithoutPredicate)
             {
                 return node
                     .SubstituteWithTake(1)
-                    .WrapInMethodCall(node);
+                    .WrapInMethodWithoutSelector(QueryableMethods.FirstOrDefaultWithoutPredicate);
             }
+
+            // First(d => condition) == Where(d => condition).Take(1).First()
+            if (genericDefinition == QueryableMethods.FirstWithPredicate)
+            {
+                return node
+                    .SubstituteWithWhere()
+                    .SubstituteWithTake(1)
+                    .WrapInMethodWithoutSelector(QueryableMethods.FirstWithoutPredicate);
+            }
+
+            // FirstOrDefault(d => condition) == Where(d => condition).Take(1).FirstOrDefault()
+            if (genericDefinition == QueryableMethods.FirstOrDefaultWithPredicate)
+            {
+                return node
+                    .SubstituteWithWhere()
+                    .SubstituteWithTake(1)
+                    .WrapInMethodWithoutSelector(QueryableMethods.FirstOrDefaultWithoutPredicate);
+            }
+
+            #endregion
+
+            #region Last/LastOrDefault
 
             // Last() == Last()
+            // LastOrDefault() == LastOrDefault()
             if (genericDefinition == QueryableMethods.LastWithoutPredicate ||
                 genericDefinition == QueryableMethods.LastOrDefaultWithoutPredicate)
             {
                 return node;
             }
 
-            // Last(d => condition) == Where(d => condition).Last(d => condition)
-            if (genericDefinition == QueryableMethods.LastWithPredicate ||
-                genericDefinition == QueryableMethods.LastOrDefaultWithPredicate)
+            // Last(d => condition) == Where(d => condition).Last()
+            if (genericDefinition == QueryableMethods.LastWithPredicate)
             {
                 return node
                     .SubstituteWithWhere()
-                    .WrapInMethodCall(node);
+                    .WrapInMethodWithoutSelector(QueryableMethods.LastWithoutPredicate);
             }
+
+            // LastOrDefault(d => condition) == Where(d => condition).LastOrDefault()
+            if (genericDefinition == QueryableMethods.LastOrDefaultWithPredicate)
+            {
+                return node
+                    .SubstituteWithWhere()
+                    .WrapInMethodWithoutSelector(QueryableMethods.LastOrDefaultWithoutPredicate);
+            }
+
+            #endregion
 
             return base.VisitMethodCall(node);
         }

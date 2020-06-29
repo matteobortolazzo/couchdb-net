@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -90,15 +89,13 @@ namespace CouchDB.Driver.Extensions
             return Expression.Call(numberMethod, node);
         }
 
-        public static MethodCallExpression WrapInMethodCall(this MethodCallExpression node, MethodCallExpression wrap)
+        public static MethodCallExpression WrapInMinMax(this MethodCallExpression node, MethodInfo methodInfo)
         {
             Check.NotNull(node, nameof(node));
-            Check.NotNull(wrap, nameof(wrap));
+            Check.NotNull(methodInfo, nameof(methodInfo));
 
-            var arguments = new List<Expression> { node };
-            arguments.AddRange(wrap.Arguments.Skip(1));
-
-            return Expression.Call(wrap.Method.DeclaringType, wrap.Method.Name, wrap.Method.GetGenericArguments(), arguments.ToArray());
+            MethodInfo genericMethodInfo = methodInfo.MakeGenericMethod(node.Method.GetGenericArguments()[1]);
+            return Expression.Call(genericMethodInfo, node);
         }
 
         public static MethodCallExpression WrapInMethodWithoutSelector(this MethodCallExpression node, MethodInfo methodInfo)
@@ -106,7 +103,7 @@ namespace CouchDB.Driver.Extensions
             Check.NotNull(node, nameof(node));
             Check.NotNull(methodInfo, nameof(methodInfo));
 
-            MethodInfo genericMethodInfo = methodInfo.MakeGenericMethod(node.Method.GetGenericArguments()[1]);
+            MethodInfo genericMethodInfo = methodInfo.MakeGenericMethod(node.Method.GetGenericArguments()[0]);
             return Expression.Call(genericMethodInfo, node);
         }
 
