@@ -1,110 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
-using LambdaExpression = System.Linq.Expressions.LambdaExpression;
 
 namespace CouchDB.Driver.ExpressionVisitors
 {
-    internal static class MethodCallExpressionEditExtensions
-    {
-        public static MethodCallExpression WrapInQueryableCall(this MethodCallExpression node, string methodName)
-        {
-            Check.NotNull(node, nameof(node));
-
-            return Expression.Call(typeof(Queryable), methodName, node.Method.GetGenericArguments(), node.Arguments[0], node.Arguments[1]);
-        }
-
-        public static MethodCallExpression WrapInTake(this MethodCallExpression node, int numberOfElements)
-        {
-            Check.NotNull(node, nameof(node));
-
-            return Expression.Call(typeof(Queryable), nameof(Queryable.Take),
-                node.Method.GetGenericArguments().Take(1).ToArray(), node.Arguments[0], Expression.Constant(numberOfElements));
-        }
-
-        public static MethodCallExpression WrapInSelect(this MethodCallExpression node)
-        {
-            Check.NotNull(node, nameof(node));
-
-            var success = node.Arguments[1].TryGetSelectorType(out Type? selectorType);
-            if (!success || selectorType == null)
-            {
-                throw new InvalidOperationException("Invalid selector.");
-            }
-
-            Type[] genericArgumentTypes = node.Method
-                .GetGenericArguments()
-                .Append(selectorType)
-                .ToArray();
-
-            return Expression.Call(typeof(Queryable), nameof(Queryable.Select), genericArgumentTypes, node.Arguments[0], node.Arguments[1]);
-        }
-
-        public static MethodCallExpression WrapInWhere(this MethodCallExpression node, bool negate = false)
-        {
-            Check.NotNull(node, nameof(node));
-
-            Expression predicate = node.Arguments[1];
-
-            if (negate)
-            {
-                if (predicate == null || !(predicate is UnaryExpression unary) || !(unary.Operand is LambdaExpression lambdaExpression))
-                {
-                    throw new InvalidOperationException();
-                }
-
-                UnaryExpression body = Expression.Not(lambdaExpression.Body);
-                lambdaExpression = Expression.Lambda(body, lambdaExpression.Parameters);
-                predicate = Expression.Quote(lambdaExpression);
-            }
-
-            return Expression.Call(typeof(Queryable), nameof(Queryable.Where), node.Method.GetGenericArguments(), node.Arguments[0], predicate);
-        }
-
-        public static MethodCallExpression WrapInMethodCall(this MethodCallExpression node, MethodCallExpression wrap)
-        {
-            Check.NotNull(node, nameof(node));
-            Check.NotNull(wrap, nameof(wrap));
-            
-            var arguments = new List<Expression> {node};
-            arguments.AddRange(wrap.Arguments.Skip(1));
-            
-            return Expression.Call(wrap.Method.DeclaringType, wrap.Method.Name, wrap.Method.GetGenericArguments(), arguments.ToArray());
-        }
-
-        public static MethodCallExpression WrapInAverageSum(this MethodCallExpression node, MethodCallExpression wrap)
-        {
-            Check.NotNull(node, nameof(node));
-            Check.NotNull(wrap, nameof(wrap));
-
-            var success = node.Arguments[1].TryGetSelectorType(out Type? selectorType);
-            if (!success || selectorType == null)
-            {
-                throw new InvalidOperationException("Invalid selector.");
-            }
-
-            Type queryableType = typeof(IQueryable<>).MakeGenericType(selectorType);
-            MethodInfo numberMethod = typeof(Queryable).GetMethod(wrap.Method.Name, new []{queryableType});
-            return Expression.Call(numberMethod, node);
-        }
-
-        private static bool TryGetSelectorType(this Expression selector, out Type? type)
-        {
-            if (selector is UnaryExpression u && u.Operand is LambdaExpression l && l.Body is MemberExpression m)
-            {
-                type = m.Type;
-                return true;
-            }
-
-            type = default;
-            return false;
-        }
-    }
-
     public class QueryPreTranslator : ExpressionVisitor
     {
         protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -117,117 +19,120 @@ namespace CouchDB.Driver.ExpressionVisitors
                 throw new NotSupportedException();
             }
 
-            // Min(e => e.P) == OrderBy(e => e.P).Take(1) + Min
-            if (node.IsMin())
+            MethodInfo genericDefinition = node.Method.GetGenericMethodDefinition();
+
+            // Min(d => d.Property) == OrderBy(d => d.Property).Take(1).Select(d => d.Property).Min()
+            if (genericDefinition == QueryableMethods.MinWithSelector)
             {
                 return node
-                    .WrapInQueryableCall(nameof(Queryable.OrderBy))
+                    .SubstituteWithQueryableCall(nameof(Queryable.OrderBy))
                     .WrapInTake(1)
-                    .WrapInMethodCall(node);
+                    .WrapInSelect(node)
+                    .WrapInMethodWithoutSelector(QueryableMethods.MinWithoutSelector);
             }
 
-            // Max(e => e.P) == OrderByDescending(e => e.P).Take(1) + Max
-            if (node.IsMax())
+            // Max(d => d.Property) == OrderByDescending(d => d.Property).Take(1).Select(d => d.Property).Max()
+            if (genericDefinition == QueryableMethods.MaxWithSelector)
             {
                 return node
-                    .WrapInQueryableCall(nameof(Queryable.OrderByDescending))
+                    .SubstituteWithQueryableCall(nameof(Queryable.OrderByDescending))
                     .WrapInTake(1)
-                    .WrapInMethodCall(node);
+                    .WrapInSelect(node)
+                    .WrapInMethodWithoutSelector(QueryableMethods.MaxWithoutSelector);
             }
 
-            // Sum
-            if (node.IsSum())
+            // Sum(d => d.Property) == Select(d => d.Property).Sum()
+            if (QueryableMethods.IsSumWithSelector(genericDefinition))
             {
-                // Sum(e => e.P) == Select(e => new { e.P }) + Sum
-                if (node.HasParameterNumber(2))
-                {
-                    return node
-                        .WrapInSelect()
-                        .WrapInAverageSum(node);
-                }
+                return node
+                    .SubstituteWithSelect(node)
+                    .WrapInAverageSum(node);
             }
 
-            // Average
-            if (node.IsAverage())
+            // Average(d => d.Property) == Select(d => d.Property).Average()
+            if (QueryableMethods.IsAverageWithSelector(genericDefinition))
             {
-                // Average(e => e.P) == Select(e => new { e.P }) + Average
-                if (node.HasParameterNumber(2))
-                {
-                    return node
-                        .WrapInSelect()
-                        .WrapInAverageSum(node);
-                }
+                return node
+                    .SubstituteWithSelect(node)
+                    .WrapInAverageSum(node);
             }
 
-            // Any
-            if (node.IsAny())
+            // Any() => Take(1).Any()
+            if (genericDefinition == QueryableMethods.AnyWithoutPredicate)
             {
-                // Any(e => e.P) == Where(e => e.P).Take(1) + Any
-                if (node.HasParameterNumber(2))
-                {
-                    node = node.WrapInWhere();
-                }
-
                 return node
                     .WrapInTake(1)
                     .WrapInMethodCall(node);
             }
 
-            if (node.IsAll())
+            // Any(d => condition) == Where(d => condition).Take(1).Any()
+            if (genericDefinition == QueryableMethods.AnyWithPredicate)
             {
-                // All(e => e.P) == Where(e => !e.P).Take(1) + All
-                if (node.HasParameterNumber(2))
-                {
-                    node = node.WrapInWhere(true);
-                }
-
                 return node
+                    .SubstituteWithWhere()
                     .WrapInTake(1)
                     .WrapInMethodCall(node);
             }
 
-            // Single
-            if (node.IsSingle())
+            // All(d => condition) == Where(d => condition).Take(1).All()
+            if (genericDefinition == QueryableMethods.All)
             {
-                // Single() == Take(2) + Single
-                if (node.HasParameterNumber(2))
-                {
-                    node = node.WrapInWhere();
-                }
-
-                // Single(e => e.P) == Where(e => e.P).Take(2) + Single
                 return node
-                    .WrapInTake(2)
-                    .WrapInMethodCall(node);
-            }
-
-            // First
-            if (node.IsFirst())
-            {
-                // First() == Take(2) + First
-                if (node.HasParameterNumber(2))
-                {
-                    node = node.WrapInWhere();
-                }
-
-                // First(e => e.P) == Where(e => e.P).Take(2) + First
-                return node
+                    .SubstituteWithWhere(true)
                     .WrapInTake(1)
                     .WrapInMethodCall(node);
             }
 
-            // Last
-            if (node.IsLast())
+            // Single() == Take(2).Single()
+            if (genericDefinition == QueryableMethods.SingleWithoutPredicate ||
+                genericDefinition == QueryableMethods.SingleOrDefaultWithoutPredicate)
             {
-                // Last(e => e.P) == Where(e => e.P) + Last
-                if (node.HasParameterNumber(2))
-                {
-                    return node
-                        .WrapInWhere()
-                        .WrapInMethodCall(node);
-                }
+                return node
+                    .SubstituteWithTake(2)
+                    .WrapInMethodCall(node);
+            }
 
+            // Single(d => condition) == Where(d => condition).Take(2).Single()
+            if (genericDefinition == QueryableMethods.SingleWithPredicate ||
+                genericDefinition == QueryableMethods.SingleOrDefaultWithPredicate)
+            {
+                return node
+                    .SubstituteWithTake(2)
+                    .WrapInMethodCall(node);
+            }
+
+            // First() == Take(1).First()
+            if (genericDefinition == QueryableMethods.FirstWithoutPredicate ||
+                genericDefinition == QueryableMethods.FirstOrDefaultWithoutPredicate)
+            {
+                return node
+                    .SubstituteWithTake(1)
+                    .WrapInMethodCall(node);
+            }
+
+            // First(d => condition) == Where(d => condition).Take(1).First()
+            if (genericDefinition == QueryableMethods.FirstWithPredicate ||
+                genericDefinition == QueryableMethods.FirstOrDefaultWithPredicate)
+            {
+                return node
+                    .SubstituteWithTake(1)
+                    .WrapInMethodCall(node);
+            }
+
+            // Last() == Last()
+            if (genericDefinition == QueryableMethods.LastWithoutPredicate ||
+                genericDefinition == QueryableMethods.LastOrDefaultWithoutPredicate)
+            {
                 return node;
+            }
+
+            // Last(d => condition) == Where(d => condition).Last()
+            if (genericDefinition == QueryableMethods.LastWithPredicate ||
+                genericDefinition == QueryableMethods.LastOrDefaultWithPredicate)
+            {
+                return node
+                    .SubstituteWithWhere()
+                    .WrapInMethodCall(node);
             }
 
             return base.VisitMethodCall(node);

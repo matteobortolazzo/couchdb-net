@@ -13,7 +13,9 @@ namespace CouchDB.Driver.Helpers
         public static MethodInfo AnyWithPredicate { get; }
 
         public static MethodInfo MinWithSelector { get; }
+        public static MethodInfo MinWithoutSelector { get; }
         public static MethodInfo MaxWithSelector { get; }
+        public static MethodInfo MaxWithoutSelector { get; }
 
         public static MethodInfo FirstWithoutPredicate { get; }
         public static MethodInfo FirstWithPredicate { get; }
@@ -28,6 +30,22 @@ namespace CouchDB.Driver.Helpers
         public static MethodInfo LastOrDefaultWithoutPredicate { get; }
         public static MethodInfo LastOrDefaultWithPredicate { get; }
         
+        public static bool IsSumWithSelector(MethodInfo methodInfo)
+        {
+            Check.NotNull(methodInfo, nameof(methodInfo));
+
+            return methodInfo.IsGenericMethod
+                   && SumWithSelectorMethods.Values.Contains(methodInfo.GetGenericMethodDefinition());
+        }
+
+        public static bool IsAverageWithSelector(MethodInfo methodInfo)
+        {
+            Check.NotNull(methodInfo, nameof(methodInfo));
+
+            return methodInfo.IsGenericMethod
+                   && AverageWithSelectorMethods.Values.Contains(methodInfo.GetGenericMethodDefinition());
+        }
+
         public static MethodInfo GetSumWithSelector(Type type)
         {
             Check.NotNull(type, nameof(type));
@@ -65,10 +83,14 @@ namespace CouchDB.Driver.Helpers
                 mi => mi.Name == nameof(Queryable.Min)
                       && mi.GetParameters().Length == 2
                       && IsExpressionOfFunc(mi.GetParameters()[1].ParameterType));
+            MinWithoutSelector = queryableMethods.Single(
+                mi => mi.Name == nameof(Queryable.Min) && mi.GetParameters().Length == 1);
             MaxWithSelector = queryableMethods.Single(
                 mi => mi.Name == nameof(Queryable.Max)
                       && mi.GetParameters().Length == 2
                       && IsExpressionOfFunc(mi.GetParameters()[1].ParameterType));
+            MaxWithoutSelector = queryableMethods.Single(
+                mi => mi.Name == nameof(Queryable.Max) && mi.GetParameters().Length == 1);
 
             FirstWithoutPredicate = queryableMethods.Single(
                 mi => mi.Name == nameof(Queryable.First) && mi.GetParameters().Length == 1);
@@ -135,7 +157,7 @@ namespace CouchDB.Driver.Helpers
                 { typeof(float?), GetSumOrAverageWithSelector<float?>(queryableMethods, nameof(Queryable.Average)) }
             };
 
-            static MethodInfo GetSumOrAverageWithSelector<T>(List<MethodInfo> queryableMethods, string methodName)
+            static MethodInfo GetSumOrAverageWithSelector<T>(IEnumerable<MethodInfo> queryableMethods, string methodName)
                 => queryableMethods.Single(
                     mi => mi.Name == methodName
                           && mi.GetParameters().Length == 2
