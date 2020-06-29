@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     internal class CouchQueryProvider : IAsyncQueryProvider
     {

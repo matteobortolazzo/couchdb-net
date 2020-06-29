@@ -3,6 +3,7 @@ using System;
 using Xunit;
 using CouchDB.Driver.Extensions;
 using System.Linq;
+using CouchDB.Driver.Query.Extensions;
 
 namespace CouchDB.Driver.UnitTests.Find
 {

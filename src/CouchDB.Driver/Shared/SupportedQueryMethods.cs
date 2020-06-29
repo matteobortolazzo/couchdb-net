@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Query.Extensions;
 
 namespace CouchDB.Driver.Shared
 {
@@ -36,29 +38,29 @@ namespace CouchDB.Driver.Shared
                       && mi.GetParameters().Length == 2
                       && IsExpressionOfFunc(mi.GetParameters()[1].ParameterType));
 
-            var queryableExtensionsMethods = typeof(QueryableExtensions)
+            var queryableExtensionsMethods = typeof(QueryableQueryExtensions)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly).ToList();
-            UseBookmark = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableExtensions.UseBookmark));
-            WithReadQuorum = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableExtensions.WithReadQuorum));
-            WithoutIndexUpdate = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableExtensions.WithoutIndexUpdate));
-            FromStable = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableExtensions.FromStable));
-            UseIndex = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableExtensions.UseIndex));
-            IncludeExecutionStats = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableExtensions.IncludeExecutionStats));
-            IncludeConflicts = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableExtensions.IncludeConflicts));
+            UseBookmark = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.UseBookmark));
+            WithReadQuorum = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.WithReadQuorum));
+            WithoutIndexUpdate = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.WithoutIndexUpdate));
+            FromStable = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.FromStable));
+            UseIndex = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.UseIndex));
+            IncludeExecutionStats = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.IncludeExecutionStats));
+            IncludeConflicts = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.IncludeConflicts));
             
-            EnumerableContains = typeof(EnumerableExtensions)
+            EnumerableContains = typeof(EnumerableQueryExtensions)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(mi => mi.Name == nameof(EnumerableExtensions.Contains));
+                .Single(mi => mi.Name == nameof(EnumerableQueryExtensions.Contains));
 
-            var objectExtensionsMethods = typeof(ObjectExtensions)
+            var objectExtensionsMethods = typeof(ObjectQueryExtensions)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly).ToList();
-            FieldExists = objectExtensionsMethods.Single(mi => mi.Name == nameof(ObjectExtensions.FieldExists));
-            IsCouchType = objectExtensionsMethods.Single(mi => mi.Name == nameof(ObjectExtensions.IsCouchType));
-            In = objectExtensionsMethods.Single(mi => mi.Name == nameof(ObjectExtensions.In));
+            FieldExists = objectExtensionsMethods.Single(mi => mi.Name == nameof(ObjectQueryExtensions.FieldExists));
+            IsCouchType = objectExtensionsMethods.Single(mi => mi.Name == nameof(ObjectQueryExtensions.IsCouchType));
+            In = objectExtensionsMethods.Single(mi => mi.Name == nameof(ObjectQueryExtensions.In));
 
-            IsMatch = typeof(StringExtensions)
+            IsMatch = typeof(StringQueryExtensions)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(mi => mi.Name == nameof(StringExtensions.IsMatch));
+                .Single(mi => mi.Name == nameof(StringQueryExtensions.IsMatch));
 
             Contains = typeof(Enumerable)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)

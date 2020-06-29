@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     internal partial class QueryTranslator
     {

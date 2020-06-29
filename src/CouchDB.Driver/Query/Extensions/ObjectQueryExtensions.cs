@@ -1,13 +1,13 @@
-﻿using CouchDB.Driver.Types;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.Query.Extensions
 {
-    public static class ObjectExtensions
+    public static class ObjectQueryExtensions
     {
         /// <summary>
         /// Determines whether value is contained in the sequence provided.

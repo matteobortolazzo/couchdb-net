@@ -8,7 +8,7 @@ using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     internal class QuerySender : IQuerySender
     {

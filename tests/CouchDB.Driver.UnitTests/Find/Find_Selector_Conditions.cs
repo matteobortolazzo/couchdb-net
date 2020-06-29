@@ -2,6 +2,7 @@ using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Types;
 using CouchDB.Driver.UnitTests.Models;
 using System;
+using CouchDB.Driver.Query.Extensions;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Find

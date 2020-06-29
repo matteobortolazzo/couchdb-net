@@ -4,9 +4,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Helpers;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.Query.Extensions
 {
-    public static class QueryableExtensions
+    public static class QueryableQueryExtensions
     {
         #region Helper methods to obtain MethodInfo in a safe way
 

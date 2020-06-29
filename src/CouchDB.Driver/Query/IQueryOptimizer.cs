@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     internal interface IQueryOptimizer
     {

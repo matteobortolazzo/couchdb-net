@@ -14,6 +14,7 @@ using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
+using CouchDB.Driver.Query;
 
 namespace CouchDB.Driver
 {

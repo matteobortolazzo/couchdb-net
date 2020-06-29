@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Threading;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     internal interface IAsyncQueryProvider: IQueryProvider
     {

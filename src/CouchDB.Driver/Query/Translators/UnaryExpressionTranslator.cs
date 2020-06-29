@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 
 #pragma warning disable IDE0058 // Expression value is never used
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     internal partial class QueryTranslator
     {

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using CouchDB.Driver.Query;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver

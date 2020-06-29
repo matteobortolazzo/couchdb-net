@@ -1,15 +1,13 @@
-﻿using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Authentication;
-using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Shared;
 
 #pragma warning disable IDE0058 // Expression value is never used
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     internal partial class QueryTranslator
     {
@@ -33,9 +31,11 @@ namespace CouchDB.Driver
                 return Visit(m.Arguments[0]);
             }
 
-            MethodInfo genericDefinition = m.Method.GetGenericMethodDefinition();
+            MethodInfo? genericDefinition = m.Method.IsGenericMethod
+                ? m.Method.GetGenericMethodDefinition()
+                : null;
 
-            if (genericDefinition.IsSupportedByComposition())
+            if (genericDefinition != null && genericDefinition.IsSupportedByComposition())
             {
                 return Visit(m.Arguments[0]);
             }
@@ -74,7 +74,7 @@ namespace CouchDB.Driver
 
             // Enumerable
 
-            if (genericDefinition == SupportedQueryMethods.Contains)
+            if (m.Method == SupportedQueryMethods.Contains)
             {
                 return VisitContainsMethod(m);
             }
@@ -152,12 +152,12 @@ namespace CouchDB.Driver
 
             // String extensions
 
-            if (genericDefinition == SupportedQueryMethods.IsMatch)
+            if (m.Method == SupportedQueryMethods.IsMatch)
             {
                 return VisitIsMatchMethod(m);
             }
 
-            throw new NotSupportedException($"The method '{genericDefinition.Name}' is not supported");
+            throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
         }
         
         #region Queryable

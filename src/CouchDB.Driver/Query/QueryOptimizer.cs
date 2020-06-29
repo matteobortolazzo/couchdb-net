@@ -2,11 +2,10 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Shared;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     /// <summary>
     /// Convert expressions that are not natively supported in supported ones.
@@ -18,12 +17,18 @@ namespace CouchDB.Driver
 
         public Expression Optimize(Expression e)
         {
+            e = Local.PartialEval(e);
             return Visit(e);
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             Check.NotNull(node, nameof(node));
+
+            if (!node.Method.IsGenericMethod)
+            {
+                return node;
+            }
 
             MethodInfo genericDefinition = node.Method.GetGenericMethodDefinition();
 
@@ -34,7 +39,7 @@ namespace CouchDB.Driver
 
             #region Bool member to constants
 
-            if (genericDefinition == QueryableMethods.Where)
+            if (!_isVisitingWhereMethodOrChild && genericDefinition == QueryableMethods.Where)
             {
                 _isVisitingWhereMethodOrChild = true;
                 Expression whereNode = VisitMethodCall(node);

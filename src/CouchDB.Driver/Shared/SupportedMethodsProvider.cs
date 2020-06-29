@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
-using System.Dynamic;
 using System.Reflection;
 
 namespace CouchDB.Driver.Shared
 {
-    internal static class SupportedMethods
+    internal static class SupportedMethodsProvider
     {
         private static List<MethodInfo> Supported { get; }
         private static List<MethodInfo> Composite { get; }
+
         public static bool IsSupportedNativelyOrByComposition(this MethodInfo methodInfo)
             => methodInfo.IsSupportedByComposition() || Supported.Contains(methodInfo);
 
@@ -16,7 +16,7 @@ namespace CouchDB.Driver.Shared
                || QueryableMethods.IsSumWithSelector(methodInfo)
                || QueryableMethods.IsAverageWithSelector(methodInfo);
 
-        static SupportedMethods()
+        static SupportedMethodsProvider()
         {
             Supported = new List<MethodInfo>
             {

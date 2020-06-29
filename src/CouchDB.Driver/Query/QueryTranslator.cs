@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Text;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
     {

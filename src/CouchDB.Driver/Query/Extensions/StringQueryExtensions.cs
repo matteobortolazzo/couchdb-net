@@ -1,8 +1,8 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.Query.Extensions
 {
-    internal static class StringExtensions
+    internal static class StringQueryExtensions
     {
         /// <summary>
         /// Indicates whether the regular expression finds a match in the input string.

@@ -4,18 +4,17 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Shared;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     internal class QueryCompiler : IQueryCompiler
     {
         private readonly Type _couchListGenericType;
-        private readonly IQuerySender _requestSender;
         private readonly IQueryOptimizer _queryOptimizer;
         private readonly IQueryTranslator _queryTranslator;
+        private readonly IQuerySender _requestSender;
 
         private static readonly MethodInfo GenericSendMethod
             = typeof(IQuerySender).GetRuntimeMethods()
@@ -30,7 +29,10 @@ namespace CouchDB.Driver
         }
 
         public string ToString(Expression query)
-            => _queryTranslator.Translate(query);
+        {
+            Expression optimizedQuery = _queryOptimizer.Optimize(query);
+            return _queryTranslator.Translate(optimizedQuery);
+        }
 
         public TResult Execute<TResult>(Expression query)
             => SendRequest<TResult>(query, false, default);

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CouchDB.Driver
+namespace CouchDB.Driver.Query
 {
     public class QueryContext
     {

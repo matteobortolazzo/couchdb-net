@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CouchDB.Driver.Helpers;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.Query.Extensions
 {
-    public static class EnumerableExtensions
+    public static class EnumerableQueryExtensions
     {
         /// <summary>
         /// Determines whether a sequence contains all specified elements by using the default equality comparer.
