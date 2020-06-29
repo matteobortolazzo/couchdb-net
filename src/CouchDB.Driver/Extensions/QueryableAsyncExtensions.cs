@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Shared;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Extensions

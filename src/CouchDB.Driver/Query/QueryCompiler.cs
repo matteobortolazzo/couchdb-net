@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Shared;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver
@@ -58,7 +59,7 @@ namespace CouchDB.Driver
                 .Invoke(_requestSender, new object[] {body, async, cancellationToken});
 
             // If no operation must be done on the list
-            if (!QueryTranslator.CompositeQueryableMethods.Contains(methodCallExpression.Method.Name))
+            if (!methodCallExpression.Method.GetGenericMethodDefinition().IsSupportedByComposition())
             {
                 return (TResult)couchList;
             }

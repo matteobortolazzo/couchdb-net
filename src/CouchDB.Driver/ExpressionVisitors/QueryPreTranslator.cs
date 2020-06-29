@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Shared;
 
 namespace CouchDB.Driver.ExpressionVisitors
 {
@@ -13,13 +14,12 @@ namespace CouchDB.Driver.ExpressionVisitors
         {
             Check.NotNull(node, nameof(node));
 
-            if (!QueryTranslator.CompositeQueryableMethods.Contains(node.Method.Name) &&
-                !QueryTranslator.NativeQueryableMethods.Contains(node.Method.Name))
-            {
-                throw new NotSupportedException();
-            }
-
             MethodInfo genericDefinition = node.Method.GetGenericMethodDefinition();
+
+            if (!genericDefinition.IsSupportedNativelyOrByComposition())
+            {
+                throw new NotSupportedException($"Method {node.Method.Name} cannot be converter to a valid query.");
+            }
 
             // Min(d => d.Property) == OrderBy(d => d.Property).Take(1).Select(d => d.Property).Min()
             if (genericDefinition == QueryableMethods.MinWithSelector)
@@ -65,7 +65,7 @@ namespace CouchDB.Driver.ExpressionVisitors
                     .WrapInMethodCall(node);
             }
 
-            // Any(d => condition) == Where(d => condition).Take(1).Any()
+            // Any(d => condition) == Where(d => condition).Take(1).Any(d => condition)
             if (genericDefinition == QueryableMethods.AnyWithPredicate)
             {
                 return node
@@ -74,7 +74,7 @@ namespace CouchDB.Driver.ExpressionVisitors
                     .WrapInMethodCall(node);
             }
 
-            // All(d => condition) == Where(d => condition).Take(1).All()
+            // All(d => condition) == Where(d => condition).Take(1).All(d => condition)
             if (genericDefinition == QueryableMethods.All)
             {
                 return node
@@ -92,7 +92,7 @@ namespace CouchDB.Driver.ExpressionVisitors
                     .WrapInMethodCall(node);
             }
 
-            // Single(d => condition) == Where(d => condition).Take(2).Single()
+            // Single(d => condition) == Where(d => condition).Take(2).Single(d => condition)
             if (genericDefinition == QueryableMethods.SingleWithPredicate ||
                 genericDefinition == QueryableMethods.SingleOrDefaultWithPredicate)
             {
@@ -110,7 +110,7 @@ namespace CouchDB.Driver.ExpressionVisitors
                     .WrapInMethodCall(node);
             }
 
-            // First(d => condition) == Where(d => condition).Take(1).First()
+            // First(d => condition) == Where(d => condition).Take(1).First(d => condition)
             if (genericDefinition == QueryableMethods.FirstWithPredicate ||
                 genericDefinition == QueryableMethods.FirstOrDefaultWithPredicate)
             {
@@ -126,7 +126,7 @@ namespace CouchDB.Driver.ExpressionVisitors
                 return node;
             }
 
-            // Last(d => condition) == Where(d => condition).Last()
+            // Last(d => condition) == Where(d => condition).Last(d => condition)
             if (genericDefinition == QueryableMethods.LastWithPredicate ||
                 genericDefinition == QueryableMethods.LastOrDefaultWithPredicate)
             {

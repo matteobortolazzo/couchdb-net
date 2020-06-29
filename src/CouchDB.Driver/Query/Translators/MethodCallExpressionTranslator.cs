@@ -2,43 +2,17 @@
 using CouchDB.Driver.Types;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Security.Authentication;
+using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Shared;
 
 #pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver
 {
     internal partial class QueryTranslator
     {
-        internal static List<string> NativeQueryableMethods { get; } = new List<string>
-        {
-            nameof(Queryable.Where),
-            nameof(Queryable.OrderBy),
-            nameof(Queryable.ThenBy),
-            nameof(Queryable.OrderByDescending),
-            nameof(Queryable.ThenByDescending),
-            nameof(Queryable.Skip),
-            nameof(Queryable.Take),
-            nameof(Queryable.Select)
-        };
-
-        internal static List<string> CompositeQueryableMethods { get; } = new List<string>
-        {
-            nameof(Queryable.Max),
-            nameof(Queryable.Min),
-            nameof(Queryable.Sum),
-            nameof(Queryable.Average),
-            nameof(Queryable.Any),
-            nameof(Queryable.All),
-            nameof(Queryable.First),
-            nameof(Queryable.FirstOrDefault),
-            nameof(Queryable.Single),
-            nameof(Queryable.SingleOrDefault),
-            nameof(Queryable.Last),
-            nameof(Queryable.LastOrDefault)
-        };
-
         private static Expression StripQuotes(Expression e)
         {
             while (e.NodeType == ExpressionType.Quote)
@@ -53,99 +27,137 @@ namespace CouchDB.Driver
         }
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
-            if (m.Method.DeclaringType == typeof(Queryable))
-            {
-                switch (m.Method.Name)
-                {
-                    case "Where":
-                        return VisitWhereMethod(m);
-                    case "OrderBy":
-                    case "ThenBy":
-                        return VisitOrderAscendingMethod(m);
-                    case "OrderByDescending":
-                    case "ThenByDescending":
-                        return VisitOrderDescendingMethod(m);
-                    case "Skip":
-                        return VisitSkipMethod(m);
-                    case "Take":
-                        return VisitTakeMethod(m);
-                    case "Select":
-                        return VisitSelectMethod(m);
-                }
-            }
-            else if (m.Method.DeclaringType == typeof(Enumerable))
-            {
-                switch (m.Method.Name)
-                {
-                    case "Any":
-                        return VisitAnyMethod(m);
-                    case "All":
-                        return VisitAllMethod(m);
-                }
-            }
-            else if (m.Method.DeclaringType == typeof(QueryableExtensions))
-            {
-                switch (m.Method.Name)
-                {
-                    case "UseBookmark":
-                        return VisitUseBookmarkMethod(m);
-                    case "WithReadQuorum":
-                        return VisitWithQuorumMethod(m);
-                    case "WithoutIndexUpdate":
-                        return VisitWithoutIndexUpdateMethod(m);
-                    case "FromStable":
-                        return VisitFromStableMethod(m);
-                    case "UseIndex":
-                        return VisitUseIndexMethod(m);
-                    case "IncludeExecutionStats":
-                        return VisitIncludeExecutionStatsMethod(m);
-                    case "IncludeConflicts":
-                        return VisitIncludeConflictsMethod(m);
-                }
-            }
-            else if (m.Method.DeclaringType == typeof(EnumerableExtensions))
-            {
-                switch (m.Method.Name)
-                {
-                    case "Contains":
-                        return VisitEnumerableContains(m);
-                }
-            }
-            else if (m.Method.DeclaringType == typeof(ObjectExtensions))
-            {
-                switch (m.Method.Name)
-                {
-                    case "FieldExists":
-                        return VisitFieldExistsMethod(m);
-                    case "IsCouchType":
-                        return VisitIsCouchTypeMethod(m);
-                    case "In":
-                        return VisitInMethod(m);
-                }
-            }
-            else if (m.Method.DeclaringType == typeof(StringExtensions))
-            {
-                switch (m.Method.Name)
-                {
-                    case "IsMatch":
-                        return VisitIsMatchMethod(m);
-                }
-            }
-            else
-            {
-                switch (m.Method.Name)
-                {
-                    case "Contains":
-                        return VisitContainsMethod(m);
-                }
-            }
-
-            if (CompositeQueryableMethods.Contains(m.Method.Name))
+            if (QueryableMethods.IsAverageWithoutSelector(m.Method) ||
+                QueryableMethods.IsSumWithoutSelector(m.Method))
             {
                 return Visit(m.Arguments[0]);
             }
 
-            throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
+            MethodInfo genericDefinition = m.Method.GetGenericMethodDefinition();
+
+            if (genericDefinition.IsSupportedByComposition())
+            {
+                return Visit(m.Arguments[0]);
+            }
+
+            // Queryable
+
+            if (genericDefinition == QueryableMethods.Where)
+            {
+                return VisitWhereMethod(m);
+            }
+
+            if (genericDefinition == QueryableMethods.OrderBy || genericDefinition == QueryableMethods.ThenBy)
+            {
+                return VisitOrderAscendingMethod(m);
+            }
+
+            if (genericDefinition == QueryableMethods.OrderByDescending || genericDefinition == QueryableMethods.ThenByDescending)
+            {
+                return VisitOrderDescendingMethod(m);
+            }
+
+            if (genericDefinition == QueryableMethods.Skip)
+            {
+                return VisitSkipMethod(m);
+            }
+
+            if (genericDefinition == QueryableMethods.Take)
+            {
+                return VisitTakeMethod(m);
+            }
+
+            if (genericDefinition == QueryableMethods.Select)
+            {
+                return VisitSelectMethod(m);
+            }
+
+            // Enumerable
+
+            if (genericDefinition == SupportedQueryMethods.Contains)
+            {
+                return VisitContainsMethod(m);
+            }
+
+            // IQueryable extensions
+
+            if (genericDefinition == SupportedQueryMethods.AnyWithPredicate)
+            {
+                return VisitAnyMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.All)
+            {
+                return VisitAllMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.UseBookmark)
+            {
+                return VisitUseBookmarkMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.WithReadQuorum)
+            {
+                return VisitWithQuorumMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.WithoutIndexUpdate)
+            {
+                return VisitWithoutIndexUpdateMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.FromStable)
+            {
+                return VisitFromStableMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.UseIndex)
+            {
+                return VisitUseIndexMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.IncludeExecutionStats)
+            {
+                return VisitIncludeExecutionStatsMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.IncludeConflicts)
+            {
+                return VisitIncludeConflictsMethod(m);
+            }
+
+            // IEnumerable extensions
+
+            if (genericDefinition == SupportedQueryMethods.EnumerableContains)
+            {
+                return VisitEnumerableContains(m);
+            }
+
+            // Object extensions
+
+            if (genericDefinition == SupportedQueryMethods.FieldExists)
+            {
+                return VisitFieldExistsMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.IsCouchType)
+            {
+                return VisitIsCouchTypeMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.In)
+            {
+                return VisitInMethod(m);
+            }
+
+            // String extensions
+
+            if (genericDefinition == SupportedQueryMethods.IsMatch)
+            {
+                return VisitIsMatchMethod(m);
+            }
+
+            throw new NotSupportedException($"The method '{genericDefinition.Name}' is not supported");
         }
         
         #region Queryable

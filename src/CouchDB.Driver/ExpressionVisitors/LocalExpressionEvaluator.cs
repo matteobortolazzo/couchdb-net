@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Shared;
 
 namespace CouchDB.Driver.ExpressionVisitors
 {
@@ -31,19 +32,9 @@ namespace CouchDB.Driver.ExpressionVisitors
 
         private static bool CanBeEvaluatedLocally(Expression expression)
         {
-            if (expression is MethodCallExpression c)
-            {
-                return !QueryTranslator.CompositeQueryableMethods.Contains(c.Method.Name) &&
-                    !QueryTranslator.NativeQueryableMethods.Contains(c.Method.Name) &&
-                    c.Method.Name != nameof(QueryableExtensions.WithReadQuorum) &&
-                    c.Method.Name != nameof(QueryableExtensions.WithoutIndexUpdate) &&
-                    c.Method.Name != nameof(QueryableExtensions.UseBookmark) &&
-                    c.Method.Name != nameof(QueryableExtensions.UseIndex) &&
-                    c.Method.Name != nameof(QueryableExtensions.FromStable) && 
-                    c.Method.Name != nameof(QueryableExtensions.IncludeExecutionStats) &&
-                    c.Method.Name != nameof(QueryableExtensions.IncludeConflicts);
-            }
-            return expression.NodeType != ExpressionType.Parameter;
+            return expression is MethodCallExpression c
+                ? !c.Method.GetGenericMethodDefinition().IsSupportedNativelyOrByComposition()
+                : expression.NodeType != ExpressionType.Parameter;
         }
 
         /// <summary>
