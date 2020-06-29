@@ -2,10 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Shared;
 
-namespace CouchDB.Driver.ExpressionVisitors
+namespace CouchDB.Driver.Helpers
 {
     internal static class Local
     {

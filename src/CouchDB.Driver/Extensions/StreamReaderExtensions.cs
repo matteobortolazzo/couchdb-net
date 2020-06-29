@@ -1,9 +1,9 @@
 ﻿using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text;
 
-namespace CouchDB.Driver.Exceptions
+namespace CouchDB.Driver.Extensions
 {
     internal static class StreamReaderExtensions
     {

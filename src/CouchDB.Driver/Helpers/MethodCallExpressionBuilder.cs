@@ -2,12 +2,14 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Extensions;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.Helpers
 {
-    internal static class MethodCallExpressionEditExtensions
+    internal static class MethodCallExpressionBuilder
     {
+        #region Substitute
+
         public static MethodCallExpression SubstituteWithQueryableCall(this MethodCallExpression node, string methodName)
         {
             Check.NotNull(node, nameof(node));
@@ -27,7 +29,7 @@ namespace CouchDB.Driver.Extensions
         {
             Check.NotNull(node, nameof(node));
 
-            Type selectorType = selectorNode.Arguments[1].GetSelectorType();
+            Type selectorType = selectorNode.GetSelectorType();
             Type[] genericArgumentTypes = node.Method
                 .GetGenericArguments()
                 .Append(selectorType)
@@ -57,6 +59,10 @@ namespace CouchDB.Driver.Extensions
             return Expression.Call(typeof(Queryable), nameof(Queryable.Where), node.Method.GetGenericArguments(), node.Arguments[0], predicate);
         }
 
+        #endregion
+
+        #region Wrap
+
         public static MethodCallExpression WrapInTake(this MethodCallExpression node, int numberOfElements)
         {
             Check.NotNull(node, nameof(node));
@@ -69,7 +75,7 @@ namespace CouchDB.Driver.Extensions
         {
             Check.NotNull(node, nameof(node));
 
-            Type selectorType = selectorNode.Arguments[1].GetSelectorType();
+            Type selectorType = selectorNode.GetSelectorType();
             Type[] genericArgumentTypes = node.Method
                 .GetGenericArguments()
                 .Append(selectorType)
@@ -83,7 +89,7 @@ namespace CouchDB.Driver.Extensions
             Check.NotNull(node, nameof(node));
             Check.NotNull(wrap, nameof(wrap));
 
-            Type selectorType = wrap.Arguments[1].GetSelectorType();
+            Type selectorType = wrap.GetSelectorType();
             Type queryableType = typeof(IQueryable<>).MakeGenericType(selectorType);
             MethodInfo numberMethod = typeof(Queryable).GetMethod(wrap.Method.Name, new []{queryableType});
             return Expression.Call(numberMethod, node);
@@ -107,14 +113,6 @@ namespace CouchDB.Driver.Extensions
             return Expression.Call(genericMethodInfo, node);
         }
 
-        private static Type GetSelectorType(this Expression selector)
-        {
-            if (selector is UnaryExpression u && u.Operand is LambdaExpression l && l.Body is MemberExpression m)
-            {
-                return m.Type;
-            }
-
-            throw new InvalidOperationException($"Expression of type {selector.GetType().Name} does not select a property.");
-        }
+        #endregion
     }
 }

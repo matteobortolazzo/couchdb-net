@@ -6,10 +6,21 @@ using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Shared;
 
-namespace CouchDB.Driver.ExpressionVisitors
+namespace CouchDB.Driver
 {
-    public class QueryPreTranslator : ExpressionVisitor
+    /// <summary>
+    /// Convert expressions that are not natively supported in supported ones.
+    /// It also convert Bool member to constants.
+    /// </summary>
+    internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
     {
+        private bool _isVisitingWhereMethodOrChild;
+
+        public Expression Optimize(Expression e)
+        {
+            return Visit(e);
+        }
+
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             Check.NotNull(node, nameof(node));
@@ -20,6 +31,18 @@ namespace CouchDB.Driver.ExpressionVisitors
             {
                 throw new NotSupportedException($"Method {node.Method.Name} cannot be converter to a valid query.");
             }
+
+            #region Bool member to constants
+
+            if (genericDefinition == QueryableMethods.Where)
+            {
+                _isVisitingWhereMethodOrChild = true;
+                Expression whereNode = VisitMethodCall(node);
+                _isVisitingWhereMethodOrChild = false;
+                return whereNode;
+            }
+
+            #endregion
 
             #region Min/Max
 
@@ -114,7 +137,7 @@ namespace CouchDB.Driver.ExpressionVisitors
             }
 
             // Single(d => condition) == Where(d => condition).Take(2).Single()
-            if (genericDefinition == QueryableMethods.SingleOrDefaultWithPredicate)
+            if (genericDefinition == QueryableMethods.SingleWithPredicate)
             {
                 return node
                     .SubstituteWithWhere()
@@ -201,5 +224,44 @@ namespace CouchDB.Driver.ExpressionVisitors
 
             return base.VisitMethodCall(node);
         }
+
+        #region Bool member to constants
+
+        protected override Expression VisitBinary(BinaryExpression expression)
+        {
+            if (_isVisitingWhereMethodOrChild && expression.Right is ConstantExpression c && c.Type == typeof(bool) &&
+                (expression.NodeType == ExpressionType.Equal || expression.NodeType == ExpressionType.NotEqual))
+            {
+                return expression;
+            }
+            return base.VisitBinary(expression);
+        }
+
+        protected override Expression VisitMember(MemberExpression expression)
+        {
+            if (IsWhereBooleanExpression(expression))
+            {
+                return Expression.MakeBinary(ExpressionType.Equal, expression, Expression.Constant(true));
+            }
+            return base.VisitMember(expression);
+        }
+
+        protected override Expression VisitUnary(UnaryExpression expression)
+        {
+            if (expression.NodeType == ExpressionType.Not && expression.Operand is MemberExpression m && IsWhereBooleanExpression(m))
+            {
+                return Expression.MakeBinary(ExpressionType.Equal, m, Expression.Constant(false));
+            }
+            return base.VisitUnary(expression);
+        }
+
+        private bool IsWhereBooleanExpression(MemberExpression expression)
+        {
+            return _isVisitingWhereMethodOrChild &&
+                   expression.Member is PropertyInfo info &&
+                   info.PropertyType == typeof(bool);
+        }
+
+        #endregion
     }
 }

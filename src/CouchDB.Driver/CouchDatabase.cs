@@ -43,9 +43,10 @@ namespace CouchDB.Driver
             _settings = settings;
             _queryContext = queryContext;
 
+            var queryOptimizer = new QueryOptimizer();
             var queryTranslator = new QueryTranslator(settings);
             var querySender = new QuerySender(flurlClient, queryContext);
-            var queryCompiler = new QueryCompiler(querySender, queryTranslator);
+            var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender);
             _queryProvider = new CouchQueryProvider(queryCompiler);
 
             Security = new CouchSecurity(NewRequest);

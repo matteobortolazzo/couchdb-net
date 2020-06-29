@@ -25,6 +25,7 @@ namespace CouchDB.Driver.Extensions
                     .ReceiveJson<ChangesFeedResponse<TSource>>()
                     .ConfigureAwait(false);
             }
+
             if (filter is SelectorChangesFeedFilter<TSource> selectorFilter)
             {
                 MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where),
@@ -37,6 +38,7 @@ namespace CouchDB.Driver.Extensions
                     .ReceiveJson<ChangesFeedResponse<TSource>>()
                     .ConfigureAwait(false);
             }
+
             if (filter is DesignChangesFeedFilter)
             {
                 return await request
@@ -44,6 +46,7 @@ namespace CouchDB.Driver.Extensions
                     .GetJsonAsync<ChangesFeedResponse<TSource>>()
                     .ConfigureAwait(false);
             }
+
             if (filter is ViewChangesFeedFilter viewFilter)
             {
                 return await request
@@ -65,6 +68,7 @@ namespace CouchDB.Driver.Extensions
                     .PostJsonStreamAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value), cancellationToken, HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false);
             }
+
             if (filter is SelectorChangesFeedFilter<TSource> selectorFilter)
             {
                 MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where),
@@ -76,6 +80,7 @@ namespace CouchDB.Driver.Extensions
                     .PostStringStreamAsync(jsonSelector, cancellationToken, HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false);
             }
+
             if (filter is DesignChangesFeedFilter)
             {
                 return await request
@@ -83,6 +88,7 @@ namespace CouchDB.Driver.Extensions
                     .GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false);
             }
+
             if (filter is ViewChangesFeedFilter viewFilter)
             {
                 return await request

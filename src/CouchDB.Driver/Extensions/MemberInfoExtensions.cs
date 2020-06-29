@@ -23,47 +23,12 @@ namespace CouchDB.Driver.Extensions
                 : propertyCaseType.Convert(memberInfo.Name);
         }
 
-        public static MethodInfo GetEnumerableMethod(this MethodInfo queryableMethodInfo, Type sourceType)
-        {
-            Check.NotNull(queryableMethodInfo, nameof(queryableMethodInfo));
+        public static MethodInfo GetMinOrMaxWithoutSelector<T>(this List<MethodInfo> queryableMethods, string methodName)
+            => queryableMethods.Single(
+                mi => mi.Name == methodName
+                      && mi.GetParameters().Length == 1
+                      && mi.GetParameters()[0].ParameterType.GetGenericArguments()[0] == typeof(T));
 
-            MethodInfo FindEnumerableMethod()
-            {
-                if (queryableMethodInfo.Name == nameof(Queryable.Max) || queryableMethodInfo.Name == nameof(Queryable.Min))
-                {
-                    return queryableMethodInfo.FindEnumerableNumeric(sourceType);
-                }
-
-                return sourceType.GetMethods().Single(info =>
-                    queryableMethodInfo.Name == info.Name && ReflectionComparator.IsCompatible(queryableMethodInfo, info));
-            }
-
-            MethodInfo genericEnumerableMethodInfo = FindEnumerableMethod();
-
-            Type[] requestedGenericParameters = genericEnumerableMethodInfo.GetGenericMethodDefinition().GetGenericArguments();
-            Type[] genericParameters = queryableMethodInfo.GetGenericArguments();
-            Type[] usableParameters = genericParameters.Take(requestedGenericParameters.Length).ToArray();
-            MethodInfo enumerableMethodInfo = genericEnumerableMethodInfo.MakeGenericMethod(usableParameters);
-
-            return enumerableMethodInfo;
-        }
-
-        private static MethodInfo FindEnumerableNumeric(this MethodBase queryableMethodInfo, Type sourceType)
-        {
-            Type[] genericParams = queryableMethodInfo.GetGenericArguments();
-            return sourceType.GetMethods().Single(enumerableMethodInfo =>
-            {
-                Type[] enumerableArguments = enumerableMethodInfo.GetGenericArguments();
-                return
-                    enumerableMethodInfo.Name == queryableMethodInfo.Name &&
-                    enumerableArguments.Length == genericParams.Length - 1 &&
-                    enumerableMethodInfo.ReturnType == genericParams[1];
-            });
-        }
-    }
-
-    internal static class MethodInfoHelper
-    {
         public static MethodInfo GetSumOrAverageWithoutSelector<T>(this List<MethodInfo> queryableMethods, string methodName)
             => queryableMethods.Single(
                 mi => mi.Name == methodName
