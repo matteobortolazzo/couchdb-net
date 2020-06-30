@@ -70,7 +70,7 @@ namespace CouchDB.Driver.Query
                 .Invoke(_requestSender, new object[] {body, async, cancellationToken});
 
             // If no operation must be done on the list
-            if (!methodCallExpression.Method.GetGenericMethodDefinition().IsSupportedByComposition())
+            if (!methodCallExpression.Method.IsSupportedByComposition())
             {
                 return (TResult)couchList;
             }

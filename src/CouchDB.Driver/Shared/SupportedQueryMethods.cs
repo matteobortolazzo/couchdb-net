@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Query.Extensions;
@@ -27,27 +27,32 @@ namespace CouchDB.Driver.Shared
 
         static SupportedQueryMethods()
         {
-            var queryableMethods = typeof(Queryable)
+            var enumerableMethods = typeof(Enumerable)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly).ToList();
-            All = queryableMethods.Single(
-                mi => mi.Name == nameof(Queryable.All)
-                      && mi.GetParameters().Length == 2
-                      && IsExpressionOfFunc(mi.GetParameters()[1].ParameterType));
-            AnyWithPredicate = queryableMethods.Single(
-                mi => mi.Name == nameof(Queryable.Any)
-                      && mi.GetParameters().Length == 2
-                      && IsExpressionOfFunc(mi.GetParameters()[1].ParameterType));
+            All = enumerableMethods.Single(
+                mi => mi.Name == nameof(Enumerable.All)
+                      && mi.GetParameters().Length == 2);
+            AnyWithPredicate = enumerableMethods.Single(
+                mi => mi.Name == nameof(Enumerable.Any)
+                      && mi.GetParameters().Length == 2);
 
             var queryableExtensionsMethods = typeof(QueryableQueryExtensions)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly).ToList();
-            UseBookmark = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.UseBookmark));
-            WithReadQuorum = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.WithReadQuorum));
-            WithoutIndexUpdate = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.WithoutIndexUpdate));
-            FromStable = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.FromStable));
+            UseBookmark =
+                queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.UseBookmark));
+            WithReadQuorum =
+                queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.WithReadQuorum));
+            WithoutIndexUpdate =
+                queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.WithoutIndexUpdate));
+            FromStable =
+                queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.FromStable));
             UseIndex = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.UseIndex));
-            IncludeExecutionStats = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.IncludeExecutionStats));
-            IncludeConflicts = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.IncludeConflicts));
-            
+            IncludeExecutionStats =
+                queryableExtensionsMethods.Single(mi =>
+                    mi.Name == nameof(QueryableQueryExtensions.IncludeExecutionStats));
+            IncludeConflicts =
+                queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.IncludeConflicts));
+
             EnumerableContains = typeof(EnumerableQueryExtensions)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(EnumerableQueryExtensions.Contains));
@@ -66,8 +71,5 @@ namespace CouchDB.Driver.Shared
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Contains) && mi.GetParameters().Length == 2);
         }
-
-        static bool IsExpressionOfFunc(Type type, int funcGenericArgs = 2) =>
-            type.IsExpressionOfFunc(funcGenericArgs);
     }
 }

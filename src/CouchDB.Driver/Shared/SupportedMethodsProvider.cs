@@ -9,12 +9,24 @@ namespace CouchDB.Driver.Shared
         private static List<MethodInfo> Composite { get; }
 
         public static bool IsSupportedNativelyOrByComposition(this MethodInfo methodInfo)
-            => methodInfo.IsSupportedByComposition() || Supported.Contains(methodInfo);
+        {
+            if (methodInfo.IsGenericMethod)
+            {
+                methodInfo = methodInfo.GetGenericMethodDefinition();
+            }
+            return methodInfo.IsSupportedByComposition() || Supported.Contains(methodInfo);
+        }
 
         public static bool IsSupportedByComposition(this MethodInfo methodInfo)
-            => Composite.Contains(methodInfo)
-               || QueryableMethods.IsSumWithSelector(methodInfo)
-               || QueryableMethods.IsAverageWithSelector(methodInfo);
+        {
+            if (methodInfo.IsGenericMethod)
+            {
+                methodInfo = methodInfo.GetGenericMethodDefinition();
+            }
+            return Composite.Contains(methodInfo)
+                   || QueryableMethods.IsSumWithSelector(methodInfo)
+                   || QueryableMethods.IsAverageWithSelector(methodInfo);
+        }
 
         static SupportedMethodsProvider()
         {

@@ -61,7 +61,7 @@ namespace CouchDB.Driver.Shared
 
             return MaxWithoutSelectorMethods[type];
         }
-
+        
         private static Dictionary<Type, MethodInfo> MinWithoutSelectorMethods { get; }
         private static Dictionary<Type, MethodInfo> MaxWithoutSelectorMethods { get; }
         private static Dictionary<MethodInfo, MethodInfo> QueryableToEnumerableMethods { get; }
@@ -72,7 +72,7 @@ namespace CouchDB.Driver.Shared
 
             var enumerableMethods = typeof(Enumerable)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly).ToList();
-
+         
             MethodInfo anyWithoutPredicate = enumerableMethods.Single(
                 mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
 

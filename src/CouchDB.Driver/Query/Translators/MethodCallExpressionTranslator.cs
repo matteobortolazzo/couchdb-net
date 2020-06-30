@@ -157,6 +157,12 @@ namespace CouchDB.Driver.Query
                 return VisitIsMatchMethod(m);
             }
 
+            // List 
+            if (m.Method.Name == nameof(List<object>.Contains) && m.Method.DeclaringType.IsGenericType && m.Method.DeclaringType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                return VisitContainsMethod(m);
+            }
+
             throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
         }
         

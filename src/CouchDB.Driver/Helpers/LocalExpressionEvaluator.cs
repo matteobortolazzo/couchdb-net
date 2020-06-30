@@ -32,7 +32,7 @@ namespace CouchDB.Driver.Helpers
         private static bool CanBeEvaluatedLocally(Expression expression)
         {
             return expression is MethodCallExpression c
-                ? !c.Method.GetGenericMethodDefinition().IsSupportedNativelyOrByComposition()
+                ? !c.Method.IsSupportedNativelyOrByComposition()
                 : expression.NodeType != ExpressionType.Parameter;
         }
 

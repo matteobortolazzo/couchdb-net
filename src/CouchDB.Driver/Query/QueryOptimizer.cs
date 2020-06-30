@@ -30,12 +30,12 @@ namespace CouchDB.Driver.Query
                 return node;
             }
 
-            MethodInfo genericDefinition = node.Method.GetGenericMethodDefinition();
-
-            if (!genericDefinition.IsSupportedNativelyOrByComposition())
+            if (!node.Method.IsSupportedNativelyOrByComposition())
             {
                 throw new NotSupportedException($"Method {node.Method.Name} cannot be converter to a valid query.");
             }
+
+            MethodInfo genericDefinition = node.Method.GetGenericMethodDefinition();
 
             #region Bool member to constants
 

@@ -31,7 +31,10 @@ namespace CouchDB.Driver.Extensions
             {
                 MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where),
                     new[] { typeof(TSource) }, Expression.Constant(Array.Empty<TSource>().AsQueryable()), selectorFilter.Value);
-                var jsonSelector = new QueryTranslator(settings).Translate(whereExpression);
+
+                var optimizer = new QueryOptimizer();
+                Expression optimizedQuery = optimizer.Optimize(whereExpression);
+                var jsonSelector = new QueryTranslator(settings).Translate(optimizedQuery);
                 return await request
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
@@ -74,7 +77,10 @@ namespace CouchDB.Driver.Extensions
             {
                 MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where),
                     new[] { typeof(TSource) }, Expression.Constant(Array.Empty<TSource>().AsQueryable()), selectorFilter.Value);
-                var jsonSelector = new QueryTranslator(settings).Translate(whereExpression);
+
+                var optimizer = new QueryOptimizer();
+                Expression optimizedQuery = optimizer.Optimize(whereExpression);
+                var jsonSelector = new QueryTranslator(settings).Translate(optimizedQuery);
                 return await request
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
