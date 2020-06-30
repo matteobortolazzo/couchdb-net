@@ -42,39 +42,60 @@ namespace CouchDB.Driver.Query
 
         private TResult SendRequest<TResult>(Expression query, bool async, CancellationToken cancellationToken)
         {
-            Expression optimizedQuery = _queryOptimizer.Optimize(query);
-
-            var body = _queryTranslator.Translate(optimizedQuery);
-
-            if (!(query is MethodCallExpression methodCallExpression))
+            return query switch
             {
-                throw new ArgumentException($"Expression of type {query.GetType().Name} is not valid.");
-            }
+                ConstantExpression constantExpression => SendRequestWithoutFilter<TResult>(constantExpression, query,
+                    async, cancellationToken),
+                MethodCallExpression methodCallExpression => SendRequestWithFilter<TResult>(methodCallExpression, query,
+                    async, cancellationToken),
+                _ => throw new ArgumentException($"Expression of type {query.GetType().Name} is not valid.")
+            };
+        }
 
-            if (!(optimizedQuery is MethodCallExpression optimizedMethodCall))
-            {
-                throw new InvalidOperationException($"Expression of type {optimizedQuery.GetType().Name} is not valid.");
-            }
+        private TResult SendRequestWithoutFilter<TResult>(Expression constantExpression, Expression query, bool async, CancellationToken cancellationToken)
+        {
+            Type documentType = constantExpression.Type.GetGenericArguments()[0];
+            return (TResult)SendRequest(query, documentType, async, cancellationToken);
+        }
 
+        private TResult SendRequestWithFilter<TResult>(MethodCallExpression methodCallExpression, Expression query,
+            bool async, CancellationToken cancellationToken)
+        {
             if (!(methodCallExpression.Arguments[0] is ConstantExpression queryableExpression))
             {
                 throw new InvalidOperationException($"The first argument of the method {methodCallExpression.Method.Name} must be a constant.");
             }
 
-            // Create CouchList type for the requested document type
+            Expression optimizedQuery = _queryOptimizer.Optimize(query);
+
+            if (!(optimizedQuery is MethodCallExpression optimizedMethodCall))
+            {
+                throw new ArgumentException($"Expression of type {optimizedQuery.GetType().Name} is not valid.");
+            }
+
             Type documentType = queryableExpression.Type.GenericTypeArguments[0];
+            var couchList = SendRequest(query, documentType, async, cancellationToken);
+
+            // If no operation must be done on the list return, otherwise post-process it
+            return methodCallExpression.Method.IsSupportedByComposition()
+                ? PostProcessResult<TResult>(couchList, documentType, methodCallExpression, optimizedMethodCall)
+                : (TResult)couchList;
+        }
+
+        private object SendRequest(Expression query, Type documentType, bool async, CancellationToken cancellationToken)
+        {
+            var body = _queryTranslator.Translate(query);
+
             Type couchListType = _couchListGenericType.MakeGenericType(documentType);
 
             // Execute the database call
-            var couchList = GenericSendMethod.MakeGenericMethod(couchListType)
-                .Invoke(_requestSender, new object[] {body, async, cancellationToken});
+            return GenericSendMethod.MakeGenericMethod(couchListType)
+                .Invoke(_requestSender, new object[] { body, async, cancellationToken });
+        }
 
-            // If no operation must be done on the list
-            if (!methodCallExpression.Method.IsSupportedByComposition())
-            {
-                return (TResult)couchList;
-            }
-            
+        private static TResult PostProcessResult<TResult>(object couchList, Type documentType, MethodCallExpression methodCallExpression,
+            MethodCallExpression optimizedMethodCall)
+        {
             // If the original call contains a property selector, execute Enumerable.Select
             if (methodCallExpression.ContainsSelector())
             {
@@ -92,7 +113,7 @@ namespace CouchDB.Driver.Query
             {
                 enumerableMethodInfo = enumerableMethodInfo.MakeGenericMethod(documentType);
             }
-            
+
             // Execute
             try
             {
