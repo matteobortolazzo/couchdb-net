@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Authentication;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Shared;
 
 #pragma warning disable IDE0058 // Expression value is never used
@@ -11,18 +12,11 @@ namespace CouchDB.Driver.Query
 {
     internal partial class QueryTranslator
     {
-        private static Expression StripQuotes(Expression e)
-        {
-            while (e.NodeType == ExpressionType.Quote)
-            {
-                e = ((UnaryExpression)e).Operand;
-            }
-            return e;
-        }
         protected override Expression VisitExtension(Expression x)
         {
             return x;
         }
+
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
             if (QueryableMethods.IsAverageWithoutSelector(m.Method) ||
@@ -172,8 +166,8 @@ namespace CouchDB.Driver.Query
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"selector\":");
-            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            Visit(lambda.Body);
+            Expression lambdaBody = m.GetLambdaBody();
+            Visit(lambdaBody);
             _sb.Append(",");
             _isSelectorSet = true;
             return m;
@@ -183,20 +177,20 @@ namespace CouchDB.Driver.Query
             void InspectOrdering(Expression e)
             {
                 MethodCallExpression o = e as MethodCallExpression ?? throw new AuthenticationException($"Invalid expression type {e.GetType().Name}");
-                var lambda = (LambdaExpression)StripQuotes(o.Arguments[1]);
+                Expression lambdaBody = m.GetLambdaBody();
 
                 switch (o.Method.Name)
                 {
                     case "OrderBy":
                         Visit(o.Arguments[0]);
                         _sb.Append("\"sort\":[");
-                        Visit(lambda.Body);
+                        Visit(lambdaBody);
                         break;
                     case "OrderByDescending":
                         throw new InvalidOperationException("Cannot order in different directions.");
                     case "ThenBy":
                         InspectOrdering(o.Arguments[0]);
-                        Visit(lambda.Body);
+                        Visit(lambdaBody);
                         break;
                     default:
                         return;
@@ -215,7 +209,7 @@ namespace CouchDB.Driver.Query
             void InspectOrdering(Expression e)
             {
                 MethodCallExpression o = e as MethodCallExpression?? throw new AuthenticationException($"Invalid expression type {e.GetType().Name}");
-                var lambda = (LambdaExpression)StripQuotes(o.Arguments[1]);
+                Expression lambdaBody = o.GetLambdaBody();
 
                 switch (o.Method.Name)
                 {
@@ -224,13 +218,13 @@ namespace CouchDB.Driver.Query
                     case "OrderByDescending":
                         Visit(o.Arguments[0]);
                         _sb.Append("\"sort\":[{");
-                        Visit(lambda.Body);
+                        Visit(lambdaBody);
                         _sb.Append(":\"desc\"}");
                         break;
                     case "ThenByDescending":
                         InspectOrdering(o.Arguments[0]);
                         _sb.Append("{");
-                        Visit(lambda.Body);
+                        Visit(lambdaBody);
                         _sb.Append(":\"desc\"}");
                         break;
                     default:
@@ -261,9 +255,9 @@ namespace CouchDB.Driver.Query
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"fields\":[");
-            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
+            Expression lambdaBody = m.GetLambdaBody();
 
-            if (lambda.Body is NewExpression n)
+            if (lambdaBody is NewExpression n)
             {
                 foreach (Expression a in n.Arguments)
                 {
@@ -272,13 +266,13 @@ namespace CouchDB.Driver.Query
                 }
                 _sb.Length--;
             }
-            else if (lambda.Body is MemberExpression mb)
+            else if (lambdaBody is MemberExpression mb)
             {
                 Visit(mb);
             }
             else
             {
-                throw new NotSupportedException($"The expression of type {lambda.Body.GetType()} is not supported in the Select method.");
+                throw new NotSupportedException($"The expression of type {lambdaBody} is not supported in the Select method.");
             }
 
             _sb.Append("],");
@@ -295,8 +289,8 @@ namespace CouchDB.Driver.Query
             _sb.Append("{");
             Visit(m.Arguments[0]);
             _sb.Append(":{\"$elemMatch\":");
-            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            Visit(lambda.Body);
+            Expression lambdaBody = m.GetLambdaBody();
+            Visit(lambdaBody);
             _sb.Append("}}");
             return m;
         }
@@ -305,8 +299,8 @@ namespace CouchDB.Driver.Query
             _sb.Append("{");
             Visit(m.Arguments[0]);
             _sb.Append(":{\"$allMatch\":");
-            var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-            Visit(lambda.Body);
+            Expression lambdaBody = m.GetLambdaBody();
+            Visit(lambdaBody);
             _sb.Append("}}");
             return m;
         }

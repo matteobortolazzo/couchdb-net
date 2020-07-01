@@ -46,14 +46,9 @@ namespace CouchDB.Driver.Helpers
 
             if (negate)
             {
-                if (predicate == null || !(predicate is UnaryExpression unary) || !(unary.Operand is LambdaExpression lambdaExpression))
-                {
-                    throw new InvalidOperationException();
-                }
-
+                LambdaExpression lambdaExpression = node.GetLambda();
                 UnaryExpression body = Expression.Not(lambdaExpression.Body);
-                lambdaExpression = Expression.Lambda(body, lambdaExpression.Parameters);
-                predicate = Expression.Quote(lambdaExpression);
+                predicate = body.WrapInLambda(lambdaExpression.Parameters);
             }
 
             return Expression.Call(typeof(Queryable), nameof(Queryable.Where), node.Method.GetGenericArguments(), node.Arguments[0], predicate);

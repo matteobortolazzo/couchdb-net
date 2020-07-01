@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Shared;
 
@@ -14,6 +16,12 @@ namespace CouchDB.Driver.Query
     internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
     {
         private bool _isVisitingWhereMethodOrChild;
+        private readonly Queue<MethodCallExpression> _prevWhereCalls;
+
+        public QueryOptimizer()
+        {
+            _prevWhereCalls = new Queue<MethodCallExpression>();
+        }
 
         public Expression Optimize(Expression e)
         {
@@ -45,6 +53,35 @@ namespace CouchDB.Driver.Query
                 Expression whereNode = VisitMethodCall(node);
                 _isVisitingWhereMethodOrChild = false;
                 return whereNode;
+            }
+
+            #endregion
+
+            #region Multi-Where Optimization
+
+            if (genericDefinition == QueryableMethods.Where)
+            {
+                if (_prevWhereCalls.Count == 0)
+                {
+                    _prevWhereCalls.Enqueue(node);
+                    Expression tail = Visit(node.Arguments[0]);
+                    LambdaExpression currentLambda = node.GetLambda();
+                    Expression conditionExpression = currentLambda.Body;
+                    _prevWhereCalls.Dequeue();
+
+                    while (_prevWhereCalls.Count > 0)
+                    {
+                        Expression prevWhereBody = _prevWhereCalls.Dequeue().GetLambdaBody();
+                        conditionExpression = Expression.And(prevWhereBody, conditionExpression);
+                    }
+
+                    Expression conditionLambda = conditionExpression.WrapInLambda(currentLambda.Parameters);
+                    return Expression.Call(typeof(Queryable), nameof(Queryable.Where),
+                        node.Method.GetGenericArguments(), tail, conditionLambda);
+                }
+
+                _prevWhereCalls.Enqueue(node);
+                return Visit(node.Arguments[0]);
             }
 
             #endregion

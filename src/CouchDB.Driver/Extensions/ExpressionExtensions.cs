@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace CouchDB.Driver.Extensions
@@ -23,5 +24,28 @@ namespace CouchDB.Driver.Extensions
                 ? l.Compile()
                 : throw new InvalidOperationException(
                     $"Method {selector.Method.Name} does not select a property.");
+
+        public static Expression GetLambdaBody(this MethodCallExpression node)
+            => node.GetLambda().Body;
+
+        public static LambdaExpression GetLambda(this MethodCallExpression node)
+        {
+            return (LambdaExpression)node.Arguments[1].StripQuotes();
+        }
+
+        public static Expression WrapInLambda(this Expression body, IReadOnlyCollection<ParameterExpression> lambdaParameters)
+        { 
+            LambdaExpression lambdaExpression = Expression.Lambda(body, lambdaParameters);
+            return Expression.Quote(lambdaExpression);
+        }
+
+        private static Expression StripQuotes(this Expression e)
+        {
+            while (e.NodeType == ExpressionType.Quote)
+            {
+                e = ((UnaryExpression)e).Operand;
+            }
+            return e;
+        }
     }
 }

@@ -26,11 +26,31 @@ namespace CouchDB.Driver.UnitTests.Find
         [Fact]
         public void ComplexQuery()
         {
-            var json = _rebels.Where(r =>
-            r.Age == 19 &&
-            (r.Name == "Luke" || r.Name == "Leia") &&
-            r.Skills.Contains("force")).ToString();
+            var json = _rebels
+                .Where(r =>
+                    r.Age == 19 &&
+                    (r.Name == "Luke" || r.Name == "Leia") &&
+                    r.Skills.Contains("force"))
+                .ToString();
             Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""$or"":[{""name"":""Luke""},{""name"":""Leia""}]},{""skills"":{""$all"":[""force""]}}]}}", json);
+        }
+
+        [Fact]
+        public void MultiWhereQuery()
+        {
+            var json = _rebels
+                .Where(r => r.Age == 19)
+                .Where(r => r.Name == "Luke" || r.Name == "Leia")
+                .Where(r => r.Skills.Contains("force"))
+                .ToString();
+            Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""$or"":[{""name"":""Luke""},{""name"":""Leia""}]},{""skills"":{""$all"":[""force""]}}]}}", json);
+        }
+
+        [Fact]
+        public void ToListAsync()
+        {
+            var json = _rebels.Where(r => r.Age == 19).ToString();
+            Assert.Equal(@"{""selector"":{""age"":19}}", json);
         }
 
         [Fact]
