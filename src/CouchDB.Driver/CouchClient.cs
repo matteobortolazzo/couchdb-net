@@ -75,7 +75,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public ICouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
-            EscapeDatabaseName(database);
+            CheckDatabaseName(database);
             var queryContext = new QueryContext(Endpoint, database);
             return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
         }
@@ -89,7 +89,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
         {
-            EscapeDatabaseName(database);
+            CheckDatabaseName(database);
             var queryContext = new QueryContext(Endpoint, database);
 
             IFlurlRequest request = NewRequest()
@@ -111,8 +111,6 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-            
-
             // Database already exists
             if (response.StatusCode == HttpStatusCode.PreconditionFailed)
             {
@@ -133,10 +131,11 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument
         {
-            database = EscapeDatabaseName(database);
+            CheckDatabaseName(database);
+            var queryContext = new QueryContext(Endpoint, database);
 
             OperationResult result = await NewRequest()
-                .AppendPathSegment(database)
+                .AppendPathSegment(queryContext.EscapedDatabaseName)
                 .DeleteAsync()
                 .ReceiveJson<OperationResult>()
                 .SendRequestAsync()
@@ -250,17 +249,14 @@ namespace CouchDB.Driver
             return _flurlClient.Request(Endpoint);
         }
 
-        private string EscapeDatabaseName(string database)
+        private void CheckDatabaseName(string database)
         {
             Check.NotNull(database, nameof(database));
-
 
             if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
             {
                 throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
             }
-
-            return Uri.EscapeDataString(database);
         }
 
         /// <summary>

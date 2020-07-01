@@ -101,10 +101,12 @@ namespace CouchDB.Driver.Query
             Type couchListType = GetCouchListType(documentType, async);
             Type returnType = GetReturnType<TResult>(async);
 
+            // Query database
             var couchQueryable = RequestSendMethod
                 .MakeGenericMethod(couchListType)
                 .Invoke(_requestSender, new object[]{ body, async, cancellationToken });
 
+            // Apply in-memory operations
             MethodInfo postProcessResultMethodInfo = (async
                 ? PostProcessResultAsyncMethod
                 : PostProcessResultMethod)
@@ -112,19 +114,6 @@ namespace CouchDB.Driver.Query
 
             return (TResult)postProcessResultMethodInfo.Invoke(null,
                 new[] { couchQueryable, methodCallExpression, optimizedMethodCall });
-        }
-
-        private static Type GetReturnType<TResult>(bool async) =>
-            async
-                ? typeof(TResult).GetGenericArguments()[0]
-                : typeof(TResult);
-
-        private static Type GetCouchListType(Type documentType, bool async)
-        {
-            Type couchListType = typeof(CouchList<>).MakeGenericType(documentType);
-            return async
-                ? typeof(Task<>).MakeGenericType(couchListType)
-                : couchListType;
         }
 
         private static Type GetDocumentType(MethodCallExpression methodCall)
@@ -137,19 +126,18 @@ namespace CouchDB.Driver.Query
             return listExpression.Type.GetGenericArguments()[0];
         }
 
-        private static async Task<TResult> PostProcessResultAsync<TSource, TResult>(
-            Task<CouchList<TSource>> couchListTask,
-            MethodCallExpression originalMethodCall,
-            MethodCallExpression optimizedMethodCall)
+        private static Type GetCouchListType(Type documentType, bool async)
         {
-            CouchList<TSource> couchList = await couchListTask.ConfigureAwait(false);
-            if (couchList == null)
-            {
-                throw new ArgumentNullException(nameof(couchListTask));
-            }
-
-            return PostProcessResult<TSource, TResult>(couchList, originalMethodCall, optimizedMethodCall);
+            Type couchListType = typeof(CouchList<>).MakeGenericType(documentType);
+            return async
+                ? typeof(Task<>).MakeGenericType(couchListType)
+                : couchListType;
         }
+
+        private static Type GetReturnType<TResult>(bool async) =>
+            async
+                ? typeof(TResult).GetGenericArguments()[0]
+                : typeof(TResult);
 
         private static TResult PostProcessResult<TSource, TResult>(
             CouchList<TSource> couchList,
@@ -187,6 +175,20 @@ namespace CouchDB.Driver.Query
                 ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                 return default;
             }
+        }
+
+        private static async Task<TResult> PostProcessResultAsync<TSource, TResult>(
+            Task<CouchList<TSource>> couchListTask,
+            MethodCallExpression originalMethodCall,
+            MethodCallExpression optimizedMethodCall)
+        {
+            CouchList<TSource> couchList = await couchListTask.ConfigureAwait(false);
+            if (couchList == null)
+            {
+                throw new ArgumentNullException(nameof(couchListTask));
+            }
+
+            return PostProcessResult<TSource, TResult>(couchList, originalMethodCall, optimizedMethodCall);
         }
     }
 }
