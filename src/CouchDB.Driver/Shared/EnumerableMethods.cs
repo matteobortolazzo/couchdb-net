@@ -147,30 +147,30 @@ namespace CouchDB.Driver.Shared
 
             MinWithoutSelectorMethods = new Dictionary<Type, MethodInfo>
             {
-                {typeof(decimal), enumerableMethods.GetMinOrMaxWithoutSelector<decimal>(nameof(Enumerable.Sum))},
-                {typeof(long), enumerableMethods.GetMinOrMaxWithoutSelector<long>(nameof(Enumerable.Sum))},
-                {typeof(int), enumerableMethods.GetMinOrMaxWithoutSelector<int>(nameof(Enumerable.Sum))},
-                {typeof(double), enumerableMethods.GetMinOrMaxWithoutSelector<double>(nameof(Enumerable.Sum))},
-                {typeof(float), enumerableMethods.GetMinOrMaxWithoutSelector<float>(nameof(Enumerable.Sum))},
-                {typeof(decimal?), enumerableMethods.GetMinOrMaxWithoutSelector<decimal?>(nameof(Enumerable.Sum))},
-                {typeof(long?), enumerableMethods.GetMinOrMaxWithoutSelector<long?>(nameof(Enumerable.Sum))},
-                {typeof(int?), enumerableMethods.GetMinOrMaxWithoutSelector<int?>(nameof(Enumerable.Sum))},
-                {typeof(double?), enumerableMethods.GetMinOrMaxWithoutSelector<double?>(nameof(Enumerable.Sum))},
-                {typeof(float?), enumerableMethods.GetMinOrMaxWithoutSelector<float?>(nameof(Enumerable.Sum))}
+                {typeof(decimal), enumerableMethods.GetMinOrMaxWithoutSelector<decimal>(nameof(Enumerable.Min))},
+                {typeof(long), enumerableMethods.GetMinOrMaxWithoutSelector<long>(nameof(Enumerable.Min))},
+                {typeof(int), enumerableMethods.GetMinOrMaxWithoutSelector<int>(nameof(Enumerable.Min))},
+                {typeof(double), enumerableMethods.GetMinOrMaxWithoutSelector<double>(nameof(Enumerable.Min))},
+                {typeof(float), enumerableMethods.GetMinOrMaxWithoutSelector<float>(nameof(Enumerable.Min))},
+                {typeof(decimal?), enumerableMethods.GetMinOrMaxWithoutSelector<decimal?>(nameof(Enumerable.Min))},
+                {typeof(long?), enumerableMethods.GetMinOrMaxWithoutSelector<long?>(nameof(Enumerable.Min))},
+                {typeof(int?), enumerableMethods.GetMinOrMaxWithoutSelector<int?>(nameof(Enumerable.Min))},
+                {typeof(double?), enumerableMethods.GetMinOrMaxWithoutSelector<double?>(nameof(Enumerable.Min))},
+                {typeof(float?), enumerableMethods.GetMinOrMaxWithoutSelector<float?>(nameof(Enumerable.Min))}
             };
 
             MaxWithoutSelectorMethods = new Dictionary<Type, MethodInfo>
             {
-                {typeof(decimal), enumerableMethods.GetMinOrMaxWithoutSelector<decimal>(nameof(Enumerable.Sum))},
-                {typeof(long), enumerableMethods.GetMinOrMaxWithoutSelector<long>(nameof(Enumerable.Sum))},
-                {typeof(int), enumerableMethods.GetMinOrMaxWithoutSelector<int>(nameof(Enumerable.Sum))},
-                {typeof(double), enumerableMethods.GetMinOrMaxWithoutSelector<double>(nameof(Enumerable.Sum))},
-                {typeof(float), enumerableMethods.GetMinOrMaxWithoutSelector<float>(nameof(Enumerable.Sum))},
-                {typeof(decimal?), enumerableMethods.GetMinOrMaxWithoutSelector<decimal?>(nameof(Enumerable.Sum))},
-                {typeof(long?), enumerableMethods.GetMinOrMaxWithoutSelector<long?>(nameof(Enumerable.Sum))},
-                {typeof(int?), enumerableMethods.GetMinOrMaxWithoutSelector<int?>(nameof(Enumerable.Sum))},
-                {typeof(double?), enumerableMethods.GetMinOrMaxWithoutSelector<double?>(nameof(Enumerable.Sum))},
-                {typeof(float?), enumerableMethods.GetMinOrMaxWithoutSelector<float?>(nameof(Enumerable.Sum))}
+                {typeof(decimal), enumerableMethods.GetMinOrMaxWithoutSelector<decimal>(nameof(Enumerable.Max))},
+                {typeof(long), enumerableMethods.GetMinOrMaxWithoutSelector<long>(nameof(Enumerable.Max))},
+                {typeof(int), enumerableMethods.GetMinOrMaxWithoutSelector<int>(nameof(Enumerable.Max))},
+                {typeof(double), enumerableMethods.GetMinOrMaxWithoutSelector<double>(nameof(Enumerable.Max))},
+                {typeof(float), enumerableMethods.GetMinOrMaxWithoutSelector<float>(nameof(Enumerable.Max))},
+                {typeof(decimal?), enumerableMethods.GetMinOrMaxWithoutSelector<decimal?>(nameof(Enumerable.Max))},
+                {typeof(long?), enumerableMethods.GetMinOrMaxWithoutSelector<long?>(nameof(Enumerable.Max))},
+                {typeof(int?), enumerableMethods.GetMinOrMaxWithoutSelector<int?>(nameof(Enumerable.Max))},
+                {typeof(double?), enumerableMethods.GetMinOrMaxWithoutSelector<double?>(nameof(Enumerable.Max))},
+                {typeof(float?), enumerableMethods.GetMinOrMaxWithoutSelector<float?>(nameof(Enumerable.Max))}
             };
 
             #endregion

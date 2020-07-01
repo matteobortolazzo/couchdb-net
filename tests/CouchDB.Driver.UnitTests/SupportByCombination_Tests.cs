@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using Xunit;
@@ -52,6 +53,15 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
             var result = _rebels.AsQueryable().Min(r => r.Age);
+            Assert.Equal(_mainRebel.Age, result);
+        }
+
+        [Fact]
+        public async Task MinAsync()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var result = await _rebels.AsQueryable().MinAsync(r => r.Age);
             Assert.Equal(_mainRebel.Age, result);
         }
 

@@ -33,11 +33,11 @@ namespace CouchDB.Driver
         /// <summary>
         /// Creates a new CouchDB client.
         /// </summary>
-        /// <param name="databaseUri">URI to the CouchDB endpoint.</param>
+        /// <param name="endpoint">URI to the CouchDB endpoint.</param>
         /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
         /// <param name="flurlSettingsFunc">A function to configure the HTTP client.</param>
-        public CouchClient(string databaseUri, Action<ICouchConfiguration>? couchSettingsFunc = null,
-            Action<ClientFlurlHttpSettings>? flurlSettingsFunc = null): this(new Uri(databaseUri), couchSettingsFunc, flurlSettingsFunc) { }
+        public CouchClient(string endpoint, Action<ICouchConfiguration>? couchSettingsFunc = null,
+            Action<ClientFlurlHttpSettings>? flurlSettingsFunc = null): this(new Uri(endpoint), couchSettingsFunc, flurlSettingsFunc) { }
 
         /// <summary>
         /// Creates a new CouchDB client.

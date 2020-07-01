@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Shared;
 using CouchDB.Driver.Types;
@@ -11,18 +12,24 @@ namespace CouchDB.Driver.Query
 {
     internal class QueryCompiler : IQueryCompiler
     {
-        private readonly Type _couchListGenericType;
         private readonly IQueryOptimizer _queryOptimizer;
         private readonly IQueryTranslator _queryTranslator;
         private readonly IQuerySender _requestSender;
 
-        private static readonly MethodInfo GenericSendMethod
+        private static readonly MethodInfo RequestSendMethod
             = typeof(IQuerySender).GetRuntimeMethods()
-                .Single(m => (m.Name == "Send") && m.IsGenericMethod);
+                .Single(m => (m.Name == nameof(IQuerySender.Send)) && m.IsGenericMethod);
+
+        private static readonly MethodInfo PostProcessResultMethod
+            = typeof(QueryCompiler).GetMethod(nameof(PostProcessResult),
+                BindingFlags.NonPublic | BindingFlags.Static);
+
+        private static readonly MethodInfo PostProcessResultAsyncMethod
+            = typeof(QueryCompiler).GetMethod(nameof(PostProcessResultAsync),
+                BindingFlags.NonPublic | BindingFlags.Static);
 
         public QueryCompiler(IQueryOptimizer queryOptimizer, IQueryTranslator queryTranslator, IQuerySender requestSender)
         {
-            _couchListGenericType = typeof(CouchList<>);
             _queryOptimizer = queryOptimizer;
             _queryTranslator = queryTranslator;
             _requestSender = requestSender;
@@ -44,7 +51,7 @@ namespace CouchDB.Driver.Query
         {
             return query switch
             {
-                ConstantExpression constantExpression => SendRequestWithoutFilter<TResult>(constantExpression, query,
+                ConstantExpression _ => SendRequestWithoutFilter<TResult>(query,
                     async, cancellationToken),
                 MethodCallExpression methodCallExpression => SendRequestWithFilter<TResult>(methodCallExpression, query,
                     async, cancellationToken),
@@ -52,16 +59,16 @@ namespace CouchDB.Driver.Query
             };
         }
 
-        private TResult SendRequestWithoutFilter<TResult>(Expression constantExpression, Expression query, bool async, CancellationToken cancellationToken)
+        private TResult SendRequestWithoutFilter<TResult>(Expression query, bool async, CancellationToken cancellationToken)
         {
-            Type documentType = constantExpression.Type.GetGenericArguments()[0];
-            return (TResult)SendRequest(query, documentType, async, cancellationToken);
+            var body = _queryTranslator.Translate(query);
+            return _requestSender.Send<TResult>(body, async, cancellationToken);
         }
 
         private TResult SendRequestWithFilter<TResult>(MethodCallExpression methodCallExpression, Expression query,
             bool async, CancellationToken cancellationToken)
         {
-            if (!(methodCallExpression.Arguments[0] is ConstantExpression queryableExpression))
+            if (!(methodCallExpression.Arguments[0] is ConstantExpression))
             {
                 throw new InvalidOperationException($"The first argument of the method {methodCallExpression.Method.Name} must be a constant.");
             }
@@ -73,38 +80,85 @@ namespace CouchDB.Driver.Query
                 throw new ArgumentException($"Expression of type {optimizedQuery.GetType().Name} is not valid.");
             }
 
-            Type documentType = queryableExpression.Type.GenericTypeArguments[0];
-            var couchList = SendRequest(query, documentType, async, cancellationToken);
-
-            // If no operation must be done on the list return, otherwise post-process it
-            return methodCallExpression.Method.IsSupportedByComposition()
-                ? PostProcessResult<TResult>(couchList, documentType, methodCallExpression, optimizedMethodCall)
-                : (TResult)couchList;
-        }
-
-        private object SendRequest(Expression query, Type documentType, bool async, CancellationToken cancellationToken)
-        {
             var body = _queryTranslator.Translate(query);
+            
+            // If no operation must be done on the list return
+            if (!methodCallExpression.Method.IsSupportedByComposition())
+            {
+                return _requestSender.Send<TResult>(body, async, cancellationToken);
+            }
 
-            Type couchListType = _couchListGenericType.MakeGenericType(documentType);
+            Type documentType = GetDocumentType(methodCallExpression);
+            Type couchListType = GetCouchListType(documentType, async);
+            Type returnType = GetReturnType<TResult>(async);
 
-            // Execute the database call
-            return GenericSendMethod.MakeGenericMethod(couchListType)
-                .Invoke(_requestSender, new object[] { body, async, cancellationToken });
+            var couchQueryable = RequestSendMethod
+                .MakeGenericMethod(couchListType)
+                .Invoke(_requestSender, new object[]{ body, async, cancellationToken });
+
+            MethodInfo postProcessResultMethodInfo = (async
+                ? PostProcessResultAsyncMethod
+                : PostProcessResultMethod)
+                .MakeGenericMethod(documentType, returnType);
+
+            return (TResult)postProcessResultMethodInfo.Invoke(null,
+                new[] { couchQueryable, methodCallExpression, optimizedMethodCall });
         }
 
-        private static TResult PostProcessResult<TResult>(object couchList, Type documentType, MethodCallExpression methodCallExpression,
+        private static Type GetReturnType<TResult>(bool async) =>
+            async
+                ? typeof(TResult).GetGenericArguments()[0]
+                : typeof(TResult);
+
+        private static Type GetCouchListType(Type documentType, bool async)
+        {
+            Type couchListType = typeof(CouchList<>).MakeGenericType(documentType);
+            return async
+                ? typeof(Task<>).MakeGenericType(couchListType)
+                : couchListType;
+        }
+
+        private static Type GetDocumentType(MethodCallExpression methodCall)
+        {
+            if (!(methodCall.Arguments[0] is ConstantExpression listExpression))
+            {
+                throw new InvalidOperationException();
+            }
+
+            return listExpression.Type.GetGenericArguments()[0];
+        }
+
+        private static async Task<TResult> PostProcessResultAsync<TSource, TResult>(
+            Task<CouchList<TSource>> couchListTask,
+            MethodCallExpression originalMethodCall,
             MethodCallExpression optimizedMethodCall)
         {
-            // If the original call contains a property selector, execute Enumerable.Select
-            if (methodCallExpression.ContainsSelector())
+            CouchList<TSource> couchList = await couchListTask.ConfigureAwait(false);
+            if (couchList == null)
             {
-                Type selectorType = methodCallExpression.GetSelectorType();
+                throw new ArgumentNullException(nameof(couchListTask));
+            }
+
+            return PostProcessResult<TSource, TResult>(couchList, originalMethodCall, optimizedMethodCall);
+        }
+
+        private static TResult PostProcessResult<TSource, TResult>(
+            CouchList<TSource> couchList,
+            MethodCallExpression originalMethodCall,
+            MethodCallExpression optimizedMethodCall)
+        {
+            Type documentType = typeof(TSource);
+            object result = couchList;
+
+            // If the original call contains a property selector, execute Enumerable.Select
+            if (originalMethodCall.ContainsSelector())
+            {
+                Type selectorType = originalMethodCall.GetSelectorType();
                 MethodInfo selectMethodInfo = EnumerableMethods
                     .GetEnumerableEquivalent(QueryableMethods.Select)
                     .MakeGenericMethod(documentType, selectorType);
-                Delegate selector = methodCallExpression.GetSelectorDelegate();
-                couchList = selectMethodInfo.Invoke(null, new[] { couchList, selector });
+                Delegate selector = originalMethodCall.GetSelectorDelegate();
+                result = selectMethodInfo.Invoke(null, new object[] { couchList, selector });
             }
 
             // Get Enumerable equivalent of the last IQueryable method
@@ -117,7 +171,7 @@ namespace CouchDB.Driver.Query
             // Execute
             try
             {
-                return (TResult)enumerableMethodInfo.Invoke(null, new[] { couchList });
+                return (TResult)enumerableMethodInfo.Invoke(null, new object[] { result });
             }
             catch (TargetInvocationException targetInvocationException)
             {

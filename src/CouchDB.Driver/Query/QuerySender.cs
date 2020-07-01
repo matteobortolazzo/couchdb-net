@@ -31,6 +31,11 @@ namespace CouchDB.Driver.Query
         public TResult Send<TResult>(string body, bool async, CancellationToken cancellationToken)
         {
             Type resultType = typeof(TResult);
+            if (async)
+            {
+                resultType = resultType.GetGenericArguments()[0];
+            }
+
             Type itemType = resultType.IsGenericType ? resultType.GetGenericArguments()[0] : typeof(object);
 
             MethodInfo toListMethodInfo = async ? GenericToListAsyncMethod : GenericToListMethod;
@@ -55,7 +60,7 @@ namespace CouchDB.Driver.Query
         private Task<FindResult<TItem>> SendAsync<TItem>(string body, CancellationToken cancellationToken) =>
             _client
                 .Request(_queryContext.Endpoint)
-                .AppendPathSegments(_queryContext.Endpoint, "_find")
+                .AppendPathSegments(_queryContext.DatabaseName, "_find")
                 .WithHeader("Content-Type", "application/json")
                 .PostStringAsync(body, cancellationToken)
                 .ReceiveJson<FindResult<TItem>>()
