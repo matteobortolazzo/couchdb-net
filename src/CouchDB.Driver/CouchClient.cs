@@ -75,6 +75,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public ICouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
+            EscapeDatabaseName(database);
             var queryContext = new QueryContext(Endpoint, database);
             return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
         }
@@ -88,6 +89,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
         {
+            EscapeDatabaseName(database);
             var queryContext = new QueryContext(Endpoint, database);
 
             IFlurlRequest request = NewRequest()

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
@@ -49,14 +50,22 @@ namespace CouchDB.Driver.Query
 
         private TResult SendRequest<TResult>(Expression query, bool async, CancellationToken cancellationToken)
         {
-            return query switch
+            try
             {
-                ConstantExpression _ => SendRequestWithoutFilter<TResult>(query,
-                    async, cancellationToken),
-                MethodCallExpression methodCallExpression => SendRequestWithFilter<TResult>(methodCallExpression, query,
-                    async, cancellationToken),
-                _ => throw new ArgumentException($"Expression of type {query.GetType().Name} is not valid.")
-            };
+                return query switch
+                {
+                    ConstantExpression _ => SendRequestWithoutFilter<TResult>(query,
+                        async, cancellationToken),
+                    MethodCallExpression methodCallExpression => SendRequestWithFilter<TResult>(methodCallExpression, query,
+                        async, cancellationToken),
+                    _ => throw new ArgumentException($"Expression of type {query.GetType().Name} is not valid.")
+                };
+            }
+            catch (TargetInvocationException ex)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                return default;
+            }
         }
 
         private TResult SendRequestWithoutFilter<TResult>(Expression query, bool async, CancellationToken cancellationToken)
@@ -171,11 +180,12 @@ namespace CouchDB.Driver.Query
             // Execute
             try
             {
-                return (TResult)enumerableMethodInfo.Invoke(null, new object[] { result });
+                return (TResult)enumerableMethodInfo.Invoke(null, new[] {result});
             }
-            catch (TargetInvocationException targetInvocationException)
+            catch (TargetInvocationException ex)
             {
-                throw targetInvocationException.InnerException;
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                return default;
             }
         }
     }
