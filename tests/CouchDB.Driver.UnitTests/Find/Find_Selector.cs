@@ -40,10 +40,11 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var json = _rebels
                 .Where(r => r.Age == 19)
+                .Take(1)
                 .Where(r => r.Name == "Luke" || r.Name == "Leia")
                 .Where(r => r.Skills.Contains("force"))
                 .ToString();
-            Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""$or"":[{""name"":""Luke""},{""name"":""Leia""}]},{""skills"":{""$all"":[""force""]}}]}}", json);
+            Assert.Equal(@"{""limit"":1,""selector"":{""$and"":[{""age"":19},{""$or"":[{""name"":""Luke""},{""name"":""Leia""}]},{""skills"":{""$all"":[""force""]}}]}}", json);
         }
 
         [Fact]
