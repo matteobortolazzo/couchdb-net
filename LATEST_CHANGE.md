@@ -1,2 +1,2 @@
 ﻿## Bug Fix
-* **JSON content:** Fix issue with JSON content as a value. ([#PR59](https://github.com/matteobortolazzo/couchdb-net/pull/59))
+* **JSON content:** Fix issue with *purge_seq* from into to string.
