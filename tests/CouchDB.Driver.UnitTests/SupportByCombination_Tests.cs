@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.UnitTests.Models;
@@ -43,7 +42,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Max(r => r.Age);
+            var result = _rebels.Max(r => r.Age);
             Assert.Equal(_mainRebel.Age, result);
         }
 
@@ -52,7 +51,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Min(r => r.Age);
+            var result = _rebels.Min(r => r.Age);
             Assert.Equal(_mainRebel.Age, result);
         }
 
@@ -61,7 +60,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = await _rebels.AsQueryable().MinAsync(r => r.Age);
+            var result = await _rebels.MinAsync(r => r.Age);
             Assert.Equal(_mainRebel.Age, result);
         }
 
@@ -70,7 +69,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Sum(r => r.Age);
+            var result = _rebels.Sum(r => r.Age);
             Assert.Equal(_mainRebel.Age, result);
         }
 
@@ -79,7 +78,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Average(r => r.Age);
+            var result = _rebels.Average(r => r.Age);
             Assert.Equal(_mainRebel.Age, result);
         }
 
@@ -88,7 +87,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Any(r => r.Age == 19);
+            var result = _rebels.Any(r => r.Age == 19);
             Assert.True(result);
         }
 
@@ -96,7 +95,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().All(r => r.Age == 19);
+            var result = _rebels.All(r => r.Age == 19);
             Assert.True(result);
         }
 
@@ -105,7 +104,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().First();
+            var result = _rebels.First();
             Assert.Equal(_mainRebel.Age, result.Age);
         }
 
@@ -114,7 +113,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().First(r => r.Age == 19);
+            var result = _rebels.First(r => r.Age == 19);
             Assert.Equal(_mainRebel.Age, result.Age);
         }
 
@@ -123,7 +122,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-            var result = _rebels.AsQueryable().FirstOrDefault();
+            var result = _rebels.FirstOrDefault();
             Assert.Null(result);
         }
 
@@ -132,7 +131,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-            var result = _rebels.AsQueryable().FirstOrDefault(r => r.Age == 20);
+            var result = _rebels.FirstOrDefault(r => r.Age == 20);
             Assert.Null(result);
         }
 
@@ -141,7 +140,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Last();
+            var result = _rebels.Last();
             Assert.Equal(_mainRebel.Age, result.Age);
         }
 
@@ -150,7 +149,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Last(r => r.Age == 19);
+            var result = _rebels.Last(r => r.Age == 19);
             Assert.Equal(_mainRebel.Age, result.Age);
         }
 
@@ -159,7 +158,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-            var result = _rebels.AsQueryable().LastOrDefault();
+            var result = _rebels.LastOrDefault();
             Assert.Null(result);
         }
 
@@ -168,7 +167,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-            var result = _rebels.AsQueryable().LastOrDefault(r => r.Age == 20);
+            var result = _rebels.LastOrDefault(r => r.Age == 20);
             Assert.Null(result);
         }
 
@@ -177,7 +176,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Single();
+            var result = _rebels.Single();
             Assert.Equal(_mainRebel.Age, result.Age);
         }
 
@@ -186,7 +185,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(_response);
-            var result = _rebels.AsQueryable().Single();
+            var result = _rebels.Single();
             Assert.Equal(_mainRebel.Age, result.Age);
         }
 
@@ -202,7 +201,7 @@ namespace CouchDB.Driver.UnitTests
                         new Rebel()
                     }
             });
-            var ex = Assert.Throws<InvalidOperationException>(() => _rebels.AsQueryable().Single());
+            var ex = Assert.Throws<InvalidOperationException>(() => _rebels.Single());
             Assert.Equal("Sequence contains more than one element", ex.Message);
         }
 
@@ -211,7 +210,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-            var result = _rebels.AsQueryable().SingleOrDefault();
+            var result = _rebels.SingleOrDefault();
             Assert.Null(result);
         }
 
@@ -220,7 +219,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-            var result = _rebels.AsQueryable().SingleOrDefault(r => r.Age == 20);
+            var result = _rebels.SingleOrDefault(r => r.Age == 20);
             Assert.Null(result);
         }
     }
