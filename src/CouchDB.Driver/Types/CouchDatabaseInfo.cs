@@ -101,7 +101,7 @@ namespace CouchDB.Driver.Types
         /// An opaque string that describes the purge state of the database. Do not rely on this string for counting the number of purge operations.
         /// </summary>
         [JsonProperty("purge_seq")]
-        public int PurgeSeq { get; internal set; }
+        public string PurgeSeq { get; internal set; }
 
         /// <summary>
         /// Size information

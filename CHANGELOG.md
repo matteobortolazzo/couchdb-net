@@ -1,3 +1,8 @@
+# 1.2.2 (2020-07-02)
+
+## Bug Fix
+* **JSON content:** Fix issue with *purge_seq* from into to string.
+
 # 1.2.1 (2020-02-25)
 
 ## Bug Fix
