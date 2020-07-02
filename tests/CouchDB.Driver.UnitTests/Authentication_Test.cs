@@ -1,4 +1,5 @@
-﻿using CouchDB.Driver.UnitTests.Models;
+﻿using System;
+using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using System.Collections.Generic;
 using System.Linq;
@@ -80,6 +81,42 @@ namespace CouchDB.Driver.UnitTests
                 .WithVerb(HttpMethod.Post)
                 .WithHeader("X-Auth-CouchDB-UserName", "root")
                 .WithHeader("X-Auth-CouchDB-Roles", "role1,role2");
+        }
+
+        [Fact]
+        public async Task Jwt()
+        {
+            using var httpTest = new HttpTest();
+            SetupListResponse(httpTest);
+
+            var jwt = Guid.NewGuid().ToString();
+            await using var client = new CouchClient("http://localhost", s => s.UseJwtAuthentication(jwt));
+            var rebels = client.GetDatabase<Rebel>();
+            var all = await rebels.ToListAsync();
+
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_find")
+                .WithVerb(HttpMethod.Post)
+                .WithHeader("Authorization", jwt);
+        }
+
+        [Fact]
+        public async Task JwtAsync()
+        {
+            using var httpTest = new HttpTest();
+            SetupListResponse(httpTest);
+
+            var jwt = Guid.NewGuid().ToString();
+            var jwtTask = Task.FromResult(jwt);
+
+            await using var client = new CouchClient("http://localhost", s => s.UseJwtAuthentication(() => jwtTask));
+            var rebels = client.GetDatabase<Rebel>();
+            var all = await rebels.ToListAsync();
+
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_find")
+                .WithVerb(HttpMethod.Post)
+                .WithHeader("Authorization", jwt);
         }
 
         private static void SetupListResponse(HttpTest httpTest)

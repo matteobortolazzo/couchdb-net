@@ -48,6 +48,14 @@ namespace CouchDB.Driver
                         httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("X-Auth-CouchDB-Token", _settings.Password);
                     }
                     break;
+                case AuthenticationType.Jwt:
+                    if (_settings.JwtTokenGenerator == null)
+                    {
+                        throw new InvalidOperationException("JWT generation cannot be null.");
+                    }
+                    var jwt = await _settings.JwtTokenGenerator().ConfigureAwait(false);
+                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("Authorization", jwt);
+                    break;
                 default:
                     throw new NotSupportedException($"Authentication of type {_settings.AuthenticationType} is not supported.");
             }
