@@ -7,6 +7,7 @@ using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,7 +17,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Query;
-using CouchDB.Driver.Query.Extensions;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver
@@ -53,106 +53,6 @@ namespace CouchDB.Driver
 
             Security = new CouchSecurity(NewRequest);
         }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> AsQueryable()
-        {
-            return new CouchQueryable<TSource>(_queryProvider);
-        }
-
-        #region Query
-      
-        /// <inheritdoc />
-        public Task<List<TSource>> ToListAsync()
-        {
-            return AsQueryable().ToListAsync();
-        }
-
-        /// <inheritdoc />
-        public Task<CouchList<TSource>> ToCouchListAsync()
-        {
-            return AsQueryable().ToCouchListAsync();
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> Where(Expression<Func<TSource, bool>> predicate)
-        {
-            return AsQueryable().Where(predicate);
-        }
-
-        /// <inheritdoc />
-        public IOrderedQueryable<TSource> OrderBy<TKey>(Expression<Func<TSource, TKey>> keySelector)
-        {
-            return AsQueryable().OrderBy(keySelector);
-        }
-
-        /// <inheritdoc />
-        public IOrderedQueryable<TSource> OrderByDescending<TKey>(Expression<Func<TSource, TKey>> keySelector)
-        {
-            return AsQueryable().OrderByDescending(keySelector);
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TResult> Select<TResult>(Expression<Func<TSource, TResult>> selector)
-        {
-            return AsQueryable().Select(selector);
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> Skip(int count)
-        {
-            return AsQueryable().Skip(count);
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> Take(int count)
-        {
-            return AsQueryable().Take(count);
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> UseBookmark(string bookmark)
-        {
-            return AsQueryable().UseBookmark(bookmark);
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> WithReadQuorum(int quorum)
-        {
-            return AsQueryable().WithReadQuorum(quorum);
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> WithoutIndexUpdate()
-        {
-            return AsQueryable().WithoutIndexUpdate();
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> FromStable()
-        {
-            return AsQueryable().FromStable();
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> UseIndex(params string[] indexes)
-        {
-            return AsQueryable().UseIndex(indexes);
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> IncludeExecutionStats()
-        {
-            return AsQueryable().IncludeExecutionStats();
-        }
-
-        /// <inheritdoc />
-        public IQueryable<TSource> IncludeConflicts()
-        {
-            return AsQueryable().IncludeConflicts();
-        }
-
-        #endregion
 
         #region Find
 
@@ -498,7 +398,7 @@ namespace CouchDB.Driver
                     {
                         result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
                     }
-                    // If the token is cancelled before the full JSON is readed
+                    // If the token is cancelled before the full JSON is read
                     catch (JsonSerializationException) { }
 
                     if (result != null)
@@ -543,7 +443,7 @@ namespace CouchDB.Driver
 
             if (!result.Ok)
             {
-                throw new CouchException("Something wrong happende while compacting.");
+                throw new CouchException("Something wrong happened while compacting.");
             }
         }
 
@@ -559,6 +459,12 @@ namespace CouchDB.Driver
         #endregion
 
         #region Override
+
+        IEnumerator IEnumerable.GetEnumerator() => AsQueryable().GetEnumerator();
+        public IEnumerator<TSource> GetEnumerator() => AsQueryable().GetEnumerator();
+        public Type ElementType => typeof(TSource);
+        public Expression Expression => Expression.Constant(this);
+        public IQueryProvider Provider => _queryProvider;
 
         /// <summary>
         /// Converts the request to a Mango query.
@@ -579,6 +485,12 @@ namespace CouchDB.Driver
             return _flurlClient.Request(_queryContext.Endpoint).AppendPathSegment(_queryContext.EscapedDatabaseName);
         }
 
+        internal CouchQueryable<TSource> AsQueryable()
+        {
+            return new CouchQueryable<TSource>(_queryProvider);
+        }
+
         #endregion
+
     }
 }

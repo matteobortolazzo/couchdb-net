@@ -16,11 +16,11 @@ namespace CouchDB.Driver.Query
     internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
     {
         private bool _isVisitingWhereMethodOrChild;
-        private readonly Queue<MethodCallExpression> _prevWhereCalls;
+        private readonly Queue<MethodCallExpression> _nextWhereCalls;
 
         public QueryOptimizer()
         {
-            _prevWhereCalls = new Queue<MethodCallExpression>();
+            _nextWhereCalls = new Queue<MethodCallExpression>();
         }
 
         public Expression Optimize(Expression e)
@@ -61,18 +61,18 @@ namespace CouchDB.Driver.Query
 
             if (genericDefinition == QueryableMethods.Where)
             {
-                if (_prevWhereCalls.Count == 0)
+                if (_nextWhereCalls.Count == 0)
                 {
-                    _prevWhereCalls.Enqueue(node);
+                    _nextWhereCalls.Enqueue(node);
                     Expression tail = Visit(node.Arguments[0]);
                     LambdaExpression currentLambda = node.GetLambda();
-                    Expression conditionExpression = currentLambda.Body;
-                    _prevWhereCalls.Dequeue();
+                    Expression conditionExpression = Visit(currentLambda.Body);
+                    _nextWhereCalls.Dequeue();
 
-                    while (_prevWhereCalls.Count > 0)
+                    while (_nextWhereCalls.Count > 0)
                     {
-                        Expression prevWhereBody = _prevWhereCalls.Dequeue().GetLambdaBody();
-                        conditionExpression = Expression.And(prevWhereBody, conditionExpression);
+                        Expression nextWhereBody = Visit(_nextWhereCalls.Dequeue().GetLambdaBody());
+                        conditionExpression = Expression.And(nextWhereBody, conditionExpression);
                     }
 
                     Expression conditionLambda = conditionExpression.WrapInLambda(currentLambda.Parameters);
@@ -80,7 +80,7 @@ namespace CouchDB.Driver.Query
                         node.Method.GetGenericArguments(), tail, conditionLambda);
                 }
 
-                _prevWhereCalls.Enqueue(node);
+                _nextWhereCalls.Enqueue(node);
                 return Visit(node.Arguments[0]);
             }
 

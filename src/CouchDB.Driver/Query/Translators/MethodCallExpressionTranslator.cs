@@ -172,12 +172,12 @@ namespace CouchDB.Driver.Query
             _isSelectorSet = true;
             return m;
         }
-        private Expression VisitOrderAscendingMethod(MethodCallExpression m)
+        private Expression VisitOrderAscendingMethod(Expression m)
         {
             void InspectOrdering(Expression e)
             {
                 MethodCallExpression o = e as MethodCallExpression ?? throw new AuthenticationException($"Invalid expression type {e.GetType().Name}");
-                Expression lambdaBody = m.GetLambdaBody();
+                Expression lambdaBody = o.GetLambdaBody();
 
                 switch (o.Method.Name)
                 {

@@ -1443,9 +1443,10 @@ namespace CouchDB.Driver.Extensions
         public static Task<CouchList<TSource>> ToCouchListAsync<TSource>(
             this IQueryable<TSource> source,
             CancellationToken cancellationToken = default)
+            where TSource: CouchDocument
         {
             Check.NotNull(source, nameof(source));
-            return source.AsCouchQueryable().ToListAsync(cancellationToken);
+            return source.AsCouchQueryable().ToCouchListAsync(cancellationToken);
         }
 
         /// <summary>
@@ -1475,6 +1476,7 @@ namespace CouchDB.Driver.Extensions
         public static async Task<List<TSource>> ToListAsync<TSource>(
             this IQueryable<TSource> source,
             CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
             => (await source.ToCouchListAsync(cancellationToken).ConfigureAwait(false)).ToList();
 
         /// <summary>
@@ -1503,6 +1505,7 @@ namespace CouchDB.Driver.Extensions
         public static async Task<TSource[]> ToArrayAsync<TSource>(
             this IQueryable<TSource> source,
             CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
             => (await source.ToListAsync(cancellationToken).ConfigureAwait(false)).ToArray();
 
         #endregion
@@ -1542,6 +1545,7 @@ namespace CouchDB.Driver.Extensions
              this IQueryable<TSource> source,
              Func<TSource, TKey> keySelector,
             CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
             => ToDictionaryAsync(source, keySelector, e => e, comparer: null, cancellationToken);
 
         /// <summary>
@@ -1581,6 +1585,7 @@ namespace CouchDB.Driver.Extensions
              Func<TSource, TKey> keySelector,
              IEqualityComparer<TKey> comparer,
             CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
             => ToDictionaryAsync(source, keySelector, e => e, comparer, cancellationToken);
 
         /// <summary>
@@ -1622,6 +1627,7 @@ namespace CouchDB.Driver.Extensions
              Func<TSource, TKey> keySelector,
              Func<TSource, TElement> elementSelector,
             CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
             => ToDictionaryAsync(source, keySelector, elementSelector, comparer: null, cancellationToken);
 
         /// <summary>
@@ -1667,6 +1673,7 @@ namespace CouchDB.Driver.Extensions
              Func<TSource, TElement> elementSelector,
              IEqualityComparer<TKey>? comparer,
             CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
         {
             Check.NotNull(source, nameof(source));
             Check.NotNull(keySelector, nameof(keySelector));
@@ -1732,10 +1739,16 @@ namespace CouchDB.Driver.Extensions
                 operatorMethodInfo, source, (Expression?)null, cancellationToken);
 
         private static CouchQueryable<TSource> AsCouchQueryable<TSource>(this IQueryable<TSource> source)
+            where TSource : CouchDocument
         {
             if (source is CouchQueryable<TSource> couchQuery)
             {
                 return couchQuery;
+            }
+
+            if (source is CouchDatabase<TSource> database)
+            {
+                return database.AsQueryable();
             }
 
             throw new NotSupportedException($"Operation not supported on type: {source.GetType().Name}.");

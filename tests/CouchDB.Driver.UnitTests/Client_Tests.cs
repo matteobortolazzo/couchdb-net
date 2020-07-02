@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CouchDB.Driver.Query.Extensions;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests
