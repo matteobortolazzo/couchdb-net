@@ -3,12 +3,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
+using CouchDB.Driver.LocalDocuments;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 
 namespace CouchDB.Driver
 {
+    /// <summary>
+    /// Represent a database.
+    /// </summary>
+    /// <typeparam name="TSource">The type of the document.</typeparam>
     public interface ICouchDatabase<TSource>: IOrderedQueryable<TSource>
         where TSource : CouchDocument
     {
@@ -39,7 +44,7 @@ namespace CouchDB.Driver
         /// </summary>
         /// <param name="docIds">The collection of documents IDs.</param>
         /// <returns></returns>
-        Task<List<TSource>> FindManyAsync(IEnumerable<string> docIds);
+        Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds);
 
         /// <summary>
         /// Creates a new document and returns it.
@@ -145,5 +150,10 @@ namespace CouchDB.Driver
         /// Section to handle security operations.
         /// </summary>
         public ICouchSecurity Security { get; }
+
+        /// <summary>
+        /// Access local documents operations.
+        /// </summary>
+        public ILocalDocuments LocalDocuments { get; }
     }
 }

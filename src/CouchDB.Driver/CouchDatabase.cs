@@ -16,6 +16,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using CouchDB.Driver.LocalDocuments;
 using CouchDB.Driver.Query;
 using Newtonsoft.Json;
 
@@ -39,6 +40,9 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public ICouchSecurity Security { get; }
 
+        /// <inheritdoc />
+        public ILocalDocuments LocalDocuments { get; }
+
         internal CouchDatabase(IFlurlClient flurlClient, CouchSettings settings, QueryContext queryContext)
         {
             _flurlClient = flurlClient;
@@ -52,6 +56,7 @@ namespace CouchDB.Driver
             _queryProvider = new CouchQueryProvider(queryCompiler);
 
             Security = new CouchSecurity(NewRequest);
+            LocalDocuments = new LocalDocuments.LocalDocuments(flurlClient, queryContext);
         }
 
         #region Find
@@ -99,7 +104,7 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<List<TSource>> FindManyAsync(IEnumerable<string> docIds)
+        public async Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds)
         {
             BulkGetResult<TSource> bulkGetResult = await NewRequest()
                 .AppendPathSegment("_bulk_get")

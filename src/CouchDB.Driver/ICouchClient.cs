@@ -19,9 +19,8 @@ namespace CouchDB.Driver
         /// Returns an instance of the CouchDB database with the given name.
         /// If no database exists with the given name, it creates it.
         /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.
-        /// This is equivalent of using <see cref="GetSafeDatabaseAsync"/>.
+        /// This is equivalent of using <see cref="GetSafeDatabaseAsync{TSource}"/>.
         /// </summary>
-        /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>
         /// <param name="shards">Used when creating. The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
