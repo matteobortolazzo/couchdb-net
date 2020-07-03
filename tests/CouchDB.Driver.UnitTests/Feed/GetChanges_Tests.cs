@@ -52,13 +52,13 @@ namespace CouchDB.Driver.UnitTests.Feed
             };
 
             // Act
-            var newR = await _rebels.GetChangesAsync();
+            var newR = await _rebels.GetChangesAsync(options);
 
             // Assert
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithoutQueryParamValue("feed", "longpoll")
-                .WithoutQueryParamValue("attachments", true)
+                .WithQueryParamValue("feed", "longpoll")
+                .WithQueryParamValue("attachments", true)
                 .WithVerb(HttpMethod.Get);
         }
 

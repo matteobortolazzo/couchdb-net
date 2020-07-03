@@ -58,12 +58,11 @@ namespace CouchDB.Driver.UnitTests.Feed
             httpTest.RespondWithJson(new { ok = true });
             var options = new ChangesFeedOptions
             {
-                LongPoll = true,
                 Attachments = true
             };
 
             // Act
-            await foreach (var change in _rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
+            await foreach (var change in _rebels.GetContinuousChangesAsync(options, null, tokenSource.Token))
             {
                 Assert.Equal(docId, change.Id);
                 tokenSource.Cancel();
@@ -73,8 +72,7 @@ namespace CouchDB.Driver.UnitTests.Feed
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_changes")
                 .WithQueryParamValue("feed", "continuous")
-                .WithoutQueryParamValue("feed", "longpoll")
-                .WithoutQueryParamValue("attachments", true)
+                .WithQueryParamValue("attachments", true)
                 .WithVerb(HttpMethod.Get);
         }
 

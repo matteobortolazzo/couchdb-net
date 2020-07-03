@@ -134,7 +134,7 @@ namespace CouchDB.Driver.DTOs
         public int? SeqInterval { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "<Pending>")]
-        internal IEnumerable<(string Name, string? Value)> ToQueryParameters()
+        internal IEnumerable<(string Name, object? Value)> ToQueryParameters()
         {
             static TAttribute GetAttribute<TAttribute>(ICustomAttributeProvider propertyInfo)
             {
@@ -159,17 +159,18 @@ namespace CouchDB.Driver.DTOs
                 object propertyDefaultValue = defaultValue.Value;
 
                 var isDefault = Equals(propertyValue, propertyDefaultValue) ||
-                                string.Equals(propertyValue?.ToString(), propertyDefaultValue?.ToString(), StringComparison.InvariantCultureIgnoreCase);
+                    string.Equals(propertyValue?.ToString(), propertyDefaultValue?.ToString(), StringComparison.InvariantCultureIgnoreCase);
                 if (isDefault)
                 {
                     continue;
                 }
 
-                var propertyStringValue = propertyValue?.ToString();
+                object? propertyStringValue = propertyValue?.ToString();
                 if (propertyInfo.PropertyType == typeof(bool))
                 {
-                    propertyStringValue = propertyStringValue?.ToLowerInvariant();
+                    propertyStringValue = propertyValue;
                 }
+
                 yield return (propertyName, propertyStringValue);
             }
         }

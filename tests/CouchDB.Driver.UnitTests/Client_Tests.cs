@@ -264,7 +264,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            var db = Guid.NewGuid().ToString();
+            var db = "rebel";
             await using var client = new CouchClient("http://localhost");
             var result = await client.ExistsAsync(db);
             Assert.False(result);
