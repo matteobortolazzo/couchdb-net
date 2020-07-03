@@ -52,7 +52,7 @@ namespace CouchDB.Driver.UnitTests
         #region Create
 
         [Fact]
-        public async Task CreateDatabase_Default()
+        public async Task GetOrCreateDatabase_Default()
         {
             using var httpTest = new HttpTest();
             // Logout
@@ -60,7 +60,7 @@ namespace CouchDB.Driver.UnitTests
 
             await using var client = new CouchClient("http://localhost");
             httpTest.RespondWithJson(new { ok = true });
-            var rebels = await client.CreateDatabaseAsync<Rebel>();
+            var rebels = await client.GetOrCreateDatabaseAsync<Rebel>();
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels")
                 .WithVerb(HttpMethod.Put);
@@ -68,7 +68,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task CreateDatabase_CustomName()
+        public async Task GetOrCreateDatabase_CustomName()
         {
             using var httpTest = new HttpTest();
             // Logout
@@ -84,7 +84,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task CreateDatabase_CustomCharacterName()
+        public async Task GetOrCreateDatabase_CustomCharacterName()
         {
             var databaseName = "rebel0_$()+/-";
 
@@ -102,7 +102,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task CreateDatabase_402_ReturnDatabase()
+        public async Task GetOrCreateDatabase_402_ReturnDatabase()
         {
             using var httpTest = new HttpTest();
             // Operation result
@@ -111,7 +111,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             await using var client = new CouchClient("http://localhost");
-            var rebels = await client.CreateDatabaseAsync<Rebel>();
+            var rebels = await client.GetOrCreateDatabaseAsync<Rebel>();
 
             Assert.NotNull(rebels);
 
@@ -122,7 +122,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task CreateDatabase_InvalidCharacters_ThrowsArgumentException()
+        public async Task GetOrCreateDatabase_InvalidCharacters_ThrowsArgumentException()
         {
             using var httpTest = new HttpTest();
             // Operation result
@@ -134,6 +134,36 @@ namespace CouchDB.Driver.UnitTests
             Func<Task> action = () => client.GetOrCreateDatabaseAsync<Rebel>("rebel.");
             var ex = await Assert.ThrowsAsync<ArgumentException>(action);
             Assert.Contains("invalid characters", ex.Message);
+        }
+
+        [Fact]
+        public async Task CreateDatabaseAsync_Default()
+        {
+            using var httpTest = new HttpTest();
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            await using var client = new CouchClient("http://localhost");
+            httpTest.RespondWithJson(new { ok = true });
+            var rebels = await client.CreateDatabaseAsync<Rebel>();
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels")
+                .WithVerb(HttpMethod.Put);
+            Assert.Equal("rebels", rebels.Database);
+        }
+
+        [Fact]
+        public async Task CreateDatabase_402_ThrowsException()
+        {
+            using var httpTest = new HttpTest();
+            // Operation result
+            httpTest.RespondWith((HttpContent)null, 412);
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            await using var client = new CouchClient("http://localhost");
+            Func<Task> action = () => client.CreateDatabaseAsync<Rebel>();
+            await Assert.ThrowsAsync<CouchException>(action);
         }
 
         #endregion
@@ -216,7 +246,7 @@ namespace CouchDB.Driver.UnitTests
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
-            var db = Guid.NewGuid().ToString();
+            var db = "rebel";
             await using var client = new CouchClient("http://localhost");
             var result = await client.ExistsAsync(db);
             Assert.True(result);

@@ -86,15 +86,21 @@ namespace CouchDB.Driver
             int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument
         {
-            var exists = await ExistsAsync(database, cancellationToken).ConfigureAwait(false);
-
-            if (exists)
+            QueryContext queryContext = NewQueryContext(database);
+            HttpResponseMessage response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
+                .ConfigureAwait(false);
+            
+            if (response.IsSuccessStatusCode)
             {
-                return await GetOrCreateDatabaseAsync<TSource>(database, shards, replicas, cancellationToken)
-                    .ConfigureAwait(false);
+                return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
             }
 
-            throw new CouchException($"Database with name {database} already exists.");
+            if (response.StatusCode == HttpStatusCode.PreconditionFailed)
+            {
+                throw new CouchException($"Database with name {database} already exists.");
+            }
+
+            throw new CouchException($"Something wrong happened while creating database {database}.");
         }
 
         /// <inheritdoc />
@@ -103,29 +109,10 @@ namespace CouchDB.Driver
             where TSource : CouchDocument
         {
             QueryContext queryContext = NewQueryContext(database);
-
-            IFlurlRequest request = NewRequest()
-                .AppendPathSegment(queryContext.EscapedDatabaseName);
-
-            if (shards.HasValue)
-            {
-                request = request.SetQueryParam("q", shards.Value);
-            }
-
-            if (replicas.HasValue)
-            {
-                request = request.SetQueryParam("n", replicas.Value);
-            }
-
-            HttpResponseMessage response = await request
-                .AllowHttpStatus(HttpStatusCode.PreconditionFailed)
-                .PutAsync(null, cancellationToken)
-                .SendRequestAsync()
+            HttpResponseMessage response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
                 .ConfigureAwait(false);
 
-            // Database already exists
-            if (response.StatusCode == HttpStatusCode.PreconditionFailed ||
-                response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.PreconditionFailed)
             {
                 return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
             }
@@ -149,6 +136,28 @@ namespace CouchDB.Driver
             {
                 throw new CouchException("Something went wrong during the delete.", null, "S");
             }
+        }
+
+        private Task<HttpResponseMessage> CreateDatabaseAsync(QueryContext queryContext,
+            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+        {
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegment(queryContext.EscapedDatabaseName);
+
+            if (shards.HasValue)
+            {
+                request = request.SetQueryParam("q", shards.Value);
+            }
+
+            if (replicas.HasValue)
+            {
+                request = request.SetQueryParam("n", replicas.Value);
+            }
+
+            return request
+                .AllowHttpStatus(HttpStatusCode.PreconditionFailed)
+                .PutAsync(null, cancellationToken)
+                .SendRequestAsync();
         }
 
         #endregion
