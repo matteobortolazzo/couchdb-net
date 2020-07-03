@@ -55,7 +55,7 @@ namespace CouchDB.Driver.E2E
 
             if (dbs.Contains(rebels.Database))
             {
-                await client.DeleteDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
+                await client.DeleteDatabaseAsync(databaseName).ConfigureAwait(false);
             }
 
             rebels = await client.GetOrCreateDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
@@ -74,7 +74,7 @@ namespace CouchDB.Driver.E2E
             luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
             Assert.Null(luke);
 
-            await client.DeleteDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
+            await client.DeleteDatabaseAsync(databaseName).ConfigureAwait(false);
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace CouchDB.Driver.E2E
             Assert.NotNull(attachment.Uri);
 
             // Download
-            var downloadFilePath = await rebels.DownloadAttachment(attachment, $@"{runningPath}\Assets", "luke-downloaded.txt");
+            var downloadFilePath = await rebels.DownloadAttachmentAsync(attachment, $@"{runningPath}\Assets", "luke-downloaded.txt");
 
             Assert.True(File.Exists(downloadFilePath));
             File.Delete(downloadFilePath);

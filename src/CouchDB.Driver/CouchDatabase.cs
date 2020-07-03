@@ -62,7 +62,7 @@ namespace CouchDB.Driver
         #region Find
 
         /// <inheritdoc />
-        public async Task<TSource?> FindAsync(string docId, bool withConflicts = false)
+        public async Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace CouchDB.Driver
                 }
 
                 TSource document = await request
-                    .GetJsonAsync<TSource>()
+                    .GetJsonAsync<TSource>(cancellationToken)
                     .SendRequestAsync()
                     .ConfigureAwait(false);
 
@@ -89,29 +89,30 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public Task<List<TSource>> QueryAsync(string mangoQueryJson)
+        public Task<List<TSource>> QueryAsync(string mangoQueryJson, CancellationToken cancellationToken = default)
         {
             return SendQueryAsync(r => r
                 .WithHeader("Content-Type", "application/json")
-                .PostStringAsync(mangoQueryJson));
+                .PostStringAsync(mangoQueryJson, cancellationToken));
         }
 
         /// <inheritdoc />
-        public Task<List<TSource>> QueryAsync(object mangoQuery)
+        public Task<List<TSource>> QueryAsync(object mangoQuery, CancellationToken cancellationToken = default)
         {
             return SendQueryAsync(r => r
-                .PostJsonAsync(mangoQuery));
+                .PostJsonAsync(mangoQuery, cancellationToken));
         }
 
         /// <inheritdoc />
-        public async Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds)
+        public async Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds, CancellationToken cancellationToken = default)
         {
             BulkGetResult<TSource> bulkGetResult = await NewRequest()
                 .AppendPathSegment("_bulk_get")
                 .PostJsonAsync(new
                 {
                     docs = docIds.Select(id => new { id })
-                }).ReceiveJson<BulkGetResult<TSource>>()
+                }, cancellationToken)
+                .ReceiveJson<BulkGetResult<TSource>>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
                        
@@ -123,7 +124,9 @@ namespace CouchDB.Driver
             foreach (TSource document in documents)
             {
                 if (document != null)
+                {
                     InitAttachments(document);
+                }
             }
 
             return documents;
@@ -167,13 +170,13 @@ namespace CouchDB.Driver
         #region Writing
 
         /// <inheritdoc />
-        public async Task<TSource> CreateAsync(TSource document, bool batch = false)
+        public async Task<TSource> CreateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 
             if (!string.IsNullOrEmpty(document.Id))
             {
-                return await CreateOrUpdateAsync(document)
+                return await CreateOrUpdateAsync(document, batch, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -185,20 +188,20 @@ namespace CouchDB.Driver
             }
 
             DocumentSaveResponse response = await request
-                .PostJsonAsync(document)
+                .PostJsonAsync(document, cancellationToken)
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
             document.ProcessSaveResponse(response);
 
-            await UpdateAttachments(document)
+            await UpdateAttachments(document, cancellationToken)
                 .ConfigureAwait(false);
 
             return document;
         }
 
         /// <inheritdoc />
-        public async Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false)
+        public async Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 
@@ -216,20 +219,20 @@ namespace CouchDB.Driver
             }
 
             DocumentSaveResponse response = await request
-                .PutJsonAsync(document)
+                .PutJsonAsync(document, cancellationToken)
                 .ReceiveJson<DocumentSaveResponse>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
             document.ProcessSaveResponse(response);
 
-            await UpdateAttachments(document)
+            await UpdateAttachments(document, cancellationToken)
                 .ConfigureAwait(false);
 
             return document;
         }
 
         /// <inheritdoc />
-        public async Task DeleteAsync(TSource document, bool batch = false)
+        public async Task DeleteAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 
@@ -243,7 +246,7 @@ namespace CouchDB.Driver
 
             OperationResult result = await request
                 .SetQueryParam("rev", document.Rev)
-                .DeleteAsync()
+                .DeleteAsync(cancellationToken)
                 .SendRequestAsync()
                 .ReceiveJson<OperationResult>()
                 .ConfigureAwait(false);
@@ -255,13 +258,13 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents)
+        public async Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default)
         {
             Check.NotNull(documents, nameof(documents));
 
             DocumentSaveResponse[] response = await NewRequest()
                 .AppendPathSegment("_bulk_docs")
-                .PostJsonAsync(new { docs = documents })
+                .PostJsonAsync(new { docs = documents }, cancellationToken)
                 .ReceiveJson<DocumentSaveResponse[]>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
@@ -273,7 +276,7 @@ namespace CouchDB.Driver
             {
                 document.ProcessSaveResponse(saveResponse);
 
-                await UpdateAttachments(document)
+                await UpdateAttachments(document, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -281,11 +284,11 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task EnsureFullCommitAsync()
+        public async Task EnsureFullCommitAsync(CancellationToken cancellationToken = default)
         {
             OperationResult result = await NewRequest()
                 .AppendPathSegment("_ensure_full_commit")
-                .PostAsync(null)
+                .PostAsync(null, cancellationToken)
                 .ReceiveJson<OperationResult>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
@@ -296,7 +299,7 @@ namespace CouchDB.Driver
             }
         }
 
-        private async Task UpdateAttachments(TSource document)
+        private async Task UpdateAttachments(TSource document, CancellationToken cancellationToken = default)
         {
             foreach (CouchAttachment attachment in document.Attachments.GetAddedAttachments())
             {
@@ -313,7 +316,7 @@ namespace CouchDB.Driver
                     .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                     .WithHeader("Content-Type", attachment.ContentType)
                     .WithHeader("If-Match", document.Rev)
-                    .PutAsync(stream)
+                    .PutAsync(stream, cancellationToken)
                     .ReceiveJson<AttachmentResult>()
                     .ConfigureAwait(false);
 
@@ -330,7 +333,7 @@ namespace CouchDB.Driver
                     .AppendPathSegment(document.Id)
                     .AppendPathSegment(attachment.Name)
                     .WithHeader("If-Match", document.Rev)
-                    .DeleteAsync()
+                    .DeleteAsync(cancellationToken)
                     .ReceiveJson<AttachmentResult>()
                     .ConfigureAwait(false);
 
@@ -349,7 +352,7 @@ namespace CouchDB.Driver
         #region Feed
 
         /// <inheritdoc />
-        public async Task<ChangesFeedResponse<TSource>> GetChangesAsync(ChangesFeedOptions? options = null, ChangesFeedFilter? filter = null)
+        public async Task<ChangesFeedResponse<TSource>> GetChangesAsync(ChangesFeedOptions? options = null, ChangesFeedFilter? filter = null, CancellationToken cancellationToken = default)
         {
             IFlurlRequest request = NewRequest()
                 .AppendPathSegment("_changes");
@@ -365,9 +368,9 @@ namespace CouchDB.Driver
             }
 
             return filter == null
-                ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>()
+                ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false)
-                : await request.QueryWithFilterAsync<TSource>(_settings, filter)
+                : await request.QueryWithFilterAsync<TSource>(_settings, filter, cancellationToken)
                     .ConfigureAwait(false);
         }
 
@@ -396,20 +399,22 @@ namespace CouchDB.Driver
             while (!cancellationToken.IsCancellationRequested && !reader.EndOfStream)
             {
                 var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
-                if (!string.IsNullOrEmpty(line))
+                if (string.IsNullOrEmpty(line))
                 {
-                    ChangesFeedResponseResult<TSource>? result = null;
-                    try
-                    {
-                        result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
-                    }
-                    // If the token is cancelled before the full JSON is read
-                    catch (JsonSerializationException) { }
+                    continue;
+                }
 
-                    if (result != null)
-                    {
-                        yield return result;
-                    }
+                ChangesFeedResponseResult<TSource>? result = null;
+                try
+                {
+                    result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
+                }
+                // If the token is cancelled before the full JSON is read
+                catch (JsonSerializationException) { }
+
+                if (result != null)
+                {
+                    yield return result;
                 }
             }
         }
@@ -419,7 +424,8 @@ namespace CouchDB.Driver
         #region Utils
 
         /// <inheritdoc />
-        public async Task<string> DownloadAttachment(CouchAttachment attachment, string localFolderPath, string? localFileName = null, int bufferSize = 4096)
+        public async Task<string> DownloadAttachmentAsync(CouchAttachment attachment, string localFolderPath, string? localFileName = null, int bufferSize = 4096,
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(attachment, nameof(attachment));
 
@@ -432,16 +438,16 @@ namespace CouchDB.Driver
                 .AppendPathSegment(attachment.DocumentId)
                 .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                 .WithHeader("If-Match", attachment.DocumentRev)
-                .DownloadFileAsync(localFolderPath, localFileName, bufferSize)
+                .DownloadFileAsync(localFolderPath, localFileName, bufferSize, cancellationToken)
                 .ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task CompactAsync()
+        public async Task CompactAsync(CancellationToken cancellationToken = default)
         {
             OperationResult result = await NewRequest()
                 .AppendPathSegment("_compact")
-                .PostJsonAsync(null)
+                .PostJsonAsync(null, cancellationToken)
                 .ReceiveJson<OperationResult>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
@@ -453,10 +459,10 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<CouchDatabaseInfo> GetInfoAsync()
+        public async Task<CouchDatabaseInfo> GetInfoAsync(CancellationToken cancellationToken = default)
         {
             return await NewRequest()
-                .GetJsonAsync<CouchDatabaseInfo>()
+                .GetJsonAsync<CouchDatabaseInfo>(cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
         }
@@ -496,6 +502,5 @@ namespace CouchDB.Driver
         }
 
         #endregion
-
     }
 }

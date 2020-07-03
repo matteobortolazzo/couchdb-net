@@ -22,60 +22,68 @@ namespace CouchDB.Driver
         /// </summary>
         /// <param name="docId">The document ID.</param>
         /// <param name="withConflicts">Set if conflicts array should be included.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null.</returns>
-        Task<TSource?> FindAsync(string docId, bool withConflicts = false);
+        Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Finds all documents matching the MangoQuery.
         /// </summary>
         /// <param name="mangoQueryJson">The JSON representing the Mango query.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/> that contains elements from the database.</retuns>
-        Task<List<TSource>> QueryAsync(string mangoQueryJson);
+        Task<List<TSource>> QueryAsync(string mangoQueryJson, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Finds all documents matching the MangoQuery.
         /// </summary>
         /// <param name="mangoQuery">The object representing the Mango query.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/> that contains elements from the database.</retuns>
-        Task<List<TSource>> QueryAsync(object mangoQuery);
+        Task<List<TSource>> QueryAsync(object mangoQuery, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Finds all documents with given IDs.
         /// </summary>
         /// <param name="docIds">The collection of documents IDs.</param>
-        /// <returns></returns>
-        Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds);
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/> that contains elements from the database.</retuns>
+        Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates a new document and returns it.
         /// </summary>
         /// <param name="document">The document to create.</param>
         /// <param name="batch">Stores document in batch mode.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-        Task<TSource> CreateAsync(TSource document, bool batch = false);
+        Task<TSource> CreateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates or updates the document with the given ID.
         /// </summary>
         /// <param name="document">The document to create or update</param>
         /// <param name="batch">Stores document in batch mode.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-        Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false);
+        Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes the document with the given ID.
         /// </summary>
         /// <param name="document">The document to delete.</param>
         /// <param name="batch">Stores document in batch mode.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task DeleteAsync(TSource document, bool batch = false);
+        Task DeleteAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates or updates a sequence of documents based on their IDs.
         /// </summary>
         /// <param name="documents">Documents to create or update</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the elements created or updated.</returns>
-        Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents);
+        Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Since CouchDB v3, it is deprecated (a no-op).
@@ -83,8 +91,9 @@ namespace CouchDB.Driver
         /// Commits any recent changes to the specified database to disk. You should call this if you want to ensure that recent changes have been flushed.
         /// This function is likely not required, assuming you have the recommended configuration setting of delayed_commits=false, which requires CouchDB to ensure changes are written to disk before a 200 or similar result is returned.
         /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task EnsureFullCommitAsync();
+        Task EnsureFullCommitAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns a sorted list of changes made to documents in the database.
@@ -94,9 +103,10 @@ namespace CouchDB.Driver
         /// </remarks>
         /// <param name="options">Options to apply to the request.</param>
         /// <param name="filter">A filter to apply to the result.</param>
-        /// <returns></returns>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the feed change.</returns>
         Task<ChangesFeedResponse<TSource>> GetChangesAsync(ChangesFeedOptions? options = null,
-            ChangesFeedFilter? filter = null);
+            ChangesFeedFilter? filter = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns changes as they happen. A continuous feed stays open and connected to the database until explicitly closed.
@@ -107,7 +117,7 @@ namespace CouchDB.Driver
         /// <param name="options">Options to apply to the request.</param>
         /// <param name="filter">A filter to apply to the result.</param>
         /// <param name="cancellationToken">A cancellation token to stop receiving changes.</param>
-        /// <returns></returns>
+        /// <returns>A IAsyncEnumerable that represents the asynchronous operation. The task result contains the feed change.</returns>
         IAsyncEnumerable<ChangesFeedResponseResult<TSource>> GetContinuousChangesAsync(
             ChangesFeedOptions options, ChangesFeedFilter filter,
             CancellationToken cancellationToken);
@@ -119,21 +129,24 @@ namespace CouchDB.Driver
         /// <param name="localFolderPath">Path of local folder where file is to be downloaded.</param>
         /// <param name="localFileName">Name of local file. If not specified, the source filename (from Content-Dispostion header, or last segment of the URL) is used.</param>
         /// <param name="bufferSize">Buffer size in bytes. Default is 4096.</param>
-        /// <returns>The path of the downloaded file.</returns>
-        Task<string> DownloadAttachment(CouchAttachment attachment, string localFolderPath,
-            string? localFileName = null, int bufferSize = 4096);
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the path of the download file.</returns>
+        Task<string> DownloadAttachmentAsync(CouchAttachment attachment, string localFolderPath,
+            string? localFileName = null, int bufferSize = 4096, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Requests compaction of the specified database.
         /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task CompactAsync();
+        Task CompactAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets information about the specified database.
         /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the database information.</returns>
-        Task<CouchDatabaseInfo> GetInfoAsync();
+        Task<CouchDatabaseInfo> GetInfoAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Get an empty request that targets the current database.

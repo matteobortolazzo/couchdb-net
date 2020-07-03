@@ -73,7 +73,7 @@ namespace CouchDB.Driver.UnitTests
             r = await _rebels.CreateOrUpdateAsync(r);
 
             Types.CouchAttachment lukeTxt = r.Attachments.First();
-            var newPath = await _rebels.DownloadAttachment(lukeTxt, "anyfolder");
+            var newPath = await _rebels.DownloadAttachmentAsync(lukeTxt, "anyfolder");
 
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")

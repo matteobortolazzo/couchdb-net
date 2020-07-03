@@ -15,14 +15,15 @@ namespace CouchDB.Driver.Extensions
 {
     internal static class ChangesFeedFilterExtensions
     {
-        public static async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(this IFlurlRequest request, CouchSettings settings, ChangesFeedFilter filter)
+        public static async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(this IFlurlRequest request, CouchSettings settings, ChangesFeedFilter filter,
+            CancellationToken cancellationToken)
             where TSource : CouchDocument
         {
             if (filter is DocumentIdsChangesFeedFilter documentIdsFilter)
             {
                 return await request
                     .SetQueryParam("filter", "_doc_ids")
-                    .PostJsonAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value))
+                    .PostJsonAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value), cancellationToken)
                     .ReceiveJson<ChangesFeedResponse<TSource>>()
                     .ConfigureAwait(false);
             }
@@ -38,7 +39,7 @@ namespace CouchDB.Driver.Extensions
                 return await request
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
-                    .PostStringAsync(jsonSelector)
+                    .PostStringAsync(jsonSelector, cancellationToken)
                     .ReceiveJson<ChangesFeedResponse<TSource>>()
                     .ConfigureAwait(false);
             }
@@ -47,7 +48,7 @@ namespace CouchDB.Driver.Extensions
             {
                 return await request
                     .SetQueryParam("filter", "_design")
-                    .GetJsonAsync<ChangesFeedResponse<TSource>>()
+                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -56,7 +57,7 @@ namespace CouchDB.Driver.Extensions
                 return await request
                     .SetQueryParam("filter", "_view")
                     .SetQueryParam("view", viewFilter.Value)
-                    .GetJsonAsync<ChangesFeedResponse<TSource>>()
+                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false);
             }
             throw new InvalidOperationException($"Filter of type {filter.GetType().Name} not supported.");

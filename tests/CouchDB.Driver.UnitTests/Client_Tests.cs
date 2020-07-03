@@ -166,7 +166,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             await using var client = new CouchClient("http://localhost");
-            await client.DeleteDatabaseAsync<Rebel>("some_rebels");
+            await client.DeleteDatabaseAsync("some_rebels");
             httpTest
                 .ShouldHaveCalled("http://localhost/some_rebels")
                 .WithVerb(HttpMethod.Delete);
@@ -182,7 +182,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             await using var client = new CouchClient("http://localhost");
-            await client.DeleteDatabaseAsync<Rebel>("rebel0_$()+/-");
+            await client.DeleteDatabaseAsync("rebel0_$()+/-");
             httpTest
                 .ShouldHaveCalled("http://localhost/rebel0_%24%28%29%2B%2F-")
                 .WithVerb(HttpMethod.Delete);
@@ -198,7 +198,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             await using var client = new CouchClient("http://localhost");
-            Func<Task> action = () => client.DeleteDatabaseAsync<Rebel>("rebel.");
+            Func<Task> action = () => client.DeleteDatabaseAsync("rebel.");
             var ex = await Assert.ThrowsAsync<ArgumentException>(action);
             Assert.Contains("invalid characters", ex.Message);
         }
