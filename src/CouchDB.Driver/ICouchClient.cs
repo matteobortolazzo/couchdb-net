@@ -49,10 +49,10 @@ namespace CouchDB.Driver
         /// <summary>
         /// Deletes the database with the given name from the server.
         /// </summary>
-        /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument;
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        Task DeleteDatabaseAsync(string database, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
@@ -86,11 +86,11 @@ namespace CouchDB.Driver
             where TSource : CouchDocument;
 
         /// <summary>
-        /// Deletes the database with the given type from the server.
+        /// Deletes the database with the name type <see cref="TSource"/>.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task DeleteDatabaseAsync<TSource>() where TSource : CouchDocument;
+        Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource : CouchDocument;
 
         /// <summary>
         /// Returns an instance of the users database.
@@ -111,26 +111,30 @@ namespace CouchDB.Driver
         /// Check if database exists.
         /// </summary>
         /// <param name="database">The database name.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>Return True if the database exists, False otherwise.</returns>
-        Task<bool> ExistsAsync(string database);
+        Task<bool> ExistsAsync(string database, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Determines whether the server is up, running, and ready to respond to requests.
         /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>true is the server is not in maintenance_mode; otherwise, false.</returns>
-        Task<bool> IsUpAsync();
+        Task<bool> IsUpAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns all databases names in the server.
         /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the sequence of databases names.</returns>
-        Task<IEnumerable<string>> GetDatabasesNamesAsync();
+        Task<IEnumerable<string>> GetDatabasesNamesAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns all active tasks in the server.
         /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the sequence of all active tasks.</returns>
-        Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync();
+        Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// URI of the CouchDB endpoint.

@@ -86,22 +86,15 @@ namespace CouchDB.Driver
             int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument
         {
-            QueryContext queryContext = NewQueryContext(database);
+            var exists = await ExistsAsync(database, cancellationToken).ConfigureAwait(false);
 
-            HttpResponseMessage response = await NewRequest()
-                .AppendPathSegment(queryContext.EscapedDatabaseName)
-                .AllowHttpStatus(HttpStatusCode.NotFound)
-                .HeadAsync(cancellationToken)
-                .SendRequestAsync()
-                .ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
+            if (exists)
             {
-                throw new CouchException($"Database with name {database} already exists.");
+                return await GetOrCreateDatabaseAsync<TSource>(database, shards, replicas, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
-            return await GetOrCreateDatabaseAsync<TSource>(database, shards, replicas, cancellationToken)
-                .ConfigureAwait(false);
+            throw new CouchException($"Database with name {database} already exists.");
         }
 
         /// <inheritdoc />
@@ -141,13 +134,13 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument
+        public async Task DeleteDatabaseAsync(string database, CancellationToken cancellationToken = default)
         {
             QueryContext queryContext = NewQueryContext(database);
 
             OperationResult result = await NewRequest()
                 .AppendPathSegment(queryContext.EscapedDatabaseName)
-                .DeleteAsync()
+                .DeleteAsync(cancellationToken)
                 .ReceiveJson<OperationResult>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
@@ -183,9 +176,9 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public Task DeleteDatabaseAsync<TSource>() where TSource : CouchDocument
+        public Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource : CouchDocument
         {
-            return DeleteDatabaseAsync<TSource>(GetClassName<TSource>());
+            return DeleteDatabaseAsync(GetClassName<TSource>(), cancellationToken);
         }
 
         #endregion
@@ -209,24 +202,25 @@ namespace CouchDB.Driver
         #region Utils
 
         /// <inheritdoc />
-        public async Task<bool> ExistsAsync(string database)
+        public async Task<bool> ExistsAsync(string database, CancellationToken cancellationToken = default)
         {
+            QueryContext queryContext = NewQueryContext(database);
             HttpResponseMessage? response = await NewRequest()
                 .AllowHttpStatus(HttpStatusCode.NotFound)
-                .AppendPathSegment(database)
-                .HeadAsync()
+                .AppendPathSegment(queryContext.EscapedDatabaseName)
+                .HeadAsync(cancellationToken)
                 .ConfigureAwait(false);
             return response.IsSuccessStatusCode;
         }
 
         /// <inheritdoc />
-        public async Task<bool> IsUpAsync()
+        public async Task<bool> IsUpAsync(CancellationToken cancellationToken = default)
         {
             try
             {
                 StatusResult result = await NewRequest()
                     .AppendPathSegment("/_up")
-                    .GetJsonAsync<StatusResult>()
+                    .GetJsonAsync<StatusResult>(cancellationToken)
                     .SendRequestAsync()
                     .ConfigureAwait(false);
                 return result.Status == "ok";
@@ -238,21 +232,21 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
+        public async Task<IEnumerable<string>> GetDatabasesNamesAsync(CancellationToken cancellationToken = default)
         {
             return await NewRequest()
                 .AppendPathSegment("_all_dbs")
-                .GetJsonAsync<IEnumerable<string>>()
+                .GetJsonAsync<IEnumerable<string>>(cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync()
+        public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync(CancellationToken cancellationToken = default)
         {
             return await NewRequest()
                 .AppendPathSegment("_active_tasks")
-                .GetJsonAsync<IEnumerable<CouchActiveTask>>()
+                .GetJsonAsync<IEnumerable<CouchActiveTask>>(cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
         }
