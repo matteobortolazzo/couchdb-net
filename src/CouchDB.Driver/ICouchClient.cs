@@ -41,7 +41,7 @@ namespace CouchDB.Driver
         /// <param name="shards">Used when creating. The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
         /// <param name="replicas">Used when creating. The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-        /// <returns></returns>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
         Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
             int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument;
@@ -55,7 +55,7 @@ namespace CouchDB.Driver
         Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument;
 
         /// <summary>
-        /// Returns an instance of the CouchDB database of the given type.
+        /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
@@ -63,12 +63,27 @@ namespace CouchDB.Driver
         ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument;
 
         /// <summary>
-        /// Creates a new database of the given type in the server.
-        /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
+        /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
+        /// If a database exists with the given name, it throws an exception.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <param name="shards">The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
+        /// <param name="replicas">The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-        Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchDocument;
+        Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, CancellationToken cancellationToken = default) where TSource : CouchDocument;
+
+        /// <summary>
+        /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
+        /// If no database exists with the given name, it creates it.
+        /// </summary>
+        /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <param name="shards">Used when creating. The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
+        /// <param name="replicas">Used when creating. The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
+        Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument;
 
         /// <summary>
         /// Deletes the database with the given type from the server.

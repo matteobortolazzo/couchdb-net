@@ -169,9 +169,17 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchDocument
+        public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+            CancellationToken cancellationToken = default) where TSource : CouchDocument
         {
-            return GetOrCreateDatabaseAsync<TSource>(GetClassName<TSource>());
+            return CreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+            CancellationToken cancellationToken = default) where TSource : CouchDocument
+        {
+            return GetOrCreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, cancellationToken);
         }
 
         /// <inheritdoc />
