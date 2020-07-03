@@ -58,7 +58,7 @@ namespace CouchDB.Driver.E2E
                 await client.DeleteDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
             }
 
-            rebels = await client.CreateDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
+            rebels = await client.GetOrCreateDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
 
             Rebel luke = await rebels.CreateAsync(new Rebel { Name = "Luke", Age = 19 }).ConfigureAwait(false);
             Assert.Equal("Luke", luke.Name);

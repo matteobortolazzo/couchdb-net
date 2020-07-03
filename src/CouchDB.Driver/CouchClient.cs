@@ -14,6 +14,7 @@ using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
+using System.Threading;
 using CouchDB.Driver.Query;
 
 namespace CouchDB.Driver
@@ -81,16 +82,34 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public Task<ICouchDatabase<TSource>> GetSafeDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
+        public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, 
+            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
         {
-            return CreateDatabaseAsync<TSource>(database, shards, replicas);
+            QueryContext queryContext = NewQueryContext(database);
+
+            HttpResponseMessage response = await NewRequest()
+                .AppendPathSegment(queryContext.EscapedDatabaseName)
+                .AllowHttpStatus(HttpStatusCode.NotFound)
+                .HeadAsync(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new CouchException($"Database with name {database} already exists.");
+            }
+
+            return await GetOrCreateDatabaseAsync<TSource>(database, shards, replicas, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         /// <inheritdoc />
-        public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
+        public async Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
+            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
         {
-            CheckDatabaseName(database);
-            var queryContext = new QueryContext(Endpoint, database);
+            QueryContext queryContext = NewQueryContext(database);
 
             IFlurlRequest request = NewRequest()
                 .AppendPathSegment(queryContext.EscapedDatabaseName);
@@ -107,32 +126,24 @@ namespace CouchDB.Driver
 
             HttpResponseMessage response = await request
                 .AllowHttpStatus(HttpStatusCode.PreconditionFailed)
-                .PutAsync(null)
+                .PutAsync(null, cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
             // Database already exists
-            if (response.StatusCode == HttpStatusCode.PreconditionFailed)
+            if (response.StatusCode == HttpStatusCode.PreconditionFailed ||
+                response.IsSuccessStatusCode)
             {
                 return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
             }
 
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            OperationResult result = JsonConvert.DeserializeObject<OperationResult>(content);
-
-            if (!result.Ok)
-            {
-                throw new CouchException("Something went wrong during the creation.");
-            }
-
-            return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
+            throw new CouchException($"Something wrong happened while creating database {database}.");
         }
 
         /// <inheritdoc />
         public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument
         {
-            CheckDatabaseName(database);
-            var queryContext = new QueryContext(Endpoint, database);
+            QueryContext queryContext = NewQueryContext(database);
 
             OperationResult result = await NewRequest()
                 .AppendPathSegment(queryContext.EscapedDatabaseName)
@@ -160,7 +171,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchDocument
         {
-            return CreateDatabaseAsync<TSource>(GetClassName<TSource>());
+            return GetOrCreateDatabaseAsync<TSource>(GetClassName<TSource>());
         }
 
         /// <inheritdoc />
@@ -247,6 +258,12 @@ namespace CouchDB.Driver
         private IFlurlRequest NewRequest()
         {
             return _flurlClient.Request(Endpoint);
+        }
+
+        private QueryContext NewQueryContext(string database)
+        {
+            CheckDatabaseName(database);
+            return new QueryContext(Endpoint, database);
         }
 
         private void CheckDatabaseName(string database)

@@ -76,7 +76,7 @@ namespace CouchDB.Driver.UnitTests
 
             await using var client = new CouchClient("http://localhost");
             httpTest.RespondWithJson(new { ok = true });
-            var rebels = await client.CreateDatabaseAsync<Rebel>("some_rebels");
+            var rebels = await client.GetOrCreateDatabaseAsync<Rebel>("some_rebels");
             httpTest
                 .ShouldHaveCalled("http://localhost/some_rebels")
                 .WithVerb(HttpMethod.Put);
@@ -94,7 +94,7 @@ namespace CouchDB.Driver.UnitTests
 
             await using var client = new CouchClient("http://localhost");
             httpTest.RespondWithJson(new { ok = true });
-            var rebels = await client.CreateDatabaseAsync<Rebel>(databaseName);
+            var rebels = await client.GetOrCreateDatabaseAsync<Rebel>(databaseName);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebel0_%24%28%29%2B%2F-")
                 .WithVerb(HttpMethod.Put);
@@ -131,7 +131,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             await using var client = new CouchClient("http://localhost");
-            Func<Task> action = () => client.CreateDatabaseAsync<Rebel>("rebel.");
+            Func<Task> action = () => client.GetOrCreateDatabaseAsync<Rebel>("rebel.");
             var ex = await Assert.ThrowsAsync<ArgumentException>(action);
             Assert.Contains("invalid characters", ex.Message);
         }
