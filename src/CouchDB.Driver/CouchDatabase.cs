@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -394,28 +395,16 @@ namespace CouchDB.Driver
                     .ConfigureAwait(false)
                 : await request.QueryContinuousWithFilterAsync<TSource>(_settings, filter, cancellationToken)
                     .ConfigureAwait(false);
-
-            using var reader = new StreamReader(stream);
-            while (!cancellationToken.IsCancellationRequested && !reader.EndOfStream)
+            
+            await foreach (var line in stream.ReadLinesAsync(cancellationToken))
             {
-                var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
                 if (string.IsNullOrEmpty(line))
                 {
                     continue;
                 }
 
-                ChangesFeedResponseResult<TSource>? result = null;
-                try
-                {
-                    result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
-                }
-                // If the token is cancelled before the full JSON is read
-                catch (JsonSerializationException) { }
-
-                if (result != null)
-                {
-                    yield return result;
-                }
+                ChangesFeedResponseResult<TSource> result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
+                yield return result;
             }
         }
 

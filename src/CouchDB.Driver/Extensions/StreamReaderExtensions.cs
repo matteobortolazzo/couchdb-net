@@ -1,51 +1,54 @@
-﻿using System.IO;
+﻿using System.Buffers;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace CouchDB.Driver.Extensions
 {
     internal static class StreamReaderExtensions
     {
-        public static async Task<string> ReadLineAsync(this StreamReader reader, CancellationToken cancellationToken)
+        public static async IAsyncEnumerable<string> ReadLinesAsync(this Stream stream,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            if (reader.EndOfStream)
+            using IMemoryOwner<byte> owner = MemoryPool<byte>.Shared.Rent();
+            var prevRemainder = string.Empty;
+
+            while (!cancellationToken.IsCancellationRequested)
             {
-                return string.Empty;
-            }    
+                var charRead = await stream
+                    .ReadAsync(owner.Memory, cancellationToken)
+                    .ConfigureAwait(false);
 
-            var result = new StringBuilder();
-            var lastChar = await reader.ReadCharAsync(cancellationToken).ConfigureAwait(false);
-
-            while (!reader.EndOfStream && lastChar != '\n')
-            {
-                try
+                if (charRead == 0)
                 {
-                    var newChar = await reader.ReadCharAsync(cancellationToken).ConfigureAwait(false);
-                    if (lastChar == '\r' && newChar == '\n')
-                    {
-                        return result.ToString();
-                    }
+                    continue;
+                }
 
-                    result.Append(lastChar);
-                    lastChar = newChar;
-                }
-                catch (EndOfStreamException)
+                var str = Encoding.UTF8.GetString(owner.Memory.Span[..charRead]);
+                var lines = str.Split('\n');
+
+                // If last line is empty
+                var isMessageComplete = lines[^1].Length == 0;
+                var currentRemainder = isMessageComplete
+                    ? string.Empty
+                    : lines[^1];
+
+                IEnumerable<string> filteredList = lines
+                    .Where(line => line.Length > 0 && line != currentRemainder);
+                
+                var i = 0;
+                foreach (var line in filteredList)
                 {
-                    result.Append(lastChar);
-                    return result.ToString();
+                    yield return i++ == 0
+                        ? prevRemainder + line
+                        : line;
                 }
+
+                prevRemainder = currentRemainder;
             }
-
-            result.Append(lastChar);
-            return result.ToString();
-        }
-
-        public static async Task<char> ReadCharAsync(this StreamReader reader, CancellationToken cancellationToken)
-        {
-            var buffer = new char[1];
-            await reader.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
-            return buffer[0];
         }
     }
 }

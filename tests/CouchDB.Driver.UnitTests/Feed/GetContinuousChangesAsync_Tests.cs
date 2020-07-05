@@ -199,6 +199,7 @@ namespace CouchDB.Driver.UnitTests.Feed
             {
                 Id = docId
             });
+            changeJson += "\n";
             byte[] byteArray = Encoding.ASCII.GetBytes(changeJson);
             MemoryStream stream = new MemoryStream(byteArray);
             httpTest.RespondWith(new StreamContent(stream));
