@@ -81,12 +81,5 @@ namespace CouchDB.Driver.LocalDocuments
         [JsonProperty("start_key_doc_id")]
         [DefaultValue(null)]
         public string? StartKeyDocId { get; set; }
-
-        /// <summary>
-        /// Response includes an update_seq value indicating which sequence id of the underlying database the view reflects.
-        /// </summary>
-        [JsonProperty("update_seq")]
-        [DefaultValue(false)]
-        public bool UpdateSeq { get; set; }
     }
 }

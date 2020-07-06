@@ -1,7 +1,4 @@
 ﻿#nullable disable
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
-
 namespace CouchDB.Driver.Types
 {
     /// <summary>
@@ -9,9 +6,6 @@ namespace CouchDB.Driver.Types
     /// </summary>
     public class LocalCouchDocument: CouchDocumentBase
     {
-        [DataMember]
-        [JsonProperty("update_seq")]
-        public int? UpdateSeq { get; set; }
     }
 }
 #nullable enable

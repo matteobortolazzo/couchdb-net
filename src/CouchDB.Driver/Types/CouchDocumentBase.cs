@@ -10,7 +10,7 @@ namespace CouchDB.Driver.Types
     /// </summary>
     public abstract class CouchDocumentBase
     {
-        protected CouchDocumentBase()
+        internal CouchDocumentBase()
         {
             _conflicts = new List<string>();
         }
