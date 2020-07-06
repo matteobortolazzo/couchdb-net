@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
+﻿using System.ComponentModel;
 using Newtonsoft.Json;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.ChangesFeed
 {
     /// <summary>
     /// Represents the options for the _changes endpoint. 
@@ -132,58 +128,5 @@ namespace CouchDB.Driver.DTOs
         [JsonProperty("seq_interval")]
         [DefaultValue(null)]
         public int? SeqInterval { get; set; }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "<Pending>")]
-        internal IEnumerable<(string Name, object? Value)> ToQueryParameters()
-        {
-            static TAttribute GetAttribute<TAttribute>(ICustomAttributeProvider propertyInfo)
-            {
-                return propertyInfo
-                    .GetCustomAttributes(typeof(TAttribute), true)
-                    .Cast<TAttribute>()
-                    .FirstOrDefault();
-            }
-
-            foreach (PropertyInfo propertyInfo in typeof(ChangesFeedOptions).GetProperties())
-            {
-                JsonPropertyAttribute jsonProperty = GetAttribute<JsonPropertyAttribute>(propertyInfo);
-                DefaultValueAttribute defaultValue = GetAttribute<DefaultValueAttribute>(propertyInfo);
-                if (jsonProperty == null || defaultValue == null)
-                {
-                    continue;
-                }
-
-                var propertyName = jsonProperty.PropertyName
-                                   ?? throw new ArgumentException($"JSON attribute not found for property {propertyInfo.Name}.");
-                object propertyValue = propertyInfo.GetValue(this);
-                object propertyDefaultValue = defaultValue.Value;
-
-                var isDefault = Equals(propertyValue, propertyDefaultValue) ||
-                    string.Equals(propertyValue?.ToString(), propertyDefaultValue?.ToString(), StringComparison.InvariantCultureIgnoreCase);
-                if (isDefault)
-                {
-                    continue;
-                }
-
-                object? propertyStringValue = propertyValue?.ToString();
-                if (propertyInfo.PropertyType == typeof(bool))
-                {
-                    propertyStringValue = propertyValue;
-                }
-
-                yield return (propertyName, propertyStringValue);
-            }
-        }
-    }
-
-    internal class ChangesFeedFilterDocuments
-    {
-        public ChangesFeedFilterDocuments(IList<string> documentIds)
-        {
-            DocumentIds = documentIds;
-        }
-
-        [JsonProperty("doc_ids")]
-        public IList<string> DocumentIds { get; set; }
     }
 }

@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.ChangesFeed
 {
     internal static class StreamReaderExtensions
     {

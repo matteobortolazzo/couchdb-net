@@ -5,6 +5,9 @@ using Flurl.Http.Testing;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CouchDB.Driver.ChangesFeed;
+using CouchDB.Driver.ChangesFeed.Filters;
+using CouchDB.Driver.ChangesFeed.Responses;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Feed

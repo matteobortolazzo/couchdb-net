@@ -1,6 +1,7 @@
-﻿using CouchDB.Driver.DTOs;
-using System;
+﻿using System;
 using System.Linq;
+using CouchDB.Driver.ChangesFeed;
+using CouchDB.Driver.Shared;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Feed
@@ -14,7 +15,7 @@ namespace CouchDB.Driver.UnitTests.Feed
             var options = new ChangesFeedOptions();
 
             // Act
-            var parameters = options.ToQueryParameters();
+            var parameters = OptionsHelper.ToQueryParameters(options);
 
             // Assert
             Assert.Empty(parameters);
@@ -42,7 +43,7 @@ namespace CouchDB.Driver.UnitTests.Feed
             };
 
             // Act
-            var parameters = options.ToQueryParameters();
+            var parameters = OptionsHelper.ToQueryParameters(options);
 
             // Assert
             Assert.Equal(13, parameters.Count());

@@ -1,4 +1,4 @@
-﻿namespace CouchDB.Driver.DTOs
+﻿namespace CouchDB.Driver.ChangesFeed
 {
     /// <summary>
     /// Represents the style of changes feed

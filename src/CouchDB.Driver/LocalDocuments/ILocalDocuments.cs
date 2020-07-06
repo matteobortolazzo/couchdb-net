@@ -13,23 +13,25 @@ namespace CouchDB.Driver.LocalDocuments
         /// <summary>
         /// Return all local documents.
         /// </summary>
-        /// <param name="cancellationToken"></param>
+        /// <param name="options">Options to apply to the query.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation.
         ///     The task result contains basic info about the documents.
         /// </returns>
-        Task<IList<CouchDocument>> GetAsync(CancellationToken cancellationToken = default);
+        Task<IList<LocalCouchDocument>> GetAsync(LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Return all documents with the supplied keys.
         /// </summary>
         /// <param name="keys">The IDs to use as filter.</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="options">Options to apply to the query.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation.
         ///     The task result contains basic info about the documents.
         /// </returns>
-        Task<IList<CouchDocument>> GetAsync(IReadOnlyCollection<string> keys, CancellationToken cancellationToken = default);
+        Task<IList<LocalCouchDocument>> GetAsync(IReadOnlyCollection<string> keys, LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the specified local document. 
@@ -42,7 +44,7 @@ namespace CouchDB.Driver.LocalDocuments
         ///     The task result contains the document content.
         /// </returns>
         Task<TSource> GetAsync<TSource>(string id, CancellationToken cancellationToken = default)
-            where TSource: CouchDocument;
+            where TSource: LocalCouchDocument;
 
         /// <summary>
         /// Stores the specified local document. 
@@ -54,7 +56,7 @@ namespace CouchDB.Driver.LocalDocuments
         ///     A task that represents the asynchronous operation.
         /// </returns>
         Task AddAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
-            where TSource : CouchDocument;
+            where TSource : LocalCouchDocument;
 
         /// <summary>
         /// Deletes the specified local document. 

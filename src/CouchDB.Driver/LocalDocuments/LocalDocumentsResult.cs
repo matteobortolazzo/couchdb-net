@@ -2,13 +2,13 @@
 using CouchDB.Driver.Types;
 using Newtonsoft.Json;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.LocalDocuments
 {
 #nullable disable
     internal class LocalDocumentsResult
     {
         [JsonProperty("rows")]
-        public IList<CouchDocument> Rows { get; set; }
+        public IList<LocalCouchDocument> Rows { get; set; }
     }
 #nullable enable
 }

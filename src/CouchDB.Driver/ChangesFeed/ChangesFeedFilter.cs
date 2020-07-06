@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using CouchDB.Driver.ChangesFeed.Filters;
+using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.ChangesFeed
 {
     /// <summary>
     /// Represent a filter for the changes feed.
@@ -48,38 +50,5 @@ namespace CouchDB.Driver.DTOs
         /// <returns></returns>
         public static ChangesFeedFilter View(string view)
             => new ViewChangesFeedFilter(view);
-    }
-
-    internal class DocumentIdsChangesFeedFilter : ChangesFeedFilter
-    {
-        public IList<string> Value { get; }
-
-        public DocumentIdsChangesFeedFilter(IList<string> value)
-        {
-            Value = value;
-        }
-    }
-
-    internal class SelectorChangesFeedFilter<TSource> : ChangesFeedFilter
-        where TSource : CouchDocument
-    {
-        public Expression<Func<TSource, bool>> Value { get; }
-
-        public SelectorChangesFeedFilter(Expression<Func<TSource, bool>> value)
-        {
-            Value = value;
-        }
-    }
-
-    internal class DesignChangesFeedFilter : ChangesFeedFilter { }
-
-    internal class ViewChangesFeedFilter : ChangesFeedFilter
-    {
-        public string Value { get; }
-
-        public ViewChangesFeedFilter(string value)
-        {
-            Value = value;
-        }
     }
 }

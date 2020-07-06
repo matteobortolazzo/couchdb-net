@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CouchDB.Driver.ChangesFeed;
+using CouchDB.Driver.ChangesFeed.Responses;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.LocalDocuments;
 using CouchDB.Driver.Security;

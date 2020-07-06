@@ -5,13 +5,15 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using CouchDB.Driver.DTOs;
+using CouchDB.Driver.ChangesFeed.Filters;
+using CouchDB.Driver.ChangesFeed.Responses;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Query;
 using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.ChangesFeed
 {
     internal static class ChangesFeedFilterExtensions
     {
@@ -106,14 +108,6 @@ namespace CouchDB.Driver.Extensions
                     .ConfigureAwait(false);
             }
             throw new InvalidOperationException($"Filter of type {filter.GetType().Name} not supported.");
-        }
-        
-        public static void SetChangesFeedOptions(this IFlurlRequest request, ChangesFeedOptions options)
-        {
-            foreach (var (name, value) in options.ToQueryParameters())
-            {
-                _ = request.SetQueryParam(name, value);
-            }
         }
     }
 }

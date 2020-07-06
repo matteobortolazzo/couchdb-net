@@ -2,6 +2,8 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CouchDB.Driver.LocalDocuments;
+using CouchDB.Driver.Shared;
 using Flurl.Http;
 using Flurl.Http.Content;
 
@@ -33,7 +35,7 @@ namespace CouchDB.Driver.Extensions
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="completionOption">The HttpCompletionOption used in the request. Optional.</param>
         /// <returns>A Task whose result is the response body as a Stream.</returns>
-        internal static Task<Stream> PostStringStreamAsync(
+        public static Task<Stream> PostStringStreamAsync(
             this IFlurlRequest request,
             string data,
             CancellationToken cancellationToken = default,
@@ -41,6 +43,17 @@ namespace CouchDB.Driver.Extensions
         {
             using var capturedStringContent = new CapturedStringContent(data);
             return request.SendAsync(HttpMethod.Post, capturedStringContent, cancellationToken, completionOption).ReceiveStream();
+        }
+
+        public static IFlurlRequest ApplyQueryParametersOptions(this IFlurlRequest request, object options)
+        {
+            var queryParameters = OptionsHelper.ToQueryParameters(options);
+            foreach (var (name, value) in queryParameters)
+            {
+                request = request.SetQueryParam(name, value);
+            }
+
+            return request;
         }
     }
 }
