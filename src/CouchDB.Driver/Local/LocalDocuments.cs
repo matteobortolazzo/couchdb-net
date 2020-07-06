@@ -7,10 +7,10 @@ using CouchDB.Driver.Query;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 
-namespace CouchDB.Driver.LocalDocuments
+namespace CouchDB.Driver.Local
 {
     /// <inheritdoc />
-    internal class LocalDocuments: ILocalDocuments
+    public class LocalDocuments: ILocalDocuments
     {
         private readonly IFlurlClient _flurlClient;
         private readonly QueryContext _queryContext;

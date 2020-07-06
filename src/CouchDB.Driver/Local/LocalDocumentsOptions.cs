@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using Newtonsoft.Json;
 
-namespace CouchDB.Driver.LocalDocuments
+namespace CouchDB.Driver.Local
 {
     public class LocalDocumentsOptions
     {

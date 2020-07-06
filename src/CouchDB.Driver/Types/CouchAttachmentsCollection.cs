@@ -7,7 +7,7 @@ using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Types
 {
-    public class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
+    public sealed class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
     {
         private readonly Dictionary<string, CouchAttachment> _attachments;
 

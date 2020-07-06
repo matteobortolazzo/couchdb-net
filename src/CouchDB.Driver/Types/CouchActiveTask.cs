@@ -8,7 +8,7 @@ namespace CouchDB.Driver.Types
     /// <summary>
     /// Represents an active task.
     /// </summary>
-    public class CouchActiveTask
+    public sealed class CouchActiveTask
     {
         /// <summary>
         /// Processes changes.

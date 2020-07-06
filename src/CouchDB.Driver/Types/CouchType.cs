@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents a document field type.
     /// </summary>
-    public class CouchType
+    public sealed class CouchType
     {
         /// <summary>
         /// Represents the CouchDB type value.

@@ -3,7 +3,7 @@
 namespace CouchDB.Driver.DTOs
 {
     #nullable disable
-    public class AttachmentResult
+    internal class AttachmentResult
     {
         [JsonProperty("id")]
         public string Id { get; set; }

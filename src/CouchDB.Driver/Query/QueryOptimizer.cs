@@ -25,7 +25,7 @@ namespace CouchDB.Driver.Query
 
         public Expression Optimize(Expression e)
         {
-            e = Local.PartialEval(e);
+            e = LocalExpressions.PartialEval(e);
             return Visit(e);
         }
 

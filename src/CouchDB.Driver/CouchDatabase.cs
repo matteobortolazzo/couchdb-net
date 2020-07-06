@@ -18,7 +18,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
-using CouchDB.Driver.LocalDocuments;
+using CouchDB.Driver.Local;
 using CouchDB.Driver.Query;
 using Newtonsoft.Json;
 
@@ -58,7 +58,7 @@ namespace CouchDB.Driver
             _queryProvider = new CouchQueryProvider(queryCompiler);
 
             Security = new CouchSecurity(NewRequest);
-            LocalDocuments = new LocalDocuments.LocalDocuments(flurlClient, queryContext);
+            LocalDocuments = new LocalDocuments(flurlClient, queryContext);
         }
 
         #region Find

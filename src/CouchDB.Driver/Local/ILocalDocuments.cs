@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.LocalDocuments
+namespace CouchDB.Driver.Local
 {
     /// <summary>
     /// Perform operations on local (non-replicating) documents.

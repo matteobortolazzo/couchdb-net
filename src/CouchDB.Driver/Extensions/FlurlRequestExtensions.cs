@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using CouchDB.Driver.LocalDocuments;
 using CouchDB.Driver.Shared;
 using Flurl.Http;
 using Flurl.Http.Content;

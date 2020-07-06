@@ -2,7 +2,7 @@
 using CouchDB.Driver.Types;
 using Newtonsoft.Json;
 
-namespace CouchDB.Driver.LocalDocuments
+namespace CouchDB.Driver.Local
 {
 #nullable disable
     internal class LocalDocumentsResult

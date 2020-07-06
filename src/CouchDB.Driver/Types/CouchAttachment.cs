@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
 {
-    public class CouchAttachment
+    public sealed class CouchAttachment
     {
         [JsonIgnore]
         internal string DocumentId { get; set; }

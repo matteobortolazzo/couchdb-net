@@ -6,7 +6,7 @@ using CouchDB.Driver.Shared;
 
 namespace CouchDB.Driver.Helpers
 {
-    internal static class Local
+    internal static class LocalExpressions
     {
         /// <summary>
         /// Performs evaluation & replacement of independent sub-trees
