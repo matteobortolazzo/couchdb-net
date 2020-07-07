@@ -34,13 +34,6 @@ namespace CouchDB.Driver.Local
         public string? EndKeyDocId { get; set; }
         
         /// <summary>
-        /// Include the full content of the local documents in the return.
-        /// </summary>
-        [JsonProperty("include_docs")]
-        [DefaultValue(false)]
-        public bool IncludeDocs { get; set; }
-
-        /// <summary>
         /// Specifies whether the specified end key should be included in the result.
         /// </summary>
         [JsonProperty("include_docs")]

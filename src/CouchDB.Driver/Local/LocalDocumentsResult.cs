@@ -8,7 +8,7 @@ namespace CouchDB.Driver.Local
     internal class LocalDocumentsResult
     {
         [JsonProperty("rows")]
-        public IList<LocalCouchDocument> Rows { get; set; }
+        public IList<CouchDocumentInfo> Rows { get; set; }
     }
 #nullable enable
 }

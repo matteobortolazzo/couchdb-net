@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
@@ -10,7 +11,7 @@ using Flurl.Http;
 namespace CouchDB.Driver.Local
 {
     /// <inheritdoc />
-    public class LocalDocuments: ILocalDocuments
+    public class LocalDocuments : ILocalDocuments
     {
         private readonly IFlurlClient _flurlClient;
         private readonly QueryContext _queryContext;
@@ -22,7 +23,8 @@ namespace CouchDB.Driver.Local
         }
 
         /// <inheritdoc />
-        public async Task<IList<LocalCouchDocument>> GetAsync(LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default)
+        public async Task<IList<CouchDocumentInfo>> GetAsync(LocalDocumentsOptions? options = null,
+            CancellationToken cancellationToken = default)
         {
             IFlurlRequest request = NewRequest();
 
@@ -40,7 +42,8 @@ namespace CouchDB.Driver.Local
         }
 
         /// <inheritdoc />
-        public async Task<IList<LocalCouchDocument>> GetAsync(IReadOnlyCollection<string> keys, LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default)
+        public async Task<IList<CouchDocumentInfo>> GetAsync(IReadOnlyCollection<string> keys,
+            LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default)
         {
             IFlurlRequest request = NewRequest();
 
@@ -59,28 +62,42 @@ namespace CouchDB.Driver.Local
         }
 
         /// <inheritdoc />
-        public Task<TSource> GetAsync<TSource>(string id, CancellationToken cancellationToken = default) where TSource : LocalCouchDocument
-            => NewRequest()
-                .AppendPathSegments("_local", id)
-                .GetJsonAsync<TSource>(cancellationToken)
-                .SendRequestAsync();
-
-        /// <inheritdoc />
-        public Task AddAsync<TSource>(TSource document, CancellationToken cancellationToken = default) where TSource : LocalCouchDocument
+        public Task<TSource> GetAsync<TSource>(string id, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
         {
-            Check.NotNull(document, nameof(document));
+            Check.NotNull(id, nameof(id));
             return NewRequest()
-                .AppendPathSegments("_local", document.Id)
-                .PostJsonAsync(document, cancellationToken)
+                .AppendPathSegments(GetLocalId(id))
+                .GetJsonAsync<TSource>(cancellationToken)
                 .SendRequestAsync();
         }
 
         /// <inheritdoc />
-        public Task DeleteAsync(string id, CancellationToken cancellationToken = default)
-            => NewRequest()
-                .AppendPathSegments("_local", id)
+        public Task CreateOrUpdateAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
+        {
+            Check.NotNull(document, nameof(document));
+            return NewRequest()
+                .AppendPathSegments(GetLocalId(document.Id))
+                .PutJsonAsync(document, cancellationToken)
+                .SendRequestAsync();
+        }
+
+        /// <inheritdoc />
+        public Task DeleteAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
+        {
+            Check.NotNull(document, nameof(document));
+            return NewRequest()
+                .AppendPathSegments(GetLocalId(document.Id))
                 .DeleteAsync(cancellationToken)
                 .SendRequestAsync();
+        }
+
+        private static string GetLocalId(string id)
+            => !id.Contains("_local/", StringComparison.InvariantCultureIgnoreCase)
+                ? $"_local/{id}"
+                : id;
 
         private IFlurlRequest NewRequest()
         {

@@ -19,7 +19,7 @@ namespace CouchDB.Driver.Local
         ///     A task that represents the asynchronous operation.
         ///     The task result contains basic info about the documents.
         /// </returns>
-        Task<IList<LocalCouchDocument>> GetAsync(LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
+        Task<IList<CouchDocumentInfo>> GetAsync(LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Return all documents with the supplied keys.
@@ -31,7 +31,7 @@ namespace CouchDB.Driver.Local
         ///     A task that represents the asynchronous operation.
         ///     The task result contains basic info about the documents.
         /// </returns>
-        Task<IList<LocalCouchDocument>> GetAsync(IReadOnlyCollection<string> keys, LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
+        Task<IList<CouchDocumentInfo>> GetAsync(IReadOnlyCollection<string> keys, LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the specified local document. 
@@ -44,28 +44,30 @@ namespace CouchDB.Driver.Local
         ///     The task result contains the document content.
         /// </returns>
         Task<TSource> GetAsync<TSource>(string id, CancellationToken cancellationToken = default)
-            where TSource: LocalCouchDocument;
+            where TSource: CouchDocument;
 
         /// <summary>
         /// Stores the specified local document. 
         /// </summary>
         /// <typeparam name="TSource">The type of the document.</typeparam>
-        /// <param name="document"></param>
+        /// <param name="document">The document to create or update.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation.
         /// </returns>
-        Task AddAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
-            where TSource : LocalCouchDocument;
+        Task CreateOrUpdateAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument;
 
         /// <summary>
         /// Deletes the specified local document. 
         /// </summary>
-        /// <param name="id">The ID of the document.</param>
+        /// <typeparam name="TSource">The type of the document.</typeparam>
+        /// <param name="document">The document to delete.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>
         ///     A task that represents the asynchronous operation.
         /// </returns>
-        Task DeleteAsync(string id, CancellationToken cancellationToken = default);
+        Task DeleteAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument;
     }
 }

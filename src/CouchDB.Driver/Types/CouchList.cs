@@ -35,6 +35,7 @@ namespace CouchDB.Driver.Types
         {
             return _source.GetEnumerator();
         }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _source.GetEnumerator();
