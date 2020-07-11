@@ -1,7 +1,7 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -14,40 +14,70 @@ namespace CouchDB.Driver.ChangesFeed
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             using IMemoryOwner<byte> owner = MemoryPool<byte>.Shared.Rent();
-            var prevRemainder = string.Empty;
+            var decoder = new LinesDecoder(owner);
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                var charRead = await stream
+                var readCharCount = await stream
                     .ReadAsync(owner.Memory, cancellationToken)
                     .ConfigureAwait(false);
 
-                if (charRead == 0)
+                if (readCharCount == 0)
                 {
-                    continue;
+                    yield break;
                 }
 
-                var str = Encoding.UTF8.GetString(owner.Memory.Span[..charRead]);
+                foreach (var line in decoder.ReadLines(readCharCount))
+                {
+                    yield return line;
+                }
+            }
+        }
+
+        private class LinesDecoder
+        {
+            private readonly Decoder _uniDecoder;
+            private readonly IMemoryOwner<byte> _owner;
+            private string _remainder = string.Empty;
+
+            public LinesDecoder(IMemoryOwner<byte> owner)
+            {
+                _uniDecoder = Encoding.UTF8.GetDecoder();
+                _owner = owner;
+            }
+
+            public IEnumerable<string> ReadLines(int readCharCount)
+            {
+                Span<byte> readableSpan = _owner.Memory.Span[..readCharCount];
+                var charCount = _uniDecoder.GetCharCount(readableSpan, false);
+                var chars = new Span<char>(new char[charCount]);
+                _ = _uniDecoder.GetChars(readableSpan, chars, false);
+
+                var str = new string(chars);
                 var lines = str.Split('\n');
 
-                // If last line is empty
-                var isMessageComplete = lines[^1].Length == 0;
-                var currentRemainder = isMessageComplete
-                    ? string.Empty
-                    : lines[^1];
-
-                IEnumerable<string> filteredList = lines
-                    .Where(line => line.Length > 0 && line != currentRemainder);
-                
-                var i = 0;
-                foreach (var line in filteredList)
+                for (var i = 0; i < lines.Length; i++)
                 {
-                    yield return i++ == 0
-                        ? prevRemainder + line
-                        : line;
-                }
+                    var line = lines[i];
+                    if (line.Length == 0)
+                    {
+                        continue;
+                    }
 
-                prevRemainder = currentRemainder;
+                    if (_remainder.Length > 0)
+                    {
+                        line = _remainder + line;
+                        _remainder = string.Empty;
+                    }
+
+                    if (i == lines.Length - 1)
+                    {
+                        _remainder = line;
+                        continue;
+                    }
+
+                    yield return line;
+                }
             }
         }
     }
