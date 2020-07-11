@@ -4,9 +4,16 @@ using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Flurl.Http.Configuration;
 
 namespace CouchDB.Driver.Settings
 {
+    public interface ICouchContextConfiguration : ICouchConfiguration
+    {
+        ICouchConfiguration UseEndpoint(string endpoint);
+        ICouchConfiguration UseEndpoint(Uri endpointUri);
+    }
+
     /// <summary>
     /// Let setup
     /// </summary>
@@ -94,5 +101,12 @@ namespace CouchDB.Driver.Settings
         /// </summary>
         /// <returns>The current settings</returns>
         ICouchConfiguration DisableLogOutOnDispose();
+
+        /// <summary>
+        /// Configure the Flurl client.
+        /// </summary>
+        /// <param name="flurlSettingsAction">An action representing to configure Flurl.</param>
+        /// <returns>The current settings</returns>
+        ICouchConfiguration ConfigureFlurlClient(Action<ClientFlurlHttpSettings> flurlSettingsAction);
     }
 }

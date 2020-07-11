@@ -5,13 +5,14 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using CouchDB.Driver.Helpers;
+using Flurl.Http.Configuration;
 
 namespace CouchDB.Driver.Settings
 {
     /// <summary>
     /// A class that contains all the client settings.
     /// </summary>
-    internal class CouchSettings: ICouchConfiguration
+    internal class CouchSettings: ICouchContextConfiguration
     {
         public AuthenticationType AuthenticationType { get; private set; }
         public string? Username { get; private set; }
@@ -24,9 +25,12 @@ namespace CouchDB.Driver.Settings
         public PropertyCaseType PropertiesCase { get; private set; }
         public bool LogOutOnDispose { get; private set; }
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>? ServerCertificateCustomValidationCallback { get; private set; }
+        public Action<ClientFlurlHttpSettings>? FlurlSettingsAction { get; private set; }
+        public Uri Endpoint { get; set; } 
 
         public CouchSettings()
         {
+            Endpoint = new Uri("http://localhost:5984/");
             AuthenticationType = AuthenticationType.None;
             PluralizeEntities = true;
             DocumentsCaseType = DocumentCaseType.UnderscoreCase;
@@ -121,6 +125,24 @@ namespace CouchDB.Driver.Settings
         public ICouchConfiguration DisableLogOutOnDispose()
         {
             LogOutOnDispose = false;
+            return this;
+        }
+
+        public ICouchConfiguration ConfigureFlurlClient(Action<ClientFlurlHttpSettings> flurlSettingsAction)
+        {
+            FlurlSettingsAction = flurlSettingsAction;
+            return this;
+        }
+
+        public ICouchConfiguration UseEndpoint(string endpoint)
+        {
+            Endpoint = new Uri(endpoint);
+            return this;
+        }
+
+        public ICouchConfiguration UseEndpoint(Uri endpointUri)
+        {
+            Endpoint = endpointUri;
             return this;
         }
     }
