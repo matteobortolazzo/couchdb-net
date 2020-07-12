@@ -8,13 +8,13 @@ using System.Threading;
 
 namespace CouchDB.Driver.ChangesFeed
 {
-    internal static class StreamReaderExtensions
+    internal static class StreamExtensions
     {
         public static async IAsyncEnumerable<string> ReadLinesAsync(this Stream stream,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             using IMemoryOwner<byte> owner = MemoryPool<byte>.Shared.Rent();
-            var decoder = new LinesDecoder(owner);
+            using var decoder = new LinesDecoder(owner.Memory);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -34,26 +34,28 @@ namespace CouchDB.Driver.ChangesFeed
             }
         }
 
-        private class LinesDecoder
+        private class LinesDecoder: IDisposable
         {
             private readonly Decoder _uniDecoder;
-            private readonly IMemoryOwner<byte> _owner;
+            private readonly Memory<byte> _streamMemory;
             private string _remainder = string.Empty;
+            private readonly IMemoryOwner<char> _decodingMemory;
 
-            public LinesDecoder(IMemoryOwner<byte> owner)
+            public LinesDecoder(Memory<byte> streamMemory)
             {
                 _uniDecoder = Encoding.UTF8.GetDecoder();
-                _owner = owner;
+                _streamMemory = streamMemory;
+                _decodingMemory = MemoryPool<char>.Shared.Rent(streamMemory.Length);
             }
 
             public IEnumerable<string> ReadLines(int readCharCount)
             {
-                Span<byte> readableSpan = _owner.Memory.Span[..readCharCount];
-                var charCount = _uniDecoder.GetCharCount(readableSpan, false);
-                var chars = new Span<char>(new char[charCount]);
-                _ = _uniDecoder.GetChars(readableSpan, chars, false);
+                Span<byte> readableStreamSpan = _streamMemory.Span[..readCharCount];
+                var charCount = _uniDecoder.GetCharCount(readableStreamSpan, false);
+                _ = _uniDecoder.GetChars(readableStreamSpan, _decodingMemory.Memory.Span, false);
 
-                var str = new string(chars);
+                Span<char> decodedSpan = _decodingMemory.Memory.Span[..charCount];
+                var str = new string(decodedSpan);
                 var lines = str.Split('\n');
 
                 for (var i = 0; i < lines.Length; i++)
@@ -78,6 +80,11 @@ namespace CouchDB.Driver.ChangesFeed
 
                     yield return line;
                 }
+            }
+
+            public void Dispose()
+            {
+                _decodingMemory.Dispose();
             }
         }
     }
