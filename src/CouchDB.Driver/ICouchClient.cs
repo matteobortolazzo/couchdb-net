@@ -89,6 +89,7 @@ namespace CouchDB.Driver
         /// Deletes the database with the name type <see cref="TSource"/>.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource : CouchDocument;
 
@@ -106,6 +107,24 @@ namespace CouchDB.Driver
         /// <typeparam name="TUser">The specific type of user.</typeparam>
         /// <returns>The instance of the users database.</returns>
         ICouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser;
+
+        /// <summary>
+        /// Returns an instance of the users database.
+        /// If no users database exists, it creates it.
+        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the CouchDB database.</returns>
+        Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns an instance of the users database.
+        /// If no users database exists, it creates it.
+        /// </summary>
+        /// <typeparam name="TUser">The specific type of user.</typeparam>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the CouchDB database.</returns>
+        Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(CancellationToken cancellationToken = default) where TUser : CouchUser;
 
         /// <summary>
         /// Check if database exists.

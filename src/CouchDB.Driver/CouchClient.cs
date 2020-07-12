@@ -36,7 +36,7 @@ namespace CouchDB.Driver
         /// </summary>
         /// <param name="endpoint">URI to the CouchDB endpoint.</param>
         /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
-        public CouchClient(string endpoint, Action<ICouchConfiguration>? couchSettingsFunc = null)
+        public CouchClient(string endpoint, Action<ICouchConfigurator>? couchSettingsFunc = null)
             : this(new Uri(endpoint), couchSettingsFunc) { }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace CouchDB.Driver
         /// </summary>
         /// <param name="endpoint">URI to the CouchDB endpoint.</param>
         /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
-        public CouchClient(Uri endpoint, Action<ICouchConfiguration>? couchSettingsFunc = null)
+        public CouchClient(Uri endpoint, Action<ICouchConfigurator>? couchSettingsFunc = null)
         {
             Endpoint = endpoint;
             _settings = new CouchSettings();
@@ -204,13 +204,25 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public ICouchDatabase<CouchUser> GetUsersDatabase()
         {
-            return GetDatabase<CouchUser>(GetClassName<CouchUser>());
+            return GetDatabase<CouchUser>();
         }
 
         /// <inheritdoc />
         public ICouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser
         {
             return GetDatabase<TUser>(GetClassName<TUser>());
+        }
+
+        /// <inheritdoc />
+        public Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
+        {
+            return GetOrCreateDatabaseAsync<CouchUser>(null, null, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(CancellationToken cancellationToken = default) where TUser : CouchUser
+        {
+            return GetOrCreateDatabaseAsync<TUser>(null, null, cancellationToken);
         }
 
         #endregion

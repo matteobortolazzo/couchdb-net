@@ -12,7 +12,7 @@ namespace CouchDB.Driver.Settings
     /// <summary>
     /// A class that contains all the client settings.
     /// </summary>
-    internal class CouchSettings: ICouchContextConfiguration
+    internal class CouchSettings: ICouchContextConfigurator
     {
         public AuthenticationType AuthenticationType { get; private set; }
         public string? Username { get; private set; }
@@ -27,6 +27,7 @@ namespace CouchDB.Driver.Settings
         public Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>? ServerCertificateCustomValidationCallback { get; private set; }
         public Action<ClientFlurlHttpSettings>? FlurlSettingsAction { get; private set; }
         public Uri Endpoint { get; set; } 
+        public bool CheckDatabaseExists { get; private set; } 
 
         public CouchSettings()
         {
@@ -38,7 +39,7 @@ namespace CouchDB.Driver.Settings
             LogOutOnDispose = true;
         }
 
-        public ICouchConfiguration UseBasicAuthentication(string username, string password)
+        public ICouchConfigurator UseBasicAuthentication(string username, string password)
         {
             Check.NotNull(username, nameof(username));
             Check.NotNull(password, nameof(password));
@@ -49,7 +50,7 @@ namespace CouchDB.Driver.Settings
             return this;
         }
 
-        public ICouchConfiguration UseCookieAuthentication(string username, string password, int cookieDuration = 10)
+        public ICouchConfigurator UseCookieAuthentication(string username, string password, int cookieDuration = 10)
         {
             Check.NotNull(username, nameof(username));
             Check.NotNull(password, nameof(password));
@@ -66,7 +67,7 @@ namespace CouchDB.Driver.Settings
             return this;
         }
 
-        public ICouchConfiguration UseProxyAuthentication(string username, IReadOnlyCollection<string> roles, string? token = null)
+        public ICouchConfigurator UseProxyAuthentication(string username, IReadOnlyCollection<string> roles, string? token = null)
         {
             Check.NotNull(username, nameof(username));
             Check.NotNull(roles, nameof(roles));
@@ -78,25 +79,25 @@ namespace CouchDB.Driver.Settings
             return this;
         }
 
-        public ICouchConfiguration UseJwtAuthentication(string token)
+        public ICouchConfigurator UseJwtAuthentication(string token)
         {
             return UseJwtAuthentication(() => Task.FromResult(token));
         }
 
-        public ICouchConfiguration UseJwtAuthentication(Func<Task<string>> tokenGenerator)
+        public ICouchConfigurator UseJwtAuthentication(Func<Task<string>> tokenGenerator)
         {
             AuthenticationType = AuthenticationType.Jwt;
             JwtTokenGenerator = tokenGenerator;
             return this;
         }
 
-        public ICouchConfiguration IgnoreCertificateValidation()
+        public ICouchConfigurator IgnoreCertificateValidation()
         {
             ServerCertificateCustomValidationCallback = (m,x,c,s) => true;
             return this;
         }
 
-        public ICouchConfiguration ConfigureCertificateValidation(Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> 
+        public ICouchConfigurator ConfigureCertificateValidation(Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool> 
             serverCertificateCustomValidationCallback)
         {
             Check.NotNull(serverCertificateCustomValidationCallback, nameof(serverCertificateCustomValidationCallback));
@@ -104,45 +105,51 @@ namespace CouchDB.Driver.Settings
             return this;
         }
 
-        public ICouchConfiguration DisableDocumentPluralization()
+        public ICouchConfigurator DisableDocumentPluralization()
         {
             PluralizeEntities = false;
             return this;
         }
 
-        public ICouchConfiguration SetDocumentCase(DocumentCaseType type)
+        public ICouchConfigurator SetDocumentCase(DocumentCaseType type)
         {
             DocumentsCaseType = type;
             return this;
         }
 
-        public ICouchConfiguration SetPropertyCase(PropertyCaseType type)
+        public ICouchConfigurator SetPropertyCase(PropertyCaseType type)
         {
             PropertiesCase = type;
             return this;
         }
 
-        public ICouchConfiguration DisableLogOutOnDispose()
+        public ICouchConfigurator DisableLogOutOnDispose()
         {
             LogOutOnDispose = false;
             return this;
         }
 
-        public ICouchConfiguration ConfigureFlurlClient(Action<ClientFlurlHttpSettings> flurlSettingsAction)
+        public ICouchConfigurator ConfigureFlurlClient(Action<ClientFlurlHttpSettings> flurlSettingsAction)
         {
             FlurlSettingsAction = flurlSettingsAction;
             return this;
         }
 
-        public ICouchConfiguration UseEndpoint(string endpoint)
+        public ICouchContextConfigurator UseEndpoint(string endpoint)
         {
             Endpoint = new Uri(endpoint);
             return this;
         }
 
-        public ICouchConfiguration UseEndpoint(Uri endpointUri)
+        public ICouchContextConfigurator UseEndpoint(Uri endpointUri)
         {
             Endpoint = endpointUri;
+            return this;
+        }
+
+        public ICouchContextConfigurator EnsureDatabaseExists()
+        {
+            CheckDatabaseExists = true;
             return this;
         }
     }

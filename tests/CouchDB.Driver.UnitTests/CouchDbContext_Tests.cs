@@ -13,9 +13,9 @@ namespace CouchDB.Driver.UnitTests
         {
             public CouchDatabase<Rebel> Rebels { get; set; }
 
-            protected override void OnConfiguring(ICouchContextConfiguration configuration)
+            protected override void OnConfiguring(ICouchContextConfigurator configurator)
             {
-                configuration
+                configurator
                     .UseEndpoint("http://localhost:5984/")
                     .UseBasicAuthentication("admin", "admin");
             }
