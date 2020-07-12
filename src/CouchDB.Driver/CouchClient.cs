@@ -36,24 +36,32 @@ namespace CouchDB.Driver
         /// </summary>
         /// <param name="endpoint">URI to the CouchDB endpoint.</param>
         /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
-        /// <param name="flurlSettingsFunc">A function to configure the HTTP client.</param>
-        public CouchClient(string endpoint, Action<ICouchConfiguration>? couchSettingsFunc = null,
-            Action<ClientFlurlHttpSettings>? flurlSettingsFunc = null): this(new Uri(endpoint), couchSettingsFunc, flurlSettingsFunc) { }
+        public CouchClient(string endpoint, Action<ICouchConfigurator>? couchSettingsFunc = null)
+            : this(new Uri(endpoint), couchSettingsFunc) { }
 
         /// <summary>
         /// Creates a new CouchDB client.
         /// </summary>
         /// <param name="endpoint">URI to the CouchDB endpoint.</param>
         /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
-        /// <param name="flurlSettingsFunc">A function to configure the HTTP client.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
-        public CouchClient(Uri endpoint, Action<ICouchConfiguration>? couchSettingsFunc = null, Action<ClientFlurlHttpSettings>? flurlSettingsFunc = null)
+        public CouchClient(Uri endpoint, Action<ICouchConfigurator>? couchSettingsFunc = null)
         {
+            Endpoint = endpoint;
             _settings = new CouchSettings();
             couchSettingsFunc?.Invoke(_settings);
+            _flurlClient = GetConfiguredClient();
+        }
 
-            Endpoint = endpoint;
-            _flurlClient = new FlurlClient(endpoint.AbsoluteUri).Configure(s =>
+        internal CouchClient(CouchSettings couchSettings)
+        {
+            Endpoint = couchSettings.Endpoint;
+            _settings = couchSettings;
+            _flurlClient = GetConfiguredClient();
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
+        private IFlurlClient GetConfiguredClient() =>
+            new FlurlClient(Endpoint.AbsoluteUri).Configure(s =>
             {
                 s.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
                 {
@@ -65,9 +73,8 @@ namespace CouchDB.Driver
                     s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
                 }
 
-                flurlSettingsFunc?.Invoke(s);
+                _settings.FlurlSettingsAction?.Invoke(s);
             });
-        }
 
         #region Operations
 
@@ -197,13 +204,25 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public ICouchDatabase<CouchUser> GetUsersDatabase()
         {
-            return GetDatabase<CouchUser>(GetClassName<CouchUser>());
+            return GetDatabase<CouchUser>();
         }
 
         /// <inheritdoc />
         public ICouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser
         {
             return GetDatabase<TUser>(GetClassName<TUser>());
+        }
+
+        /// <inheritdoc />
+        public Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
+        {
+            return GetOrCreateDatabaseAsync<CouchUser>(null, null, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(CancellationToken cancellationToken = default) where TUser : CouchUser
+        {
+            return GetOrCreateDatabaseAsync<TUser>(null, null, cancellationToken);
         }
 
         #endregion

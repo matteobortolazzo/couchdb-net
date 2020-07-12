@@ -4,13 +4,14 @@ using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Flurl.Http.Configuration;
 
 namespace CouchDB.Driver.Settings
 {
     /// <summary>
-    /// Let setup
+    /// Configure how the driver behave
     /// </summary>
-    public interface ICouchConfiguration
+    public interface ICouchConfigurator
     {
         /// <summary>
         /// Enables basic authentication. 
@@ -18,8 +19,8 @@ namespace CouchDB.Driver.Settings
         /// </summary>
         /// <param name="username">Server username.</param>
         /// <param name="password">Server password.</param>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration UseBasicAuthentication(string username, string password);
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator UseBasicAuthentication(string username, string password);
 
         /// <summary>
         /// Enables cookie authentication. 
@@ -28,8 +29,8 @@ namespace CouchDB.Driver.Settings
         /// <param name="username">Server username.</param>
         /// <param name="password">Server password.</param>
         /// <param name="cookieDuration">Cookie duration in minutes.</param>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration UseCookieAuthentication(string username, string password, int cookieDuration = 10);
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator UseCookieAuthentication(string username, string password, int cookieDuration = 10);
 
         /// <summary>
         /// Enables proxy authentication. 
@@ -37,62 +38,69 @@ namespace CouchDB.Driver.Settings
         /// <param name="username">Server username.</param>
         /// <param name="roles">Server roles.</param>
         /// <param name="token">Computed authentication token.</param>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration UseProxyAuthentication(string username, IReadOnlyCollection<string> roles, string? token = null);
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator UseProxyAuthentication(string username, IReadOnlyCollection<string> roles, string? token = null);
 
         /// <summary>
         /// Enables JWT authentication. 
         /// </summary>
         /// <param name="token">The JWT token.</param>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration UseJwtAuthentication(string token);
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator UseJwtAuthentication(string token);
 
         /// <summary>
         /// Enables JWT authentication. The function is called before each call.
         /// </summary>
         /// <param name="tokenGenerator">Function that returns a JWT token asynchronous.</param>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration UseJwtAuthentication(Func<Task<string>> tokenGenerator);
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator UseJwtAuthentication(Func<Task<string>> tokenGenerator);
 
         /// <summary>
         /// Removes any SSL certificate validation.
         /// </summary>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration IgnoreCertificateValidation();
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator IgnoreCertificateValidation();
 
         /// <summary>
         /// Sets a custom SSL validation rule.
         /// </summary>
         /// <param name="serverCertificateCustomValidationCallback">SSL validation function</param>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration ConfigureCertificateValidation(
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator ConfigureCertificateValidation(
             Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>
                 serverCertificateCustomValidationCallback);
 
         /// <summary>
         /// Disables documents pluralization in requests.
         /// </summary>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration DisableDocumentPluralization();
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator DisableDocumentPluralization();
 
         /// <summary>
         /// Sets the format case for documents. Default: underscore_case.
         /// </summary>
         /// <param name="type">The type of case format.</param>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration SetDocumentCase(DocumentCaseType type);
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator SetDocumentCase(DocumentCaseType type);
 
         /// <summary>
         /// Sets the format case for properties. Default: camelCase.
         /// </summary>
         /// <param name="type">The type of case format.</param>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration SetPropertyCase(PropertyCaseType type);
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator SetPropertyCase(PropertyCaseType type);
 
         /// <summary>
         /// Disables log out on client dispose. 
         /// </summary>
-        /// <returns>The current settings</returns>
-        ICouchConfiguration DisableLogOutOnDispose();
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator DisableLogOutOnDispose();
+
+        /// <summary>
+        /// Configure the Flurl client.
+        /// </summary>
+        /// <param name="flurlSettingsAction">An action representing to configure Flurl.</param>
+        /// <returns>The instance to chain settings.</returns>
+        ICouchConfigurator ConfigureFlurlClient(Action<ClientFlurlHttpSettings> flurlSettingsAction);
     }
 }
