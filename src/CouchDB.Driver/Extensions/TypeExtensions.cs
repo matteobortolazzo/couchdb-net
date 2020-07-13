@@ -1,16 +1,16 @@
-﻿using CouchDB.Driver.Settings;
-using Humanizer;
+﻿using Humanizer;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.Extensions
 {
     internal static class TypeExtensions
     {
-        public static string GetName(this Type t, CouchSettings settings)
+        public static string GetName(this Type t, CouchOptions options)
         {
             var jsonObjectAttributes = t.GetCustomAttributes(typeof(JsonObjectAttribute), true);
             JsonObjectAttribute? jsonObject = jsonObjectAttributes.Length > 0
@@ -23,11 +23,11 @@ namespace CouchDB.Driver.Extensions
             }
 
             var typeName = t.Name;
-            if (settings.PluralizeEntities)
+            if (options.PluralizeEntities)
             {
                 typeName = typeName.Pluralize();
             }
-            return settings.DocumentsCaseType.Convert(typeName);
+            return options.DocumentsCaseType.Convert(typeName);
         }
 
         public static Type GetSequenceType(this Type type)

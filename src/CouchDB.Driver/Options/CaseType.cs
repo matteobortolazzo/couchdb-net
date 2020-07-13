@@ -1,7 +1,7 @@
 ﻿using System;
 using CouchDB.Driver.Helpers;
 
-namespace CouchDB.Driver.Settings
+namespace CouchDB.Driver.Options
 {
     /// <summary>
     /// A helper class for specify a case format for strings.
@@ -18,14 +18,17 @@ namespace CouchDB.Driver.Settings
             Check.NotNull(value, nameof(value));
             Value = value;
         }
+
         internal virtual string Convert(string str)
         {
             throw new NotImplementedException();
         }
+
         public override bool Equals(object obj)
         {
             return obj is CaseType item && Value == item.Value;
         }
+
         public override int GetHashCode()
         {
             return Value.GetHashCode(StringComparison.InvariantCultureIgnoreCase);

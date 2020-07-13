@@ -1,6 +1,5 @@
 ﻿using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
-using CouchDB.Driver.Settings;
 using Flurl.Http;
 using System;
 using System.Collections.Generic;
@@ -9,6 +8,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver
 {
@@ -23,17 +23,17 @@ namespace CouchDB.Driver
             {
                 return;
             }
-            switch (_settings.AuthenticationType)
+            switch (_options.AuthenticationType)
             {
                 case AuthenticationType.None:
                     break;
                 case AuthenticationType.Basic:
-                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithBasicAuth(_settings.Username, _settings.Password);
+                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithBasicAuth(_options.Username, _options.Password);
                     break;
                 case AuthenticationType.Cookie:
                     var isTokenExpired =
                         !_cookieCreationDate.HasValue ||
-                        _cookieCreationDate.Value.AddMinutes(_settings.CookiesDuration) < DateTime.Now;
+                        _cookieCreationDate.Value.AddMinutes(_options.CookiesDuration) < DateTime.Now;
                     if (isTokenExpired)
                     {
                         await LoginAsync().ConfigureAwait(false);
@@ -41,23 +41,23 @@ namespace CouchDB.Driver
                     httpCall.FlurlRequest = httpCall.FlurlRequest.EnableCookies().WithCookie("AuthSession", _cookieToken);
                     break;
                 case AuthenticationType.Proxy:
-                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("X-Auth-CouchDB-UserName", _settings.Username)
-                        .WithHeader("X-Auth-CouchDB-Roles", string.Join(",", _settings.Roles));
-                    if (_settings.Password != null)
+                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("X-Auth-CouchDB-UserName", _options.Username)
+                        .WithHeader("X-Auth-CouchDB-Roles", string.Join(",", _options.Roles));
+                    if (_options.Password != null)
                     {
-                        httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("X-Auth-CouchDB-Token", _settings.Password);
+                        httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("X-Auth-CouchDB-Token", _options.Password);
                     }
                     break;
                 case AuthenticationType.Jwt:
-                    if (_settings.JwtTokenGenerator == null)
+                    if (_options.JwtTokenGenerator == null)
                     {
                         throw new InvalidOperationException("JWT generation cannot be null.");
                     }
-                    var jwt = await _settings.JwtTokenGenerator().ConfigureAwait(false);
+                    var jwt = await _options.JwtTokenGenerator().ConfigureAwait(false);
                     httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("Authorization", jwt);
                     break;
                 default:
-                    throw new NotSupportedException($"Authentication of type {_settings.AuthenticationType} is not supported.");
+                    throw new NotSupportedException($"Authentication of type {_options.AuthenticationType} is not supported.");
             }
         }
 
@@ -67,8 +67,8 @@ namespace CouchDB.Driver
                 .AppendPathSegment("_session")
                 .PostJsonAsync(new
                 {
-                    name = _settings.Username,
-                    password = _settings.Password
+                    name = _options.Username,
+                    password = _options.Password
                 })
                 .ConfigureAwait(false);
 

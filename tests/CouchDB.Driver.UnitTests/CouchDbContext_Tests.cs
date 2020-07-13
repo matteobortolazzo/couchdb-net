@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Settings;
+using CouchDB.Driver.Options;
 using CouchDB.Driver.UnitTests.Models;
 using Flurl.Http.Testing;
 using Xunit;
@@ -9,13 +9,13 @@ namespace CouchDB.Driver.UnitTests
 {
     public class CouchDbContext_Tests
     {
-        private class TestContext: CouchDbContext
+        private class TestContext: CouchContext
         {
             public CouchDatabase<Rebel> Rebels { get; set; }
 
-            protected override void OnConfiguring(ICouchContextConfigurator configurator)
+            protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
             {
-                configurator
+                optionsBuilder
                     .UseEndpoint("http://localhost:5984/")
                     .UseBasicAuthentication("admin", "admin");
             }

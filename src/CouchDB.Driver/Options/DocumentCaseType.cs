@@ -1,7 +1,7 @@
 ﻿using System;
 using Humanizer;
 
-namespace CouchDB.Driver.Settings
+namespace CouchDB.Driver.Options
 {
     /// <summary>
     /// A helper class for specify a case format for documents. 

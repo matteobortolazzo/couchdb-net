@@ -3,7 +3,6 @@ using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Security;
-using CouchDB.Driver.Settings;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using System;
@@ -19,6 +18,7 @@ using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
 using CouchDB.Driver.Local;
+using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using Newtonsoft.Json;
 
@@ -33,7 +33,7 @@ namespace CouchDB.Driver
     {
         private readonly IAsyncQueryProvider _queryProvider;
         private readonly IFlurlClient _flurlClient;
-        private readonly CouchSettings _settings;
+        private readonly CouchOptions _options;
         private readonly QueryContext _queryContext;
 
         /// <inheritdoc />
@@ -45,14 +45,14 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public ILocalDocuments LocalDocuments { get; }
 
-        internal CouchDatabase(IFlurlClient flurlClient, CouchSettings settings, QueryContext queryContext)
+        internal CouchDatabase(IFlurlClient flurlClient, CouchOptions options, QueryContext queryContext)
         {
             _flurlClient = flurlClient;
-            _settings = settings;
+            _options = options;
             _queryContext = queryContext;
 
             var queryOptimizer = new QueryOptimizer();
-            var queryTranslator = new QueryTranslator(settings);
+            var queryTranslator = new QueryTranslator(options);
             var querySender = new QuerySender(flurlClient, queryContext);
             var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender);
             _queryProvider = new CouchQueryProvider(queryCompiler);
@@ -372,7 +372,7 @@ namespace CouchDB.Driver
             return filter == null
                 ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false)
-                : await request.QueryWithFilterAsync<TSource>(_settings, filter, cancellationToken)
+                : await request.QueryWithFilterAsync<TSource>(_options, filter, cancellationToken)
                     .ConfigureAwait(false);
         }
 
@@ -394,7 +394,7 @@ namespace CouchDB.Driver
             await using Stream stream = filter == null
                 ? await request.GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false)
-                : await request.QueryContinuousWithFilterAsync<TSource>(_settings, filter, cancellationToken)
+                : await request.QueryContinuousWithFilterAsync<TSource>(_options, filter, cancellationToken)
                     .ConfigureAwait(false);
             
             await foreach (var line in stream.ReadLinesAsync(cancellationToken))

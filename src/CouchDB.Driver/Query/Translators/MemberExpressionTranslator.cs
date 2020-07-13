@@ -18,7 +18,7 @@ namespace CouchDB.Driver.Query
 
                 return jsonProperty != null
                     ? jsonProperty.PropertyName
-                    : _settings.PropertiesCase.Convert(memberInfo.Name);
+                    : _options.PropertiesCase.Convert(memberInfo.Name);
             }
 
             var members = new List<string> { GetPropertyName(m.Member) };

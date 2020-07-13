@@ -1,4 +1,4 @@
-﻿namespace CouchDB.Driver.Settings
+﻿namespace CouchDB.Driver.Options
 {
     internal enum AuthenticationType
     {

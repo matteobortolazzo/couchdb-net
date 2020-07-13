@@ -21,6 +21,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.UnitTests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.E2ETests", "..\tests\CouchDB.Driver.E2ETests\CouchDB.Driver.E2ETests.csproj", "{F382E261-4BFD-4F99-90FB-1DC23B93FB80}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Driver.DependencyInjection", "CouchDB.Driver.DependencyInjection\CouchDB.Driver.DependencyInjection.csproj", "{0E141FCF-9EF4-4F33-A050-07E869AF816A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Driver.Example", "CouchDB.Driver.Example\CouchDB.Driver.Example.csproj", "{38ED2F22-B238-469F-9136-C384D9A7FFEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{F382E261-4BFD-4F99-90FB-1DC23B93FB80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F382E261-4BFD-4F99-90FB-1DC23B93FB80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F382E261-4BFD-4F99-90FB-1DC23B93FB80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E141FCF-9EF4-4F33-A050-07E869AF816A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E141FCF-9EF4-4F33-A050-07E869AF816A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E141FCF-9EF4-4F33-A050-07E869AF816A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E141FCF-9EF4-4F33-A050-07E869AF816A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38ED2F22-B238-469F-9136-C384D9A7FFEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38ED2F22-B238-469F-9136-C384D9A7FFEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38ED2F22-B238-469F-9136-C384D9A7FFEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38ED2F22-B238-469F-9136-C384D9A7FFEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +58,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1B136529-B659-49B3-9974-11C6D43CC9A0} = {17AFFCE7-6EA4-4036-9885-4448FC315C57}
 		{F382E261-4BFD-4F99-90FB-1DC23B93FB80} = {17AFFCE7-6EA4-4036-9885-4448FC315C57}
+		{38ED2F22-B238-469F-9136-C384D9A7FFEB} = {17AFFCE7-6EA4-4036-9885-4448FC315C57}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B6B9CD2D-85AC-498B-9ED4-38F20AC234C5}

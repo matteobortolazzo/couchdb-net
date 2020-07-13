@@ -1,15 +1,15 @@
 ﻿using CouchDB.Driver.E2E.Models;
-using CouchDB.Driver.Settings;
+using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.E2ETests
 {
-    public class TestContext : CouchDbContext
+    public class TestContext : CouchContext
     {
         public CouchDatabase<Rebel> Rebels { get; set; }
 
-        protected override void OnConfiguring(ICouchContextConfigurator configurator)
+        protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
         {
-            configurator
+            optionsBuilder
                 .UseEndpoint("http://localhost:5984/")
                 .EnsureDatabaseExists()
                 .UseBasicAuthentication(username: "admin", password: "admin");

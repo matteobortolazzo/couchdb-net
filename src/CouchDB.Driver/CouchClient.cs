@@ -8,13 +8,13 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
-using CouchDB.Driver.Settings;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
 using System.Threading;
+using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 
 namespace CouchDB.Driver
@@ -26,7 +26,7 @@ namespace CouchDB.Driver
     {
         private DateTime? _cookieCreationDate;
         private string? _cookieToken;
-        private readonly CouchSettings _settings;
+        private readonly CouchOptions _options;
         private readonly IFlurlClient _flurlClient;
         private readonly string[] _systemDatabases = { "_users", "_replicator", "_global_changes" };
         public Uri Endpoint { get; }
@@ -35,27 +35,52 @@ namespace CouchDB.Driver
         /// Creates a new CouchDB client.
         /// </summary>
         /// <param name="endpoint">URI to the CouchDB endpoint.</param>
-        /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
-        public CouchClient(string endpoint, Action<ICouchConfigurator>? couchSettingsFunc = null)
+        /// <param name="couchSettingsFunc">A function to configure options.</param>
+        public CouchClient(string endpoint, Action<CouchOptionsBuilder>? couchSettingsFunc = null)
             : this(new Uri(endpoint), couchSettingsFunc) { }
 
         /// <summary>
         /// Creates a new CouchDB client.
         /// </summary>
         /// <param name="endpoint">URI to the CouchDB endpoint.</param>
-        /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
-        public CouchClient(Uri endpoint, Action<ICouchConfigurator>? couchSettingsFunc = null)
+        /// <param name="couchSettingsFunc">A function to configure options.</param>
+        public CouchClient(Uri endpoint, Action<CouchOptionsBuilder>? couchSettingsFunc = null)
         {
+            var optionsBuilder = new CouchOptionsBuilder();
+            couchSettingsFunc?.Invoke(optionsBuilder);
+            _options = optionsBuilder.Options;
             Endpoint = endpoint;
-            _settings = new CouchSettings();
-            couchSettingsFunc?.Invoke(_settings);
             _flurlClient = GetConfiguredClient();
         }
 
-        internal CouchClient(CouchSettings couchSettings)
+        /// <summary>
+        /// Creates a new CouchDB client.
+        /// </summary>
+        /// <param name="couchSettingsFunc">A function to configure options.</param>
+        public CouchClient(Action<CouchOptionsBuilder>? couchSettingsFunc = null)
         {
-            Endpoint = couchSettings.Endpoint;
-            _settings = couchSettings;
+            var optionsBuilder = new CouchOptionsBuilder();
+            couchSettingsFunc?.Invoke(optionsBuilder);
+
+            if (optionsBuilder.Options.Endpoint == null)
+            {
+                throw new InvalidOperationException("Database endpoint must be set.");
+            }
+
+            _options = optionsBuilder.Options;
+            Endpoint = _options.Endpoint;
+            _flurlClient = GetConfiguredClient();
+        }
+
+        internal CouchClient(CouchOptions options)
+        {
+            if (options.Endpoint == null)
+            {
+                throw new InvalidOperationException("Database endpoint must be set.");
+            }
+
+            _options = options;
+            Endpoint = _options.Endpoint;
             _flurlClient = GetConfiguredClient();
         }
 
@@ -65,15 +90,15 @@ namespace CouchDB.Driver
             {
                 s.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
                 {
-                    ContractResolver = new CouchContractResolver(_settings.PropertiesCase)
+                    ContractResolver = new CouchContractResolver(_options.PropertiesCase)
                 });
                 s.BeforeCallAsync = OnBeforeCallAsync;
-                if (_settings.ServerCertificateCustomValidationCallback != null)
+                if (_options.ServerCertificateCustomValidationCallback != null)
                 {
-                    s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
+                    s.HttpClientFactory = new CertClientFactory(_options.ServerCertificateCustomValidationCallback);
                 }
 
-                _settings.FlurlSettingsAction?.Invoke(s);
+                _options.ClientFlurlHttpSettingsAction?.Invoke(s);
             });
 
         #region Operations
@@ -85,7 +110,7 @@ namespace CouchDB.Driver
         {
             CheckDatabaseName(database);
             var queryContext = new QueryContext(Endpoint, database);
-            return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
+            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
         }
 
         /// <inheritdoc />
@@ -99,7 +124,7 @@ namespace CouchDB.Driver
             
             if (response.IsSuccessStatusCode)
             {
-                return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
+                return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
             }
 
             if (response.StatusCode == HttpStatusCode.PreconditionFailed)
@@ -121,7 +146,7 @@ namespace CouchDB.Driver
 
             if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.PreconditionFailed)
             {
-                return new CouchDatabase<TSource>(_flurlClient, _settings, queryContext);
+                return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
             }
 
             throw new CouchException($"Something wrong happened while creating database {database}.");
@@ -311,7 +336,7 @@ namespace CouchDB.Driver
         /// </summary>
         public async ValueTask DisposeAsync()
         {
-            if (_settings.AuthenticationType == AuthenticationType.Cookie && _settings.LogOutOnDispose)
+            if (_options.AuthenticationType == AuthenticationType.Cookie && _options.LogOutOnDispose)
             {
                 await LogoutAsync().ConfigureAwait(false);
             }
@@ -323,7 +348,7 @@ namespace CouchDB.Driver
         private string GetClassName<TSource>()
         {
             Type type = typeof(TSource);
-            return type.GetName(_settings);
+            return type.GetName(_options);
         }
     }
 }

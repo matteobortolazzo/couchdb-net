@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using CouchDB.Driver.Settings;
+using CouchDB.Driver.Options;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Extensions

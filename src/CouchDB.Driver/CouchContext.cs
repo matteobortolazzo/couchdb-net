@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using CouchDB.Driver.Settings;
+using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver
 {
-    public abstract class CouchDbContext : IAsyncDisposable
+    public abstract class CouchContext : IAsyncDisposable
     {
         public ICouchClient Client { get; }
-        protected abstract void OnConfiguring(ICouchContextConfigurator configurator);
+        protected virtual void OnConfiguring(CouchOptionsBuilder optionsBuilder) { }
 
         private static readonly MethodInfo GetDatabaseGenericMethod
             = typeof(CouchClient).GetMethods(BindingFlags.Public | BindingFlags.Instance)
@@ -21,24 +21,25 @@ namespace CouchDB.Driver
             = typeof(CouchClient).GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Single(mi => mi.Name == nameof(CouchClient.GetOrCreateDatabaseAsync) && mi.GetParameters().Length == 3);
 
-        protected CouchDbContext()
+        protected CouchContext() : this(new CouchOptionsBuilder()) { }
+
+        protected CouchContext(CouchOptionsBuilder optionsBuilder)
         {
+            Check.NotNull(optionsBuilder, nameof(optionsBuilder));
+
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-            var settings = new CouchSettings();
-            OnConfiguring(settings);
+            OnConfiguring(optionsBuilder);
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 
-            Client = new CouchClient(settings);
+            Client = new CouchClient(optionsBuilder.Options);
 
             PropertyInfo[] databasePropertyInfos = GetDatabaseProperties();
-
-            
 
             foreach (PropertyInfo propertyInfo in databasePropertyInfos)
             {
                 Type documentType = propertyInfo.PropertyType.GetGenericArguments()[0];
                 object? database;
-                if (settings.CheckDatabaseExists)
+                if (optionsBuilder.Options.CheckDatabaseExists)
                 {
                     MethodInfo getOrCreateDatabaseMethod = GetOrCreateDatabaseAsyncGenericMethod.MakeGenericMethod(documentType);
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
