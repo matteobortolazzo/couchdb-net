@@ -10,14 +10,14 @@ C# query example:
 
 ```csharp
 // Setup
-public class MyDeathStar : CouchDbContext
+public class MyDeathStarContext : CouchContext
 {
   public CouchDatabase<Rebel> Rebels { get; set; }
   public CouchDatabase<Clone> Clones { get; set; }
 
-  protected override void OnConfiguring(ICouchContextConfigurator configurator)
+  protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
   {
-    configurator
+    optionsBuilder
       .UseEndpoint("http://localhost:5984/")
       .EnsureDatabaseExists()
       .UseBasicAuthentication(username: "anakin", password: "empirerule");
@@ -25,7 +25,7 @@ public class MyDeathStar : CouchDbContext
 }
 
 // Usage
-await using var context = new MyDeathStar();
+await using var context = new MyDeathStarContext();
 var skywalkers = await context.Rebels
     .Where(r => 
         r.Surname == "Skywalker" && 
@@ -112,9 +112,9 @@ The produced Mango JSON:
 * Install it from NuGet: [https://www.nuget.org/packages/CouchDB.NET](https://www.nuget.org/packages/CouchDB.NET)
 * Create a context or a client, where localhost will be the IP address and 5984 is CouchDB standard tcp port:
   ```csharp
-  await using var context = new MyDeathStar();
+  await using var context = new MyDeathStarContext(builder => {});
   // or
-  await using(var client = new CouchClient("http://localhost:5984")) { }
+  await using(var client = new CouchClient("http://localhost:5984", builder => {})) { }
   ```
 * Create a document class:
   ```csharp
@@ -300,13 +300,13 @@ var securityInfo = await rebels.Security.GetInfoAsync();
 The second parameter of the client constructor is a function to configure CouchSettings fluently.
 
 ```csharp
-public class MyDeathStar : CouchDbContext
+public class MyDeathStarContext : CouchContext
 {
   /* ... */
 
-  protected override void OnConfiguring(ICouchContextConfigurator configurator)
+  protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
   {
-    configurator
+    optionsBuilder
       .UseBasicAuthentication("root", "relax")
       .DisableEntitisPluralization()
       ...
@@ -315,7 +315,7 @@ public class MyDeathStar : CouchDbContext
 
 // or
 
-var client = new CouchClient("http://localhost:5984", s => s
+var client = new CouchClient("http://localhost:5984", builder => builder
     .UseBasicAuthentication("root", "relax")
     .DisableEntitisPluralization()
     ...
