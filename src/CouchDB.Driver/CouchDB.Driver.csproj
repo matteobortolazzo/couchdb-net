@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CouchDB.NET</AssemblyName>
     <Authors>Matteo Bortolazzo</Authors>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>A .NET Standard driver for CouchDB.</Description>
     <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
