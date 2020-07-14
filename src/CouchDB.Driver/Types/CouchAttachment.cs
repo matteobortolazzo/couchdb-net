@@ -1,11 +1,12 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
 {
-    public class CouchAttachment
+    public sealed class CouchAttachment
     {
         [JsonIgnore]
         internal string DocumentId { get; set; }
@@ -38,3 +39,4 @@ namespace CouchDB.Driver.Types
         public int? Length { get; private set; }
     }
 }
+#nullable restore

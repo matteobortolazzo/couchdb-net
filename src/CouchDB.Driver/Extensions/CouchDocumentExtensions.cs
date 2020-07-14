@@ -10,7 +10,7 @@ namespace CouchDB.Driver.Extensions
         {
             if (!response.Ok)
             {
-                throw new CouchException(response.Error, response.Reason);
+                throw new CouchException(response.Error, null, response.Reason);
             }
 
             item.Id = response.Id;

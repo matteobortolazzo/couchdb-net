@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Types
 {
@@ -13,17 +13,16 @@ namespace CouchDB.Driver.Types
     {
         internal const string Prefix = "org.couchdb.user:";
       
-        internal CouchUser()
+        public CouchUser(string name, string password, List<string>? roles = null, string type = "user")
         {
-            Roles = new List<string>();
-        }
-        public CouchUser(string name, string password, List<string> roles = null, string type = "user")
-        {
-            Id = name != null ? Prefix + name : throw new ArgumentNullException(nameof(name));
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Check.NotNull(name, nameof(name));
+            Check.NotNull(type, nameof(type));
+
+            Id = Prefix + name;
+            Name = name;
             Password = password;
             Roles = roles ?? new List<string>();
-            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Type = type;
         }
         
         [DataMember]

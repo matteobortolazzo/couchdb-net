@@ -3,106 +3,178 @@ using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 using Flurl.Http.Configuration;
-using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
-using CouchDB.Driver.Settings;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
+using System.Net.Http;
+using System.Net;
+using System.Threading;
+using CouchDB.Driver.Options;
+using CouchDB.Driver.Query;
 
 namespace CouchDB.Driver
 {
     /// <summary>
     /// Client for querying a CouchDB database.
     /// </summary>
-    public partial class CouchClient : IDisposable
+    public partial class CouchClient : ICouchClient
     {
         private DateTime? _cookieCreationDate;
-        private string _cookieToken;
-        private readonly CouchSettings _settings;
+        private string? _cookieToken;
+        private readonly CouchOptions _options;
         private readonly IFlurlClient _flurlClient;
-        private readonly string[] _systemDatabases = new[] { "_users", "_replicator", "_global_changes" };
-        public string ConnectionString { get; private set; }
+        private readonly string[] _systemDatabases = { "_users", "_replicator", "_global_changes" };
+        public Uri Endpoint { get; }
 
         /// <summary>
         /// Creates a new CouchDB client.
         /// </summary>
-        /// <param name="connectionString">URI to the CouchDB endpoint.</param>
-        /// <param name="couchSettingsFunc">A function to configure the client settings.</param>
-        /// <param name="flurlSettingsFunc">A function to configure the HTTP client.</param>
-        public CouchClient(string connectionString, Action<CouchSettings> couchSettingsFunc = null, Action<ClientFlurlHttpSettings> flurlSettingsFunc = null)
+        /// <param name="endpoint">URI to the CouchDB endpoint.</param>
+        /// <param name="couchSettingsFunc">A function to configure options.</param>
+        public CouchClient(string endpoint, Action<CouchOptionsBuilder>? couchSettingsFunc = null)
+            : this(new Uri(endpoint), couchSettingsFunc) { }
+
+        /// <summary>
+        /// Creates a new CouchDB client.
+        /// </summary>
+        /// <param name="endpoint">URI to the CouchDB endpoint.</param>
+        /// <param name="couchSettingsFunc">A function to configure options.</param>
+        public CouchClient(Uri endpoint, Action<CouchOptionsBuilder>? couchSettingsFunc = null)
         {
-            if (string.IsNullOrEmpty(connectionString))
+            var optionsBuilder = new CouchOptionsBuilder();
+            couchSettingsFunc?.Invoke(optionsBuilder);
+            _options = optionsBuilder.Options;
+            Endpoint = endpoint;
+            _flurlClient = GetConfiguredClient();
+        }
+
+        /// <summary>
+        /// Creates a new CouchDB client.
+        /// </summary>
+        /// <param name="couchSettingsFunc">A function to configure options.</param>
+        public CouchClient(Action<CouchOptionsBuilder>? couchSettingsFunc = null)
+        {
+            var optionsBuilder = new CouchOptionsBuilder();
+            couchSettingsFunc?.Invoke(optionsBuilder);
+
+            if (optionsBuilder.Options.Endpoint == null)
             {
-                throw new ArgumentNullException(nameof(connectionString));
+                throw new InvalidOperationException("Database endpoint must be set.");
             }
 
-            _settings = new CouchSettings();
-            couchSettingsFunc?.Invoke(_settings);
+            _options = optionsBuilder.Options;
+            Endpoint = _options.Endpoint;
+            _flurlClient = GetConfiguredClient();
+        }
 
-            ConnectionString = connectionString;
-            _flurlClient = new FlurlClient(connectionString).Configure(s =>
+        internal CouchClient(CouchOptions options)
+        {
+            if (options.Endpoint == null)
+            {
+                throw new InvalidOperationException("Database endpoint must be set.");
+            }
+
+            _options = options;
+            Endpoint = _options.Endpoint;
+            _flurlClient = GetConfiguredClient();
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
+        private IFlurlClient GetConfiguredClient() =>
+            new FlurlClient(Endpoint.AbsoluteUri).Configure(s =>
             {
                 s.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
                 {
-                    ContractResolver = new CouchContractResolver(_settings.PropertiesCase)
+                    ContractResolver = new CouchContractResolver(_options.PropertiesCase)
                 });
-                s.BeforeCall = OnBeforeCall;
-                if (_settings.ServerCertificateCustomValidationCallback != null)
+                s.BeforeCallAsync = OnBeforeCallAsync;
+                if (_options.ServerCertificateCustomValidationCallback != null)
                 {
-                    s.HttpClientFactory = new CertClientFactory(_settings.ServerCertificateCustomValidationCallback);
+                    s.HttpClientFactory = new CertClientFactory(_options.ServerCertificateCustomValidationCallback);
                 }
 
-                flurlSettingsFunc?.Invoke(s);
+                _options.ClientFlurlHttpSettingsAction?.Invoke(s);
             });
-        }
 
         #region Operations
 
         #region CRUD
 
-        /// <summary>
-        /// Returns an instance of the CouchDB database with the given name.
-        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
-        /// </summary>
-        /// <typeparam name="TSource">The type of database documents.</typeparam>
-        /// <param name="database">The database name.</param>
-        /// <returns>An instance of the CouchDB database with given name.</returns>
-        public CouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
+        /// <inheritdoc />
+        public ICouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
         {
-            database = EscapeDatabaseName(database);
-
-            if (_settings.CheckDatabaseExists)
-            {
-                IEnumerable<string> dbs = AsyncContext.Run(() => GetDatabasesNamesAsync());
-                if (!dbs.Contains(database))
-                {
-                    return AsyncContext.Run(() => CreateDatabaseAsync<TSource>(database));
-                }
-            }
-
-            return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
+            CheckDatabaseName(database);
+            var queryContext = new QueryContext(Endpoint, database);
+            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
         }
 
-        /// <summary>
-        /// Creates a new database with the given name in the server.
-        /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
-        /// </summary>
-        /// <typeparam name="TSource">The type of database documents.</typeparam>
-        /// <param name="database">The database name.</param>
-        /// <param name="shards">The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
-        /// <param name="replicas">The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-        public async Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, int? shards = null, int? replicas = null) where TSource : CouchDocument
+        /// <inheritdoc />
+        public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, 
+            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
         {
-            database = EscapeDatabaseName(database);
+            QueryContext queryContext = NewQueryContext(database);
+            HttpResponseMessage response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
+                .ConfigureAwait(false);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
+            }
 
+            if (response.StatusCode == HttpStatusCode.PreconditionFailed)
+            {
+                throw new CouchException($"Database with name {database} already exists.");
+            }
+
+            throw new CouchException($"Something wrong happened while creating database {database}.");
+        }
+
+        /// <inheritdoc />
+        public async Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
+            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            where TSource : CouchDocument
+        {
+            QueryContext queryContext = NewQueryContext(database);
+            HttpResponseMessage response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.PreconditionFailed)
+            {
+                return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
+            }
+
+            throw new CouchException($"Something wrong happened while creating database {database}.");
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteDatabaseAsync(string database, CancellationToken cancellationToken = default)
+        {
+            QueryContext queryContext = NewQueryContext(database);
+
+            OperationResult result = await NewRequest()
+                .AppendPathSegment(queryContext.EscapedDatabaseName)
+                .DeleteAsync(cancellationToken)
+                .ReceiveJson<OperationResult>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (!result.Ok) 
+            {
+                throw new CouchException("Something went wrong during the delete.", null, "S");
+            }
+        }
+
+        private Task<HttpResponseMessage> CreateDatabaseAsync(QueryContext queryContext,
+            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+        {
             IFlurlRequest request = NewRequest()
-                .AppendPathSegment(database);
+                .AppendPathSegment(queryContext.EscapedDatabaseName);
 
             if (shards.HasValue)
             {
@@ -114,125 +186,94 @@ namespace CouchDB.Driver
                 request = request.SetQueryParam("n", replicas.Value);
             }
 
-            OperationResult result = await request
-                .PutAsync(null)
-                .ReceiveJson<OperationResult>()
-                .SendRequestAsync()
-                .ConfigureAwait(false);
-
-            if (!result.Ok)
-            {
-                throw new CouchException("Something went wrong during the creation");
-            }
-
-            return new CouchDatabase<TSource>(_flurlClient, _settings, ConnectionString, database);
-        }
-
-        /// <summary>
-        /// Deletes the database with the given name from the server.
-        /// </summary>
-        /// <typeparam name="TSource">The type of database documents.</typeparam>
-        /// <param name="database">The database name.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        public async Task DeleteDatabaseAsync<TSource>(string database) where TSource : CouchDocument
-        {
-            database = EscapeDatabaseName(database);
-
-            OperationResult result = await NewRequest()
-                .AppendPathSegment(database)
-                .DeleteAsync()
-                .ReceiveJson<OperationResult>()
-                .SendRequestAsync()
-                .ConfigureAwait(false);
-
-            if (!result.Ok) 
-            {
-                throw new CouchException("Something went wrong during the delete.", "S");
-            }
+            return request
+                .AllowHttpStatus(HttpStatusCode.PreconditionFailed)
+                .PutAsync(null, cancellationToken)
+                .SendRequestAsync();
         }
 
         #endregion
 
         #region CRUD reflection
 
-        /// <summary>
-        /// Returns an instance of the CouchDB database of the given type.
-        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
-        /// </summary>
-        /// <typeparam name="TSource">The type of database documents.</typeparam>
-        /// <returns>The instance of the CouchDB database of the given type.</returns>
-        public CouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument
+        /// <inheritdoc />
+        public ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument
         {
             return GetDatabase<TSource>(GetClassName<TSource>());
         }
 
-        /// <summary>
-        /// Creates a new database of the given type in the server.
-        /// The name must begin with a lowercase letter and can contains only lowercase characters, digits or _, $, (, ), +, - and /.s
-        /// </summary>
-        /// <typeparam name="TSource">The type of database documents.</typeparam>
-        /// <param name="database">The database name.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-        public Task<CouchDatabase<TSource>> CreateDatabaseAsync<TSource>() where TSource : CouchDocument
+        /// <inheritdoc />
+        public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+            CancellationToken cancellationToken = default) where TSource : CouchDocument
         {
-            return CreateDatabaseAsync<TSource>(GetClassName<TSource>());
+            return CreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, cancellationToken);
         }
 
-        /// <summary>
-        /// Deletes the database with the given type from the server.
-        /// </summary>
-        /// <typeparam name="TSource">The type of database documents.</typeparam>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        public Task DeleteDatabaseAsync<TSource>() where TSource : CouchDocument
+        /// <inheritdoc />
+        public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+            CancellationToken cancellationToken = default) where TSource : CouchDocument
         {
-            return DeleteDatabaseAsync<TSource>(GetClassName<TSource>());
+            return GetOrCreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, cancellationToken);
         }
-        private string GetClassName<TSource>()
+
+        /// <inheritdoc />
+        public Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource : CouchDocument
         {
-            Type type = typeof(TSource);
-            return type.GetName(_settings);
+            return DeleteDatabaseAsync(GetClassName<TSource>(), cancellationToken);
         }
 
         #endregion
 
         #region Users
 
-        /// <summary>
-        /// Returns an instance of the users database.
-        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
-        /// </summary>
-        /// <returns>The instance of the users database.</returns>
-        public CouchDatabase<CouchUser> GetUsersDatabase()
+        /// <inheritdoc />
+        public ICouchDatabase<CouchUser> GetUsersDatabase()
         {
-            return GetDatabase<CouchUser>(GetClassName<CouchUser>());
+            return GetDatabase<CouchUser>();
         }
 
-        /// <summary>
-        /// Returns an instance of the users database.
-        /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
-        /// </summary>
-        /// <typeparam name="TUser">The specic type of user.</typeparam>
-        /// <returns>The instance of the users database.</returns>
-        public CouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser
+        /// <inheritdoc />
+        public ICouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser
         {
             return GetDatabase<TUser>(GetClassName<TUser>());
+        }
+
+        /// <inheritdoc />
+        public Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
+        {
+            return GetOrCreateDatabaseAsync<CouchUser>(null, null, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(CancellationToken cancellationToken = default) where TUser : CouchUser
+        {
+            return GetOrCreateDatabaseAsync<TUser>(null, null, cancellationToken);
         }
 
         #endregion
 
         #region Utils
 
-        /// <summary>
-        /// Determines whether the server is up, running, and ready to respond to requests.
-        /// </summary>
-        /// <returns>true is the server is not in maintenance_mode; otherwise, false.</returns>
-        public async Task<bool> IsUpAsync()
+        /// <inheritdoc />
+        public async Task<bool> ExistsAsync(string database, CancellationToken cancellationToken = default)
+        {
+            QueryContext queryContext = NewQueryContext(database);
+            HttpResponseMessage? response = await NewRequest()
+                .AllowHttpStatus(HttpStatusCode.NotFound)
+                .AppendPathSegment(queryContext.EscapedDatabaseName)
+                .HeadAsync(cancellationToken)
+                .ConfigureAwait(false);
+            return response.IsSuccessStatusCode;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> IsUpAsync(CancellationToken cancellationToken = default)
         {
             try
             {
                 StatusResult result = await NewRequest()
                     .AppendPathSegment("/_up")
-                    .GetJsonAsync<StatusResult>()
+                    .GetJsonAsync<StatusResult>(cancellationToken)
                     .SendRequestAsync()
                     .ConfigureAwait(false);
                 return result.Status == "ok";
@@ -243,28 +284,22 @@ namespace CouchDB.Driver
             }
         }
 
-        /// <summary>
-        /// Returns all databases names in the server.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the sequence of databases names.</returns>
-        public async Task<IEnumerable<string>> GetDatabasesNamesAsync()
+        /// <inheritdoc />
+        public async Task<IEnumerable<string>> GetDatabasesNamesAsync(CancellationToken cancellationToken = default)
         {
             return await NewRequest()
                 .AppendPathSegment("_all_dbs")
-                .GetJsonAsync<IEnumerable<string>>()
+                .GetJsonAsync<IEnumerable<string>>(cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// Returns all active tasks in the server.
-        /// </summary>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the sequence of all active tasks.</returns>
-        public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync()
+        /// <inheritdoc />
+        public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync(CancellationToken cancellationToken = default)
         {
             return await NewRequest()
                 .AppendPathSegment("_active_tasks")
-                .GetJsonAsync<IEnumerable<CouchActiveTask>>()
+                .GetJsonAsync<IEnumerable<CouchActiveTask>>(cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
         }
@@ -277,47 +312,43 @@ namespace CouchDB.Driver
 
         private IFlurlRequest NewRequest()
         {
-            return _flurlClient.Request(ConnectionString);
+            return _flurlClient.Request(Endpoint);
         }
 
-        private string EscapeDatabaseName(string database)
+        private QueryContext NewQueryContext(string database)
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException(nameof(database));
-            }
+            CheckDatabaseName(database);
+            return new QueryContext(Endpoint, database);
+        }
+
+        private void CheckDatabaseName(string database)
+        {
+            Check.NotNull(database, nameof(database));
 
             if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
             {
                 throw new ArgumentException($"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db", nameof(database));
             }
-
-            return Uri.EscapeDataString(database);
         }
 
         /// <summary>
         /// Performs the logout and disposes the HTTP client.
         /// </summary>
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_settings.AuthenticationType == AuthenticationType.Cookie && _settings.LogOutOnDispose)
+            if (_options.AuthenticationType == AuthenticationType.Cookie && _options.LogOutOnDispose)
             {
-                _ = AsyncContext.Run(() => LogoutAsync().ConfigureAwait(false));
+                await LogoutAsync().ConfigureAwait(false);
             }
             _flurlClient.Dispose();
         }
 
-        ~CouchClient()
-        {
-            Dispose(false);
-        }
-
         #endregion
+
+        private string GetClassName<TSource>()
+        {
+            Type type = typeof(TSource);
+            return type.GetName(_options);
+        }
     }
 }

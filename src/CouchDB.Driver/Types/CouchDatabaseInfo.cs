@@ -1,65 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿#nullable disable
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
 {
     /// <summary>
-    /// Represents size information.
-    /// </summary>
-    public class Sizes
-    {
-        /// <summary>
-        /// The size of the database file on disk in bytes. Views indexes are not included in the calculation.
-        /// </summary>
-        [JsonProperty("file")]
-        public int File { get; internal set; }
-
-        /// <summary>
-        /// The uncompressed size of database contents in bytes.
-        /// </summary>
-        [JsonProperty("external")]
-        public int External { get; internal set; }
-
-        /// <summary>
-        /// The size of live data inside the database, in bytes.
-        /// </summary>
-        [JsonProperty("active")]
-        public int Active { get; internal set; }
-    }
-
-    /// <summary>
-    /// Represents cluster information.
-    /// </summary>
-    public class Cluster
-    {
-        /// <summary>
-        /// The number of copies of every document.
-        /// </summary>
-        [JsonProperty("n")]
-        public int Replicas { get; internal set; }
-
-        /// <summary>
-        /// The number of range partitions.
-        /// </summary>
-        [JsonProperty("q")]
-        public int Shards { get; internal set; }
-
-        /// <summary>
-        /// The number of consistent copies of a document that need to be read before a successful reply.
-        /// </summary>
-        [JsonProperty("r")]
-        public int ReadQuorum { get; internal set; }
-
-        /// <summary>
-        /// The number of copies of a document that need to be written before a successful reply.
-        /// </summary>
-        [JsonProperty("w")]
-        public int WriteQuorum { get; internal set; }        
-    }
-
-    /// <summary>
     /// Represents information a specific database.
     /// </summary>
-    public class CouchDatabaseInfo
+    public sealed class CouchDatabaseInfo
     {
         /// <summary>
         /// Cluster information.
@@ -116,3 +63,4 @@ namespace CouchDB.Driver.Types
         public string UpdateSeq { get; internal set; }
     }
 }
+#nullable restore

@@ -1,21 +1,14 @@
-﻿using System;
-using System.Net;
-using System.Reflection;
+﻿using System.Net;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using Flurl.Http;
-using Nito.AsyncEx;
 
 namespace CouchDB.Driver.Helpers
 {
     internal static class RequestsHelper
     {
-        public static T SendRequest<T>(this Task<T> asyncRequest)
-        {
-            return AsyncContext.Run(() => asyncRequest.SendRequestAsync());
-        }
-        public static async Task<T> SendRequestAsync<T>(this Task<T> asyncRequest)
+        public static async Task<TResult> SendRequestAsync<TResult>(this Task<TResult> asyncRequest)
         {
             try
             {
@@ -23,24 +16,16 @@ namespace CouchDB.Driver.Helpers
             }
             catch (FlurlHttpException ex)
             {
-                CouchError couchError = await ex.GetResponseJsonAsync<CouchError>().ConfigureAwait(false);
+                CouchError couchError = await ex.GetResponseJsonAsync<CouchError>().ConfigureAwait(false) ?? new CouchError();
 
-                if (couchError == null)
+                throw ex.Call.HttpStatus switch
                 {
-                    couchError = new CouchError();
-                }
-
-                switch (ex.Call.HttpStatus)
-                {
-                    case HttpStatusCode.Conflict:
-                        throw new CouchConflictException(couchError, ex);
-                    case HttpStatusCode.NotFound:
-                        throw new CouchNotFoundException(couchError, ex);
-                    case HttpStatusCode.BadRequest when couchError.Error == "no_usable_index":
-                        throw new CouchNoIndexException(couchError, ex);
-                    default:
-                        throw new CouchException(couchError, ex);
-                }
+                    HttpStatusCode.Conflict => new CouchConflictException(couchError, ex),
+                    HttpStatusCode.NotFound => new CouchNotFoundException(couchError, ex),
+                    HttpStatusCode.BadRequest when couchError.Error == "no_usable_index" => new CouchNoIndexException(
+                        couchError, ex),
+                    _ => new CouchException(couchError, ex)
+                };
             }
         }
     }

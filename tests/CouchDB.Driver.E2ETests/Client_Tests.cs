@@ -1,164 +1,216 @@
-using CouchDB.Driver.E2E.Models;
+﻿using CouchDB.Driver.E2E.Models;
 using CouchDB.Driver.Types;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
+using System.Threading;
 using System.Threading.Tasks;
+using CouchDB.Driver.E2ETests;
+using CouchDB.Driver.E2ETests._Models;
+using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Local;
 using Xunit;
 
 namespace CouchDB.Driver.E2E
 {
     [Trait("Category", "Integration")]
-    public class ClientTests
+    public class ClientTests: IAsyncLifetime
     {
+        private ICouchClient _client;
+        private ICouchDatabase<Rebel> _rebels;
+
+        public async Task InitializeAsync()
+        {
+            _client = new CouchClient("http://localhost:5984", c =>
+                c.UseBasicAuthentication("admin", "admin"));
+            _rebels = await _client.GetOrCreateDatabaseAsync<Rebel>();
+        }
+
+        public async Task DisposeAsync()
+        {
+            await _client.DeleteDatabaseAsync<Rebel>();
+            await _client.DisposeAsync();
+        }
+
+        [Fact]
+        public async Task ChangesFeed()
+        {
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_1", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_2", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_3", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_4", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_5", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_6", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_7", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_8", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_9", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_10", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_13", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_14", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_15", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_16", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_17", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_18", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_19", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_20", Age = 19 });
+
+            var lineCount = 0;
+            var tokenSource = new CancellationTokenSource();
+            await foreach (var l in _rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
+            {
+                lineCount++;
+                if (lineCount == 20)
+                {
+                    _ = await _rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
+                    _ = await _rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
+                }
+
+                if (lineCount == 22)
+                {
+                    tokenSource.Cancel();
+                }
+            }
+        }
+
         [Fact]
         public async Task Crud()
         {
-            using (var client = new CouchClient("http://localhost:5984"))
-            {
-                IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
-                CouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>();
+            Rebel luke = await _rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
+            Assert.Equal("Luke", luke.Name);
 
-                if (dbs.Contains(rebels.Database))
-                {
-                    await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
-                }
+            luke.Surname = "Skywalker";
+            luke = await _rebels.AddOrUpdate(luke);
+            Assert.Equal("Skywalker", luke.Surname);
 
-                rebels = await client.CreateDatabaseAsync<Rebel>().ConfigureAwait(false);
+            luke = await _rebels.FindAsync(luke.Id);
+            Assert.Equal(19, luke.Age);
 
-                Rebel luke = await rebels.CreateAsync(new Rebel { Name = "Luke", Age = 19 }).ConfigureAwait(false);
-                Assert.Equal("Luke", luke.Name);
+            await _rebels.RemoveAsync(luke);
+            luke = await _rebels.FindAsync(luke.Id);
+            Assert.Null(luke);
+        }
 
-                luke.Surname = "Skywalker";
-                luke = await rebels.CreateOrUpdateAsync(luke).ConfigureAwait(false);
-                Assert.Equal("Skywalker", luke.Surname);
-
-                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
-                Assert.Equal(19, luke.Age);
-
-                await rebels.DeleteAsync(luke).ConfigureAwait(false);
-                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
-                Assert.Null(luke);
-
-                await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
-            }
+        [Fact]
+        public async Task Crud_Context()
+        {
+            await using var context = new MyDeathStarContext();
+            var luke = await context.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
+            Assert.Equal("Luke", luke.Name);
+            var result = await context.Rebels.ToListAsync();
+            Assert.NotEmpty(result);
         }
 
         [Fact]
         public async Task Crud_SpecialCharacters()
         {
-            var databaseName = "rebel0_$()+/-";
+            const string databaseName = "rebel0_$()+/-";
+            var rebels = await _client.GetOrCreateDatabaseAsync<Rebel>(databaseName);
 
-            using (var client = new CouchClient("http://localhost:5984"))
-            {
-                IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
-                CouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>(databaseName);
+            Rebel luke = await rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
+            Assert.Equal("Luke", luke.Name);
 
-                if (dbs.Contains(rebels.Database))
-                {
-                    await client.DeleteDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
-                }
+            luke.Surname = "Skywalker";
+            luke = await rebels.AddOrUpdate(luke);
+            Assert.Equal("Skywalker", luke.Surname);
 
-                rebels = await client.CreateDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
+            luke = await rebels.FindAsync(luke.Id);
+            Assert.Equal(19, luke.Age);
 
-                Rebel luke = await rebels.CreateAsync(new Rebel { Name = "Luke", Age = 19 }).ConfigureAwait(false);
-                Assert.Equal("Luke", luke.Name);
+            await rebels.RemoveAsync(luke);
+            luke = await rebels.FindAsync(luke.Id);
+            Assert.Null(luke);
 
-                luke.Surname = "Skywalker";
-                luke = await rebels.CreateOrUpdateAsync(luke).ConfigureAwait(false);
-                Assert.Equal("Skywalker", luke.Surname);
-
-                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
-                Assert.Equal(19, luke.Age);
-
-                await rebels.DeleteAsync(luke).ConfigureAwait(false);
-                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
-                Assert.Null(luke);
-
-                await client.DeleteDatabaseAsync<Rebel>(databaseName).ConfigureAwait(false);
-            }
+            await _client.DeleteDatabaseAsync(databaseName);
         }
 
         [Fact]
         public async Task Users()
         {
-            using (var client = new CouchClient("http://localhost:5984"))
-            {
-                IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
-                CouchDatabase<CouchUser> users = client.GetUsersDatabase();
+            var users = await _client.GetOrCreateUsersDatabaseAsync();
 
-                if (!dbs.Contains(users.Database))
-                {
-                    users = await client.CreateDatabaseAsync<CouchUser>().ConfigureAwait(false);
-                }
+            CouchUser luke = await users.AddAsync(new CouchUser(name: "luke", password: "lasersword"));
+            Assert.Equal("luke", luke.Name);
 
-                CouchUser luke = await users.CreateAsync(new CouchUser(name: "luke", password: "lasersword")).ConfigureAwait(false);
-                Assert.Equal("luke", luke.Name);
+            luke = await users.FindAsync(luke.Id);
+            Assert.Equal("luke", luke.Name);
 
-                luke = await users.FindAsync(luke.Id).ConfigureAwait(false);
-                Assert.Equal("luke", luke.Name);
+            await users.RemoveAsync(luke);
+            luke = await users.FindAsync(luke.Id);
+            Assert.Null(luke);
 
-                await users.DeleteAsync(luke).ConfigureAwait(false);
-                luke = await users.FindAsync(luke.Id).ConfigureAwait(false);
-                Assert.Null(luke);
-
-                await client.DeleteDatabaseAsync<CouchUser>().ConfigureAwait(false);
-            }
+            await _client.DeleteDatabaseAsync<CouchUser>();
         }
 
         [Fact]
         public async Task Attachment()
         {
-            using (var client = new CouchClient("http://localhost:5984"))
+            var luke = new Rebel { Name = "Luke", Age = 19 };
+            var runningPath = Directory.GetCurrentDirectory();
+
+            // Create
+            luke.Attachments.AddOrUpdate($@"{runningPath}\Assets\luke.txt", MediaTypeNames.Text.Plain);
+            luke = await _rebels.AddAsync(luke);
+
+            Assert.Equal("Luke", luke.Name);
+            Assert.NotEmpty(luke.Attachments);
+
+            CouchAttachment attachment = luke.Attachments.First();
+            Assert.NotNull(attachment);
+            Assert.NotNull(attachment.Uri);
+
+            // Download
+            var downloadFilePath = await _rebels.DownloadAttachmentAsync(attachment, $@"{runningPath}\Assets", "luke-downloaded.txt");
+
+            Assert.True(File.Exists(downloadFilePath));
+            File.Delete(downloadFilePath);
+
+            // Find
+            luke = await _rebels.FindAsync(luke.Id);
+            Assert.Equal(19, luke.Age);
+            attachment = luke.Attachments.First();
+            Assert.NotNull(attachment);
+            Assert.NotNull(attachment.Uri);
+            Assert.NotNull(attachment.Digest);
+            Assert.NotNull(attachment.Length);
+
+            // Update
+            luke.Surname = "Skywalker";
+            luke = await _rebels.AddOrUpdate(luke);
+            Assert.Equal("Skywalker", luke.Surname);
+        }
+
+        [Fact]
+        public async Task LocalDocuments()
+        {
+            var local = _rebels.LocalDocuments;
+
+            var docId = "传";
+            var settings = new RebelSettings
             {
-                IEnumerable<string> dbs = await client.GetDatabasesNamesAsync().ConfigureAwait(false);
-                CouchDatabase<Rebel> rebels = client.GetDatabase<Rebel>();
+                Id = docId,
+                IsActive = true
+            };
+            await local.CreateOrUpdateAsync(settings);
 
-                if (dbs.Contains(rebels.Database))
-                {
-                    await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
-                }
+            settings = await local.GetAsync<RebelSettings>(docId);
+            Assert.True(settings.IsActive);
 
-                rebels = await client.CreateDatabaseAsync<Rebel>().ConfigureAwait(false);
+            settings.IsActive = false;
+            await local.CreateOrUpdateAsync(settings);
+            settings = await local.GetAsync<RebelSettings>(docId);
+            Assert.False(settings.IsActive);
 
-                var luke = new Rebel { Name = "Luke", Age = 19 };
-                var runningPath = Directory.GetCurrentDirectory();
-
-                // Create
-                luke.Attachments.AddOrUpdate($@"{runningPath}\Assets\luke.txt", MediaTypeNames.Text.Plain);
-                luke = await rebels.CreateAsync(luke).ConfigureAwait(false);
-                
-                Assert.Equal("Luke", luke.Name);
-                Assert.NotEmpty(luke.Attachments);
-
-                CouchAttachment attachment = luke.Attachments.First();
-                Assert.NotNull(attachment);
-                Assert.NotNull(attachment.Uri);
-
-                // Download
-                var downloadFilePath = await rebels.DownloadAttachment(attachment, $@"{runningPath}\Assets", "luke-downloaded.txt");
-
-                Assert.True(File.Exists(downloadFilePath));
-                File.Delete(downloadFilePath);
-
-                // Find
-                luke = await rebels.FindAsync(luke.Id).ConfigureAwait(false);
-                Assert.Equal(19, luke.Age);
-                attachment = luke.Attachments.First();
-                Assert.NotNull(attachment);
-                Assert.NotNull(attachment.Uri);
-                Assert.NotNull(attachment.Digest);
-                Assert.NotNull(attachment.Length);
-
-                // Update
-                luke.Surname = "Skywalker";
-                luke = await rebels.CreateOrUpdateAsync(luke).ConfigureAwait(false);
-                Assert.Equal("Skywalker", luke.Surname);
-
-                await client.DeleteDatabaseAsync<Rebel>().ConfigureAwait(false);
-            }
+            var searchOpt = new LocalDocumentsOptions
+            {
+                Descending = true,
+                Limit = 10,
+                Conflicts = true
+            };
+            var docs = await local.GetAsync(searchOpt);
+            var containsId = docs.Select(d => d.Id).Contains("_local/" + docId);
+            Assert.True(containsId);
         }
     }
 }

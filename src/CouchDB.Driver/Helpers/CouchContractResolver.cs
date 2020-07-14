@@ -1,6 +1,7 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Settings;
+using CouchDB.Driver.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -10,12 +11,15 @@ namespace CouchDB.Driver.Helpers
     {
         private readonly PropertyCaseType _propertyCaseType;
 
-        public CouchContractResolver(PropertyCaseType propertyCaseType)
+        internal CouchContractResolver(PropertyCaseType propertyCaseType)
         {
             _propertyCaseType = propertyCaseType;
         }
-        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+
+        protected override JsonProperty? CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
+            Check.NotNull(member, nameof(member));
+
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             if (property != null && !property.Ignored)
             {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using CouchDB.Driver.Helpers;
 using Newtonsoft.Json;
 
@@ -7,7 +8,7 @@ namespace CouchDB.Driver.Types
     /// <summary>
     /// Represents an active task.
     /// </summary>
-    public class CouchActiveTask
+    public sealed class CouchActiveTask
     {
         /// <summary>
         /// Processes changes.
@@ -72,3 +73,4 @@ namespace CouchDB.Driver.Types
         public DateTime UpdatedOn { get; internal set; }
     }
 }
+#nullable restore
