@@ -6,10 +6,11 @@
 * **Authentication:** Support for `Proxy` and `JTW` authentication;
 * **CouchDatabase:**: `CouchDatabase` now implements `IQueryable`;
 * **CouchDatabase:**: `NewRequest` method exposed;
+* **CouchContext:** New `CouchContext` class to have an experience similar to *EF Core*;
+* **Dependency Injection:** New NuGet package to help with DI;
 * **Generic:** `ICouchClient` and `ICouchDatabase` interfaces introduced;
 * **Generic:** `async` methods support `CancellationTokens`;
-* **Builds:** Build definition move to YAML files;
-* **Dependency Injection:** New NuGet package to help with DI.
+* **Builds:** Build definition move to YAML files.
 
 ## Breaking Changes
 * **Settings:** `CouchSettings` replaced with `CouchOptions` and `CouchOptionsBuilder`;
