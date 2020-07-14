@@ -10,7 +10,6 @@
     <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
     <PackageTags>couchdb,driver,nosql,netstandard,pouchdb,xamarin</PackageTags>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <PackageIconUrl>http://couchdb.apache.org/image/couch@2x.png</PackageIconUrl>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />
@@ -18,7 +17,12 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <Version>2.0.0</Version>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Images\icon.png" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
