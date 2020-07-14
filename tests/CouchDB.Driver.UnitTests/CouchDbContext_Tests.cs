@@ -9,7 +9,7 @@ namespace CouchDB.Driver.UnitTests
 {
     public class CouchDbContext_Tests
     {
-        private class TestContext: CouchContext
+        private class MyDeathStarContext: CouchContext
         {
             public CouchDatabase<Rebel> Rebels { get; set; }
 
@@ -42,8 +42,8 @@ namespace CouchDB.Driver.UnitTests
                 }
             });
 
-            await using var context = new TestContext();
-            await context.Rebels.CreateAsync(new Rebel
+            await using var context = new MyDeathStarContext();
+            await context.Rebels.AddAsync(new Rebel
             {
                 Name = "Luke"
             });

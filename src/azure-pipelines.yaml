@@ -54,7 +54,7 @@ stages:
         inputs:
           testSelector: 'testAssemblies'
           testAssemblyVer2: |
-            **\*UnitTests.dll
+            **\*UnitTests*.dll
             !**\*TestAdapter.dll
             !**\obj\**
             !**\xunit.runner.visualstudio.testadapter.dll
@@ -73,7 +73,7 @@ stages:
         displayName: Create Package
         inputs:
           command: pack
-          packagesToPack: '**/*.csproj;!**/*Tests.csproj'
+          packagesToPack: '**/*.csproj;!**/*Tests.csproj;!**/*Example.csproj'
       - task: CopyFiles@2
         displayName: Copy Release Notes
         condition: ne(variables['Build.Reason'], 'PullRequest')

@@ -3,7 +3,7 @@ using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.E2ETests
 {
-    public class TestContext : CouchContext
+    public class MyDeathStarContext : CouchContext
     {
         public CouchDatabase<Rebel> Rebels { get; set; }
 

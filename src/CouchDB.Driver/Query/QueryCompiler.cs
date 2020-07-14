@@ -77,11 +77,6 @@ namespace CouchDB.Driver.Query
         private TResult SendRequestWithFilter<TResult>(MethodCallExpression methodCallExpression, Expression query,
             bool async, CancellationToken cancellationToken)
         {
-            if (!(methodCallExpression.Arguments[0] is ConstantExpression))
-            {
-                throw new InvalidOperationException($"The first argument of the method {methodCallExpression.Method.Name} must be a constant.");
-            }
-
             Expression optimizedQuery = _queryOptimizer.Optimize(query);
 
             if (!(optimizedQuery is MethodCallExpression optimizedMethodCall))

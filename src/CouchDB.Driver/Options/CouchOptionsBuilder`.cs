@@ -11,16 +11,43 @@ namespace CouchDB.Driver.Options
     public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
         where TContext : CouchContext
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CouchOptionsBuilder{TContext}"/> class with no options set.
+        /// </summary>
         public CouchOptionsBuilder() : this(new CouchOptions<TContext>()) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CouchOptionsBuilder{TContext}"/> class to further configure a given <see cref="CouchOptions{TContext}"/>.
+        /// </summary>
+        /// <param name="options">The options to be configured.</param>
         public CouchOptionsBuilder(CouchOptions<TContext> options) : base(options) { }
 
+        /// <summary>
+        /// Instance of the options built.
+        /// </summary>
+        public new virtual CouchOptions<TContext> Options => (CouchOptions<TContext>)base.Options;
+
+        /// <summary>
+        /// Set the database endpoint.
+        /// </summary>
+        /// <param name="endpoint">The database endpoint.</param>
+        /// <returns>Return the current instance to chain calls.</returns>
         public new virtual CouchOptionsBuilder<TContext> UseEndpoint(string endpoint)
             => (CouchOptionsBuilder<TContext>)base.UseEndpoint(endpoint);
 
+        /// <summary>
+        /// Set the database endpoint.
+        /// </summary>
+        /// <param name="endpointUri">The database endpoint.</param>
+        /// <returns>Return the current instance to chain calls.</returns>
         public new virtual CouchOptionsBuilder<TContext> UseEndpoint(Uri endpointUri)
             => (CouchOptionsBuilder<TContext>)base.UseEndpoint(endpointUri);
 
+        /// <summary>
+        /// If in a <see cref="CouchContext"/>, ensure that all databases exist.
+        /// Ignore in the <see cref="CouchClient"/>.
+        /// </summary>
+        /// <returns>Return the current instance to chain calls.</returns>
         public new virtual CouchOptionsBuilder<TContext> EnsureDatabaseExists()
             => (CouchOptionsBuilder<TContext>)base.EnsureDatabaseExists();
 

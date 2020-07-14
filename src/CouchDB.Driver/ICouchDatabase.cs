@@ -58,7 +58,7 @@ namespace CouchDB.Driver
         /// <param name="batch">Stores document in batch mode.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-        Task<TSource> CreateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
+        Task<TSource> AddAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates or updates the document with the given ID.
@@ -67,7 +67,7 @@ namespace CouchDB.Driver
         /// <param name="batch">Stores document in batch mode.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-        Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
+        Task<TSource> AddOrUpdate(TSource document, bool batch = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes the document with the given ID.
@@ -76,7 +76,7 @@ namespace CouchDB.Driver
         /// <param name="batch">Stores document in batch mode.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task DeleteAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
+        Task RemoveAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates or updates a sequence of documents based on their IDs.
@@ -84,7 +84,7 @@ namespace CouchDB.Driver
         /// <param name="documents">Documents to create or update</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the elements created or updated.</returns>
-        Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default);
+        Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Since CouchDB v3, it is deprecated (a no-op).

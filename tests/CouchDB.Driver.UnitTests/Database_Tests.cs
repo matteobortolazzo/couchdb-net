@@ -93,7 +93,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
             var r = new Rebel { Name = "Luke" };
-            var newR = await _rebels.CreateAsync(r);
+            var newR = await _rebels.AddAsync(r);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels")
                 .WithVerb(HttpMethod.Post);
@@ -106,7 +106,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
             var r = new Rebel { Name = "Luke", Id = "1" };
-            var newR = await _rebels.CreateOrUpdateAsync(r);
+            var newR = await _rebels.AddOrUpdate(r);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithVerb(HttpMethod.Put);
@@ -119,7 +119,7 @@ namespace CouchDB.Driver.UnitTests
             var exception = await Record.ExceptionAsync(async () =>
             {
                 var r = new Rebel { Name = "Luke" };
-                await _rebels.CreateOrUpdateAsync(r);
+                await _rebels.AddOrUpdate(r);
             });
             Assert.NotNull(exception);
             Assert.IsType<InvalidOperationException>(exception);
@@ -133,7 +133,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             var r = new Rebel { Name = "Luke", Id = "1", Rev = "1" };
-            await _rebels.DeleteAsync(r);
+            await _rebels.RemoveAsync(r);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1?rev=1")
                 .WithVerb(HttpMethod.Delete);
@@ -212,7 +212,7 @@ namespace CouchDB.Driver.UnitTests
                     new Rebel { Name = "Luke", Id = "1" },
                     new Rebel { Name = "Leia", Id = "2" }
                 };
-            var newR = await _rebels.CreateOrUpdateRangeAsync(moreRebels);
+            var newR = await _rebels.AddOrUpdateRangeAsync(moreRebels);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_bulk_docs")
                 .WithVerb(HttpMethod.Post);

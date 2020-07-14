@@ -35,26 +35,26 @@ namespace CouchDB.Driver.E2E
         [Fact]
         public async Task ChangesFeed()
         {
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_1", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_2", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_3", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_4", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_5", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_6", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_7", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_8", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_9", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_10", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_11", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_12", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_13", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_14", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_15", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_16", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_17", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_18", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_19", Age = 19 });
-            _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_20", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_1", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_2", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_3", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_4", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_5", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_6", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_7", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_8", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_9", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_10", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_13", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_14", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_15", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_16", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_17", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_18", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_19", Age = 19 });
+            _ = await _rebels.AddAsync(new Rebel { Name = "Luke_20", Age = 19 });
 
             var lineCount = 0;
             var tokenSource = new CancellationTokenSource();
@@ -63,8 +63,8 @@ namespace CouchDB.Driver.E2E
                 lineCount++;
                 if (lineCount == 20)
                 {
-                    _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_11", Age = 19 });
-                    _ = await _rebels.CreateAsync(new Rebel { Name = "Luke_12", Age = 19 });
+                    _ = await _rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
+                    _ = await _rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
                 }
 
                 if (lineCount == 22)
@@ -77,17 +77,17 @@ namespace CouchDB.Driver.E2E
         [Fact]
         public async Task Crud()
         {
-            Rebel luke = await _rebels.CreateAsync(new Rebel { Name = "Luke", Age = 19 });
+            Rebel luke = await _rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
             Assert.Equal("Luke", luke.Name);
 
             luke.Surname = "Skywalker";
-            luke = await _rebels.CreateOrUpdateAsync(luke);
+            luke = await _rebels.AddOrUpdate(luke);
             Assert.Equal("Skywalker", luke.Surname);
 
             luke = await _rebels.FindAsync(luke.Id);
             Assert.Equal(19, luke.Age);
 
-            await _rebels.DeleteAsync(luke);
+            await _rebels.RemoveAsync(luke);
             luke = await _rebels.FindAsync(luke.Id);
             Assert.Null(luke);
         }
@@ -95,8 +95,8 @@ namespace CouchDB.Driver.E2E
         [Fact]
         public async Task Crud_Context()
         {
-            await using var context = new TestContext();
-            var luke = await context.Rebels.CreateAsync(new Rebel { Name = "Luke", Age = 19 });
+            await using var context = new MyDeathStarContext();
+            var luke = await context.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
             Assert.Equal("Luke", luke.Name);
             var result = await context.Rebels.ToListAsync();
             Assert.NotEmpty(result);
@@ -108,17 +108,17 @@ namespace CouchDB.Driver.E2E
             const string databaseName = "rebel0_$()+/-";
             var rebels = await _client.GetOrCreateDatabaseAsync<Rebel>(databaseName);
 
-            Rebel luke = await rebels.CreateAsync(new Rebel { Name = "Luke", Age = 19 });
+            Rebel luke = await rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
             Assert.Equal("Luke", luke.Name);
 
             luke.Surname = "Skywalker";
-            luke = await rebels.CreateOrUpdateAsync(luke);
+            luke = await rebels.AddOrUpdate(luke);
             Assert.Equal("Skywalker", luke.Surname);
 
             luke = await rebels.FindAsync(luke.Id);
             Assert.Equal(19, luke.Age);
 
-            await rebels.DeleteAsync(luke);
+            await rebels.RemoveAsync(luke);
             luke = await rebels.FindAsync(luke.Id);
             Assert.Null(luke);
 
@@ -130,13 +130,13 @@ namespace CouchDB.Driver.E2E
         {
             var users = await _client.GetOrCreateUsersDatabaseAsync();
 
-            CouchUser luke = await users.CreateAsync(new CouchUser(name: "luke", password: "lasersword"));
+            CouchUser luke = await users.AddAsync(new CouchUser(name: "luke", password: "lasersword"));
             Assert.Equal("luke", luke.Name);
 
             luke = await users.FindAsync(luke.Id);
             Assert.Equal("luke", luke.Name);
 
-            await users.DeleteAsync(luke);
+            await users.RemoveAsync(luke);
             luke = await users.FindAsync(luke.Id);
             Assert.Null(luke);
 
@@ -151,7 +151,7 @@ namespace CouchDB.Driver.E2E
 
             // Create
             luke.Attachments.AddOrUpdate($@"{runningPath}\Assets\luke.txt", MediaTypeNames.Text.Plain);
-            luke = await _rebels.CreateAsync(luke);
+            luke = await _rebels.AddAsync(luke);
 
             Assert.Equal("Luke", luke.Name);
             Assert.NotEmpty(luke.Attachments);
@@ -177,7 +177,7 @@ namespace CouchDB.Driver.E2E
 
             // Update
             luke.Surname = "Skywalker";
-            luke = await _rebels.CreateOrUpdateAsync(luke);
+            luke = await _rebels.AddOrUpdate(luke);
             Assert.Equal("Skywalker", luke.Surname);
         }
 

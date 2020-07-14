@@ -11,29 +11,54 @@ namespace CouchDB.Driver.Options
 {
     public class CouchOptionsBuilder
     {
-        public virtual CouchOptions Options { get; }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CouchOptionsBuilder"/> class with no options set.
+        /// </summary>
         public CouchOptionsBuilder() : this(new CouchOptions<CouchContext>()) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CouchOptionsBuilder"/> class to further configure a given <see cref="CouchOptions"/>.
+        /// </summary>
+        /// <param name="options">The options to be configured.</param>
         public CouchOptionsBuilder(CouchOptions options)
         {
             Check.NotNull(options, nameof(options));
 
             Options = options;
         }
-        
+
+        /// <summary>
+        /// Instance of the options built.
+        /// </summary>
+        public virtual CouchOptions Options { get; }
+
+        /// <summary>
+        /// Set the database endpoint.
+        /// </summary>
+        /// <param name="endpoint">The database endpoint.</param>
+        /// <returns>Return the current instance to chain calls.</returns>
         public virtual CouchOptionsBuilder UseEndpoint(string endpoint)
         {
             Options.Endpoint = new Uri(endpoint);
             return this;
         }
 
+        /// <summary>
+        /// Set the database endpoint.
+        /// </summary>
+        /// <param name="endpointUri">The database endpoint.</param>
+        /// <returns>Return the current instance to chain calls.</returns>
         public virtual CouchOptionsBuilder UseEndpoint(Uri endpointUri)
         {
             Options.Endpoint = endpointUri;
             return this;
         }
 
+        /// <summary>
+        /// If in a <see cref="CouchContext"/>, ensure that all databases exist.
+        /// Ignore in the <see cref="CouchClient"/>.
+        /// </summary>
+        /// <returns>Return the current instance to chain calls.</returns>
         public virtual CouchOptionsBuilder EnsureDatabaseExists()
         {
             Options.CheckDatabaseExists = true;

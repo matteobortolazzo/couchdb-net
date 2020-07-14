@@ -12,16 +12,16 @@ C# query example:
 // Setup
 public class MyDeathStarContext : CouchContext
 {
-  public CouchDatabase<Rebel> Rebels { get; set; }
-  public CouchDatabase<Clone> Clones { get; set; }
+    public CouchDatabase<Rebel> Rebels { get; set; }
+    public CouchDatabase<Clone> Clones { get; set; }
 
-  protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
-  {
-    optionsBuilder
-      .UseEndpoint("http://localhost:5984/")
-      .EnsureDatabaseExists()
-      .UseBasicAuthentication(username: "anakin", password: "empirerule");
-  }
+    protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
+    {
+      optionsBuilder
+        .UseEndpoint("http://localhost:5984/")
+        .EnsureDatabaseExists()
+        .UseBasicAuthentication(username: "anakin", password: "empirerule");
+    }
 }
 
 // Usage
@@ -104,6 +104,7 @@ The produced Mango JSON:
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
+* [Dependency Injection](#dependency-injection)
 * [Advanced](#advanced)
 * [Contributors](#contributors)
 
@@ -259,16 +260,16 @@ var tasks = await client.GetActiveTasksAsync();
 
 ```csharp
 // CRUD
-await rebels.CreateAsync(rebel);
-await rebels.CreateOrUpdateAsync(rebel);
-await rebels.DeleteAsync(rebel);
+await rebels.AddAsync(rebel);
+await rebels.AddOrUpdateAsync(rebel);
+await rebels.RemoveAsync(rebel);
 var rebel = await rebels.FindAsync(id);
 var rebel = await rebels.FindAsync(id, withConflicts: true);
 var list = await rebels.FindManyAsync(ids);
 var list = await rebels.QueryAsync(someMangoJson);
 var list = await rebels.QueryAsync(someMangoObject);
 // Bulk
-await rebels.CreateOrUpdateRangeAsync(moreRebels);
+await rebels.AddOrUpdateRangeAsync(moreRebels);
 // Utils
 await rebels.CompactAsync();
 var info = await rebels.GetInfoAsync();
@@ -304,13 +305,13 @@ public class MyDeathStarContext : CouchContext
 {
   /* ... */
 
-  protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
-  {
-    optionsBuilder
-      .UseBasicAuthentication("root", "relax")
-      .DisableEntitisPluralization()
-      ...
-  }
+    protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
+    {
+      optionsBuilder
+        .UseBasicAuthentication("root", "relax")
+        .DisableEntitisPluralization()
+        ...
+    }
 }
 
 // or
@@ -389,9 +390,9 @@ Also all *options* and *filter types* are supported.
 var tokenSource = new CancellationTokenSource();
 await foreach (var change in _rebels.GetContinuousChangesAsync(options: null, filter: null, tokenSource.Token))
 {
-  if (/* ... */) {
-    tokenSource.Cancel();
-  }
+    if (/* ... */) {
+      tokenSource.Cancel();
+    }
 }
 ```
 
@@ -433,8 +434,8 @@ The Local (non-replicating) document interface allows you to create local docume
 var docId = "settings";
 var settings = new RebelSettings
 {
-  Id = docId,
-  IsActive = true
+    Id = docId,
+    IsActive = true
 };
 
 // Create
@@ -449,9 +450,9 @@ var docs = await local.GetAsync();
 // Search
 var searchOpt = new LocalDocumentsOptions
 {
-  Descending = true,
-  Limit = 10,
-  Conflicts = true
+    Descending = true,
+    Limit = 10,
+    Conflicts = true
 };
 var docs = await local.GetAsync(searchOpt);
 ```
@@ -485,6 +486,47 @@ It's possible to extend *CouchUser* for store custom info.
 var users = client.GetUsersDatabase<CustomUser>();
 var luke = await users.CreateAsync(new CustomUser(name: "luke", password: "lasersword"));
 ```
+
+## Dependency Injection
+
+* Install the DI package from NuGet: [https://www.nuget.org/packages/CouchDB.NET.DependencyInjection](https://www.nuget.org/packages/CouchDB.NET.DependencyInjection)
+* Create a `CouchContext` with a constructor like the following:
+
+```csharp
+public class MyDeathStarContext : CouchContext
+{
+    public CouchDatabase<Rebel> Rebels { get; set; }
+
+    public MyDeathStarContext(CouchOptions<MyDeathStarContext> options)
+        : base(options) { }
+}
+```
+
+* In the `Startup` class register the context:
+
+```csharp
+// ConfigureServices
+services.AddCouchContext<MyDeathStarContext>(builder => builder
+    .UseEndpoint("http://localhost:5984")
+    .UseBasicAuthentication(username: "admin", password: "admin"));
+```
+
+* Inject the context:
+
+```csharp
+// RebelsController
+public class RebelsController : Controller
+{
+    private readonly MyDeathStarContext _context;
+
+    public RebelsController(MyDeathStarContext context)
+    {
+        _context = context;
+    }
+}
+```
+
+**Info:** The context is registered as a `singleton`.
 
 ## Advanced
 

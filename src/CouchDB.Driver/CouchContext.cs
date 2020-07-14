@@ -21,17 +21,19 @@ namespace CouchDB.Driver
             = typeof(CouchClient).GetMethods(BindingFlags.Public | BindingFlags.Instance)
                 .Single(mi => mi.Name == nameof(CouchClient.GetOrCreateDatabaseAsync) && mi.GetParameters().Length == 3);
 
-        protected CouchContext() : this(new CouchOptionsBuilder()) { }
+        protected CouchContext() : this(new CouchOptions<CouchContext>()) { }
 
-        protected CouchContext(CouchOptionsBuilder optionsBuilder)
+        protected CouchContext(CouchOptions options)
         {
-            Check.NotNull(optionsBuilder, nameof(optionsBuilder));
+            Check.NotNull(options, nameof(options));
+
+            var builder = new CouchOptionsBuilder(options);
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-            OnConfiguring(optionsBuilder);
+            OnConfiguring(builder);
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 
-            Client = new CouchClient(optionsBuilder.Options);
+            Client = new CouchClient(options);
 
             PropertyInfo[] databasePropertyInfos = GetDatabaseProperties();
 
@@ -39,7 +41,7 @@ namespace CouchDB.Driver
             {
                 Type documentType = propertyInfo.PropertyType.GetGenericArguments()[0];
                 object? database;
-                if (optionsBuilder.Options.CheckDatabaseExists)
+                if (options.CheckDatabaseExists)
                 {
                     MethodInfo getOrCreateDatabaseMethod = GetOrCreateDatabaseAsyncGenericMethod.MakeGenericMethod(documentType);
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.

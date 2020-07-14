@@ -172,13 +172,13 @@ namespace CouchDB.Driver
         #region Writing
 
         /// <inheritdoc />
-        public async Task<TSource> CreateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+        public async Task<TSource> AddAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 
             if (!string.IsNullOrEmpty(document.Id))
             {
-                return await CreateOrUpdateAsync(document, batch, cancellationToken)
+                return await AddOrUpdate(document, batch, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -203,7 +203,7 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<TSource> CreateOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+        public async Task<TSource> AddOrUpdate(TSource document, bool batch = false, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 
@@ -234,7 +234,7 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task DeleteAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+        public async Task RemoveAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 
@@ -260,7 +260,7 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<TSource>> CreateOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default)
         {
             Check.NotNull(documents, nameof(documents));
 
