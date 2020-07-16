@@ -81,7 +81,7 @@ namespace CouchDB.Driver.E2E
             Assert.Equal("Luke", luke.Name);
 
             luke.Surname = "Skywalker";
-            luke = await _rebels.AddOrUpdate(luke);
+            luke = await _rebels.AddOrUpdateAsync(luke);
             Assert.Equal("Skywalker", luke.Surname);
 
             luke = await _rebels.FindAsync(luke.Id);
@@ -112,7 +112,7 @@ namespace CouchDB.Driver.E2E
             Assert.Equal("Luke", luke.Name);
 
             luke.Surname = "Skywalker";
-            luke = await rebels.AddOrUpdate(luke);
+            luke = await rebels.AddOrUpdateAsync(luke);
             Assert.Equal("Skywalker", luke.Surname);
 
             luke = await rebels.FindAsync(luke.Id);
@@ -177,7 +177,7 @@ namespace CouchDB.Driver.E2E
 
             // Update
             luke.Surname = "Skywalker";
-            luke = await _rebels.AddOrUpdate(luke);
+            luke = await _rebels.AddOrUpdateAsync(luke);
             Assert.Equal("Skywalker", luke.Surname);
         }
 

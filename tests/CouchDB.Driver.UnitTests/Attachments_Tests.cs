@@ -70,7 +70,7 @@ namespace CouchDB.Driver.UnitTests
             var r = new Rebel { Id = "1", Name = "Luke" };
             r.Attachments.AddOrUpdate("Assets/luke.txt", MediaTypeNames.Text.Plain);
 
-            r = await _rebels.AddOrUpdate(r);
+            r = await _rebels.AddOrUpdateAsync(r);
 
             Types.CouchAttachment lukeTxt = r.Attachments.First();
             var newPath = await _rebels.DownloadAttachmentAsync(lukeTxt, "anyfolder");

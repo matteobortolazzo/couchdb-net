@@ -178,7 +178,7 @@ namespace CouchDB.Driver
 
             if (!string.IsNullOrEmpty(document.Id))
             {
-                return await AddOrUpdate(document, batch, cancellationToken)
+                return await AddOrUpdateAsync(document, batch, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -203,7 +203,7 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<TSource> AddOrUpdate(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+        public async Task<TSource> AddOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 
