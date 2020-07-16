@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -64,30 +65,30 @@ namespace CouchDB.Driver
         #region Find
 
         /// <inheritdoc />
-        public async Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default)
+        public async Task<TSource?> FindAsync(string docId, bool withConflicts = false,
+            CancellationToken cancellationToken = default)
         {
-            try
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegment(docId);
+
+            if (withConflicts)
             {
-                IFlurlRequest request = NewRequest()
-                        .AppendPathSegment(docId);
-
-                if (withConflicts)
-                {
-                    request = request.SetQueryParam("conflicts", true);
-                }
-
-                TSource document = await request
-                    .GetJsonAsync<TSource>(cancellationToken)
-                    .SendRequestAsync()
-                    .ConfigureAwait(false);
-
-                InitAttachments(document);
-                return document;
+                request = request.SetQueryParam("conflicts", true);
             }
-            catch (CouchNotFoundException)
+
+            TSource document = await request
+                .AllowHttpStatus(HttpStatusCode.NotFound)
+                .GetJsonAsync<TSource>(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (document?.Id == null)
             {
                 return null;
             }
+
+            InitAttachments(document);
+            return document;
         }
 
         /// <inheritdoc />
