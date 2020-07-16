@@ -129,12 +129,14 @@ namespace CouchDB.Driver.E2E
         public async Task Users()
         {
             var users = await _client.GetOrCreateUsersDatabaseAsync();
-
+            
             CouchUser luke = await users.AddAsync(new CouchUser(name: "luke", password: "lasersword"));
             Assert.Equal("luke", luke.Name);
 
             luke = await users.FindAsync(luke.Id);
             Assert.Equal("luke", luke.Name);
+
+            luke = await users.ChangeUserPassword(luke, "r2d2");
 
             await users.RemoveAsync(luke);
             luke = await users.FindAsync(luke.Id);

@@ -68,27 +68,28 @@ namespace CouchDB.Driver
         public async Task<TSource?> FindAsync(string docId, bool withConflicts = false,
             CancellationToken cancellationToken = default)
         {
-            IFlurlRequest request = NewRequest()
-                .AppendPathSegment(docId);
-
-            if (withConflicts)
+            try
             {
-                request = request.SetQueryParam("conflicts", true);
+                IFlurlRequest request = NewRequest()
+                    .AppendPathSegment(docId);
+
+                if (withConflicts)
+                {
+                    request = request.SetQueryParam("conflicts", true);
+                }
+
+                TSource document = await request
+                    .GetJsonAsync<TSource>(cancellationToken)
+                    .SendRequestAsync()
+                    .ConfigureAwait(false);
+
+                InitAttachments(document);
+                return document;
             }
-
-            TSource document = await request
-                .AllowHttpStatus(HttpStatusCode.NotFound)
-                .GetJsonAsync<TSource>(cancellationToken)
-                .SendRequestAsync()
-                .ConfigureAwait(false);
-
-            if (document?.Id == null)
+            catch (CouchNotFoundException)
             {
                 return null;
             }
-
-            InitAttachments(document);
-            return document;
         }
 
         /// <inheritdoc />

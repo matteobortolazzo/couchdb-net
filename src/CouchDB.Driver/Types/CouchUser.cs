@@ -27,7 +27,7 @@ namespace CouchDB.Driver.Types
         
         [DataMember]
         [JsonProperty("password")]
-        internal string Password { get; }
+        internal string Password { get; set; }
 
         /// <summary>
         /// User’s name aka login. Immutable e.g. you cannot rename an existing user - you have to create new one.
