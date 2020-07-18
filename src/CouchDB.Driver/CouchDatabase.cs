@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -64,12 +65,13 @@ namespace CouchDB.Driver
         #region Find
 
         /// <inheritdoc />
-        public async Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default)
+        public async Task<TSource?> FindAsync(string docId, bool withConflicts = false,
+            CancellationToken cancellationToken = default)
         {
             try
             {
                 IFlurlRequest request = NewRequest()
-                        .AppendPathSegment(docId);
+                    .AppendPathSegment(docId);
 
                 if (withConflicts)
                 {
@@ -178,7 +180,7 @@ namespace CouchDB.Driver
 
             if (!string.IsNullOrEmpty(document.Id))
             {
-                return await AddOrUpdate(document, batch, cancellationToken)
+                return await AddOrUpdateAsync(document, batch, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -203,7 +205,7 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<TSource> AddOrUpdate(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+        public async Task<TSource> AddOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 

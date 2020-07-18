@@ -81,7 +81,7 @@ namespace CouchDB.Driver.E2E
             Assert.Equal("Luke", luke.Name);
 
             luke.Surname = "Skywalker";
-            luke = await _rebels.AddOrUpdate(luke);
+            luke = await _rebels.AddOrUpdateAsync(luke);
             Assert.Equal("Skywalker", luke.Surname);
 
             luke = await _rebels.FindAsync(luke.Id);
@@ -112,7 +112,7 @@ namespace CouchDB.Driver.E2E
             Assert.Equal("Luke", luke.Name);
 
             luke.Surname = "Skywalker";
-            luke = await rebels.AddOrUpdate(luke);
+            luke = await rebels.AddOrUpdateAsync(luke);
             Assert.Equal("Skywalker", luke.Surname);
 
             luke = await rebels.FindAsync(luke.Id);
@@ -129,12 +129,14 @@ namespace CouchDB.Driver.E2E
         public async Task Users()
         {
             var users = await _client.GetOrCreateUsersDatabaseAsync();
-
+            
             CouchUser luke = await users.AddAsync(new CouchUser(name: "luke", password: "lasersword"));
             Assert.Equal("luke", luke.Name);
 
             luke = await users.FindAsync(luke.Id);
             Assert.Equal("luke", luke.Name);
+
+            luke = await users.ChangeUserPassword(luke, "r2d2");
 
             await users.RemoveAsync(luke);
             luke = await users.FindAsync(luke.Id);
@@ -177,7 +179,7 @@ namespace CouchDB.Driver.E2E
 
             // Update
             luke.Surname = "Skywalker";
-            luke = await _rebels.AddOrUpdate(luke);
+            luke = await _rebels.AddOrUpdateAsync(luke);
             Assert.Equal("Skywalker", luke.Surname);
         }
 

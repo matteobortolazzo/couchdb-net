@@ -19,7 +19,7 @@ namespace CouchDB.Driver.Example
             var docs = await Rebels.ToListAsync();
             if (docs.All(d => d.Id != "luke"))
             {
-                await Rebels.AddOrUpdate(new Rebel
+                await Rebels.AddOrUpdateAsync(new Rebel
                 {
                     Id = "luke",
                     Name = "Luke",
@@ -30,7 +30,7 @@ namespace CouchDB.Driver.Example
 
             if (docs.All(d => d.Id != "leia"))
             {
-                await Rebels.AddOrUpdate(new Rebel
+                await Rebels.AddOrUpdateAsync(new Rebel
                 {
                     Id = "leia",
                     Name = "Leia",

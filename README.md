@@ -487,6 +487,11 @@ var users = client.GetUsersDatabase<CustomUser>();
 var luke = await users.CreateAsync(new CustomUser(name: "luke", password: "lasersword"));
 ```
 
+To change password:
+```csharp
+luke = await users.ChangeUserPassword(luke, "r2d2");
+```
+
 ## Dependency Injection
 
 * Install the DI package from NuGet: [https://www.nuget.org/packages/CouchDB.NET.DependencyInjection](https://www.nuget.org/packages/CouchDB.NET.DependencyInjection)

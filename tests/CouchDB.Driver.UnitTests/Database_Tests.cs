@@ -106,7 +106,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
             var r = new Rebel { Name = "Luke", Id = "1" };
-            var newR = await _rebels.AddOrUpdate(r);
+            var newR = await _rebels.AddOrUpdateAsync(r);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithVerb(HttpMethod.Put);
@@ -119,7 +119,7 @@ namespace CouchDB.Driver.UnitTests
             var exception = await Record.ExceptionAsync(async () =>
             {
                 var r = new Rebel { Name = "Luke" };
-                await _rebels.AddOrUpdate(r);
+                await _rebels.AddOrUpdateAsync(r);
             });
             Assert.NotNull(exception);
             Assert.IsType<InvalidOperationException>(exception);

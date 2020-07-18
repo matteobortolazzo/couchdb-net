@@ -80,7 +80,7 @@ namespace CouchDB.Driver.Example.Controllers
                 rebel.Name = collection["Name"];
                 rebel.Surname = collection["Surname"];
                 rebel.Age = int.Parse(collection["Age"]);
-                await _context.Rebels.AddOrUpdate(rebel);
+                await _context.Rebels.AddOrUpdateAsync(rebel);
                 return RedirectToAction(nameof(Index));
             }
             catch
