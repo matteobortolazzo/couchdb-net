@@ -1,5 +1,6 @@
 variables:
   BuildConfiguration: Release
+  PackageVersion: '2.0.1'
 
 trigger:
   branches:
@@ -73,6 +74,8 @@ stages:
         displayName: Create Package
         inputs:
           command: pack
+          versioningScheme: byEnvVar
+          versionEnvVar: PackageVersion
           packagesToPack: '**/*.csproj;!**/*Tests.csproj;!**/*Example.csproj'
       - task: CopyFiles@2
         displayName: Copy Release Notes
@@ -108,14 +111,22 @@ stages:
               nuGetFeedType: 'external'
               publishFeedCredentials: 'Nuget - CouchDB'
           - task: GitHubRelease@1
+            displayName: GitHub Release Notes
             inputs:
               gitHubConnection: 'CouchDB - GitHub'
               repositoryName: '$(Build.Repository.Name)'
               action: 'create'
               target: '$(Build.SourceVersion)'
-              tagSource: 'gitTag'
-              tagPattern: 'v$(Major).$(Minor).$(Patch)'
-              title: 'v$(Major).$(Minor).$(Patch)'
+              tagSource: 'userSpecifiedTag'
+              tag: 'v$(PackageVersion)'
+              title: 'v$(PackageVersion)'
               releaseNotesFilePath: '$(Pipeline.Workspace)/**/drop/LATEST_CHANGE.md'
               assets: '$(Pipeline.Workspace)/**/drop/*.nupkg'
-              addChangeLog: false
+              changeLogCompareToRelease: 'lastFullRelease'
+              changeLogType: 'issueBased'
+              changeLogLabels: |
+                [
+                  { "label" : "feature", "displayName" : "Features", "state" : "closed" }
+                  { "label" : "enhancement", "displayName" : "Improvements", "state" : "closed" },
+                  { "label" : "bug", "displayName" : "Bugs", "state" : "closed" },
+                ]
