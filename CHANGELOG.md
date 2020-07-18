@@ -1,3 +1,12 @@
+# 2.0.1 (2020-07-18)
+
+## Features
+* **Users"**: Added `ChangeUserPassword` method for `ICouchDatabase<CouchUser>`.
+
+## Bug Fixes
+* **IsMatch**: Back to public instead of internal;
+* **AddOrUpdate**: Added `Async` postfix.
+
 # 2.0.0 (2020-07-15)
 
 ## Improvements
