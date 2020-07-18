@@ -50,26 +50,26 @@ stages:
         inputs:
           solution: '**/*.sln'
           configuration: $(BuildConfiguration)
-      - task: VSTest@2
-        displayName: Run Unit Tests
-        inputs:
-          testSelector: 'testAssemblies'
-          testAssemblyVer2: |
-            **\*UnitTests*.dll
-            !**\*TestAdapter.dll
-            !**\obj\**
-            !**\xunit.runner.visualstudio.testadapter.dll
-            !**\xunit.runner.visualstudio.dotnetcore.testadapter.dll
-          searchFolder: '$(System.DefaultWorkingDirectory)'
-          minimumExpectedTests: 1,
-          failOnMinTestsNotRun: true
-      - task: PublishTestResults@2
-        displayName: Publish Unit Tests
-        inputs:
-          testResultsFormat: 'XUnit'
-          testResultsFiles: '*.trx'
-          searchFolder: '$(Agent.TempDirectory)\TestResults'
-          buildConfiguration: '$(BuildConfiguration)'
+      # - task: VSTest@2
+      #   displayName: Run Unit Tests
+      #   inputs:
+      #     testSelector: 'testAssemblies'
+      #     testAssemblyVer2: |
+      #       **\*UnitTests*.dll
+      #       !**\*TestAdapter.dll
+      #       !**\obj\**
+      #       !**\xunit.runner.visualstudio.testadapter.dll
+      #       !**\xunit.runner.visualstudio.dotnetcore.testadapter.dll
+      #     searchFolder: '$(System.DefaultWorkingDirectory)'
+      #     minimumExpectedTests: 1,
+      #     failOnMinTestsNotRun: true
+      # - task: PublishTestResults@2
+      #   displayName: Publish Unit Tests
+      #   inputs:
+      #     testResultsFormat: 'XUnit'
+      #     testResultsFiles: '*.trx'
+      #     searchFolder: '$(Agent.TempDirectory)\TestResults'
+      #     buildConfiguration: '$(BuildConfiguration)'
       - task: DotNetCoreCLI@2
         displayName: Create Package
         inputs:
