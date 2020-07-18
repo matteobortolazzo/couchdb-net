@@ -1,4 +1,4 @@
-# 2.0.1 (2020-07-18)
+# 2.0.2 (2020-07-18)
 
 ## Features
 * **Users"**: Added `ChangeUserPassword` method for `ICouchDatabase<CouchUser>`.

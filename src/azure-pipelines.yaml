@@ -1,6 +1,6 @@
 variables:
   BuildConfiguration: Release
-  PackageVersion: '2.0.1'
+  PackageVersion: '2.0.2'
 
 trigger:
   branches:
@@ -69,13 +69,13 @@ stages:
           testResultsFormat: 'XUnit'
           testResultsFiles: '*.trx'
           searchFolder: '$(Agent.TempDirectory)\TestResults'
-          buildConfiguration: '$(BuildConfiguration)'      
-      - task: NuGetCommand@2
+          buildConfiguration: '$(BuildConfiguration)'
+      - task: DotNetCoreCLI@2
         displayName: Create Package
         inputs:
-          command: pack
-          versioningScheme: byEnvVar
-          versionEnvVar: PackageVersion
+          command: 'pack'
+          versioningScheme: 'byEnvVar'
+          versionEnvVar: 'PackageVersion'
           packagesToPack: '**/*.csproj;!**/*Tests.csproj;!**/*Example.csproj'
       - task: CopyFiles@2
         displayName: Copy Release Notes
