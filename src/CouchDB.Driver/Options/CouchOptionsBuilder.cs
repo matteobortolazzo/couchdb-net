@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using CouchDB.Driver.Helpers;
 using Flurl.Http.Configuration;
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Options
 {
@@ -222,6 +223,12 @@ namespace CouchDB.Driver.Options
         public virtual CouchOptionsBuilder ConfigureFlurlClient(Action<ClientFlurlHttpSettings> flurlSettingsAction)
         {
             Options.ClientFlurlHttpSettingsAction = flurlSettingsAction;
+            return this;
+        }
+
+        public virtual CouchOptionsBuilder JsonNullValueHandling(NullValueHandling valueHandling)
+        {
+            Options.NullValueHandling = valueHandling;
             return this;
         }
     }
