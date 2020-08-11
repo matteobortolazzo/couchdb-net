@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
+using CouchDB.Driver.Database;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
@@ -169,5 +170,10 @@ namespace CouchDB.Driver
         /// Access local documents operations.
         /// </summary>
         public ILocalDocuments LocalDocuments { get; }
+        
+        /// <summary>
+        /// index creator
+        /// </summary>
+        public IIndexProvider<TSource> IndexProvider { get; }         
     }
 }

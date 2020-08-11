@@ -9,6 +9,7 @@ using CouchDB.Driver.E2ETests;
 using CouchDB.Driver.E2ETests._Models;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Local;
+using CouchDB.Driver.Query.Extensions;
 using Xunit;
 
 namespace CouchDB.Driver.E2E
@@ -214,5 +215,37 @@ namespace CouchDB.Driver.E2E
             var containsId = docs.Select(d => d.Id).Contains("_local/" + docId);
             Assert.True(containsId);
         }
+
+        [Fact]
+        public async Task CreateIndex_Test()
+        {
+            var result = await _rebels.IndexProvider.CreateAsync(index =>
+            {
+                index.IndexName = "test-index";
+                index.Fields = x => new {x.Name, x.Age};
+            });
+
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task CreateAndUpdateIndex_Test()
+        {
+            var result = await _rebels.IndexProvider.CreateAsync(index =>
+            {
+                index.IndexName = "test-index";
+                index.Fields = x => new { x.Name, x.Age };
+            });
+            
+            Assert.True(result);
+            
+            var result2 = await _rebels.IndexProvider.CreateOrUpdateAsync(index =>
+            {
+                index.IndexName = "test-index";
+                index.Fields = x => new { x.Name, x.Age, x.Surname };
+            });
+            
+            Assert.True(result2);
+        }            
     }
 }

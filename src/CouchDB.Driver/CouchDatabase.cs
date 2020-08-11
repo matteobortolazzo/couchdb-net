@@ -11,13 +11,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
+using CouchDB.Driver.Database;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
@@ -45,6 +45,8 @@ namespace CouchDB.Driver
 
         /// <inheritdoc />
         public ILocalDocuments LocalDocuments { get; }
+        
+        public IIndexProvider<TSource> IndexProvider { get; } 
 
         internal CouchDatabase(IFlurlClient flurlClient, CouchOptions options, QueryContext queryContext)
         {
@@ -60,6 +62,7 @@ namespace CouchDB.Driver
 
             Security = new CouchSecurity(NewRequest);
             LocalDocuments = new LocalDocuments(flurlClient, queryContext);
+            IndexProvider = new IndexProvider<TSource>(this);
         }
 
         #region Find

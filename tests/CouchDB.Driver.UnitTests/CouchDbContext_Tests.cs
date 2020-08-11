@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.UnitTests.Models;
@@ -51,5 +52,30 @@ namespace CouchDB.Driver.UnitTests
             Assert.NotEmpty(result);
             Assert.Equal("Luke", result[0].Name);
         }
+        
+        [Fact]
+        public async Task Context_CreateIndex_Test()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new
+            {
+                Id = "176694",
+                Ok = true,
+                Rev = "1-54f8e950cc338d2385d9b0cda2fd918e"
+            });            
+
+            await using var context = new MyDeathStarContext();
+            
+            await context.Rebels.IndexProvider.CreateAsync(index =>
+            {
+                index.IndexName = "test-index";
+                index.Fields = x => new { x.Name, x.Age };
+            });
+            
+            
+            var call = httpTest.CallLog.First();
+            Assert.NotNull(call);
+            Assert.Equal(@"{""name"":""test-index"",""index"":{""fields"":[""Name"",""Age""]},""type"":""json""}", call.RequestBody);
+        }        
     }
 }
