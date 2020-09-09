@@ -29,7 +29,7 @@ namespace CouchDB.Driver
     /// Represents a CouchDB database.
     /// </summary>
     /// <typeparam name="TSource">The type of database documents.</typeparam>
-    public class CouchDatabase<TSource>: ICouchDatabase<TSource>
+    public class CouchDatabase<TSource> : ICouchDatabase<TSource>
         where TSource : CouchDocument
     {
         private readonly IAsyncQueryProvider _queryProvider;
@@ -75,7 +75,7 @@ namespace CouchDB.Driver
 
                 if (withConflicts)
                 {
-                    request = request.SetQueryParam("conflicts", true);
+                    request = request.SetQueryParam("conflicts", "true");
                 }
 
                 TSource document = await request
@@ -119,7 +119,7 @@ namespace CouchDB.Driver
                 .ReceiveJson<BulkGetResult<TSource>>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
-                       
+
             var documents = bulkGetResult.Results
                 .SelectMany(r => r.Docs)
                 .Select(d => d.Item)
@@ -345,7 +345,7 @@ namespace CouchDB.Driver
                 {
                     document.Rev = response.Rev;
                     document.Attachments.RemoveAttachment(attachment);
-                }                
+                }
             }
 
             InitAttachments(document);
@@ -398,7 +398,7 @@ namespace CouchDB.Driver
                     .ConfigureAwait(false)
                 : await request.QueryContinuousWithFilterAsync<TSource>(_options, filter, cancellationToken)
                     .ConfigureAwait(false);
-            
+
             await foreach (var line in stream.ReadLinesAsync(cancellationToken))
             {
                 if (string.IsNullOrEmpty(line))
@@ -481,7 +481,7 @@ namespace CouchDB.Driver
         #endregion
 
         #region Helper
-        
+
         /// <inheritdoc />
         public IFlurlRequest NewRequest()
         {

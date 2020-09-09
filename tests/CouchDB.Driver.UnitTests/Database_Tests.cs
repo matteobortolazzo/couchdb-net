@@ -10,7 +10,7 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests
 {
-    public class Database_Tests: IAsyncDisposable
+    public class Database_Tests : IAsyncDisposable
     {
         private readonly ICouchClient _client;
         private readonly ICouchDatabase<Rebel> _rebels;
@@ -58,7 +58,8 @@ namespace CouchDB.Driver.UnitTests
             var newR = await _rebels.FindAsync("1", true);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
-                .WithQueryParamValue("conflicts", true)
+                // "true" must be lower case. Don't pass true as a bool. It will be serialized as "True"
+                .WithQueryParamValue("conflicts", "true")
                 .WithVerb(HttpMethod.Get);
         }
 
