@@ -75,7 +75,7 @@ namespace CouchDB.Driver
 
                 if (withConflicts)
                 {
-                    request = request.SetQueryParam("conflicts", true);
+                    request = request.SetQueryParam("conflicts", "true");
                 }
 
                 TSource document = await request

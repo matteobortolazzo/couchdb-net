@@ -75,7 +75,7 @@ namespace CouchDB.Driver.UnitTests.Feed
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_changes")
                 .WithQueryParamValue("feed", "continuous")
-                .WithQueryParamValue("attachments", true)
+                .WithQueryParamValue("attachments", "true")
                 .WithVerb(HttpMethod.Get);
         }
 
