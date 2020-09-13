@@ -1,6 +1,5 @@
 ﻿## Features
-* **Users"**: New `ChangeUserPassword` mathod for `ICouchDatabase<CouchUser>`.
+* **Null values"**: New `SetNullValueHandling` method for `CouchOptionsBuilder` to set how to handle null values.
 
 ## Bug Fixes
-* **IsMatch**: Back to public instead of internal;
-* **AddOrUpdate**: Added `Async` postfix.
+* **Conflicts**: Fix the query parameter value to get conflicts.

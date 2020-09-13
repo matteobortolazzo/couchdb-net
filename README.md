@@ -331,6 +331,7 @@ var client = new CouchClient("http://localhost:5984", builder => builder
 | DisableDocumentPluralization   | Disables documents pluralization in requests. |
 | SetDocumentCase                | Sets the format case for documents.           |
 | SetPropertyCase                | Sets the format case for properties.          |
+| SetNullValueHandling           | Sets how to handle null values.               |
 | DisableLogOutOnDispose         | Disables log out on client dispose.           | 
 
 - **DocumentCaseTypes**: None, UnderscoreCase *(default)*, DashCase, KebabCase.

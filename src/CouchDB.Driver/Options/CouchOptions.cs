@@ -5,6 +5,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Flurl.Http.Configuration;
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Options
 {
@@ -25,6 +26,7 @@ namespace CouchDB.Driver.Options
         internal bool PluralizeEntities { get; set; }
         internal DocumentCaseType DocumentsCaseType { get; set; }
         internal PropertyCaseType PropertiesCase { get; set; }
+        internal NullValueHandling? NullValueHandling { get; set; }
         internal bool LogOutOnDispose { get; set; }
 
         internal Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>? ServerCertificateCustomValidationCallback { get; set; }
