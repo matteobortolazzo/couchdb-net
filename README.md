@@ -549,3 +549,5 @@ Also, the configurator has `ConfigureFlurlClient` to set custom HTTP client opti
 Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and many others.
 
 Thanks to [n9](https://github.com/n9) for proxy authentication, some bug fixes, suggestions and the great feedback on the changes feed feature!
+
+Thanks to [Marc](https://github.com/bender-ristone) for NullValueHandling, bug fixes and suggestions!

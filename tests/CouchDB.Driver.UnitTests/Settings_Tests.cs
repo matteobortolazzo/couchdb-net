@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests
@@ -186,6 +187,58 @@ namespace CouchDB.Driver.UnitTests
             httpTest
                 .ShouldHaveCalled("http://localhost/custom_rebels/_find")
                 .WithVerb(HttpMethod.Post);
+        }
+
+        #endregion
+
+        #region Null Value Handling
+
+        [Fact]
+        public async Task PropertyNullValueHandling_NotSet()
+        {
+            using var httpTest = new HttpTest();
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            await using var client = new CouchClient("http://localhost");
+            var rebels = client.GetDatabase<Rebel>();
+            await rebels.AddAsync(new Rebel());
+
+            var call = httpTest.CallLog.First();
+            Assert.NotNull(call);
+            Assert.Equal(@"{""_conflicts"":[],""name"":null,""surname"":null,""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""skills"":null,""battles"":null}", call.RequestBody);
+        }
+
+        [Fact]
+        public async Task PropertyNullValueHandling_Includes()
+        {
+            using var httpTest = new HttpTest();
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            await using var client = new CouchClient("http://localhost", x => x.SetJsonNullValueHandling(NullValueHandling.Include));
+            var rebels = client.GetDatabase<Rebel>();
+            await rebels.AddAsync(new Rebel());
+
+            var call = httpTest.CallLog.First();
+            Assert.NotNull(call);
+            Assert.Equal(@"{""_conflicts"":[],""name"":null,""surname"":null,""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""skills"":null,""battles"":null}", call.RequestBody);
+        }
+
+        [Fact]
+        public async Task PropertyNullValueHandling_Ignore()
+        {
+            using var httpTest = new HttpTest();
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            await using var client = new CouchClient("http://localhost", x => x.SetJsonNullValueHandling(NullValueHandling.Ignore));
+            var rebels = client.GetDatabase<Rebel>();
+            await rebels.AddAsync(new Rebel());
+
+            var call = httpTest.CallLog.First();
+            Assert.NotNull(call);
+            Assert.Equal(@"{""_conflicts"":[],""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000""}", call.RequestBody);
         }
 
         #endregion
