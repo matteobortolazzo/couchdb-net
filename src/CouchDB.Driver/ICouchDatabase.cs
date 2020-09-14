@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
+using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
@@ -124,7 +126,17 @@ namespace CouchDB.Driver
             CancellationToken cancellationToken);
 
         /// <summary>
-        ///  Asynchronously downloads a specific attachment.
+        /// Creates an index for the current database with the given configuration.
+        /// </summary>
+        /// <param name="name">The name of the index.</param>
+        /// <param name="indexBuilderAction">The action to configure the index builder.</param>
+        /// <param name="options">The index options.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task CreateIndexAsync(string name, Action<IIndexBuilder<TSource>> indexBuilderAction,
+            IndexOptions? options = null);
+
+        /// <summary>
+        /// Asynchronously downloads a specific attachment.
         /// </summary>
         /// <param name="attachment">The attachment to download.</param>
         /// <param name="localFolderPath">Path of local folder where file is to be downloaded.</param>

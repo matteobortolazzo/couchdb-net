@@ -1,11 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.Extensions
 {
     internal static class ExpressionExtensions
     {
+        public static MemberExpression ToMemberExpression(this Expression selector)
+        {
+            if (!(selector is LambdaExpression l) || !(l.Body is MemberExpression m))
+            {
+                throw new ArgumentException("The given expression does not select a property.", nameof(selector));
+            }
+
+            return m;
+        }
+
+        public static string GetPropertyName(this MemberExpression m, CouchOptions options)
+        {
+            PropertyCaseType caseType = options.PropertiesCase;
+
+            var members = new List<string> { m.Member.GetCouchPropertyName(caseType) };
+
+            Expression currentExpression = m.Expression;
+
+            while (currentExpression is MemberExpression cm)
+            {
+                members.Add(cm.Member.GetCouchPropertyName(caseType));
+                currentExpression = cm.Expression;
+            }
+
+            members.Reverse();
+            var propName = string.Join(".", members.ToArray());
+
+            return propName;
+        }
+
         public static bool ContainsSelector(this Expression expression) =>
             expression is MethodCallExpression m && m.Arguments.Count == 2 && m.Arguments[1].IsSelectorExpression();
 
@@ -37,6 +69,13 @@ namespace CouchDB.Driver.Extensions
         { 
             LambdaExpression lambdaExpression = Expression.Lambda(body, lambdaParameters);
             return Expression.Quote(lambdaExpression);
+        }
+
+        public static MethodCallExpression WrapInWhereExpression<TSource>(this Expression<Func<TSource, bool>> selector)
+        {
+            MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where),
+                new[] { typeof(TSource) }, Expression.Constant(Array.Empty<TSource>().AsQueryable()), selector);
+            return whereExpression;
         }
 
         private static Expression StripQuotes(this Expression e)

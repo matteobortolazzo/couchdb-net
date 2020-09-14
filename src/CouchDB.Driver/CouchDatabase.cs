@@ -8,19 +8,22 @@ using Flurl.Http;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
+using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
+using Flurl.Util;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver
@@ -374,7 +377,7 @@ namespace CouchDB.Driver
             return filter == null
                 ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false)
-                : await request.QueryWithFilterAsync<TSource>(_options, filter, cancellationToken)
+                : await request.QueryWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
         }
 
@@ -396,7 +399,7 @@ namespace CouchDB.Driver
             await using Stream stream = filter == null
                 ? await request.GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false)
-                : await request.QueryContinuousWithFilterAsync<TSource>(_options, filter, cancellationToken)
+                : await request.QueryContinuousWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
             
             await foreach (var line in stream.ReadLinesAsync(cancellationToken))
@@ -409,6 +412,45 @@ namespace CouchDB.Driver
                 ChangesFeedResponseResult<TSource> result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
                 yield return result;
             }
+        }
+
+        #endregion
+
+        #region Index
+
+        public async Task CreateIndexAsync(string name, Action<IIndexBuilder<TSource>> indexBuilderAction, IndexOptions? options = null)
+        {
+            Check.NotNull(name, nameof(name));
+            Check.NotNull(indexBuilderAction, nameof(indexBuilderAction));
+
+            var builder = new IndexBuilder<TSource>(_options, _queryProvider);
+            indexBuilderAction(builder);
+
+            var indexJson = builder.ToString();
+
+            var sb = new StringBuilder();
+            sb.Append("{")
+                .Append($"\"index\":{indexJson},")
+                .Append($"\"name\":\"{name}\",")
+                .Append("\"type\":\"json\"");
+
+            if (options?.DesignDocument != null)
+            {
+                sb.Append($",\"ddoc\":\"{options.DesignDocument}\"");
+            }
+            if (options?.Partitioned != null)
+            {
+                sb.Append($",\"partitioned\":{options.Partitioned.ToString().ToLowerInvariant()}");
+            }
+
+            sb.Append("}");
+
+            var request = sb.ToString();
+
+            await NewRequest().AppendPathSegment("_index")
+                .PostStringAsync(request)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
         }
 
         #endregion

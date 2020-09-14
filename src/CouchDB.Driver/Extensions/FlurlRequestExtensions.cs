@@ -45,7 +45,6 @@ namespace CouchDB.Driver.Extensions
             return request.SendAsync(HttpMethod.Post, capturedStringContent, cancellationToken, completionOption).ReceiveStream();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "<Pending>")]
         public static IFlurlRequest ApplyQueryParametersOptions(this IFlurlRequest request, object options)
         {
             IEnumerable<(string Name, object? Value)> queryParameters = OptionsHelper.ToQueryParameters(options);

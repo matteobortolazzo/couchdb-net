@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
@@ -8,7 +7,6 @@ using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed.Filters;
 using CouchDB.Driver.ChangesFeed.Responses;
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using CouchDB.Driver.Types;
 using Flurl.Http;
@@ -17,7 +15,7 @@ namespace CouchDB.Driver.ChangesFeed
 {
     internal static class ChangesFeedFilterExtensions
     {
-        public static async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(this IFlurlRequest request, CouchOptions options, ChangesFeedFilter filter,
+        public static async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(this IFlurlRequest request, IAsyncQueryProvider queryProvider, ChangesFeedFilter filter,
             CancellationToken cancellationToken)
             where TSource : CouchDocument
         {
@@ -32,12 +30,9 @@ namespace CouchDB.Driver.ChangesFeed
 
             if (filter is SelectorChangesFeedFilter<TSource> selectorFilter)
             {
-                MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where),
-                    new[] { typeof(TSource) }, Expression.Constant(Array.Empty<TSource>().AsQueryable()), selectorFilter.Value);
+                MethodCallExpression whereExpression = selectorFilter.Value.WrapInWhereExpression();
+                var jsonSelector = queryProvider.ToString(whereExpression);
 
-                var optimizer = new QueryOptimizer();
-                Expression optimizedQuery = optimizer.Optimize(whereExpression);
-                var jsonSelector = new QueryTranslator(options).Translate(optimizedQuery);
                 return await request
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
@@ -65,7 +60,7 @@ namespace CouchDB.Driver.ChangesFeed
             throw new InvalidOperationException($"Filter of type {filter.GetType().Name} not supported.");
         }
 
-        public static async Task<Stream> QueryContinuousWithFilterAsync<TSource>(this IFlurlRequest request, CouchOptions options, ChangesFeedFilter filter, CancellationToken cancellationToken)
+        public static async Task<Stream> QueryContinuousWithFilterAsync<TSource>(this IFlurlRequest request, IAsyncQueryProvider queryProvider, ChangesFeedFilter filter, CancellationToken cancellationToken)
             where TSource: CouchDocument
         {
             if (filter is DocumentIdsChangesFeedFilter documentIdsFilter)
@@ -78,12 +73,9 @@ namespace CouchDB.Driver.ChangesFeed
 
             if (filter is SelectorChangesFeedFilter<TSource> selectorFilter)
             {
-                MethodCallExpression whereExpression = Expression.Call(typeof(Queryable), nameof(Queryable.Where),
-                    new[] { typeof(TSource) }, Expression.Constant(Array.Empty<TSource>().AsQueryable()), selectorFilter.Value);
+                MethodCallExpression whereExpression = selectorFilter.Value.WrapInWhereExpression();
+                var jsonSelector = queryProvider.ToString(whereExpression);
 
-                var optimizer = new QueryOptimizer();
-                Expression optimizedQuery = optimizer.Optimize(whereExpression);
-                var jsonSelector = new QueryTranslator(options).Translate(optimizedQuery);
                 return await request
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
