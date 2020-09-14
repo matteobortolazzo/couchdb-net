@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Options;
+using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver
 {
@@ -12,14 +13,15 @@ namespace CouchDB.Driver
     {
         public ICouchClient Client { get; }
         protected virtual void OnConfiguring(CouchOptionsBuilder optionsBuilder) { }
+        protected virtual void OnDatabaseCreating(CouchDatabaseBuilder optionsBuilder) { }
 
-        private static readonly MethodInfo GetDatabaseGenericMethod
-            = typeof(CouchClient).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .Single(mi => mi.Name == nameof(CouchClient.GetDatabase) && mi.GetParameters().Length == 0);
+        private static readonly MethodInfo InitDatabasesGenericMethod
+            = typeof(CouchContext).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+                .Single(mi => mi.Name == nameof(InitDatabasesAsync));
 
-        private static readonly MethodInfo GetOrCreateDatabaseAsyncGenericMethod
-            = typeof(CouchClient).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .Single(mi => mi.Name == nameof(CouchClient.GetOrCreateDatabaseAsync) && mi.GetParameters().Length == 3);
+        private static readonly MethodInfo ApplyDatabaseChangesGenericMethod
+            = typeof(CouchContext).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+                .Single(mi => mi.Name == nameof(ApplyDatabaseChangesAsync));
 
         protected CouchContext() : this(new CouchOptions<CouchContext>()) { }
 
@@ -27,37 +29,28 @@ namespace CouchDB.Driver
         {
             Check.NotNull(options, nameof(options));
 
-            var builder = new CouchOptionsBuilder(options);
+            var optionsBuilder = new CouchOptionsBuilder(options);
+            var databaseBuilder = new CouchDatabaseBuilder();
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-            OnConfiguring(builder);
+            OnConfiguring(optionsBuilder);
+            OnDatabaseCreating(databaseBuilder);
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 
             Client = new CouchClient(options);
+            IEnumerable<PropertyInfo> databasePropertyInfos = GetDatabaseProperties();
 
-            PropertyInfo[] databasePropertyInfos = GetDatabaseProperties();
-
-            foreach (PropertyInfo propertyInfo in databasePropertyInfos)
+            foreach (PropertyInfo dbProperty in databasePropertyInfos)
             {
-                Type documentType = propertyInfo.PropertyType.GetGenericArguments()[0];
-                object? database;
-                if (options.CheckDatabaseExists)
-                {
-                    MethodInfo getOrCreateDatabaseMethod = GetOrCreateDatabaseAsyncGenericMethod.MakeGenericMethod(documentType);
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-                    var parameters = new[] {(object)null, null, default(CancellationToken)};
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-                    var task = (Task)getOrCreateDatabaseMethod.Invoke(Client, parameters);
-                    task.ConfigureAwait(false).GetAwaiter().GetResult();
-                    PropertyInfo resultProperty = task.GetType().GetProperty(nameof(Task<object>.Result));
-                    database = resultProperty.GetValue(task);
-                }
-                else
-                {
-                    MethodInfo getDatabaseMethod = GetDatabaseGenericMethod.MakeGenericMethod(documentType);
-                    database = getDatabaseMethod.Invoke(Client, Array.Empty<object>());
-                }
-                propertyInfo.SetValue(this, database);
+                Type documentType = dbProperty.PropertyType.GetGenericArguments()[0];
+
+                var initDatabasesTask = (Task)InitDatabasesGenericMethod.MakeGenericMethod(documentType)
+                    .Invoke(this, new object[] {dbProperty, options});
+                initDatabasesTask.ConfigureAwait(false).GetAwaiter();
+
+                var applyDatabaseChangesTask = (Task)ApplyDatabaseChangesGenericMethod.MakeGenericMethod(documentType)
+                    .Invoke(this, new object[] { dbProperty, databaseBuilder });
+                applyDatabaseChangesTask.ConfigureAwait(false).GetAwaiter();
             }
         }
 
@@ -66,7 +59,35 @@ namespace CouchDB.Driver
             return Client.DisposeAsync();
         }
 
-        private PropertyInfo[] GetDatabaseProperties() =>
+        private async Task InitDatabasesAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options)
+            where TSource : CouchDocument
+        {
+            ICouchDatabase<TSource> database = options.CheckDatabaseExists
+                ? await Client.GetOrCreateDatabaseAsync<TSource>().ConfigureAwait(false)
+                : Client.GetDatabase<TSource>();
+
+            propertyInfo.SetValue(this, database);
+        }
+
+        private async Task ApplyDatabaseChangesAsync<TSource>(PropertyInfo propertyInfo, CouchDatabaseBuilder databaseBuilder)
+            where TSource: CouchDocument
+        {
+            if (!databaseBuilder.DocumentBuilders.ContainsKey(typeof(TSource)))
+            {
+                return;
+            }
+
+            var database = (CouchDatabase<TSource>)propertyInfo.GetValue(this);
+            var documentBuilder = (CouchDocumentBuilder<TSource>)databaseBuilder.DocumentBuilders[typeof(TSource)];
+
+            await database.CreateIndexAsync(
+                documentBuilder.Name,
+                documentBuilder.IndexBuilderAction,
+                documentBuilder.Options)
+                .ConfigureAwait(false);
+        }
+
+        private IEnumerable<PropertyInfo> GetDatabaseProperties() =>
             GetType()
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.PropertyType.IsGenericType &&
