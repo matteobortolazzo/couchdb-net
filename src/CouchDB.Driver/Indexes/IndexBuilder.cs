@@ -22,6 +22,7 @@ namespace CouchDB.Driver.Indexes
         private int? _toTake;
         private int? _toSkip;
         private string? _selector;
+        private string? _partialSelector;
 
         public IndexBuilder(CouchOptions options, IAsyncQueryProvider queryProvider)
         {
@@ -77,6 +78,16 @@ namespace CouchDB.Driver.Indexes
             return this;
         }
 
+        public IMultiFieldIndexBuilder<TSource> ExcludeWhere(Expression<Func<TSource, bool>> selector)
+        {
+            MethodCallExpression whereExpression = selector.WrapInWhereExpression();
+            var jsonSelector = _queryProvider.ToString(whereExpression);
+            _partialSelector = jsonSelector
+                .Substring(1, jsonSelector.Length - 2)
+                .Replace("selector", "partial_filter_selector", StringComparison.CurrentCultureIgnoreCase);
+            return this;
+        }
+
         public IMultiFieldIndexBuilder<TSource> AlsoBy<TSelector>(Expression<Func<TSource, TSelector>> selector)
         {
             var m = selector.ToMemberExpression();
@@ -108,6 +119,13 @@ namespace CouchDB.Driver.Indexes
             if (_selector != null)
             {
                 sb.Append(_selector);
+                sb.Append(",");
+            }
+
+            // Partial Selector
+            if (_partialSelector != null)
+            {
+                sb.Append(_partialSelector);
                 sb.Append(",");
             }
 

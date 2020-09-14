@@ -8,7 +8,6 @@ using Flurl.Http;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -23,7 +22,6 @@ using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
-using Flurl.Util;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver

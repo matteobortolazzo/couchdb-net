@@ -19,6 +19,7 @@ namespace CouchDB.Driver.Indexes
         IOrderedDescendingIndexBuilder<TSource> OrderByDescending<TSelector>(Expression<Func<TSource, TSelector>> selector);
         IMultiFieldIndexBuilder<TSource> Take(int take);
         IMultiFieldIndexBuilder<TSource> Skip(int skip);
+        IMultiFieldIndexBuilder<TSource> ExcludeWhere(Expression<Func<TSource, bool>> selector);
     }
 
     public interface IOrderedIndexBuilder<TSource> : IMultiFieldIndexBuilder<TSource>
