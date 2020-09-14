@@ -126,14 +126,40 @@ namespace CouchDB.Driver
             CancellationToken cancellationToken);
 
         /// <summary>
+        /// Gets the list of indexes in the database.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A Task that represents the asynchronous operation. The task result contains the list of indexes.</returns>
+        Task<List<IndexInfo>> GetIndexesAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Creates an index for the current database with the given configuration.
         /// </summary>
         /// <param name="name">The name of the index.</param>
         /// <param name="indexBuilderAction">The action to configure the index builder.</param>
         /// <param name="options">The index options.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         Task CreateIndexAsync(string name, Action<IIndexBuilder<TSource>> indexBuilderAction,
-            IndexOptions? options = null);
+            IndexOptions? options = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes a specific index.
+        /// </summary>
+        /// <param name="designDocument">The design document name</param>
+        /// <param name="name">The index name</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task DeleteIndexAsync(string designDocument, string name, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes a specific index.
+        /// </summary>
+        /// <param name="indexInfo">The index info.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task DeleteIndexAsync(IndexInfo indexInfo, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Asynchronously downloads a specific attachment.

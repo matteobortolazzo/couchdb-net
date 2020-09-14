@@ -415,8 +415,23 @@ namespace CouchDB.Driver
         #endregion
 
         #region Index
+        
+        /// <inheritdoc />
+        public async Task<List<IndexInfo>> GetIndexesAsync(CancellationToken cancellationToken = default)
+        {
+            GetIndexesResult response = await NewRequest()
+                .AppendPathSegment("_index")
+                .GetJsonAsync<GetIndexesResult>(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+            return response.Indexes;
+        }
 
-        public async Task CreateIndexAsync(string name, Action<IIndexBuilder<TSource>> indexBuilderAction, IndexOptions? options = null)
+        /// <inheritdoc />
+        public async Task CreateIndexAsync(string name,
+            Action<IIndexBuilder<TSource>> indexBuilderAction,
+            IndexOptions? options = null,
+            CancellationToken cancellationToken = default)
         {
             Check.NotNull(name, nameof(name));
             Check.NotNull(indexBuilderAction, nameof(indexBuilderAction));
@@ -445,10 +460,32 @@ namespace CouchDB.Driver
 
             var request = sb.ToString();
 
-            await NewRequest().AppendPathSegment("_index")
-                .PostStringAsync(request)
+            _ = await NewRequest()
+                .AppendPathSegment("_index")
+                .PostStringAsync(request, cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteIndexAsync(string designDocument, string name, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(designDocument, nameof(designDocument));
+            Check.NotNull(name, nameof(name));
+
+            _ = await NewRequest()
+                .AppendPathSegments("_index", designDocument, "json", name)
+                .DeleteAsync(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public Task DeleteIndexAsync(IndexInfo indexInfo, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(indexInfo, nameof(indexInfo));
+
+            return DeleteIndexAsync(indexInfo.DesignDocument, indexInfo.Name, cancellationToken);
         }
 
         #endregion
