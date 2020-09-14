@@ -101,6 +101,9 @@ The produced Mango JSON:
 * [DB Changes Feed](#db-changes-feed)
   * [Feed Options](#feed-options)
   * [Feed Filter](#feed-filter)
+* [Indexing](#indexing)
+  * [Index Options](#index-options)
+  * [Partial Indexes](#partial-indexes)
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
@@ -425,6 +428,48 @@ var filter = ChangesFeedFilter.View(view);
 
 // Use
 ChangesFeedResponse<Rebel> changes = await GetChangesAsync(options: null, filter);
+```
+
+## Indexing
+
+It is possible to create indexes to use when querying.
+
+```csharp
+// Basic index creation
+await _rebels.CreateIndexAsync(
+    name: "surnames", 
+    idxBuilder => idxBuilder.IndexBy(r => r.Surname));
+
+// Index creation using all available query parameters
+await _rebels.CreateIndexAsync("skywalkers", idxBuilder => idxBuilder
+    .IndexBy(r => r.Surname)
+    .AlsoBy(r => r.Name)
+    .Where(r => r.Surname == "Skywalker")
+    .OrderBy(r => r.Surname)
+    .ThenBy(r => r.Name)
+    .Take(5)
+    .Skip(1));
+```
+
+### Index Options
+
+```csharp
+// Specifies the design document and/or whether a JSON index is partitioned or global
+await _rebels.CreateIndexAsync("surnames", idxBuilder => idxBuilder
+    .IndexBy(r => r.Surname),
+    new IndexOptions()
+    {
+        DesignDocument = "surnames_ddoc",
+        Partitioned = true
+    });
+```
+
+### Partial Indexes
+```csharp
+// Create an index which excludes documents at index time
+await _rebels.CreateIndexAsync("skywalkers", idxBuilder => idxBuilder
+    .IndexBy(r => r.Name)
+    .ExcludeWhere(r => r.Surname != "Skywalker");
 ```
 
 ## Local (non-replicating) Documents

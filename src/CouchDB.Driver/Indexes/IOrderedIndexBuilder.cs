@@ -8,15 +8,15 @@ namespace CouchDB.Driver.Indexes
     /// Builder to configure CouchDB indexes.
     /// </summary>
     /// <typeparam name="TSource">The type of the document.</typeparam>
-    public interface IIndexBuilder<TSource>
+    public interface IOrderedIndexBuilder<TSource> : IMultiFieldIndexBuilder<TSource>
         where TSource : CouchDocument
     {
         /// <summary>
-        /// Select a field to use in the index.
+        /// Adds a fields for the index sort in ascending order.
         /// </summary>
         /// <typeparam name="TSelector">The type of the selected property.</typeparam>
         /// <param name="selector">Function to select a property.</param>
         /// <returns>Returns the current instance to chain calls.</returns>
-        IMultiFieldIndexBuilder<TSource> IndexBy<TSelector>(Expression<Func<TSource, TSelector>> selector);
+        IOrderedIndexBuilder<TSource> ThenBy<TSelector>(Expression<Func<TSource, TSelector>> selector);
     }
 }

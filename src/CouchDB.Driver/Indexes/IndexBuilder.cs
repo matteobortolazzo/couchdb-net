@@ -40,9 +40,9 @@ namespace CouchDB.Driver.Indexes
             return this;
         }
 
-        public IMultiFieldIndexBuilder<TSource> Where(Expression<Func<TSource, bool>> selector)
+        public IMultiFieldIndexBuilder<TSource> Where(Expression<Func<TSource, bool>> predicate)
         {
-            MethodCallExpression whereExpression = selector.WrapInWhereExpression();
+            MethodCallExpression whereExpression = predicate.WrapInWhereExpression();
             var jsonSelector = _queryProvider.ToString(whereExpression);
             _selector = jsonSelector.Substring(1, jsonSelector.Length - 2);
             return this;
@@ -66,21 +66,21 @@ namespace CouchDB.Driver.Indexes
             return this;
         }
 
-        public IMultiFieldIndexBuilder<TSource> Take(int take)
+        public IMultiFieldIndexBuilder<TSource> Take(int count)
         {
-            _toTake = take;
+            _toTake = count;
             return this;
         }
 
-        public IMultiFieldIndexBuilder<TSource> Skip(int skip)
+        public IMultiFieldIndexBuilder<TSource> Skip(int count)
         {
-            _toSkip = skip;
+            _toSkip = count;
             return this;
         }
 
-        public IMultiFieldIndexBuilder<TSource> ExcludeWhere(Expression<Func<TSource, bool>> selector)
+        public IMultiFieldIndexBuilder<TSource> ExcludeWhere(Expression<Func<TSource, bool>> predicate)
         {
-            MethodCallExpression whereExpression = selector.WrapInWhereExpression();
+            MethodCallExpression whereExpression = predicate.WrapInWhereExpression();
             var jsonSelector = _queryProvider.ToString(whereExpression);
             _partialSelector = jsonSelector
                 .Substring(1, jsonSelector.Length - 2)
