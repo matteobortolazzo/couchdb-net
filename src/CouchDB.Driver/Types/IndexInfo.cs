@@ -1,4 +1,6 @@
 ﻿#nullable disable
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
@@ -8,6 +10,11 @@ namespace CouchDB.Driver.Types
     /// </summary>
     public class IndexInfo
     {
+        public IndexInfo()
+        {
+            Fields = new Dictionary<string, IndexFieldDirection>();
+        }
+
         /// <summary>
         /// ID of the design document the index belongs to.
         /// </summary>
@@ -19,6 +26,45 @@ namespace CouchDB.Driver.Types
         /// </summary>
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        /// <summary>
+        /// The fields used in the index
+        /// </summary>
+        [JsonIgnore]
+        public Dictionary<string, IndexFieldDirection> Fields { get; }
+
+        [JsonProperty("def")]
+        internal IndexDefinitionInfo Definition 
+        {
+            set
+            {
+                Fields.Clear();
+
+                foreach (Dictionary<string, string> definitions in value.Fields)
+                {
+                    var (name, direction) = definitions.First();
+                    IndexFieldDirection fieldDirection = direction == "asc"
+                        ? IndexFieldDirection.Ascending
+                        : IndexFieldDirection.Descending;
+                    Fields.Add(name, fieldDirection);
+                }
+            }
+        }
+    }
+
+    internal class IndexDefinitionInfo
+    {
+        [JsonProperty("fields")]
+        public Dictionary<string, string>[] Fields { get; set; }
+    }
+
+    /// <summary>
+    /// Represent the direction of the index.
+    /// </summary>
+    public enum IndexFieldDirection
+    {
+        Ascending = 0,
+        Descending = 1,
     }
 }
 #nullable restore

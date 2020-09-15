@@ -107,6 +107,11 @@ namespace CouchDB.Driver.E2E
         public async Task Crud_Index_Context()
         {
             await using var context = new MyDeathStarContext();
+
+            var indexes = await context.Rebels.GetIndexesAsync();
+
+            Assert.Equal(2, indexes.Count);
+
             await context.Rebels.AddAsync(new Rebel { Name = "Han", Age = 30, Surname = "Solo" });
             await context.Rebels.AddAsync(new Rebel { Name = "Leia", Age = 19, Surname = "Skywalker" });
             await context.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19, Surname = "Skywalker" });
