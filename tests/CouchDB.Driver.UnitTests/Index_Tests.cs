@@ -19,7 +19,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task CreateIndex_Basic()
+        public async Task CreateIndex()
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new
@@ -40,7 +40,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task CreateIndex_Simple_WithOptions()
+        public async Task CreateIndex_WithOptions()
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new
@@ -49,9 +49,8 @@ namespace CouchDB.Driver.UnitTests
             });
 
             await _rebels.CreateIndexAsync("skywalkers", b => b
-                    .IndexBy(r => r.Surname)
-                    .OrderBy(r => r.Surname)
-                    .ThenBy(r => r.Name),
+                    .IndexByDescending(r => r.Surname)
+                    .ThenByDescending(r => r.Name),
                 new IndexOptions()
                 {
                     DesignDocument = "skywalkers_ddoc",
@@ -60,7 +59,7 @@ namespace CouchDB.Driver.UnitTests
 
 
             var expectedBody =
-                "{\"index\":{\"fields\":[\"surname\"],\"sort\":[{\"surname\":\"asc\"},{\"name\":\"asc\"}]},\"name\":\"skywalkers\",\"type\":\"json\",\"ddoc\":\"skywalkers_ddoc\",\"partitioned\":true}";
+                "{\"index\":{\"fields\":[{\"surname\":\"desc\"},{\"name\":\"desc\"}]},\"name\":\"skywalkers\",\"type\":\"json\",\"ddoc\":\"skywalkers_ddoc\",\"partitioned\":true}";
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_index")
                 .WithRequestBody(expectedBody)
@@ -68,7 +67,7 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
-        public async Task CreateIndex_Full()
+        public async Task CreateIndex_Partial()
         {
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new
@@ -78,13 +77,7 @@ namespace CouchDB.Driver.UnitTests
 
             await _rebels.CreateIndexAsync("skywalkers", b => b
                 .IndexBy(r => r.Surname)
-                .AlsoBy(r => r.Name)
-                .Where(r => r.Surname == "Skywalker" && r.Age > 3)
-                .OrderByDescending(r => r.Surname)
-                .ThenByDescending(r => r.Name)
-                .Take(100)
-                .Skip(1)
-                .ExcludeWhere(r => r.Age <= 3),
+                .Where(r => r.Surname == "Skywalker"),
                 new IndexOptions()
                 {
                     DesignDocument = "skywalkers_ddoc",
@@ -93,7 +86,7 @@ namespace CouchDB.Driver.UnitTests
 
 
             var expectedBody =
-                "{\"index\":{\"selector\":{\"$and\":[{\"surname\":\"Skywalker\"},{\"age\":{\"$gt\":3}}]},\"partial_filter_selector\":{\"age\":{\"$lte\":3}},\"fields\":[\"surname\",\"name\"],\"sort\":[{\"surname\":\"desc\"},{\"name\":\"desc\"}],\"limit\":100,\"skip\":1},\"name\":\"skywalkers\",\"type\":\"json\",\"ddoc\":\"skywalkers_ddoc\",\"partitioned\":true}";
+                "{\"index\":{\"partial_filter_selector\":{\"surname\":\"Skywalker\"},\"fields\":[\"surname\"]},\"name\":\"skywalkers\",\"type\":\"json\",\"ddoc\":\"skywalkers_ddoc\",\"partitioned\":true}";
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_index")
                 .WithRequestBody(expectedBody)

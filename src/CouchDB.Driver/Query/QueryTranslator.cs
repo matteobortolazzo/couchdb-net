@@ -18,6 +18,7 @@ namespace CouchDB.Driver.Query
 
         public string Translate(Expression e)
         {
+            _isSelectorSet = false;
             _sb.Clear();
             _sb.Append("{");
             Visit(e);

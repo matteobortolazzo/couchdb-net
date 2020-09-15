@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using CouchDB.Driver.Extensions;
@@ -10,7 +9,7 @@ using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Indexes
 {
-    internal class IndexBuilder<TSource>: IOrderedIndexBuilder<TSource>, IOrderedDescendingIndexBuilder<TSource>
+    internal class IndexBuilder<TSource>: IIndexBuilder<TSource>, IOrderedIndexBuilder<TSource>, IOrderedDescendingIndexBuilder<TSource>
         where TSource : CouchDocument
     {
         private readonly CouchOptions _options;
@@ -18,10 +17,6 @@ namespace CouchDB.Driver.Indexes
 
         private bool _ascending = true;
         private readonly List<string> _fields;
-        private readonly List<string> _fieldsOrder;
-        private int? _toTake;
-        private int? _toSkip;
-        private string? _selector;
         private string? _partialSelector;
 
         public IndexBuilder(CouchOptions options, IAsyncQueryProvider queryProvider)
@@ -29,84 +24,44 @@ namespace CouchDB.Driver.Indexes
             _options = options;
             _queryProvider = queryProvider;
             _fields = new List<string>();
-            _fieldsOrder = new List<string>();
         }
 
-        public IMultiFieldIndexBuilder<TSource> IndexBy<TSelector>(Expression<Func<TSource, TSelector>> selector)
+        public IOrderedIndexBuilder<TSource> IndexBy<TSelector>(Expression<Func<TSource, TSelector>> selector)
         {
-            var m = selector.ToMemberExpression();
-            _fields.Clear();
-            _fields.Add(m.GetPropertyName(_options));
+            AddField(selector);
             return this;
         }
 
-        public IMultiFieldIndexBuilder<TSource> Where(Expression<Func<TSource, bool>> predicate)
+        public IOrderedDescendingIndexBuilder<TSource> IndexByDescending<TSelector>(Expression<Func<TSource, TSelector>> selector)
         {
-            MethodCallExpression whereExpression = predicate.WrapInWhereExpression();
-            var jsonSelector = _queryProvider.ToString(whereExpression);
-            _selector = jsonSelector.Substring(1, jsonSelector.Length - 2);
-            return this;
-        }
-
-        public IOrderedIndexBuilder<TSource> OrderBy<TSelector>(Expression<Func<TSource, TSelector>> selector)
-        {
-            var m = selector.ToMemberExpression();
-            _ascending = true;
-            _fieldsOrder.Clear();
-            _fieldsOrder.Add(m.GetPropertyName(_options));
-            return this;
-        }
-
-        public IOrderedDescendingIndexBuilder<TSource> OrderByDescending<TSelector>(Expression<Func<TSource, TSelector>> selector)
-        {
-            var m = selector.ToMemberExpression();
             _ascending = false;
-            _fieldsOrder.Clear();
-            _fieldsOrder.Add(m.GetPropertyName(_options));
+            AddField(selector);
             return this;
         }
 
-        public IMultiFieldIndexBuilder<TSource> Take(int count)
+        public IOrderedIndexBuilder<TSource> ThenBy<TSelector>(Expression<Func<TSource, TSelector>> selector)
         {
-            _toTake = count;
-            return this;
+            return IndexBy(selector);
         }
 
-        public IMultiFieldIndexBuilder<TSource> Skip(int count)
+        public IOrderedDescendingIndexBuilder<TSource> ThenByDescending<TSelector>(Expression<Func<TSource, TSelector>> selector)
         {
-            _toSkip = count;
-            return this;
+            return IndexByDescending(selector);
         }
-
-        public IMultiFieldIndexBuilder<TSource> ExcludeWhere(Expression<Func<TSource, bool>> predicate)
+        
+        public void Where(Expression<Func<TSource, bool>> predicate)
         {
             MethodCallExpression whereExpression = predicate.WrapInWhereExpression();
             var jsonSelector = _queryProvider.ToString(whereExpression);
             _partialSelector = jsonSelector
                 .Substring(1, jsonSelector.Length - 2)
                 .Replace("selector", "partial_filter_selector", StringComparison.CurrentCultureIgnoreCase);
-            return this;
         }
 
-        public IMultiFieldIndexBuilder<TSource> AlsoBy<TSelector>(Expression<Func<TSource, TSelector>> selector)
+        private void AddField<TSelector>(Expression<Func<TSource, TSelector>> selector)
         {
-            var m = selector.ToMemberExpression();
-            _fields.Add(m.GetPropertyName(_options));
-            return this;
-        }
-
-        IOrderedIndexBuilder<TSource> IOrderedIndexBuilder<TSource>.ThenBy<TSelector>(Expression<Func<TSource, TSelector>> selector)
-        {
-            var m = selector.ToMemberExpression();
-            _fieldsOrder.Add(m.GetPropertyName(_options));
-            return this;
-        }
-
-        IOrderedDescendingIndexBuilder<TSource> IOrderedDescendingIndexBuilder<TSource>.ThenByDescending<TSelector>(Expression<Func<TSource, TSelector>> selector)
-        {
-            var m = selector.ToMemberExpression();
-            _fieldsOrder.Add(m.GetPropertyName(_options));
-            return this;
+            var memberExpression = selector.ToMemberExpression();
+            _fields.Add(memberExpression.GetPropertyName(_options));
         }
 
         public override string ToString()
@@ -114,13 +69,6 @@ namespace CouchDB.Driver.Indexes
             var sb = new StringBuilder();
 
             sb.Append("{");
-
-            // Selector
-            if (_selector != null)
-            {
-                sb.Append(_selector);
-                sb.Append(",");
-            }
 
             // Partial Selector
             if (_partialSelector != null)
@@ -131,43 +79,18 @@ namespace CouchDB.Driver.Indexes
 
             // Fields
             sb.Append("\"fields\":[");
+
             foreach (var field in _fields)
             {
-                sb.Append($"\"{field}\",");
+                var fieldString = _ascending
+                    ? $"\"{field}\","
+                    : $"{{\"{field}\":\"desc\"}},";
+
+                sb.Append(fieldString);
             }
 
             sb.Length--;
-            sb.Append("],");
-
-            // Sort
-            if (_fieldsOrder.Any())
-            {
-                sb.Append("\"sort\":[");
-                var order = _ascending ? "asc" : "desc";
-
-                foreach (var field in _fieldsOrder)
-                {
-                    sb.Append($"{{\"{field}\":\"{order}\"}},");
-                }
-
-                sb.Length--;
-                sb.Append("],");
-            }
-
-            // Limit 
-            if (_toTake != null)
-            {
-                sb.Append($"\"limit\":{_toTake},");
-            }
-
-            // Skip 
-            if (_toSkip != null)
-            {
-                sb.Append($"\"skip\":{_toSkip},");
-            }
-
-            sb.Length--;
-            sb.Append("}");
+            sb.Append("]}");
 
             return sb.ToString();
         }

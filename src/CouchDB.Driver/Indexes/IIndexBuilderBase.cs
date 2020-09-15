@@ -8,15 +8,14 @@ namespace CouchDB.Driver.Indexes
     /// Builder to configure CouchDB indexes.
     /// </summary>
     /// <typeparam name="TSource">The type of the document.</typeparam>
-    public interface IOrderedIndexBuilder<TSource> : IIndexBuilderBase<TSource>
+    public interface IIndexBuilderBase<TSource>
         where TSource : CouchDocument
     {
         /// <summary>
-        /// Adds a field for the index sort in ascending order.
+        /// Creates a partial index which excludes documents based on the predicate at index time.
         /// </summary>
-        /// <typeparam name="TSelector">The type of the selected property.</typeparam>
-        /// <param name="selector">Function to select a property.</param>
+        /// <param name="predicate">Function to filter documents.</param>
         /// <returns>Returns the current instance to chain calls.</returns>
-        IOrderedIndexBuilder<TSource> ThenBy<TSelector>(Expression<Func<TSource, TSelector>> selector);
+        void Where(Expression<Func<TSource, bool>> predicate);
     }
 }

@@ -8,11 +8,11 @@ namespace CouchDB.Driver.Indexes
     /// Builder to configure CouchDB indexes.
     /// </summary>
     /// <typeparam name="TSource">The type of the document.</typeparam>
-    public interface IOrderedDescendingIndexBuilder<TSource> : IMultiFieldIndexBuilder<TSource>
+    public interface IOrderedDescendingIndexBuilder<TSource> : IIndexBuilderBase<TSource>
         where TSource : CouchDocument
     {
         /// <summary>
-        /// Adds a fields for the index sort in descending order.
+        /// Adds a field for the index sort in descending order.
         /// </summary>
         /// <typeparam name="TSelector">The type of the selected property.</typeparam>
         /// <param name="selector">Function to select a property.</param>

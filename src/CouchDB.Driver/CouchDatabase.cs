@@ -461,6 +461,7 @@ namespace CouchDB.Driver
             var request = sb.ToString();
 
             _ = await NewRequest()
+                .WithHeader("Content-Type", "application/json")
                 .AppendPathSegment("_index")
                 .PostStringAsync(request, cancellationToken)
                 .SendRequestAsync()

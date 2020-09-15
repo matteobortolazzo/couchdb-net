@@ -67,6 +67,17 @@ namespace CouchDB.Driver.Options
         }
 
         /// <summary>
+        /// If in a <see cref="CouchContext"/>, overrides indexes with same design document and name.
+        /// Ignore in the <see cref="CouchClient"/>.
+        /// </summary>
+        /// <returns>Return the current instance to chain calls.</returns>
+        public virtual CouchOptionsBuilder OverrideExistingIndexes()
+        {
+            Options.OverrideExistingIndexes = true;
+            return this;
+        }
+
+        /// <summary>
         /// Enables basic authentication. 
         /// Basic authentication (RFC 2617) is a quick and simple way to authenticate with CouchDB. The main drawback is the need to send user credentials with each request which may be insecure and could hurt operation performance (since CouchDB must compute the password hash with every request).
         /// </summary>

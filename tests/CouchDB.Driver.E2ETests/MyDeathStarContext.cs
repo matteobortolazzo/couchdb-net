@@ -14,5 +14,13 @@ namespace CouchDB.Driver.E2ETests
                 .EnsureDatabaseExists()
                 .UseBasicAuthentication(username: "admin", password: "admin");
         }
+
+        protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
+        {
+            databaseBuilder.Document<Rebel>()
+                .HasIndex("surnames_index", builder => builder
+                    .IndexBy(r => r.Surname)
+                    .ThenBy(r => r.Name));
+        }
     }
 }

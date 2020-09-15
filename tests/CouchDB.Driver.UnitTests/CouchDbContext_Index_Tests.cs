@@ -20,9 +20,9 @@ namespace CouchDB.Driver.UnitTests
                     .UseBasicAuthentication("admin", "admin");
             }
 
-            protected override void OnDatabaseCreating(CouchDatabaseBuilder optionsBuilder)
+            protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
             {
-                optionsBuilder.Document<Rebel>()
+                databaseBuilder.Document<Rebel>()
                     .HasIndex("skywalkers", b => b.IndexBy(b => b.Surname));
             }
         }

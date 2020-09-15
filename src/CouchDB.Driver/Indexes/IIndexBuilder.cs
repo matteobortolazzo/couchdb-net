@@ -12,11 +12,19 @@ namespace CouchDB.Driver.Indexes
         where TSource : CouchDocument
     {
         /// <summary>
-        /// Select a field to use in the index.
+        /// Select a field for the index sort in ascending order.
         /// </summary>
         /// <typeparam name="TSelector">The type of the selected property.</typeparam>
         /// <param name="selector">Function to select a property.</param>
         /// <returns>Returns the current instance to chain calls.</returns>
-        IMultiFieldIndexBuilder<TSource> IndexBy<TSelector>(Expression<Func<TSource, TSelector>> selector);
+        IOrderedIndexBuilder<TSource> IndexBy<TSelector>(Expression<Func<TSource, TSelector>> selector);
+
+        /// <summary>
+        /// Select a field for the index sort in descending order.
+        /// </summary>
+        /// <typeparam name="TSelector">The type of the selected property.</typeparam>
+        /// <param name="selector">Function to select a property.</param>
+        /// <returns>Returns the current instance to chain calls.</returns>
+        IOrderedDescendingIndexBuilder<TSource> IndexByDescending<TSelector>(Expression<Func<TSource, TSelector>> selector);
     }
 }

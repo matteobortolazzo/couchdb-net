@@ -13,7 +13,7 @@ namespace CouchDB.Driver
     {
         public ICouchClient Client { get; }
         protected virtual void OnConfiguring(CouchOptionsBuilder optionsBuilder) { }
-        protected virtual void OnDatabaseCreating(CouchDatabaseBuilder optionsBuilder) { }
+        protected virtual void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder) { }
 
         private static readonly MethodInfo InitDatabasesGenericMethod
             = typeof(CouchContext).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
@@ -46,11 +46,11 @@ namespace CouchDB.Driver
 
                 var initDatabasesTask = (Task)InitDatabasesGenericMethod.MakeGenericMethod(documentType)
                     .Invoke(this, new object[] {dbProperty, options});
-                initDatabasesTask.ConfigureAwait(false).GetAwaiter();
+                initDatabasesTask.ConfigureAwait(false).GetAwaiter().GetResult();
 
                 var applyDatabaseChangesTask = (Task)ApplyDatabaseChangesGenericMethod.MakeGenericMethod(documentType)
-                    .Invoke(this, new object[] { dbProperty, databaseBuilder });
-                applyDatabaseChangesTask.ConfigureAwait(false).GetAwaiter();
+                    .Invoke(this, new object[] { dbProperty, options, databaseBuilder });
+                applyDatabaseChangesTask.ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -69,7 +69,7 @@ namespace CouchDB.Driver
             propertyInfo.SetValue(this, database);
         }
 
-        private async Task ApplyDatabaseChangesAsync<TSource>(PropertyInfo propertyInfo, CouchDatabaseBuilder databaseBuilder)
+        private async Task ApplyDatabaseChangesAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options, CouchDatabaseBuilder databaseBuilder)
             where TSource: CouchDocument
         {
             if (!databaseBuilder.DocumentBuilders.ContainsKey(typeof(TSource)))
@@ -80,11 +80,28 @@ namespace CouchDB.Driver
             var database = (CouchDatabase<TSource>)propertyInfo.GetValue(this);
             var documentBuilder = (CouchDocumentBuilder<TSource>)databaseBuilder.DocumentBuilders[typeof(TSource)];
 
-            await database.CreateIndexAsync(
-                documentBuilder.Name,
-                documentBuilder.IndexBuilderAction,
-                documentBuilder.Options)
-                .ConfigureAwait(false);
+            List<IndexInfo> indexes = await database.GetIndexesAsync().ConfigureAwait(false);
+
+            foreach (IndexDefinition<TSource> indexDefinition in documentBuilder.IndexDefinitions)
+            {
+                // Delete the index if it already exists
+                if (options.OverrideExistingIndexes && indexDefinition.Options?.DesignDocument != null)
+                {
+                    IndexInfo existingIndex = indexes.FirstOrDefault(i =>
+                        i.DesignDocument.Equals(indexDefinition.Options.DesignDocument, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (existingIndex != null)
+                    {
+                        await database.DeleteIndexAsync(existingIndex).ConfigureAwait(false);
+                    }
+                }
+
+                await database.CreateIndexAsync(
+                        indexDefinition.Name,
+                        indexDefinition.IndexBuilderAction,
+                        indexDefinition.Options)
+                    .ConfigureAwait(false);
+            }
         }
 
         private IEnumerable<PropertyInfo> GetDatabaseProperties() =>

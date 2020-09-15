@@ -436,26 +436,21 @@ It is possible to create indexes to use when querying.
 
 ```csharp
 // Basic index creation
-await _rebels.CreateIndexAsync(
-    name: "surnames", 
-    idxBuilder => idxBuilder.IndexBy(r => r.Surname));
+await _rebels.CreateIndexAsync("rebels_index", b => b
+    .IndexBy(r => r.Surname))
+    .ThenBy(r => r.Name));
 
-// Index creation using all available query parameters
-await _rebels.CreateIndexAsync("skywalkers", idxBuilder => idxBuilder
-    .IndexBy(r => r.Surname)
-    .AlsoBy(r => r.Name)
-    .Where(r => r.Surname == "Skywalker")
-    .OrderBy(r => r.Surname)
-    .ThenBy(r => r.Name)
-    .Take(5)
-    .Skip(1));
+// Descending index creation
+await _rebels.CreateIndexAsync("rebels_index", b => b
+    .IndexByDescending(r => r.Surname))
+    .ThenByDescending(r => r.Name));
 ```
 
 ### Index Options
 
 ```csharp
 // Specifies the design document and/or whether a JSON index is partitioned or global
-await _rebels.CreateIndexAsync("surnames", idxBuilder => idxBuilder
+await _rebels.CreateIndexAsync("rebels_index", b => b
     .IndexBy(r => r.Surname),
     new IndexOptions()
     {
@@ -467,9 +462,20 @@ await _rebels.CreateIndexAsync("surnames", idxBuilder => idxBuilder
 ### Partial Indexes
 ```csharp
 // Create an index which excludes documents at index time
-await _rebels.CreateIndexAsync("skywalkers", idxBuilder => idxBuilder
+await _rebels.CreateIndexAsync("skywalkers_index", b => b
     .IndexBy(r => r.Name)
-    .ExcludeWhere(r => r.Surname != "Skywalker");
+    .Where(r => r.Surname == "Skywalker");
+```
+
+### Indexes operations
+```csharp
+// Get the list of indexes
+var indexes = await _rebels.GetIndexesAsync();
+
+// Delete an indexes
+await _rebels.DeleteIndexAsync(indexes[0]);
+// or
+await _rebels.DeleteIndexAsync("surnames_ddoc", name: "surnames");
 ```
 
 ## Local (non-replicating) Documents
