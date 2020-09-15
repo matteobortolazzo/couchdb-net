@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using System.Collections.Generic;
 using System.Linq;
+using CouchDB.Driver.DTOs;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
@@ -50,21 +51,6 @@ namespace CouchDB.Driver.Types
                 }
             }
         }
-    }
-
-    internal class IndexDefinitionInfo
-    {
-        [JsonProperty("fields")]
-        public Dictionary<string, string>[] Fields { get; set; }
-    }
-
-    /// <summary>
-    /// Represent the direction of the index.
-    /// </summary>
-    public enum IndexFieldDirection
-    {
-        Ascending = 0,
-        Descending = 1,
     }
 }
 #nullable restore

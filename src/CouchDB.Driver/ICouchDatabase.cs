@@ -139,16 +139,16 @@ namespace CouchDB.Driver
         /// <param name="indexBuilderAction">The action to configure the index builder.</param>
         /// <param name="options">The index options.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-        /// <returns>A task that represents the asynchronous operation.</returns>
-        Task CreateIndexAsync(string name, Action<IIndexBuilder<TSource>> indexBuilderAction,
+        /// <returns>A task that represents the asynchronous operation. The task result contains the ID of the design document.</returns>
+        Task<string> CreateIndexAsync(string name, Action<IIndexBuilder<TSource>> indexBuilderAction,
             IndexOptions? options = null,
             CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes a specific index.
         /// </summary>
-        /// <param name="designDocument">The design document name</param>
-        /// <param name="name">The index name</param>
+        /// <param name="designDocument">The design document name.</param>
+        /// <param name="name">The index name.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         Task DeleteIndexAsync(string designDocument, string name, CancellationToken cancellationToken = default);

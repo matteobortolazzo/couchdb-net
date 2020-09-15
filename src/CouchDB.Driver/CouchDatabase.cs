@@ -428,7 +428,7 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task CreateIndexAsync(string name,
+        public async Task<string> CreateIndexAsync(string name,
             Action<IIndexBuilder<TSource>> indexBuilderAction,
             IndexOptions? options = null,
             CancellationToken cancellationToken = default)
@@ -460,12 +460,15 @@ namespace CouchDB.Driver
 
             var request = sb.ToString();
 
-            _ = await NewRequest()
+            CreateIndexResult result = await NewRequest()
                 .WithHeader("Content-Type", "application/json")
                 .AppendPathSegment("_index")
                 .PostStringAsync(request, cancellationToken)
+                .ReceiveJson<CreateIndexResult>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
+
+            return result.Id;
         }
 
         /// <inheritdoc />
