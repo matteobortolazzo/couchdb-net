@@ -478,6 +478,33 @@ await _rebels.DeleteIndexAsync(indexes[0]);
 await _rebels.DeleteIndexAsync("surnames_ddoc", name: "surnames");
 ```
 
+### CouchContext Index Configuration
+
+Finally it's possible to configure indexes on the `CouchContext`.
+```csharp
+public class MyDeathStarContext : CouchContext
+{
+    public CouchDatabase<Rebel> Rebels { get; set; }
+
+    protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder
+          .UseEndpoint("http://localhost:5984/")
+          .UseBasicAuthentication("admin", "admin")
+          // If it finds a index with the same name and ddoc (or null)
+          // but with different fields and/or sort order,
+          // it will override the index
+          .OverrideExistingIndexes(); 
+    }
+
+    protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
+    {
+        databaseBuilder.Document<Rebel>()
+            .HasIndex("rebel_surnames_index", b => b.IndexBy(b => b.Surname));
+    }
+}
+```
+
 ## Local (non-replicating) Documents
 
 The Local (non-replicating) document interface allows you to create local documents that are not replicated to other databases.
