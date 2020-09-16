@@ -428,7 +428,7 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<string> CreateIndexAsync(string name,
+        public Task<string> CreateIndexAsync(string name,
             Action<IIndexBuilder<TSource>> indexBuilderAction,
             IndexOptions? options = null,
             CancellationToken cancellationToken = default)
@@ -436,10 +436,16 @@ namespace CouchDB.Driver
             Check.NotNull(name, nameof(name));
             Check.NotNull(indexBuilderAction, nameof(indexBuilderAction));
 
-            var builder = new IndexBuilder<TSource>(_options, _queryProvider);
-            indexBuilderAction(builder);
+            IndexDefinition indexDefinition = NewIndexBuilder(indexBuilderAction).Build();
+            return CreateIndexAsync(name, indexDefinition, options, cancellationToken);
+        }
 
-            var indexJson = builder.ToString();
+        internal async Task<string> CreateIndexAsync(string name,
+            IndexDefinition indexDefinition,
+            IndexOptions? options = null,
+            CancellationToken cancellationToken = default)
+        {
+            var indexJson = indexDefinition.ToString();
 
             var sb = new StringBuilder();
             sb.Append("{")
@@ -572,6 +578,14 @@ namespace CouchDB.Driver
         internal CouchQueryable<TSource> AsQueryable()
         {
             return new CouchQueryable<TSource>(_queryProvider);
+        }
+
+        internal IndexBuilder<TSource> NewIndexBuilder(
+            Action<IIndexBuilder<TSource>> indexBuilderAction)
+        {
+            var builder = new IndexBuilder<TSource>(_options, _queryProvider);
+            indexBuilderAction(builder);
+            return builder;
         }
 
         #endregion

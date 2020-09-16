@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
@@ -64,35 +64,12 @@ namespace CouchDB.Driver.Indexes
             _fields.Add(memberExpression.GetPropertyName(_options));
         }
 
-        public override string ToString()
+        public IndexDefinition Build()
         {
-            var sb = new StringBuilder();
-
-            sb.Append("{");
-
-            // Partial Selector
-            if (_partialSelector != null)
-            {
-                sb.Append(_partialSelector);
-                sb.Append(",");
-            }
-
-            // Fields
-            sb.Append("\"fields\":[");
-
-            foreach (var field in _fields)
-            {
-                var fieldString = _ascending
-                    ? $"\"{field}\","
-                    : $"{{\"{field}\":\"desc\"}},";
-
-                sb.Append(fieldString);
-            }
-
-            sb.Length--;
-            sb.Append("]}");
-
-            return sb.ToString();
+            var fields = _fields.ToDictionary(
+                field => field,
+                _ => _ascending ? IndexFieldDirection.Ascending : IndexFieldDirection.Descending);
+            return new IndexDefinition(fields, _partialSelector);
         }
     }
 }

@@ -8,17 +8,17 @@ namespace CouchDB.Driver.Options
     public class CouchDocumentBuilder<TSource>
         where TSource : CouchDocument
     {
-        internal List<IndexDefinition<TSource>> IndexDefinitions { get; }
+        internal List<IndexSetupDefinition<TSource>> IndexDefinitions { get; }
 
         internal CouchDocumentBuilder()
         {
-            IndexDefinitions = new List<IndexDefinition<TSource>>();
+            IndexDefinitions = new List<IndexSetupDefinition<TSource>>();
         }
 
         public CouchDocumentBuilder<TSource> HasIndex(string name, Action<IIndexBuilder<TSource>> indexBuilderAction,
             IndexOptions? options = null)
         {
-            var indexDefinition = new IndexDefinition<TSource>(name, indexBuilderAction, options);
+            var indexDefinition = new IndexSetupDefinition<TSource>(name, indexBuilderAction, options);
             IndexDefinitions.Add(indexDefinition);
             return this;
         }

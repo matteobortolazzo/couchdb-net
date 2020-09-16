@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Types;
 
@@ -82,7 +83,7 @@ namespace CouchDB.Driver
 
             List<IndexInfo> indexes = await database.GetIndexesAsync().ConfigureAwait(false);
 
-            foreach (IndexDefinition<TSource> indexDefinition in documentBuilder.IndexDefinitions)
+            foreach (IndexSetupDefinition<TSource> indexDefinition in documentBuilder.IndexDefinitions)
             {
                 // Delete the index if it already exists
                 if (options.OverrideExistingIndexes && indexDefinition.Options?.DesignDocument != null)
