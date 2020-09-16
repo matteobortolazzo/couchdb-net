@@ -83,26 +83,77 @@ namespace CouchDB.Driver
 
             List<IndexInfo> indexes = await database.GetIndexesAsync().ConfigureAwait(false);
 
-            foreach (IndexSetupDefinition<TSource> indexDefinition in documentBuilder.IndexDefinitions)
+            foreach (IndexSetupDefinition<TSource> indexSetup in documentBuilder.IndexDefinitions)
             {
-                // Delete the index if it already exists
-                if (options.OverrideExistingIndexes && indexDefinition.Options?.DesignDocument != null)
-                {
-                    IndexInfo existingIndex = indexes.FirstOrDefault(i =>
-                        i.DesignDocument.Equals(indexDefinition.Options.DesignDocument, StringComparison.InvariantCultureIgnoreCase));
-
-                    if (existingIndex != null)
-                    {
-                        await database.DeleteIndexAsync(existingIndex).ConfigureAwait(false);
-                    }
-                }
-
-                await database.CreateIndexAsync(
-                        indexDefinition.Name,
-                        indexDefinition.IndexBuilderAction,
-                        indexDefinition.Options)
+                await TryCreateOrUpdateIndexAsync(options, indexes, indexSetup, database)
                     .ConfigureAwait(false);
             }
+        }
+
+        private static async Task TryCreateOrUpdateIndexAsync<TSource>(
+            CouchOptions options,
+            IEnumerable<IndexInfo> indexes,
+            IndexSetupDefinition<TSource> indexSetup,
+            CouchDatabase<TSource> database)
+            where TSource : CouchDocument
+        {
+            IndexInfo? currentIndex = TryFindIndex(
+                indexes,
+                indexSetup.Name,
+                indexSetup.Options?.DesignDocument);
+
+            if (currentIndex == null)
+            {
+                await database.CreateIndexAsync(
+                        indexSetup.Name,
+                        indexSetup.IndexBuilderAction,
+                        indexSetup.Options)
+                    .ConfigureAwait(false);
+                return;
+            }
+
+            if (!options.OverrideExistingIndexes)
+            {
+                return;
+            }
+            
+            IndexDefinition indexDefinition = database.NewIndexBuilder(indexSetup.IndexBuilderAction).Build();
+            if (!AreFieldsEqual(currentIndex.Fields, indexDefinition.Fields))
+            {
+                await database.DeleteIndexAsync(currentIndex)
+                    .ConfigureAwait(false);
+                await database.CreateIndexAsync(indexSetup.Name, indexDefinition, indexSetup.Options)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        private static IndexInfo? TryFindIndex(IEnumerable<IndexInfo> indexes, string name, string? designDocument)
+        {
+            return indexes.SingleOrDefault(current =>
+                current.Name == name &&
+                (designDocument == null || current.DesignDocument == designDocument));
+        }
+
+        private static bool AreFieldsEqual(Dictionary<string, IndexFieldDirection> current,
+            Dictionary<string, IndexFieldDirection> requested)
+        {
+            if (current.Count != requested.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < current.Count; i++)
+            {
+                (var currentField, IndexFieldDirection currentDirection) = current.ElementAt(i);
+                (var requestedField, IndexFieldDirection requestedDirection) = requested.ElementAt(i);
+
+                if (currentField != requestedField || currentDirection != requestedDirection)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private IEnumerable<PropertyInfo> GetDatabaseProperties() =>

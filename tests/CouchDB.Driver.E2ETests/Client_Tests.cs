@@ -106,7 +106,10 @@ namespace CouchDB.Driver.E2E
         [Fact]
         public async Task Crud_Index_Context()
         {
+            // Create index
             await using var context = new MyDeathStarContext();
+            // Override index
+            await using var newContext = new MyDeathStarContext2();
 
             var indexes = await context.Rebels.GetIndexesAsync();
 
