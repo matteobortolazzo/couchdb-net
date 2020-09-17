@@ -4,6 +4,7 @@ using Xunit;
 using CouchDB.Driver.Extensions;
 using System.Linq;
 using CouchDB.Driver.Query.Extensions;
+using Flurl.Http.Testing;
 
 namespace CouchDB.Driver.UnitTests.Find
 {
@@ -15,6 +16,34 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var client = new CouchClient("http://localhost");
             _rebels = client.GetDatabase<Rebel>();
+        }
+
+        [Fact]
+        public void And_HttpCall()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new
+            {
+                docs = new[]
+                {
+                    new Rebel()
+                }
+            });
+            var surname = "Skywalker";
+            var result = _rebels.Where(r => r.Name == "Luke" && r.Surname == surname).ToList();
+            Assert.NotEmpty(result);
+
+            var actualBody = httpTest.CallLog[0].RequestBody;
+            var expectedBody = @"{""selector"":{""$and"":[{""name"":""Luke""},{""surname"":""Skywalker""}]}}";
+            Assert.Equal(expectedBody, actualBody);
+        }
+
+        [Fact]
+        public void And_WithVariable()
+        {
+            var surname = "Skywalker";
+            var json = _rebels.Where(r => r.Name == "Luke" && r.Surname == surname).ToString();
+            Assert.Equal(@"{""selector"":{""$and"":[{""name"":""Luke""},{""surname"":""Skywalker""}]}}", json);
         }
 
         [Fact]
