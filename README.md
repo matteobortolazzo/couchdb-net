@@ -37,9 +37,9 @@ var skywalkers = await context.Rebels
     .OrderByDescending(r => r.Name)
     .ThenByDescending(r => r.Age)
     .Take(2)
-    .Select(r => new {
-        r.Name,
-        r.Age
+    .Select(
+        r => r.Name,
+        r => r.Age
     })
     .ToListAsync();
 ```
@@ -195,7 +195,8 @@ If the Where method is not called in the expression, it will at an empty selecto
 | sort            | OrderBy(..).ThenBy()                                 |
 | sort            | OrderByDescending(..)                                |
 | sort            | OrderByDescending(..).ThenByDescending()             |
-| fields          | Select(x => new { })                                 |
+| fields          | Select(x => x.Prop1, x => x.Prop2)                   |
+| fields          | Convert<SourceType, SimplerType>()                   |
 | use_index       | UseIndex("design_document")                          |
 | use_index       | UseIndex(new [] { "design_document", "index_name" }) |
 | r               | WithReadQuorum(n)                                    |

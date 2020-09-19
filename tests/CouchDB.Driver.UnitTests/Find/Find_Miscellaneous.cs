@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using Xunit;
-using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Query.Extensions;
 
 namespace CouchDB.Driver.UnitTests.Find
@@ -37,20 +36,42 @@ namespace CouchDB.Driver.UnitTests.Find
             var json = _rebels.Select(r => r.Age).ToString();
             Assert.Equal(@"{""fields"":[""age""],""selector"":{}}", json);
         }
-
+        
         [Fact]
         public void Fields()
         {
-            var json = _rebels.Select(r => new
-            {
-                r.Name,
-                r.Age
-            }).ToString();
+            var json = _rebels.Select(
+                r => r.Name,
+                r => r.Age,
+                r => r.Vehicle.CanFly)
+                .ToString();
+            Assert.Equal(@"{""fields"":[""name"",""age"",""vehicle.canFly""],""selector"":{}}", json);
+        }
+
+        [Fact]
+        public void Fields_NewObject()
+        {
+            var json = _rebels.Select(
+                    r => new
+                    {
+                        r.Name,
+                        r.Age,
+                        r.Vehicle.CanFly
+                    })
+                .ToString();
+            Assert.Equal(@"{""fields"":[""name"",""age"",""vehicle.canFly""],""selector"":{}}", json);
+        }
+
+        [Fact]
+        public void Convert()
+        {
+            var json = _rebels.Convert<Rebel, SimpleRebel>()
+                .ToString();
             Assert.Equal(@"{""fields"":[""name"",""age""],""selector"":{}}", json);
         }
 
         [Fact]
-        public void Index_Parlial()
+        public void Index_Partial()
         {
             var json = _rebels.UseIndex("design_document").ToString();
             Assert.Equal(@"{""use_index"":""design_document"",""selector"":{}}", json);

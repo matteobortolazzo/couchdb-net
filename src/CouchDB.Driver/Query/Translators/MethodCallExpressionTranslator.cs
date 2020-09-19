@@ -1,10 +1,12 @@
 ﻿using CouchDB.Driver.Types;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Authentication;
 using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Shared;
 
 #pragma warning disable IDE0058 // Expression value is never used
@@ -118,6 +120,16 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == SupportedQueryMethods.IncludeConflicts)
             {
                 return VisitIncludeConflictsMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.Select)
+            {
+                return VisitSelectFieldMethod(m);
+            }
+
+            if (genericDefinition == SupportedQueryMethods.Convert)
+            {
+                return VisitConvertMethod(m);
             }
 
             // IEnumerable extensions
@@ -376,11 +388,55 @@ namespace CouchDB.Driver.Query
             _sb.Append(",");
             return m;
         }
+
         public Expression VisitIncludeConflictsMethod(MethodCallExpression m)
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"conflicts\":true");
             _sb.Append(",");
+            return m;
+        }
+
+        public Expression VisitSelectFieldMethod(MethodCallExpression m)
+        {
+            Visit(m.Arguments[0]);
+            _sb.Append("\"fields\":[");
+
+            if (!(((ConstantExpression)m.Arguments[1]).Value is Expression[] fieldExpressions))
+            {
+                throw new InvalidOperationException();
+            }
+
+            foreach (Expression a in fieldExpressions)
+            {
+                Visit(a);
+                _sb.Append(",");
+            }
+
+            _sb.Length--;
+            _sb.Append("],");
+            return m;
+        }
+
+        public Expression VisitConvertMethod(MethodCallExpression m)
+        {
+            Visit(m.Arguments[0]);
+            _sb.Append("\"fields\":[");
+
+            Type returnType = m.Method.GetGenericArguments()[1];
+            PropertyInfo[] properties = returnType
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(p => p.DeclaringType != typeof(CouchDocument))
+                .ToArray();
+
+            foreach (PropertyInfo property in properties)
+            {
+                var field = property.GetCouchPropertyName(_options.PropertiesCase);
+                _sb.Append($"\"{field}\",");
+            }
+
+            _sb.Length--;
+            _sb.Append("],");
             return m;
         }
 

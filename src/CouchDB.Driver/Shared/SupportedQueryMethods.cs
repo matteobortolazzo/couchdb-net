@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
-using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Query.Extensions;
 
 namespace CouchDB.Driver.Shared
@@ -18,6 +15,8 @@ namespace CouchDB.Driver.Shared
         public static MethodInfo UseIndex { get; }
         public static MethodInfo IncludeExecutionStats { get; }
         public static MethodInfo IncludeConflicts { get; }
+        public static MethodInfo Select { get; }
+        public static MethodInfo Convert { get; }
         public static MethodInfo EnumerableContains { get; }
         public static MethodInfo FieldExists { get; }
         public static MethodInfo IsCouchType { get; }
@@ -52,6 +51,8 @@ namespace CouchDB.Driver.Shared
                     mi.Name == nameof(QueryableQueryExtensions.IncludeExecutionStats));
             IncludeConflicts =
                 queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.IncludeConflicts));
+            Select = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.Select));
+            Convert = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.Convert));
 
             EnumerableContains = typeof(EnumerableQueryExtensions)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)

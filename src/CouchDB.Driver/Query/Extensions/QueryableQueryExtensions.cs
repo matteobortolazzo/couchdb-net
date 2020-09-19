@@ -3,13 +3,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Query.Extensions
 {
     public static class QueryableQueryExtensions
     {
         #region Helper methods to obtain MethodInfo in a safe way
-
+       
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1801:Review unused parameters")]
         private static MethodInfo GetMethodInfo<T1, T2>(Func<T1, T2> f, T1 unused1)
         {
@@ -147,6 +148,47 @@ namespace CouchDB.Driver.Query.Extensions
                 Expression.Call(
                     null,
                     GetMethodInfo(IncludeConflicts, source),
+                    new[] { source.Expression }));
+        }
+
+        /// <summary>
+        /// Select specific fields to return in the result.
+        /// </summary>
+        /// <param name="source">The source of items.</param>
+        /// <param name="selectFunctions">List of functions to select fields.</param>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the request specific fields when requesting elements from the sequence.</return>
+        public static IQueryable<TSource> Select<TSource>(this IQueryable<TSource> source, params Expression<Func<TSource, object>>[] selectFunctions)
+        {
+            Check.NotNull(source, nameof(source));
+
+            foreach (Expression<Func<TSource, object>> selectFunction in selectFunctions)
+            {
+                Check.NotNull(selectFunction, nameof(selectFunctions));
+            }
+
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(Select, source, selectFunctions),
+                    new[] { source.Expression, Expression.Constant(selectFunctions) }));
+        }
+
+        /// <summary>
+        /// Select only the field defined in <see cref="TResult"/>
+        /// </summary>
+        /// <typeparam name="TSource">Type of source.</typeparam>
+        /// <typeparam name="TResult">Type of output list.</typeparam>
+        /// <param name="source">The source of items.</param>
+        /// <return>An <see cref="IQueryable{TResult}"/> that contains the request specific fields when requesting elements from the sequence.</return>
+        public static IQueryable<TResult> Convert<TSource, TResult>(this IQueryable<TSource> source)
+            where TResult : CouchDocument
+        {
+            Check.NotNull(source, nameof(source));
+            
+            return source.Provider.CreateQuery<TResult>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(Convert<TSource, TResult>, source),
                     new[] { source.Expression }));
         }
     }
