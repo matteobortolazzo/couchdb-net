@@ -9,6 +9,7 @@ using CouchDB.Driver.E2ETests;
 using CouchDB.Driver.E2ETests._Models;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Local;
+using CouchDB.Driver.Query.Extensions;
 using Xunit;
 
 namespace CouchDB.Driver.E2E
@@ -100,6 +101,30 @@ namespace CouchDB.Driver.E2E
             Assert.Equal("Luke", luke.Name);
             var result = await context.Rebels.ToListAsync();
             Assert.NotEmpty(result);
+        }
+
+        [Fact]
+        public async Task Crud_Index_Context()
+        {
+            // Create index
+            await using var context = new MyDeathStarContext();
+            // Override index
+            await using var newContext = new MyDeathStarContext2();
+
+            var indexes = await context.Rebels.GetIndexesAsync();
+
+            Assert.Equal(2, indexes.Count);
+
+            await context.Rebels.AddAsync(new Rebel { Name = "Han", Age = 30, Surname = "Solo" });
+            await context.Rebels.AddAsync(new Rebel { Name = "Leia", Age = 19, Surname = "Skywalker" });
+            await context.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19, Surname = "Skywalker" });
+
+            var rebels = await context.Rebels
+                .OrderBy(r => r.Surname)
+                .ThenBy(r => r.Name)
+                .ToListAsync();
+
+            Assert.NotEmpty(rebels);
         }
 
         [Fact]

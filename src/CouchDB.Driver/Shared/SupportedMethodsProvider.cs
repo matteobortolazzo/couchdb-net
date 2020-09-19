@@ -50,6 +50,8 @@ namespace CouchDB.Driver.Shared
                 SupportedQueryMethods.UseIndex,
                 SupportedQueryMethods.IncludeExecutionStats,
                 SupportedQueryMethods.IncludeConflicts,
+                SupportedQueryMethods.Select,
+                SupportedQueryMethods.Convert,
                 SupportedQueryMethods.EnumerableContains,
                 SupportedQueryMethods.FieldExists,
                 SupportedQueryMethods.IsCouchType,

@@ -5,6 +5,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Flurl.Http.Configuration;
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Options
 {
@@ -50,6 +51,14 @@ namespace CouchDB.Driver.Options
         /// <returns>Return the current instance to chain calls.</returns>
         public new virtual CouchOptionsBuilder<TContext> EnsureDatabaseExists()
             => (CouchOptionsBuilder<TContext>)base.EnsureDatabaseExists();
+
+        /// <summary>
+        /// If in a <see cref="CouchContext"/>, overrides indexes with same design document and name.
+        /// Ignore in the <see cref="CouchClient"/>.
+        /// </summary>
+        /// <returns>Return the current instance to chain calls.</returns>
+        public new virtual CouchOptionsBuilder<TContext> OverrideExistingIndexes()
+            => (CouchOptionsBuilder<TContext>)base.OverrideExistingIndexes();
 
         /// <summary>
         /// Enables basic authentication. 
@@ -120,6 +129,14 @@ namespace CouchDB.Driver.Options
         /// <returns>Return the current instance to chain calls.</returns>
         public new virtual CouchOptionsBuilder<TContext> SetPropertyCase(PropertyCaseType type)
             => (CouchOptionsBuilder<TContext>)base.SetPropertyCase(type);
+
+        /// <summary>
+        /// Sets how to handle null values during serialization.
+        /// </summary>
+        /// <param name="nullValueHandling">The type of null value handling.</param>
+        /// <returns>Return the current instance to chain calls.</returns>
+        public new virtual CouchOptionsBuilder<TContext> SetJsonNullValueHandling(NullValueHandling nullValueHandling)
+            => (CouchOptionsBuilder<TContext>)base.SetJsonNullValueHandling(nullValueHandling);
 
         /// <summary>
         /// Disables log out on client dispose. 

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,10 +47,14 @@ namespace CouchDB.Driver.Extensions
 
         public static IFlurlRequest ApplyQueryParametersOptions(this IFlurlRequest request, object options)
         {
-            var queryParameters = OptionsHelper.ToQueryParameters(options);
-            foreach (var (name, value) in queryParameters)
+            IEnumerable<(string Name, object? Value)> queryParameters = OptionsHelper.ToQueryParameters(options);
+            foreach ((var name, object? value) in queryParameters)
             {
-                request = request.SetQueryParam(name, value);
+                object? finalValue = value?.GetType() == typeof(bool)
+                    ? value.ToString().ToLowerInvariant()
+                    : value;
+
+                request = request.SetQueryParam(name, finalValue);
             }
 
             return request;

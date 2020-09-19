@@ -1,10 +1,15 @@
 ﻿using CouchDB.Driver.Types;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CouchDB.Driver.UnitTests.Models
 {
+    public class SimpleRebel : CouchDocument
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+
     public class Rebel : CouchDocument
     {
         public string Name { get; set; }
@@ -15,6 +20,7 @@ namespace CouchDB.Driver.UnitTests.Models
         public Guid Guid { get; set; }
         public List<string> Skills { get; set; }
         public List<Battle> Battles { get; set; }
+        public Vehicle Vehicle { get; set; }
 
         public override bool Equals(object obj)
         {

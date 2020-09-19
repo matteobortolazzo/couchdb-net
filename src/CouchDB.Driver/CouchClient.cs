@@ -90,7 +90,8 @@ namespace CouchDB.Driver
             {
                 s.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
                 {
-                    ContractResolver = new CouchContractResolver(_options.PropertiesCase)
+                    ContractResolver = new CouchContractResolver(_options.PropertiesCase),
+                    NullValueHandling = _options.NullValueHandling ?? NullValueHandling.Include
                 });
                 s.BeforeCallAsync = OnBeforeCallAsync;
                 if (_options.ServerCertificateCustomValidationCallback != null)

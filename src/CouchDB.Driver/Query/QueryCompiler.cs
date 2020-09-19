@@ -70,7 +70,8 @@ namespace CouchDB.Driver.Query
 
         private TResult SendRequestWithoutFilter<TResult>(Expression query, bool async, CancellationToken cancellationToken)
         {
-            var body = _queryTranslator.Translate(query);
+            Expression optimizedQuery = _queryOptimizer.Optimize(query);
+            var body = _queryTranslator.Translate(optimizedQuery);
             return _requestSender.Send<TResult>(body, async, cancellationToken);
         }
 
@@ -84,7 +85,7 @@ namespace CouchDB.Driver.Query
                 throw new ArgumentException($"Expression of type {optimizedQuery.GetType().Name} is not valid.");
             }
 
-            var body = _queryTranslator.Translate(query);
+            var body = _queryTranslator.Translate(optimizedQuery);
             
             // If no operation must be done on the list return
             if (!methodCallExpression.Method.IsSupportedByComposition())
@@ -97,7 +98,7 @@ namespace CouchDB.Driver.Query
             Type returnType = GetReturnType<TResult>(async);
 
             // Query database
-            var couchQueryable = RequestSendMethod
+            object couchQueryable = RequestSendMethod
                 .MakeGenericMethod(couchListType)
                 .Invoke(_requestSender, new object[]{ body, async, cancellationToken });
 

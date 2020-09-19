@@ -37,9 +37,9 @@ var skywalkers = await context.Rebels
     .OrderByDescending(r => r.Name)
     .ThenByDescending(r => r.Age)
     .Take(2)
-    .Select(r => new {
-        r.Name,
-        r.Age
+    .Select(
+        r => r.Name,
+        r => r.Age
     })
     .ToListAsync();
 ```
@@ -101,6 +101,9 @@ The produced Mango JSON:
 * [DB Changes Feed](#db-changes-feed)
   * [Feed Options](#feed-options)
   * [Feed Filter](#feed-filter)
+* [Indexing](#indexing)
+  * [Index Options](#index-options)
+  * [Partial Indexes](#partial-indexes)
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
@@ -192,7 +195,8 @@ If the Where method is not called in the expression, it will at an empty selecto
 | sort            | OrderBy(..).ThenBy()                                 |
 | sort            | OrderByDescending(..)                                |
 | sort            | OrderByDescending(..).ThenByDescending()             |
-| fields          | Select(x => new { })                                 |
+| fields          | Select(x => x.Prop1, x => x.Prop2)                   |
+| fields          | Convert<SourceType, SimplerType>()                   |
 | use_index       | UseIndex("design_document")                          |
 | use_index       | UseIndex(new [] { "design_document", "index_name" }) |
 | r               | WithReadQuorum(n)                                    |
@@ -331,6 +335,7 @@ var client = new CouchClient("http://localhost:5984", builder => builder
 | DisableDocumentPluralization   | Disables documents pluralization in requests. |
 | SetDocumentCase                | Sets the format case for documents.           |
 | SetPropertyCase                | Sets the format case for properties.          |
+| SetNullValueHandling           | Sets how to handle null values.               |
 | DisableLogOutOnDispose         | Disables log out on client dispose.           | 
 
 - **DocumentCaseTypes**: None, UnderscoreCase *(default)*, DashCase, KebabCase.
@@ -424,6 +429,81 @@ var filter = ChangesFeedFilter.View(view);
 
 // Use
 ChangesFeedResponse<Rebel> changes = await GetChangesAsync(options: null, filter);
+```
+
+## Indexing
+
+It is possible to create indexes to use when querying.
+
+```csharp
+// Basic index creation
+await _rebels.CreateIndexAsync("rebels_index", b => b
+    .IndexBy(r => r.Surname))
+    .ThenBy(r => r.Name));
+
+// Descending index creation
+await _rebels.CreateIndexAsync("rebels_index", b => b
+    .IndexByDescending(r => r.Surname))
+    .ThenByDescending(r => r.Name));
+```
+
+### Index Options
+
+```csharp
+// Specifies the design document and/or whether a JSON index is partitioned or global
+await _rebels.CreateIndexAsync("rebels_index", b => b
+    .IndexBy(r => r.Surname),
+    new IndexOptions()
+    {
+        DesignDocument = "surnames_ddoc",
+        Partitioned = true
+    });
+```
+
+### Partial Indexes
+```csharp
+// Create an index which excludes documents at index time
+await _rebels.CreateIndexAsync("skywalkers_index", b => b
+    .IndexBy(r => r.Name)
+    .Where(r => r.Surname == "Skywalker");
+```
+
+### Indexes operations
+```csharp
+// Get the list of indexes
+var indexes = await _rebels.GetIndexesAsync();
+
+// Delete an indexes
+await _rebels.DeleteIndexAsync(indexes[0]);
+// or
+await _rebels.DeleteIndexAsync("surnames_ddoc", name: "surnames");
+```
+
+### CouchContext Index Configuration
+
+Finally it's possible to configure indexes on the `CouchContext`.
+```csharp
+public class MyDeathStarContext : CouchContext
+{
+    public CouchDatabase<Rebel> Rebels { get; set; }
+
+    protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder
+          .UseEndpoint("http://localhost:5984/")
+          .UseBasicAuthentication("admin", "admin")
+          // If it finds a index with the same name and ddoc (or null)
+          // but with different fields and/or sort order,
+          // it will override the index
+          .OverrideExistingIndexes(); 
+    }
+
+    protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
+    {
+        databaseBuilder.Document<Rebel>()
+            .HasIndex("rebel_surnames_index", b => b.IndexBy(b => b.Surname));
+    }
+}
 ```
 
 ## Local (non-replicating) Documents
@@ -548,3 +628,5 @@ Also, the configurator has `ConfigureFlurlClient` to set custom HTTP client opti
 Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and many others.
 
 Thanks to [n9](https://github.com/n9) for proxy authentication, some bug fixes, suggestions and the great feedback on the changes feed feature!
+
+Thanks to [Marc](https://github.com/bender-ristone) for NullValueHandling, bug fixes and suggestions!

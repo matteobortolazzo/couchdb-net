@@ -11,4 +11,4 @@ namespace CouchDB.Driver.DTOs
         public TSource Item { get; set; }
     }
 }
-#nullable enable
+#nullable restore

@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using CouchDB.Driver.Helpers;
 using Flurl.Http.Configuration;
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Options
 {
@@ -62,6 +63,17 @@ namespace CouchDB.Driver.Options
         public virtual CouchOptionsBuilder EnsureDatabaseExists()
         {
             Options.CheckDatabaseExists = true;
+            return this;
+        }
+
+        /// <summary>
+        /// If in a <see cref="CouchContext"/>, overrides indexes with same design document and name.
+        /// Ignore in the <see cref="CouchClient"/>.
+        /// </summary>
+        /// <returns>Return the current instance to chain calls.</returns>
+        public virtual CouchOptionsBuilder OverrideExistingIndexes()
+        {
+            Options.OverrideExistingIndexes = true;
             return this;
         }
 
@@ -178,6 +190,17 @@ namespace CouchDB.Driver.Options
         public virtual CouchOptionsBuilder SetPropertyCase(PropertyCaseType type)
         {
             Options.PropertiesCase = type;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets how to handle null values during serialization.
+        /// </summary>
+        /// <param name="nullValueHandling">The type of null value handling.</param>
+        /// <returns>Return the current instance to chain calls.</returns>
+        public virtual CouchOptionsBuilder SetJsonNullValueHandling(NullValueHandling nullValueHandling)
+        {
+            Options.NullValueHandling = nullValueHandling;
             return this;
         }
 

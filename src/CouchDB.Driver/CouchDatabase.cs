@@ -11,13 +11,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
+using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
@@ -75,7 +76,7 @@ namespace CouchDB.Driver
 
                 if (withConflicts)
                 {
-                    request = request.SetQueryParam("conflicts", true);
+                    request = request.SetQueryParam("conflicts", "true");
                 }
 
                 TSource document = await request
@@ -374,7 +375,7 @@ namespace CouchDB.Driver
             return filter == null
                 ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false)
-                : await request.QueryWithFilterAsync<TSource>(_options, filter, cancellationToken)
+                : await request.QueryWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
         }
 
@@ -396,7 +397,7 @@ namespace CouchDB.Driver
             await using Stream stream = filter == null
                 ? await request.GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false)
-                : await request.QueryContinuousWithFilterAsync<TSource>(_options, filter, cancellationToken)
+                : await request.QueryContinuousWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
             
             await foreach (var line in stream.ReadLinesAsync(cancellationToken))
@@ -409,6 +410,92 @@ namespace CouchDB.Driver
                 ChangesFeedResponseResult<TSource> result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
                 yield return result;
             }
+        }
+
+        #endregion
+
+        #region Index
+        
+        /// <inheritdoc />
+        public async Task<List<IndexInfo>> GetIndexesAsync(CancellationToken cancellationToken = default)
+        {
+            GetIndexesResult response = await NewRequest()
+                .AppendPathSegment("_index")
+                .GetJsonAsync<GetIndexesResult>(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+            return response.Indexes;
+        }
+
+        /// <inheritdoc />
+        public Task<string> CreateIndexAsync(string name,
+            Action<IIndexBuilder<TSource>> indexBuilderAction,
+            IndexOptions? options = null,
+            CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(name, nameof(name));
+            Check.NotNull(indexBuilderAction, nameof(indexBuilderAction));
+
+            IndexDefinition indexDefinition = NewIndexBuilder(indexBuilderAction).Build();
+            return CreateIndexAsync(name, indexDefinition, options, cancellationToken);
+        }
+
+        internal async Task<string> CreateIndexAsync(string name,
+            IndexDefinition indexDefinition,
+            IndexOptions? options = null,
+            CancellationToken cancellationToken = default)
+        {
+            var indexJson = indexDefinition.ToString();
+
+            var sb = new StringBuilder();
+            sb.Append("{")
+                .Append($"\"index\":{indexJson},")
+                .Append($"\"name\":\"{name}\",")
+                .Append("\"type\":\"json\"");
+
+            if (options?.DesignDocument != null)
+            {
+                sb.Append($",\"ddoc\":\"{options.DesignDocument}\"");
+            }
+            if (options?.Partitioned != null)
+            {
+                sb.Append($",\"partitioned\":{options.Partitioned.ToString().ToLowerInvariant()}");
+            }
+
+            sb.Append("}");
+
+            var request = sb.ToString();
+
+            CreateIndexResult result = await NewRequest()
+                .WithHeader("Content-Type", "application/json")
+                .AppendPathSegment("_index")
+                .PostStringAsync(request, cancellationToken)
+                .ReceiveJson<CreateIndexResult>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            return result.Id;
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteIndexAsync(string designDocument, string name, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(designDocument, nameof(designDocument));
+            Check.NotNull(name, nameof(name));
+
+            _ = await NewRequest()
+                .AppendPathSegments("_index", designDocument, "json", name)
+                .DeleteAsync(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public Task DeleteIndexAsync(IndexInfo indexInfo, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(indexInfo, nameof(indexInfo));
+
+            return DeleteIndexAsync(indexInfo.DesignDocument, indexInfo.Name, cancellationToken);
         }
 
         #endregion
@@ -491,6 +578,14 @@ namespace CouchDB.Driver
         internal CouchQueryable<TSource> AsQueryable()
         {
             return new CouchQueryable<TSource>(_queryProvider);
+        }
+
+        internal IndexBuilder<TSource> NewIndexBuilder(
+            Action<IIndexBuilder<TSource>> indexBuilderAction)
+        {
+            var builder = new IndexBuilder<TSource>(_options, _queryProvider);
+            indexBuilderAction(builder);
+            return builder;
         }
 
         #endregion

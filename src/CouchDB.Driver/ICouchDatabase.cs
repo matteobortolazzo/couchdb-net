@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
+using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
@@ -124,7 +126,43 @@ namespace CouchDB.Driver
             CancellationToken cancellationToken);
 
         /// <summary>
-        ///  Asynchronously downloads a specific attachment.
+        /// Gets the list of indexes in the database.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A Task that represents the asynchronous operation. The task result contains the list of indexes.</returns>
+        Task<List<IndexInfo>> GetIndexesAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Creates an index for the current database with the given configuration.
+        /// </summary>
+        /// <param name="name">The name of the index.</param>
+        /// <param name="indexBuilderAction">The action to configure the index builder.</param>
+        /// <param name="options">The index options.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the ID of the design document.</returns>
+        Task<string> CreateIndexAsync(string name, Action<IIndexBuilder<TSource>> indexBuilderAction,
+            IndexOptions? options = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes a specific index.
+        /// </summary>
+        /// <param name="designDocument">The design document name.</param>
+        /// <param name="name">The index name.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task DeleteIndexAsync(string designDocument, string name, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes a specific index.
+        /// </summary>
+        /// <param name="indexInfo">The index info.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task DeleteIndexAsync(IndexInfo indexInfo, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously downloads a specific attachment.
         /// </summary>
         /// <param name="attachment">The attachment to download.</param>
         /// <param name="localFolderPath">Path of local folder where file is to be downloaded.</param>

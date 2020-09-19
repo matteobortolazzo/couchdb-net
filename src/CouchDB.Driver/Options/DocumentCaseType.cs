@@ -24,7 +24,6 @@ namespace CouchDB.Driver.Options
         /// </summary>
         public static readonly DocumentCaseType KebabCase = new DocumentCaseType("KebabCase");
 
-#pragma warning disable CA1308 // Normalize strings to uppercase
         internal override string Convert(string str)
         {
             if (Equals(this, None))
@@ -41,6 +40,5 @@ namespace CouchDB.Driver.Options
             }
             throw new NotSupportedException($"Value {Value} not supported.");
         }
-#pragma warning restore CA1308 // Normalize strings to uppercase
     }
 }
