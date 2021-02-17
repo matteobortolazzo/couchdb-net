@@ -89,6 +89,31 @@ namespace CouchDB.Driver
         Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Execute a couchdb view and get a result with the values.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value that will be returned.</typeparam>
+        /// <param name="design">The design to use.</param>
+        /// <param name="view">The view to use.</param>
+        /// <param name="options">Optional options to pass to the view.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TValue}"/>.</returns>
+        Task<CouchViewResult<TValue>> GetViewAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Execute a couchdb view and get a result with the values and the docs.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the value that will be returned.</typeparam>
+        /// <typeparam name="TDoc">The type of the document that will be returned.</typeparam>
+        /// <param name="design">The design to use.</param>
+        /// <param name="view">The view to use.</param>
+        /// <param name="options">Optional options to pass to the view.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TValue, TDoc}"/>.</returns>
+        /// <remarks>The options IncludeDocs will always be set to true.</remarks>
+        Task<CouchViewResult<TValue, TDoc>> GetViewAsync<TValue, TDoc>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+            where TDoc : CouchDocument;
+
+        /// <summary>
         /// Since CouchDB v3, it is deprecated (a no-op).
         /// 
         /// Commits any recent changes to the specified database to disk. You should call this if you want to ensure that recent changes have been flushed.
