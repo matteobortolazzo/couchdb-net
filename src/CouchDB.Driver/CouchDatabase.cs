@@ -500,6 +500,42 @@ namespace CouchDB.Driver
 
         #endregion
 
+        #region View
+
+        /// <inheritdoc/>
+        public Task<CouchViewResult<TValue>> GetViewAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(view, nameof(view));
+
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegments("_design", design, "_view", view)
+                .SetQueryParams(options?.ToQueryParameters());
+
+            return request
+                .GetJsonAsync<CouchViewResult<TValue>>(cancellationToken)
+                .SendRequestAsync();
+        }
+
+        /// <inheritdoc/>
+        public Task<CouchViewResult<TValue, TDoc>> GetViewAsync<TValue, TDoc>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+            where TDoc : CouchDocument
+        {
+            Check.NotNull(view, nameof(view));
+
+            options ??= new CouchViewOptions();
+            options.IncludeDocs = true;
+
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegments("_design", design, "_view", view)
+                .SetQueryParams(options.ToQueryParameters());
+
+            return request
+                .GetJsonAsync<CouchViewResult<TValue, TDoc>>(cancellationToken)
+                .SendRequestAsync();
+        }
+
+        #endregion
+
         #region Utils
 
         /// <inheritdoc />
