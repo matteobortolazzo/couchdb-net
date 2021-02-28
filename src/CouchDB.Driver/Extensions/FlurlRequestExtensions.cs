@@ -18,30 +18,31 @@ namespace CouchDB.Driver.Extensions
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="completionOption">The HttpCompletionOption used in the request. Optional.</param>
         /// <returns>A Task whose result is the response body as a Stream.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
         public static Task<Stream> PostJsonStreamAsync(
             this IFlurlRequest request,
             object data,
             CancellationToken cancellationToken = default,
             HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead)
         {
-            using var capturedJsonContent = new CapturedJsonContent(request.Settings.JsonSerializer.Serialize(data));
-            return request.SendAsync(HttpMethod.Post, (HttpContent)capturedJsonContent, cancellationToken, completionOption).ReceiveStream();
+            var capturedJsonContent = new CapturedJsonContent(request.Settings.JsonSerializer.Serialize(data));
+            return request.SendAsync(HttpMethod.Post, capturedJsonContent, cancellationToken, completionOption).ReceiveStream();
         }
-
-
+         
         /// <summary>Sends an asynchronous POST request.</summary>
         /// <param name="request">The IFlurlRequest instance.</param>
         /// <param name="data">Data to parse.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="completionOption">The HttpCompletionOption used in the request. Optional.</param>
         /// <returns>A Task whose result is the response body as a Stream.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
         public static Task<Stream> PostStringStreamAsync(
             this IFlurlRequest request,
             string data,
             CancellationToken cancellationToken = default,
             HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead)
         {
-            using var capturedStringContent = new CapturedStringContent(data);
+            var capturedStringContent = new CapturedStringContent(data);
             return request.SendAsync(HttpMethod.Post, capturedStringContent, cancellationToken, completionOption).ReceiveStream();
         }
 
