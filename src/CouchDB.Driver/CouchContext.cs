@@ -55,9 +55,18 @@ namespace CouchDB.Driver
             }
         }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
-            return Client.DisposeAsync();
+            await DisposeAsync(true).ConfigureAwait(false);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual async Task DisposeAsync(bool disposing)
+        {
+            if (disposing && Client != null)
+            {
+                await Client.DisposeAsync().ConfigureAwait(false);
+            }
         }
 
         private async Task InitDatabasesAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options)

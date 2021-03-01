@@ -18,7 +18,7 @@ namespace CouchDB.Driver.Helpers
             {
                 CouchError couchError = await ex.GetResponseJsonAsync<CouchError>().ConfigureAwait(false) ?? new CouchError();
 
-                throw ex.Call.HttpStatus switch
+                throw (HttpStatusCode?)ex.StatusCode switch
                 {
                     HttpStatusCode.Conflict => new CouchConflictException(couchError, ex),
                     HttpStatusCode.NotFound => new CouchNotFoundException(couchError, ex),

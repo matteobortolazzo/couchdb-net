@@ -14,12 +14,12 @@ namespace CouchDB.Driver
 {
     public partial class CouchClient
     {
-        protected virtual async Task OnBeforeCallAsync(HttpCall httpCall)
+        protected virtual async Task OnBeforeCallAsync(FlurlCall httpCall)
         {
             Check.NotNull(httpCall, nameof(httpCall));
 
             // If session requests no authorization needed
-            if (httpCall.Request?.RequestUri?.ToString()?.Contains("_session", StringComparison.InvariantCultureIgnoreCase) == true)
+            if (httpCall.Request?.Url?.ToString()?.Contains("_session", StringComparison.InvariantCultureIgnoreCase) == true)
             {
                 return;
             }
@@ -28,7 +28,7 @@ namespace CouchDB.Driver
                 case AuthenticationType.None:
                     break;
                 case AuthenticationType.Basic:
-                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithBasicAuth(_options.Username, _options.Password);
+                    httpCall.Request = httpCall.Request.WithBasicAuth(_options.Username, _options.Password);
                     break;
                 case AuthenticationType.Cookie:
                     var isTokenExpired =
@@ -38,14 +38,14 @@ namespace CouchDB.Driver
                     {
                         await LoginAsync().ConfigureAwait(false);
                     }
-                    httpCall.FlurlRequest = httpCall.FlurlRequest.EnableCookies().WithCookie("AuthSession", _cookieToken);
+                    httpCall.Request = httpCall.Request.WithCookie("AuthSession", _cookieToken);
                     break;
                 case AuthenticationType.Proxy:
-                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("X-Auth-CouchDB-UserName", _options.Username)
+                    httpCall.Request = httpCall.Request.WithHeader("X-Auth-CouchDB-UserName", _options.Username)
                         .WithHeader("X-Auth-CouchDB-Roles", string.Join(",", _options.Roles));
                     if (_options.Password != null)
                     {
-                        httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("X-Auth-CouchDB-Token", _options.Password);
+                        httpCall.Request = httpCall.Request.WithHeader("X-Auth-CouchDB-Token", _options.Password);
                     }
                     break;
                 case AuthenticationType.Jwt:
@@ -54,7 +54,7 @@ namespace CouchDB.Driver
                         throw new InvalidOperationException("JWT generation cannot be null.");
                     }
                     var jwt = await _options.JwtTokenGenerator().ConfigureAwait(false);
-                    httpCall.FlurlRequest = httpCall.FlurlRequest.WithHeader("Authorization", jwt);
+                    httpCall.Request = httpCall.Request.WithHeader("Authorization", jwt);
                     break;
                 default:
                     throw new NotSupportedException($"Authentication of type {_options.AuthenticationType} is not supported.");
@@ -63,7 +63,7 @@ namespace CouchDB.Driver
 
         private async Task LoginAsync()
         {
-            HttpResponseMessage response = await _flurlClient.Request(Endpoint)
+            IFlurlResponse response = await _flurlClient.Request(Endpoint)
                 .AppendPathSegment("_session")
                 .PostJsonAsync(new
                 {
@@ -74,20 +74,13 @@ namespace CouchDB.Driver
 
             _cookieCreationDate = DateTime.Now;
 
-            if (!response.Headers.TryGetValues("Set-Cookie", out IEnumerable<string> values))
+            FlurlCookie? dirtyToken = response.Cookies.FirstOrDefault(c => c.Name == "AuthSession");
+            if (dirtyToken == null)
             {
                 throw new InvalidOperationException("Error while trying to log-in.");
             }
 
-            var dirtyToken = values.First();
-            var regex = new Regex(@"^AuthSession=(.+); Version=1; .*Path=\/; HttpOnly$");
-            Match match = regex.Match(dirtyToken);
-            if (!match.Success)
-            {
-                throw new InvalidOperationException("Error while trying to log-in.");
-            }
-
-            _cookieToken = match.Groups[1].Value;
+            _cookieToken = dirtyToken.Value;
         }
 
         private async Task LogoutAsync()

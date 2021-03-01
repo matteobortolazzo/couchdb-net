@@ -45,8 +45,8 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("feed", "continuous")
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("feed", "continuous")
                 .WithVerb(HttpMethod.Get);
         }
 
@@ -73,9 +73,9 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("feed", "continuous")
-                .WithQueryParamValue("attachments", "true")
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("feed", "continuous")
+                .WithQueryParam("attachments", "true")
                 .WithVerb(HttpMethod.Get);
         }
 
@@ -103,9 +103,9 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("feed", "continuous")
-                .WithQueryParamValue("filter", "_doc_ids")
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("feed", "continuous")
+                .WithQueryParam("filter", "_doc_ids")
                 .WithJsonBody<ChangesFeedFilterDocuments>(f => f.DocumentIds.Contains(docId))
                 .WithVerb(HttpMethod.Post);
         }
@@ -131,9 +131,9 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("feed", "continuous")
-                .WithQueryParamValue("filter", "_selector")
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("feed", "continuous")
+                .WithQueryParam("filter", "_selector")
                 .WithContentType("application/json")
                 .With(call => call.RequestBody == $"{{\"selector\":{{\"_id\":\"{docId}\"}}}}")
                 .WithVerb(HttpMethod.Post);
@@ -160,9 +160,9 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("feed", "continuous")
-                .WithQueryParamValue("filter", "_design")
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("feed", "continuous")
+                .WithQueryParam("filter", "_design")
                 .WithVerb(HttpMethod.Get);
         }
 
@@ -188,10 +188,10 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("feed", "continuous")
-                .WithQueryParamValue("filter", "_view")
-                .WithQueryParamValue("view", view)
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("feed", "continuous")
+                .WithQueryParam("filter", "_view")
+                .WithQueryParam("view", view)
                 .WithVerb(HttpMethod.Get);
         }
 
@@ -203,9 +203,7 @@ namespace CouchDB.Driver.UnitTests.Feed
                 Id = docId
             });
             changeJson += "\n";
-            byte[] byteArray = Encoding.ASCII.GetBytes(changeJson);
-            MemoryStream stream = new MemoryStream(byteArray);
-            httpTest.RespondWith(new StreamContent(stream));
+            httpTest.RespondWith(changeJson);
             return docId;
         }
     }

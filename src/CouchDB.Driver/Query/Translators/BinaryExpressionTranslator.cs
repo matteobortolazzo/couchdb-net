@@ -9,7 +9,7 @@ namespace CouchDB.Driver.Query
     {
         protected override Expression VisitBinary(BinaryExpression b)
         {
-            _sb.Append("{");
+            _sb.Append('{');
             switch (b.NodeType)
             {
                 case ExpressionType.Equal:
@@ -34,7 +34,7 @@ namespace CouchDB.Driver.Query
                             Visit(mb.Left);
                             _sb.Append(":{\"$mod\":[");
                             Visit(mb.Right);
-                            _sb.Append(",");
+                            _sb.Append(',');
                             Visit(b.Right);
                             _sb.Append("]}}");
                             return b;
@@ -42,7 +42,7 @@ namespace CouchDB.Driver.Query
                         }
                         default:
                             Visit(b.Left);
-                            _sb.Append(":");
+                            _sb.Append(':');
                             Visit(b.Right);
                             break;
                     }
@@ -58,7 +58,7 @@ namespace CouchDB.Driver.Query
                     VisitBinaryConditionOperator(b);
                     break;
             }
-            _sb.Append("}");
+            _sb.Append('}');
             return b;
         }
 
@@ -69,7 +69,7 @@ namespace CouchDB.Driver.Query
                 if (e.Left is BinaryExpression lb && lb.NodeType == nodeType)
                 {
                     InspectBinaryChildren(lb, nodeType);
-                    _sb.Append(",");
+                    _sb.Append(',');
                     Visit(e.Right);
                     return;
                 }
@@ -77,13 +77,13 @@ namespace CouchDB.Driver.Query
                 if (e.Right is BinaryExpression rb && rb.NodeType == nodeType)
                 {
                     Visit(e.Left);
-                    _sb.Append(",");
+                    _sb.Append(',');
                     InspectBinaryChildren(rb, nodeType);
                     return;
                 }
 
                 Visit(e.Left);
-                _sb.Append(",");
+                _sb.Append(',');
                 Visit(e.Right);
             }
 
@@ -100,7 +100,7 @@ namespace CouchDB.Driver.Query
             }
 
             InspectBinaryChildren(b, b.NodeType);
-            _sb.Append("]");
+            _sb.Append(']');
         }
 
         private void VisitBinaryConditionOperator(BinaryExpression b)
@@ -130,7 +130,7 @@ namespace CouchDB.Driver.Query
             }
 
             Visit(b.Right);
-            _sb.Append("}");
+            _sb.Append('}');
         }
     }
 }

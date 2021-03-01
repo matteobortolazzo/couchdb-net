@@ -36,7 +36,7 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
                 .WithVerb(HttpMethod.Get);
         }
 
@@ -59,9 +59,9 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("feed", "longpoll")
-                .WithQueryParamValue("attachments", "true")
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("feed", "longpoll")
+                .WithQueryParam("attachments", "true")
                 .WithVerb(HttpMethod.Get);
         }
 
@@ -85,8 +85,8 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("filter", "_doc_ids")
+                .ShouldHaveCalled("http://localhost/rebels/_changes**")
+                .WithQueryParam("filter", "_doc_ids")
                 .WithJsonBody<ChangesFeedFilterDocuments>(f => f.DocumentIds.Contains(docId))
                 .WithVerb(HttpMethod.Post);
         }
@@ -108,8 +108,8 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("filter", "_selector")
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("filter", "_selector")
                 .WithContentType("application/json")
                 .With(call => call.RequestBody == $"{{\"selector\":{{\"_id\":\"{docId}\"}}}}")
                 .WithVerb(HttpMethod.Post);
@@ -131,8 +131,8 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("filter", "_design")
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("filter", "_design")
                 .WithVerb(HttpMethod.Get);
         }
 
@@ -153,9 +153,9 @@ namespace CouchDB.Driver.UnitTests.Feed
 
             // Assert
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_changes")
-                .WithQueryParamValue("filter", "_view")
-                .WithQueryParamValue("view", view)
+                .ShouldHaveCalled("http://localhost/rebels/_changes*")
+                .WithQueryParam("filter", "_view")
+                .WithQueryParam("view", view)
                 .WithVerb(HttpMethod.Get);
         }
 

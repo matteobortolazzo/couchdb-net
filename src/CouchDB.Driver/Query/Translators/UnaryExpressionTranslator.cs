@@ -14,18 +14,18 @@ namespace CouchDB.Driver.Query
                     switch (u.Operand)
                     {
                         case BinaryExpression b when (b.NodeType == ExpressionType.Or || b.NodeType == ExpressionType.OrElse):
-                            _sb.Append("{");
+                            _sb.Append('{');
                             VisitBinaryCombinationOperator(b, true);
-                            _sb.Append("}");
+                            _sb.Append('}');
                             break;
                         case MethodCallExpression m when m.Method.Name == "In":
                             VisitInMethod(m, true);
                             break;
                         default:
-                            _sb.Append("{");
+                            _sb.Append('{');
                             _sb.Append("\"$not\":");
                             Visit(u.Operand);
-                            _sb.Append("}");
+                            _sb.Append('}');
                             break;
                     }
                     break;

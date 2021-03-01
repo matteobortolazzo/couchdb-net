@@ -106,7 +106,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             // Operation result
-            httpTest.RespondWith((HttpContent)null, 412);
+            httpTest.RespondWith(string.Empty, 412);
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
@@ -157,7 +157,7 @@ namespace CouchDB.Driver.UnitTests
         {
             using var httpTest = new HttpTest();
             // Operation result
-            httpTest.RespondWith((HttpContent)null, 412);
+            httpTest.RespondWith((string)null, 412);
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
@@ -260,7 +260,7 @@ namespace CouchDB.Driver.UnitTests
         public async Task NotExists()
         {
             using var httpTest = new HttpTest();
-            httpTest.RespondWith((HttpContent)null, 404);
+            httpTest.RespondWith(string.Empty, 404);
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
@@ -296,7 +296,7 @@ namespace CouchDB.Driver.UnitTests
         public async Task IsNotUp()
         {
             using var httpTest = new HttpTest();
-            httpTest.RespondWith((HttpContent)null, 404);
+            httpTest.RespondWith(string.Empty, 404);
             // Logout
             httpTest.RespondWithJson(new { ok = true });
 
@@ -308,6 +308,24 @@ namespace CouchDB.Driver.UnitTests
                 .ShouldHaveCalled($"http://localhost/_up")
                 .WithVerb(HttpMethod.Get);
         }
+
+        [Fact]
+        public async Task IsNotUp_Timeout()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.SimulateTimeout();
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            await using var client = new CouchClient("http://localhost");
+            var result = await client.IsUpAsync();
+            Assert.False(result);
+
+            httpTest
+                .ShouldHaveCalled($"http://localhost/_up")
+                .WithVerb(HttpMethod.Get);
+        }
+
 
         [Fact]
         public async Task DatabaseNames()
@@ -350,7 +368,7 @@ namespace CouchDB.Driver.UnitTests
         public async Task ConflictException()
         {
             using var httpTest = new HttpTest();
-            httpTest.RespondWith(status: (int)HttpStatusCode.Conflict);
+            httpTest.RespondWith(string.Empty, (int)HttpStatusCode.Conflict);
 
             await using var client = new CouchClient("http://localhost");
             var couchException = await Assert.ThrowsAsync<CouchConflictException>(() => client.CreateDatabaseAsync<Rebel>());
@@ -361,7 +379,7 @@ namespace CouchDB.Driver.UnitTests
         public async Task NotFoundException()
         {
             using var httpTest = new HttpTest();
-            httpTest.RespondWith(status: (int)HttpStatusCode.NotFound);
+            httpTest.RespondWith(string.Empty, (int)HttpStatusCode.NotFound);
 
             await using var client = new CouchClient("http://localhost");
             var couchException = await Assert.ThrowsAsync<CouchNotFoundException>(() => client.DeleteDatabaseAsync<Rebel>());
@@ -390,7 +408,7 @@ namespace CouchDB.Driver.UnitTests
 
             await using var client = new CouchClient("http://localhost");
             var db = client.GetDatabase<Rebel>();
-            var couchException = await Assert.ThrowsAsync<CouchException>(() => db.FindAsync("aoeu"));
+            var couchException = await Assert.ThrowsAsync<CouchException>(() => db.CompactAsync());
             Assert.Equal(message, couchException.Message);
             Assert.Equal(reason, couchException.Reason);
             Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
@@ -400,11 +418,11 @@ namespace CouchDB.Driver.UnitTests
         public async Task GenericExceptionNoMessage()
         {
             using var httpTest = new HttpTest();
-            httpTest.RespondWith(status: (int)HttpStatusCode.InternalServerError);
+            httpTest.RespondWith(string.Empty, (int)HttpStatusCode.InternalServerError);
 
             await using var client = new CouchClient("http://localhost");
             var db = client.GetDatabase<Rebel>();
-            var couchException = await Assert.ThrowsAsync<CouchException>(() => db.FindAsync("aoeu"));
+            var couchException = await Assert.ThrowsAsync<CouchException>(() => db.CompactAsync());
             Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
         }
 

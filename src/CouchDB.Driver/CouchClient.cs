@@ -26,8 +26,10 @@ namespace CouchDB.Driver
     {
         private DateTime? _cookieCreationDate;
         private string? _cookieToken;
-        private readonly CouchOptions _options;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "<Pending>")]
         private readonly IFlurlClient _flurlClient;
+        private readonly CouchOptions _options;
         private readonly string[] _systemDatabases = { "_users", "_replicator", "_global_changes" };
         public Uri Endpoint { get; }
 
@@ -120,15 +122,15 @@ namespace CouchDB.Driver
             where TSource : CouchDocument
         {
             QueryContext queryContext = NewQueryContext(database);
-            HttpResponseMessage response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
+            IFlurlResponse response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
                 .ConfigureAwait(false);
             
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessful())
             {
                 return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
             }
 
-            if (response.StatusCode == HttpStatusCode.PreconditionFailed)
+            if (response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
             {
                 throw new CouchException($"Database with name {database} already exists.");
             }
@@ -142,10 +144,10 @@ namespace CouchDB.Driver
             where TSource : CouchDocument
         {
             QueryContext queryContext = NewQueryContext(database);
-            HttpResponseMessage response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
+            IFlurlResponse response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.PreconditionFailed)
+            if (response.IsSuccessful() || response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
             {
                 return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
             }
@@ -171,7 +173,7 @@ namespace CouchDB.Driver
             }
         }
 
-        private Task<HttpResponseMessage> CreateDatabaseAsync(QueryContext queryContext,
+        private Task<IFlurlResponse> CreateDatabaseAsync(QueryContext queryContext,
             int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
         {
             IFlurlRequest request = NewRequest()
@@ -259,12 +261,12 @@ namespace CouchDB.Driver
         public async Task<bool> ExistsAsync(string database, CancellationToken cancellationToken = default)
         {
             QueryContext queryContext = NewQueryContext(database);
-            HttpResponseMessage? response = await NewRequest()
+            IFlurlResponse? response = await NewRequest()
                 .AllowHttpStatus(HttpStatusCode.NotFound)
                 .AppendPathSegment(queryContext.EscapedDatabaseName)
                 .HeadAsync(cancellationToken)
                 .ConfigureAwait(false);
-            return response.IsSuccessStatusCode;
+            return response.IsSuccessful();
         }
 
         /// <inheritdoc />
@@ -273,13 +275,14 @@ namespace CouchDB.Driver
             try
             {
                 StatusResult result = await NewRequest()
+                    .AllowAnyHttpStatus()
                     .AppendPathSegment("/_up")
                     .GetJsonAsync<StatusResult>(cancellationToken)
                     .SendRequestAsync()
                     .ConfigureAwait(false);
-                return result.Status == "ok";
+                return result?.Status == "ok";
             }
-            catch (CouchNotFoundException)
+            catch (CouchException)
             {
                 return false;
             }
@@ -337,11 +340,21 @@ namespace CouchDB.Driver
         /// </summary>
         public async ValueTask DisposeAsync()
         {
-            if (_options.AuthenticationType == AuthenticationType.Cookie && _options.LogOutOnDispose)
+            await DisposeAsync(true).ConfigureAwait(false);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual async Task DisposeAsync(bool disposing)
+        {
+            if (disposing && _flurlClient != null)
             {
-                await LogoutAsync().ConfigureAwait(false);
+                if (_options.AuthenticationType == AuthenticationType.Cookie && _options.LogOutOnDispose)
+                {
+                    await LogoutAsync().ConfigureAwait(false);
+                }
+
+                _flurlClient.Dispose();
             }
-            _flurlClient.Dispose();
         }
 
         #endregion

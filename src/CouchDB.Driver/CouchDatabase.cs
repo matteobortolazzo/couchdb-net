@@ -23,6 +23,7 @@ using CouchDB.Driver.Local;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using Newtonsoft.Json;
+using System.Net;
 
 namespace CouchDB.Driver
 {
@@ -30,7 +31,7 @@ namespace CouchDB.Driver
     /// Represents a CouchDB database.
     /// </summary>
     /// <typeparam name="TSource">The type of database documents.</typeparam>
-    public class CouchDatabase<TSource>: ICouchDatabase<TSource>
+    public class CouchDatabase<TSource> : ICouchDatabase<TSource>
         where TSource : CouchDocument
     {
         private readonly IAsyncQueryProvider _queryProvider;
@@ -69,28 +70,22 @@ namespace CouchDB.Driver
         public async Task<TSource?> FindAsync(string docId, bool withConflicts = false,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                IFlurlRequest request = NewRequest()
+            IFlurlRequest request = NewRequest()
                     .AppendPathSegment(docId);
 
-                if (withConflicts)
-                {
-                    request = request.SetQueryParam("conflicts", "true");
-                }
-
-                TSource document = await request
-                    .GetJsonAsync<TSource>(cancellationToken)
-                    .SendRequestAsync()
-                    .ConfigureAwait(false);
-
-                InitAttachments(document);
-                return document;
-            }
-            catch (CouchNotFoundException)
+            if (withConflicts)
             {
-                return null;
+                request = request.SetQueryParam("conflicts", "true");
             }
+
+            IFlurlResponse? response = await request
+                .AllowHttpStatus(HttpStatusCode.NotFound)
+                .GetAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            return response != null && response.StatusCode == (int)HttpStatusCode.OK
+                ? await response.GetJsonAsync<TSource>().ConfigureAwait(false)
+                : null;
         }
 
         /// <inheritdoc />
@@ -120,7 +115,7 @@ namespace CouchDB.Driver
                 .ReceiveJson<BulkGetResult<TSource>>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
-                       
+
             var documents = bulkGetResult.Results
                 .SelectMany(r => r.Docs)
                 .Select(d => d.Item)
@@ -137,12 +132,12 @@ namespace CouchDB.Driver
             return documents;
         }
 
-        private async Task<List<TSource>> SendQueryAsync(Func<IFlurlRequest, Task<HttpResponseMessage>> requestFunc)
+        private async Task<List<TSource>> SendQueryAsync(Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc)
         {
             IFlurlRequest request = NewRequest()
                 .AppendPathSegment("_find");
 
-            Task<HttpResponseMessage> message = requestFunc(request);
+            Task<IFlurlResponse> message = requestFunc(request);
 
             FindResult<TSource> findResult = await message
                 .ReceiveJson<FindResult<TSource>>()
@@ -346,7 +341,7 @@ namespace CouchDB.Driver
                 {
                     document.Rev = response.Rev;
                     document.Attachments.RemoveAttachment(attachment);
-                }                
+                }
             }
 
             InitAttachments(document);
@@ -399,7 +394,7 @@ namespace CouchDB.Driver
                     .ConfigureAwait(false)
                 : await request.QueryContinuousWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
-            
+
             await foreach (var line in stream.ReadLinesAsync(cancellationToken))
             {
                 if (string.IsNullOrEmpty(line))
@@ -415,7 +410,7 @@ namespace CouchDB.Driver
         #endregion
 
         #region Index
-        
+
         /// <inheritdoc />
         public async Task<List<IndexInfo>> GetIndexesAsync(CancellationToken cancellationToken = default)
         {
@@ -448,7 +443,7 @@ namespace CouchDB.Driver
             var indexJson = indexDefinition.ToString();
 
             var sb = new StringBuilder();
-            sb.Append("{")
+            sb.Append('{')
                 .Append($"\"index\":{indexJson},")
                 .Append($"\"name\":\"{name}\",")
                 .Append("\"type\":\"json\"");
@@ -462,7 +457,7 @@ namespace CouchDB.Driver
                 sb.Append($",\"partitioned\":{options.Partitioned.ToString().ToLowerInvariant()}");
             }
 
-            sb.Append("}");
+            sb.Append('}');
 
             var request = sb.ToString();
 
@@ -568,7 +563,7 @@ namespace CouchDB.Driver
         #endregion
 
         #region Helper
-        
+
         /// <inheritdoc />
         public IFlurlRequest NewRequest()
         {

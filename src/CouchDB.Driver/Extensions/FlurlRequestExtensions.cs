@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Shared;
 using Flurl.Http;
 using Flurl.Http.Content;
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Extensions
 {
@@ -59,6 +61,15 @@ namespace CouchDB.Driver.Extensions
             }
 
             return request;
+        }
+
+        public static bool IsSuccessful(this IFlurlResponse response)
+        {
+            return
+                response.StatusCode == (int)HttpStatusCode.OK ||
+                response.StatusCode == (int)HttpStatusCode.Created ||
+                response.StatusCode == (int)HttpStatusCode.Accepted ||
+                response.StatusCode == (int)HttpStatusCode.NoContent;
         }
     }
 }
