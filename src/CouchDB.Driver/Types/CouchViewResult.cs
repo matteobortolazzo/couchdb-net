@@ -7,8 +7,8 @@ namespace CouchDB.Driver.Types
     /// <summary>
     /// Object that stores results of a view.
     /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    public class CouchViewResult<TValue>
+    /// <typeparam name="TRow">The type of the value.</typeparam>
+    public class CouchViewResult<TRow>
     {
         /// <summary>
         /// Number of documents in the database/view.
@@ -26,17 +26,16 @@ namespace CouchDB.Driver.Types
         /// Array of view row objects. This result contains only the document ID and revision.
         /// </summary>
         [JsonProperty("rows")]
-        public IReadOnlyList<CouchViewRow<TValue>> Rows { get; private set; } = ImmutableArray.Create<CouchViewRow<TValue>>();
+        public IReadOnlyList<CouchViewRow<TRow>> Rows { get; private set; } = ImmutableArray.Create<CouchViewRow<TRow>>();
     }
 
     /// <summary>
     /// Object that stores results of a view.
     /// </summary>
     /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <typeparam name="TDoc">The type of the doc.</typeparam>
-    public class CouchViewResult<TValue, TDoc>
-        where TDoc : CouchDocument
-
+    /// <typeparam name="TSource">The type of the doc.</typeparam>
+    public class CouchViewResult<TRow, TSource>
+        where TSource : CouchDocument
     {
         /// <summary>
         /// Number of documents in the database/view.
@@ -54,6 +53,6 @@ namespace CouchDB.Driver.Types
         /// Array of view row objects. This result contains the document ID, revision and the documents.
         /// </summary>
         [JsonProperty("rows")]
-        public IReadOnlyList<CouchViewRow<TValue, TDoc>> Rows { get; private set; } = ImmutableArray.Create<CouchViewRow<TValue, TDoc>>();
+        public IReadOnlyList<CouchViewRow<TRow, TSource>> Rows { get; private set; } = ImmutableArray.Create<CouchViewRow<TRow, TSource>>();
     }
 }
