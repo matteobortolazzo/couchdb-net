@@ -503,7 +503,23 @@ namespace CouchDB.Driver
         #region View
 
         /// <inheritdoc/>
-        public Task<CouchViewResult<TValue>> GetViewAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        public async Task<IList<TRow>> GetViewAsync<TRow>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            CouchViewResult<TRow> result = await GetDetailedViewAsync<TRow>(design, view, options, cancellationToken).ConfigureAwait(false);
+
+            return result.Rows.Select(x => x.Value).ToArray();
+        }
+
+        /// <inheritdoc/>
+        public async Task<IList<(TRow Value, TSource Doc)>> GetViewWithDocAsync<TRow>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            CouchViewResult<TRow, TSource> result = await GetDetailedViewWithDocAsync<TRow>(design, view, options, cancellationToken).ConfigureAwait(false);
+
+            return result.Rows.Select(x => (x.Value, x.Doc)).ToArray();
+        }
+
+        /// <inheritdoc/>
+        public Task<CouchViewResult<TRow>> GetDetailedViewAsync<TRow>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
         {
             Check.NotNull(view, nameof(view));
 
@@ -512,13 +528,12 @@ namespace CouchDB.Driver
                 .SetQueryParams(options?.ToQueryParameters());
 
             return request
-                .GetJsonAsync<CouchViewResult<TValue>>(cancellationToken)
+                .GetJsonAsync<CouchViewResult<TRow>>(cancellationToken)
                 .SendRequestAsync();
         }
 
         /// <inheritdoc/>
-        public Task<CouchViewResult<TValue, TDoc>> GetViewAsync<TValue, TDoc>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
-            where TDoc : CouchDocument
+        public Task<CouchViewResult<TRow, TSource>> GetDetailedViewWithDocAsync<TRow>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
         {
             Check.NotNull(view, nameof(view));
 
@@ -530,7 +545,7 @@ namespace CouchDB.Driver
                 .SetQueryParams(options.ToQueryParameters());
 
             return request
-                .GetJsonAsync<CouchViewResult<TValue, TDoc>>(cancellationToken)
+                .GetJsonAsync<CouchViewResult<TRow, TSource>>(cancellationToken)
                 .SendRequestAsync();
         }
 
