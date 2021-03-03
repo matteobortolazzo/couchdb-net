@@ -11,7 +11,6 @@ using System.Linq;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using Newtonsoft.Json;
-using System.Net.Http;
 using System.Net;
 using System.Threading;
 using CouchDB.Driver.Options;
@@ -109,16 +108,16 @@ namespace CouchDB.Driver
         #region CRUD
 
         /// <inheritdoc />
-        public ICouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument
+        public ICouchDatabase<TSource> GetDatabase<TSource>(string database, string? discriminator = null) where TSource : CouchDocument
         {
             CheckDatabaseName(database);
             var queryContext = new QueryContext(Endpoint, database);
-            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
+            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext, discriminator);
         }
 
         /// <inheritdoc />
         public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, 
-            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            int? shards = null, int? replicas = null, string? discriminator = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument
         {
             QueryContext queryContext = NewQueryContext(database);
@@ -127,7 +126,7 @@ namespace CouchDB.Driver
             
             if (response.IsSuccessful())
             {
-                return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
+                return new CouchDatabase<TSource>(_flurlClient, _options, queryContext, discriminator);
             }
 
             if (response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
@@ -140,7 +139,7 @@ namespace CouchDB.Driver
 
         /// <inheritdoc />
         public async Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
-            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            int? shards = null, int? replicas = null, string? discriminator = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument
         {
             QueryContext queryContext = NewQueryContext(database);
@@ -149,7 +148,7 @@ namespace CouchDB.Driver
 
             if (response.IsSuccessful() || response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
             {
-                return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
+                return new CouchDatabase<TSource>(_flurlClient, _options, queryContext, discriminator);
             }
 
             throw new CouchException($"Something wrong happened while creating database {database}.");
@@ -206,17 +205,17 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+        public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, string? discriminator = null,
             CancellationToken cancellationToken = default) where TSource : CouchDocument
         {
-            return CreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, cancellationToken);
+            return CreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, discriminator, cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+        public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, string? discriminator = null,
             CancellationToken cancellationToken = default) where TSource : CouchDocument
         {
-            return GetOrCreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, cancellationToken);
+            return GetOrCreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, discriminator, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -244,13 +243,13 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
         {
-            return GetOrCreateDatabaseAsync<CouchUser>(null, null, cancellationToken);
+            return GetOrCreateDatabaseAsync<CouchUser>(null, null, null, cancellationToken);
         }
 
         /// <inheritdoc />
         public Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(CancellationToken cancellationToken = default) where TUser : CouchUser
         {
-            return GetOrCreateDatabaseAsync<TUser>(null, null, cancellationToken);
+            return GetOrCreateDatabaseAsync<TUser>(null, null, null, cancellationToken);
         }
 
         #endregion

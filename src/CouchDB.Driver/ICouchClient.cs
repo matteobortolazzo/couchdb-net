@@ -13,8 +13,9 @@ namespace CouchDB.Driver
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="database">The database name.</param>
+        /// <param name="discriminator">Filters documents by the given discriminator.</param>
         /// <returns>An instance of the CouchDB database with given name.</returns>
-        ICouchDatabase<TSource> GetDatabase<TSource>(string database) where TSource : CouchDocument;
+        ICouchDatabase<TSource> GetDatabase<TSource>(string database, string? discriminator = null) where TSource : CouchDocument;
 
         /// <summary>
         /// Returns an instance of the CouchDB database with the given name.
@@ -25,10 +26,11 @@ namespace CouchDB.Driver
         /// <param name="database">The database name.</param>
         /// <param name="shards">The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
         /// <param name="replicas">The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
+        /// <param name="discriminator">Filters documents by the given discriminator.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
         Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database,
-            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            int? shards = null, int? replicas = null, string? discriminator = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument;
 
         /// <summary>
@@ -40,10 +42,11 @@ namespace CouchDB.Driver
         /// <param name="database">The database name.</param>
         /// <param name="shards">Used when creating. The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
         /// <param name="replicas">Used when creating. The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
+        /// <param name="discriminator">Filters documents by the given discriminator.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
         Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
-            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            int? shards = null, int? replicas = null, string? discriminator = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument;
 
         /// <summary>
@@ -69,9 +72,10 @@ namespace CouchDB.Driver
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="shards">The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
         /// <param name="replicas">The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
+        /// <param name="discriminator">Filters documents by the given discriminator.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-        Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, CancellationToken cancellationToken = default) where TSource : CouchDocument;
+        Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, string? discriminator = null, CancellationToken cancellationToken = default) where TSource : CouchDocument;
 
         /// <summary>
         /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
@@ -80,9 +84,10 @@ namespace CouchDB.Driver
         /// <typeparam name="TSource">The type of database documents.</typeparam>
         /// <param name="shards">Used when creating. The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
         /// <param name="replicas">Used when creating. The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
+        /// <param name="discriminator">Filters documents by the given discriminator.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-        Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+        Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, string? discriminator = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument;
 
         /// <summary>

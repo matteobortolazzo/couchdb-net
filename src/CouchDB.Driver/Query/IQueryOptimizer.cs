@@ -4,6 +4,6 @@ namespace CouchDB.Driver.Query
 {
     internal interface IQueryOptimizer
     {
-        Expression Optimize(Expression e);
+        Expression Optimize(Expression e, string? discriminator);
     }
 }

@@ -39,6 +39,7 @@
 
   <ItemGroup>
     <Folder Include="License\" />
+    <Folder Include="Attributes\" />
   </ItemGroup>
 
 </Project>

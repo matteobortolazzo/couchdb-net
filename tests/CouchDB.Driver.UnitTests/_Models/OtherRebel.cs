@@ -1,8 +1,5 @@
-﻿using CouchDB.Driver.UnitTests.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CouchDB.Driver.UnitTests.Models
 {

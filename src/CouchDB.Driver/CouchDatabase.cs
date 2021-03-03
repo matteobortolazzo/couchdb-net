@@ -38,6 +38,7 @@ namespace CouchDB.Driver
         private readonly IFlurlClient _flurlClient;
         private readonly CouchOptions _options;
         private readonly QueryContext _queryContext;
+        private readonly string? _discriminator;
 
         /// <inheritdoc />
         public string Database => _queryContext.DatabaseName;
@@ -48,16 +49,17 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public ILocalDocuments LocalDocuments { get; }
 
-        internal CouchDatabase(IFlurlClient flurlClient, CouchOptions options, QueryContext queryContext)
+        internal CouchDatabase(IFlurlClient flurlClient, CouchOptions options, QueryContext queryContext, string? discriminator)
         {
             _flurlClient = flurlClient;
             _options = options;
             _queryContext = queryContext;
+            _discriminator = discriminator;
 
             var queryOptimizer = new QueryOptimizer();
             var queryTranslator = new QueryTranslator(options);
             var querySender = new QuerySender(flurlClient, queryContext);
-            var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender);
+            var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender, _discriminator);
             _queryProvider = new CouchQueryProvider(queryCompiler);
 
             Security = new CouchSecurity(NewRequest);
@@ -187,6 +189,7 @@ namespace CouchDB.Driver
                 request = request.SetQueryParam("batch", "ok");
             }
 
+            document.Discriminator = _discriminator;
             DocumentSaveResponse response = await request
                 .PostJsonAsync(document, cancellationToken)
                 .ReceiveJson<DocumentSaveResponse>()
@@ -218,6 +221,7 @@ namespace CouchDB.Driver
                 request = request.SetQueryParam("batch", "ok");
             }
 
+            document.Discriminator = _discriminator;
             DocumentSaveResponse response = await request
                 .PutJsonAsync(document, cancellationToken)
                 .ReceiveJson<DocumentSaveResponse>()
@@ -261,6 +265,11 @@ namespace CouchDB.Driver
         public async Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default)
         {
             Check.NotNull(documents, nameof(documents));
+
+            foreach(TSource? document in documents)
+            {
+                document.Discriminator = _discriminator;
+            }
 
             DocumentSaveResponse[] response = await NewRequest()
                 .AppendPathSegment("_bulk_docs")

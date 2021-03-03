@@ -6,7 +6,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Authentication;
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Shared;
 
 #pragma warning disable IDE0058 // Expression value is never used

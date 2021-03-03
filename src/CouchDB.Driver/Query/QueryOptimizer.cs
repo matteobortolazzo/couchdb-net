@@ -23,8 +23,18 @@ namespace CouchDB.Driver.Query
             _nextWhereCalls = new Queue<MethodCallExpression>();
         }
 
-        public Expression Optimize(Expression e)
+        public Expression Optimize(Expression e, string? discriminator)
         {
+            if (discriminator is not null)
+            {
+                Type? sourceType = e.Type.GetGenericArguments()[0];
+                MethodInfo? wrapInWhere = typeof(MethodCallExpressionBuilder)
+                .GetMethod(nameof(MethodCallExpressionBuilder.WrapInDiscriminatorFilter))
+                .MakeGenericMethod(new[] { sourceType });
+
+                e = (Expression)wrapInWhere.Invoke(null, new object[] { e, discriminator });
+            }
+
             e = LocalExpressions.PartialEval(e);
             return Visit(e);
         }

@@ -113,6 +113,36 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
+        public async Task Create_Discriminator()
+        {
+            var rebels = _client.GetDatabase<Rebel>(database: "rebels", discriminator: "myRebels");
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
+
+            var r = new Rebel { Name = "Luke" };
+            var newR = await rebels.AddAsync(r);
+            Assert.Equal("myRebels", newR.Discriminator);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels")
+                .WithVerb(HttpMethod.Post);
+        }
+
+        [Fact]
+        public async Task CreateOrUpdate_Discriminator()
+        {
+            var rebels = _client.GetDatabase<Rebel>(database: "rebels", discriminator: "rebels");
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
+
+            var r = new Rebel { Name = "Luke", Id = "1" };
+            var newR = await rebels.AddOrUpdateAsync(r);
+            Assert.Equal("myRebels", newR.Discriminator);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/1")
+                .WithVerb(HttpMethod.Put);
+        }
+
+        [Fact]
         public async Task CreateOrUpdate_WithoutId()
         {
             using var httpTest = new HttpTest();
