@@ -161,6 +161,13 @@ namespace CouchDB.Driver
         Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Get the database name for the given type.
+        /// </summary>
+        /// <param name="type">The type of database documents.</param>
+        /// <returns></returns>
+        string GetClassName(Type type);
+
+        /// <summary>
         /// URI of the CouchDB endpoint.
         /// </summary>
         Uri Endpoint { get; }

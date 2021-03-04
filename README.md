@@ -104,6 +104,7 @@ The produced Mango JSON:
 * [Indexing](#indexing)
   * [Index Options](#index-options)
   * [Partial Indexes](#partial-indexes)
+* [Database Splitting](#database-splitting)
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
@@ -487,16 +488,7 @@ public class MyDeathStarContext : CouchContext
 {
     public CouchDatabase<Rebel> Rebels { get; set; }
 
-    protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder
-          .UseEndpoint("http://localhost:5984/")
-          .UseBasicAuthentication("admin", "admin")
-          // If it finds a index with the same name and ddoc (or null)
-          // but with different fields and/or sort order,
-          // it will override the index
-          .OverrideExistingIndexes(); 
-    }
+    // OnConfiguring(CouchOptionsBuilder optionsBuilder) { ... }
 
     protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
     {
@@ -504,6 +496,34 @@ public class MyDeathStarContext : CouchContext
             .HasIndex("rebel_surnames_index", b => b.IndexBy(b => b.Surname));
     }
 }
+```
+
+## Database Splitting
+
+It is possible to use the same database for multiple types:
+```csharp
+public class MyDeathStarContext : CouchContext
+{
+    public CouchDatabase<Rebel> Rebels { get; set; }
+    public CouchDatabase<Vehicle> Vehicles { get; set; }
+
+    // OnConfiguring(CouchOptionsBuilder optionsBuilder) { ... }
+
+    protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
+    {
+        databaseBuilder.Document<Rebel>().ToDatabase("troups");
+        databaseBuilder.Document<Vehicle>().ToDatabase("troups");
+    }
+}
+```
+> When multiple `CouchDatabase` point to the same **database**, a `_discriminator` field is added on documents creation.
+>
+> When querying, a filter by `discriminator` is added automatically.
+
+If you are not using `CouchContext`, you can still use the database slit feature:
+```csharp
+var rebels = client.GetDatabase<Rebel>("troups", nameof(Rebel));
+var vehicles = client.GetDatabase<Vehicle>("troups", nameof(Vehicle));
 ```
 
 ## Local (non-replicating) Documents

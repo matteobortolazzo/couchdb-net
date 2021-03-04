@@ -130,7 +130,7 @@ namespace CouchDB.Driver.UnitTests
         [Fact]
         public async Task CreateOrUpdate_Discriminator()
         {
-            var rebels = _client.GetDatabase<Rebel>(database: "rebels", discriminator: "rebels");
+            var rebels = _client.GetDatabase<Rebel>(database: "rebels", discriminator: "myRebels");
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 

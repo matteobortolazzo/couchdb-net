@@ -361,6 +361,12 @@ namespace CouchDB.Driver
         private string GetClassName<TSource>()
         {
             Type type = typeof(TSource);
+            return GetClassName(type);
+        }
+
+        public string GetClassName(Type type)
+        {
+            Check.NotNull(type, nameof(type));
             return type.GetName(_options);
         }
     }

@@ -6,11 +6,11 @@ namespace CouchDB.Driver.Options
 {
     public class CouchDatabaseBuilder
     {
-        internal readonly Dictionary<Type, object> DocumentBuilders;
+        internal readonly Dictionary<Type, CouchDocumentBuilder> DocumentBuilders;
 
         internal CouchDatabaseBuilder()
         {
-            DocumentBuilders = new Dictionary<Type, object>();
+            DocumentBuilders = new Dictionary<Type, CouchDocumentBuilder>();
         }
 
         public CouchDocumentBuilder<TSource> Document<TSource>()

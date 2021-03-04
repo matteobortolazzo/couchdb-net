@@ -18,7 +18,7 @@ namespace CouchDB.Driver
 
         private static readonly MethodInfo InitDatabasesGenericMethod
             = typeof(CouchContext).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-                .Single(mi => mi.Name == nameof(InitDatabasesAsync));
+                .Single(mi => mi.Name == nameof(InitDatabaseAsync));
 
         private static readonly MethodInfo ApplyDatabaseChangesGenericMethod
             = typeof(CouchContext).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
@@ -39,20 +39,9 @@ namespace CouchDB.Driver
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 
             Client = new CouchClient(options);
-            IEnumerable<PropertyInfo> databasePropertyInfos = GetDatabaseProperties();
 
-            foreach (PropertyInfo dbProperty in databasePropertyInfos)
-            {
-                Type documentType = dbProperty.PropertyType.GetGenericArguments()[0];
-
-                var initDatabasesTask = (Task)InitDatabasesGenericMethod.MakeGenericMethod(documentType)
-                    .Invoke(this, new object[] {dbProperty, options});
-                initDatabasesTask.ConfigureAwait(false).GetAwaiter().GetResult();
-
-                var applyDatabaseChangesTask = (Task)ApplyDatabaseChangesGenericMethod.MakeGenericMethod(documentType)
-                    .Invoke(this, new object[] { dbProperty, options, databaseBuilder });
-                applyDatabaseChangesTask.ConfigureAwait(false).GetAwaiter().GetResult();
-            }
+            SetupDiscriminators(databaseBuilder);
+            InitializeDatabases(options, databaseBuilder);
         }
 
         public async ValueTask DisposeAsync()
@@ -69,26 +58,76 @@ namespace CouchDB.Driver
             }
         }
 
-        private async Task InitDatabasesAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options)
+        private static void SetupDiscriminators(CouchDatabaseBuilder databaseBuilder)
+        {
+            // Get all options that share the database with another one
+            IEnumerable<KeyValuePair<Type, CouchDocumentBuilder>>? sharedDatabase = databaseBuilder.DocumentBuilders
+                .Where(opt => opt.Value.Database != null)
+                .GroupBy(v => v.Value.Database)
+                .Where(g => g.Count() > 1)
+                .SelectMany(g => g);
+            foreach (KeyValuePair<Type, CouchDocumentBuilder> option in sharedDatabase)
+            {
+                option.Value.Discriminator = option.Key.Name;
+            }
+        }
+
+        private void InitializeDatabases(CouchOptions options, CouchDatabaseBuilder databaseBuilder)
+        {
+            foreach (PropertyInfo dbProperty in GetDatabaseProperties())
+            {
+                Type documentType = dbProperty.PropertyType.GetGenericArguments()[0];
+
+                var initDatabasesTask = (Task)InitDatabasesGenericMethod.MakeGenericMethod(documentType)
+                    .Invoke(this, new object[] { dbProperty, options, databaseBuilder });
+                initDatabasesTask.ConfigureAwait(false).GetAwaiter().GetResult();
+
+                var applyDatabaseChangesTask = (Task)ApplyDatabaseChangesGenericMethod.MakeGenericMethod(documentType)
+                    .Invoke(this, new object[] { dbProperty, options, databaseBuilder });
+                applyDatabaseChangesTask.ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+        }
+
+        private async Task InitDatabaseAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options, CouchDatabaseBuilder databaseBuilder)
             where TSource : CouchDocument
         {
-            ICouchDatabase<TSource> database = options.CheckDatabaseExists
-                ? await Client.GetOrCreateDatabaseAsync<TSource>().ConfigureAwait(false)
-                : Client.GetDatabase<TSource>();
+            ICouchDatabase<TSource> database;
+            Type documentType = typeof(TSource);
+
+            if (databaseBuilder.DocumentBuilders.ContainsKey(documentType))
+            {
+                var documentBuilder = (CouchDocumentBuilder<TSource>)databaseBuilder.DocumentBuilders[documentType];
+                var databaseName = documentBuilder.Database ?? Client.GetClassName(documentType);
+                database = options.CheckDatabaseExists
+                    ? await Client.GetOrCreateDatabaseAsync<TSource>(databaseName, documentBuilder.Shards, documentBuilder.Replicas, documentBuilder.Discriminator).ConfigureAwait(false)
+                    : Client.GetDatabase<TSource>(databaseName, documentBuilder.Discriminator);
+            }
+            else
+            {
+                database = options.CheckDatabaseExists
+                    ? await Client.GetOrCreateDatabaseAsync<TSource>().ConfigureAwait(false)
+                    : Client.GetDatabase<TSource>();
+            }
 
             propertyInfo.SetValue(this, database);
         }
 
         private async Task ApplyDatabaseChangesAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options, CouchDatabaseBuilder databaseBuilder)
-            where TSource: CouchDocument
+            where TSource : CouchDocument
         {
-            if (!databaseBuilder.DocumentBuilders.ContainsKey(typeof(TSource)))
+            Type documentType = typeof(TSource);
+            if (!databaseBuilder.DocumentBuilders.ContainsKey(documentType))
             {
                 return;
             }
 
             var database = (CouchDatabase<TSource>)propertyInfo.GetValue(this);
-            var documentBuilder = (CouchDocumentBuilder<TSource>)databaseBuilder.DocumentBuilders[typeof(TSource)];
+            var documentBuilder = (CouchDocumentBuilder<TSource>)databaseBuilder.DocumentBuilders[documentType];
+
+            if (!documentBuilder.IndexDefinitions.Any())
+            {
+                return;
+            }
 
             List<IndexInfo> indexes = await database.GetIndexesAsync().ConfigureAwait(false);
 
@@ -125,7 +164,7 @@ namespace CouchDB.Driver
             {
                 return;
             }
-            
+
             IndexDefinition indexDefinition = database.NewIndexBuilder(indexSetup.IndexBuilderAction).Build();
             if (!AreFieldsEqual(currentIndex.Fields, indexDefinition.Fields))
             {

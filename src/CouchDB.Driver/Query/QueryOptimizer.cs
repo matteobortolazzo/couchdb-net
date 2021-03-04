@@ -15,6 +15,8 @@ namespace CouchDB.Driver.Query
     /// </summary>
     internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
     {
+        private static readonly MethodInfo WrapInWhereGenericMethod
+               = typeof(MethodCallExpressionBuilder).GetMethod(nameof(MethodCallExpressionBuilder.WrapInDiscriminatorFilter));
         private bool _isVisitingWhereMethodOrChild;
         private readonly Queue<MethodCallExpression> _nextWhereCalls;
 
@@ -28,10 +30,7 @@ namespace CouchDB.Driver.Query
             if (discriminator is not null)
             {
                 Type? sourceType = e.Type.GetGenericArguments()[0];
-                MethodInfo? wrapInWhere = typeof(MethodCallExpressionBuilder)
-                .GetMethod(nameof(MethodCallExpressionBuilder.WrapInDiscriminatorFilter))
-                .MakeGenericMethod(new[] { sourceType });
-
+                MethodInfo? wrapInWhere = WrapInWhereGenericMethod.MakeGenericMethod(new[] { sourceType });
                 e = (Expression)wrapInWhere.Invoke(null, new object[] { e, discriminator });
             }
 
