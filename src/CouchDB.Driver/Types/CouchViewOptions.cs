@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace CouchDB.Driver.Types
 {
@@ -22,11 +21,17 @@ namespace CouchDB.Driver.Types
         /// <summary>
         /// Return records starting with the specified key.
         /// </summary>
+        /// <remarks>
+        /// String keys should start and end with '"'. This can also be any valid json.
+        /// </remarks>
         public string? StartKey { get; set; }
 
         /// <summary>
         /// Stop returning records when the specified key is reached.
         /// </summary>
+        /// <remarks>
+        /// String keys should start and end with '"'. This can also be any valid json.
+        /// </remarks>
         public string? EndKey { get; set; }
 
         /// <summary>
@@ -106,6 +111,9 @@ namespace CouchDB.Driver.Types
         /// Whether or not the view in question should be updated prior to responding to the user.
         /// Supported values: true, false, lazy. Default is true.
         /// </summary>
+        /// <remarks>
+        /// The provided values do not need to start or end with '"'.
+        /// </remarks>
         public string? Update { get; set; }
 
         /// <summary>
@@ -117,6 +125,9 @@ namespace CouchDB.Driver.Types
         /// <summary>
         /// Return only documents that match the specified key.
         /// </summary>
+        /// <remarks>
+        /// String keys should start and end with '"'. This can also be any valid json.
+        /// </remarks>
         public string? Key { get; set; }
 
         /// <summary>
@@ -131,6 +142,9 @@ namespace CouchDB.Driver.Types
         /// <summary>
         /// Return only documents where the key matches one of the keys specified in the array.
         /// </summary>
+        /// <remarks>
+        /// String keys should start and end with '"'. Keys can also be any valid json.
+        /// </remarks>
         public HashSet<string>? Keys { get; set; }
 
 #pragma warning restore CA2227
@@ -139,8 +153,8 @@ namespace CouchDB.Driver.Types
         {
             include_docs = IncludeDocs,
             conflicts = Conflicts,
-            startkey = TryEscape(StartKey),
-            endKey = TryEscape(EndKey),
+            startkey = StartKey,
+            endKey = EndKey,
             inclusive_end = InclusiveEnd,
             descending = Descending,
             group = Group,
@@ -153,17 +167,11 @@ namespace CouchDB.Driver.Types
             group_level = GroupLevel,
             limit = Limit,
             skip = Skip,
-            update = TryEscape(Update),
-            endkey_docid = TryEscape(EndkeyDocId),
-            key = TryEscape(Key),
-            startkey_docid = TryEscape(StartkeyDocid),
-            keys = Keys is null ? null : $"[{string.Join(',', Keys.Select(Escape))}]"
+            update = Update,
+            endkey_docid = EndkeyDocId,
+            key = Key,
+            startkey_docid = StartkeyDocid,
+            keys = Keys is null ? null : $"[{string.Join(',', Keys)}]"
         };
-
-        private static string Escape(string str) =>
-            $"\"{str}\"";
-
-        private static string? TryEscape(string? str) =>
-            str is null ? null : Escape(str);
     }
 }
