@@ -1,8 +1,11 @@
-﻿## Features
-* **Indexes"**: Ability to create indexes. ([#102](https://github.com/matteobortolazzo/couchdb-net/issues/102))
-* **Null values"**: New `SetNullValueHandling` method for `CouchOptionsBuilder` to set how to handle null values. ([#101](https://github.com/matteobortolazzo/couchdb-net/issues/101))
-* **Query"**: New `Select` and `Convert` methods to select specific fields.
+﻿## Breaking Changes
+* Update to [Flurl 3](https://github.com/tmenier/Flurl/releases/tag/Flurl.Http.3.0.0). There should be no differences for the end user, but keep in mind.
 
-## Bug Fixes
-* **Conflicts**: Fix the query parameter value to get conflicts. ([#100](https://github.com/matteobortolazzo/couchdb-net/issues/100))
-* **Query**: Fix queries when variables are used. ([#104](https://github.com/matteobortolazzo/couchdb-net/issues/104))
+## Features
+* **Table Splitting**: Ability to use the same database for different document with automatic filtering. ([#106](https://github.com/matteobortolazzo/couchdb-net/issues/106))
+* **Views**: Ability to get views. Thanks to [panoukos41](https://github.com/panoukos41) ([#117](https://github.com/matteobortolazzo/couchdb-net/issues/117))
+
+## Improvements
+* **Logical Expressions Prune**: If expressions are constant booleans, they are removed automatically keeping the query valid. ([#113](https://github.com/matteobortolazzo/couchdb-net/issues/113))
+* **IsUpAsync**: Returns false on timeout and on not successful codes. ([#107](https://github.com/matteobortolazzo/couchdb-net/issues/107))
+* **FindAsync**: Faster when document is not found. ([#92](https://github.com/matteobortolazzo/couchdb-net/issues/92))

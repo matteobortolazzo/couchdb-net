@@ -13,5 +13,10 @@ namespace CouchDB.Driver.Query.Extensions
         {
             return expression is ConstantExpression c && c.Value is bool b && !b;
         }
+
+        public static bool IsBoolean(this Expression expression)
+        {
+            return expression is ConstantExpression c && c.Value is bool;
+        }
     }
 }

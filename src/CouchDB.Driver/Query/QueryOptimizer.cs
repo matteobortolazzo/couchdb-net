@@ -63,7 +63,7 @@ namespace CouchDB.Driver.Query
                 Expression whereNode = VisitMethodCall(node);
                 _isVisitingWhereMethodOrChild = false;
 
-                return whereNode.IsFalse()
+                return whereNode.IsBoolean()
                     ? node.Arguments[0]
                     : whereNode;
             }
@@ -80,18 +80,18 @@ namespace CouchDB.Driver.Query
                     Expression tail = Visit(node.Arguments[0]);
                     LambdaExpression currentLambda = node.GetLambda();
                     Expression conditionExpression = Visit(currentLambda.Body);
-
-                    if (conditionExpression.IsFalse())
-                    {
-                        return conditionExpression;
-                    }
-
                     _nextWhereCalls.Dequeue();
 
                     while (_nextWhereCalls.Count > 0)
                     {
-                        Expression nextWhereBody = Visit(_nextWhereCalls.Dequeue().GetLambdaBody());
-                        conditionExpression = Expression.And(nextWhereBody, conditionExpression);
+                        Expression nextWhereBody = _nextWhereCalls.Dequeue().GetLambdaBody();
+                        conditionExpression = Expression.AndAlso(nextWhereBody, conditionExpression);
+                        conditionExpression = Visit(conditionExpression);
+                    }
+
+                    if (conditionExpression.IsBoolean())
+                    {
+                        return conditionExpression;
                     }
 
                     Expression conditionLambda = conditionExpression.WrapInLambda(currentLambda.Parameters);
