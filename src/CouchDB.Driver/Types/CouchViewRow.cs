@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿#nullable disable
+using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
 {
@@ -12,19 +13,19 @@ namespace CouchDB.Driver.Types
         /// The id of the document.
         /// </summary>
         [JsonProperty("id")]
-        public string Id { get; private set; } = null!;
+        public string Id { get; private set; }
 
         /// <summary>
         /// The view key that was emmited.
         /// </summary>
         [JsonProperty("key")]
-        public string Key { get; private set; } = null!;
+        public string Key { get; private set; }
 
         /// <summary>
         /// The value that the view emmited.
         /// </summary>
         [JsonProperty("value")]
-        public TValue Value { get; private set; } = default!;
+        public TValue Value { get; private set; }
     }
 
     /// <inheritdoc/>
@@ -36,6 +37,7 @@ namespace CouchDB.Driver.Types
         /// The json document deserialize to <see cref="TDoc"/>.
         /// </summary>
         [JsonProperty("doc")]
-        public TDoc Doc { get; private set; } = default!;
+        public TDoc Doc { get; private set; }
     }
 }
+#nullable enable
