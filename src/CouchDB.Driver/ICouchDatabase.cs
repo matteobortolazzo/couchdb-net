@@ -109,7 +109,7 @@ namespace CouchDB.Driver
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TValue, TDoc}"/>.</returns>
         /// <remarks>The options IncludeDocs will always be set to true.</remarks>
-        Task<IList<(TRow Value, TSource Doc)>> GetViewWithDocAsync<TRow>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
+        Task<IList<CouchViewRow<TValue, TSource>>> GetViewWithDocumentsAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the specified view function from the specified design document.
@@ -120,7 +120,7 @@ namespace CouchDB.Driver
         /// <param name="options">Optional options to pass to the view.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TValue}"/>.</returns>
-        Task<CouchViewResult<TRow>> GetDetailedViewAsync<TRow>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
+        Task<CouchViewResult<TValue>> GetDetailedViewAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the specified view function from the specified design document. Additionally, it returns the document.
@@ -132,7 +132,7 @@ namespace CouchDB.Driver
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TValue, TDoc}"/>.</returns>
         /// <remarks>The options IncludeDocs will always be set to true.</remarks>
-        Task<CouchViewResult<TRow, TSource>> GetDetailedViewWithDocAsync<TRow>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
+        Task<CouchViewResult<TValue, TSource>> GetDetailedViewWithDocumentsAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Since CouchDB v3, it is deprecated (a no-op).
