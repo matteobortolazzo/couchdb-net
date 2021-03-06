@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Query.Extensions;
 using CouchDB.Driver.Shared;
 
 namespace CouchDB.Driver.Query
@@ -61,7 +62,10 @@ namespace CouchDB.Driver.Query
                 _isVisitingWhereMethodOrChild = true;
                 Expression whereNode = VisitMethodCall(node);
                 _isVisitingWhereMethodOrChild = false;
-                return whereNode;
+
+                return whereNode.IsFalse()
+                    ? node.Arguments[0]
+                    : whereNode;
             }
 
             #endregion
@@ -76,6 +80,12 @@ namespace CouchDB.Driver.Query
                     Expression tail = Visit(node.Arguments[0]);
                     LambdaExpression currentLambda = node.GetLambda();
                     Expression conditionExpression = Visit(currentLambda.Body);
+
+                    if (conditionExpression.IsFalse())
+                    {
+                        return conditionExpression;
+                    }
+
                     _nextWhereCalls.Dequeue();
 
                     while (_nextWhereCalls.Count > 0)
@@ -280,6 +290,38 @@ namespace CouchDB.Driver.Query
 
         protected override Expression VisitBinary(BinaryExpression expression)
         {
+            if (expression.NodeType == ExpressionType.AndAlso)
+            {
+                if (expression.Right.IsFalse() || expression.Left.IsFalse())
+                {
+                    return Expression.Constant(false);
+                }
+                if (expression.Right.IsTrue())
+                {
+                    return Visit(expression.Left);
+                }
+                if (expression.Left.IsTrue())
+                {
+                    return Visit(expression.Right);
+                }
+            }
+
+            if (expression.NodeType == ExpressionType.OrElse)
+            {
+                if (expression.Right.IsTrue() || expression.Left.IsTrue())
+                {
+                    return Expression.Constant(false);
+                }
+                if (expression.Right.IsFalse())
+                {
+                    return Visit(expression.Left);
+                }
+                if (expression.Left.IsFalse())
+                {
+                    return Visit(expression.Right);
+                }
+            }
+
             if (_isVisitingWhereMethodOrChild && expression.Right is ConstantExpression c && c.Type == typeof(bool) &&
                 (expression.NodeType == ExpressionType.Equal || expression.NodeType == ExpressionType.NotEqual))
             {

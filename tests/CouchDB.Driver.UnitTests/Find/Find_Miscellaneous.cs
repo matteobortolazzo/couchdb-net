@@ -138,6 +138,39 @@ namespace CouchDB.Driver.UnitTests.Find
         }
 
         [Fact]
+        public void Boolean_ShortCircuit_AndTrue()
+        {
+            bool useFilter = true;
+            var json = _rebels.Where(r => useFilter && r.Age == 19).Take(1).ToString();
+            Assert.Equal(@"{""selector"":{""age"":19},""limit"":1}", json);            
+        }
+
+        [Fact]
+        public void Boolean_ShortCircuit_AndFalse()
+        {
+            bool useFilter = false;
+            var json = _rebels.Where(r => useFilter && r.Age == 19).Take(1).ToString();
+            Assert.Equal(@"{""limit"":1,""selector"":{}}", json);
+        }
+
+        [Fact]
+        public void Boolean_ShortCircuit_OrTrue()
+        {
+            bool useFilter = true;
+            var json = _rebels.Where(r => useFilter || r.Age == 19).ToString();
+            Assert.Equal(@"{""selector"":{}}", json);
+        }
+
+        [Fact]
+        public void Boolean_ShortCircuit_Complex()
+        {
+            bool useFilter1 = true;
+            bool useFilter2 = false;
+            var json = _rebels.Where(r => (useFilter1 && r.Age == 19) || useFilter2).ToString();
+            Assert.Equal(@"{""selector"":{""age"":19}}", json);
+        }
+
+        [Fact]
         public void Combinations()
         {
             var json = _rebels
