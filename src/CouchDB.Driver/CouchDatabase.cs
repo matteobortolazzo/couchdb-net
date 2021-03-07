@@ -504,6 +504,57 @@ namespace CouchDB.Driver
 
         #endregion
 
+        #region View
+
+        /// <inheritdoc/>
+        public async Task<IList<TValue>> GetViewAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            CouchViewResult<TValue> result = await GetDetailedViewAsync<TValue>(design, view, options, cancellationToken).ConfigureAwait(false);
+
+            return result.Rows.Select(x => x.Value).ToArray();
+        }
+
+        /// <inheritdoc/>
+        public async Task<IList<CouchViewRow<TValue, TSource>>> GetViewWithDocumentsAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            CouchViewResult<TValue, TSource> result = await GetDetailedViewWithDocumentsAsync<TValue>(design, view, options, cancellationToken).ConfigureAwait(false);
+
+            return result.Rows.ToArray();
+        }
+
+        /// <inheritdoc/>
+        public Task<CouchViewResult<TValue>> GetDetailedViewAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(view, nameof(view));
+
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegments("_design", design, "_view", view)
+                .SetQueryParams(options?.ToQueryParameters());
+
+            return request
+                .GetJsonAsync<CouchViewResult<TValue>>(cancellationToken)
+                .SendRequestAsync();
+        }
+
+        /// <inheritdoc/>
+        public Task<CouchViewResult<TValue, TSource>> GetDetailedViewWithDocumentsAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(view, nameof(view));
+
+            options ??= new CouchViewOptions();
+            options.IncludeDocs = true;
+
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegments("_design", design, "_view", view)
+                .SetQueryParams(options.ToQueryParameters());
+
+            return request
+                .GetJsonAsync<CouchViewResult<TValue, TSource>>(cancellationToken)
+                .SendRequestAsync();
+        }
+
+        #endregion
+
         #region Utils
 
         /// <inheritdoc />

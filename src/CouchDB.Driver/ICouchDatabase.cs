@@ -89,6 +89,52 @@ namespace CouchDB.Driver
         Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Executes the specified view function from the specified design document.
+        /// </summary>
+        /// <typeparam name="TRow">The type of the value that will be returned.</typeparam>
+        /// <param name="design">The design to use.</param>
+        /// <param name="view">The view to use.</param>
+        /// <param name="options">Optional options to pass to the view.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TValue}"/>.</returns>
+        Task<IList<TRow>> GetViewAsync<TRow>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the specified view function from the specified design document. Additionally, it returns the document.
+        /// </summary>
+        /// <typeparam name="TRow">The type of the value that will be returned.</typeparam>
+        /// <param name="design">The design to use.</param>
+        /// <param name="view">The view to use.</param>
+        /// <param name="options">Optional options to pass to the view.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TValue, TDoc}"/>.</returns>
+        /// <remarks>The options IncludeDocs will always be set to true.</remarks>
+        Task<IList<CouchViewRow<TValue, TSource>>> GetViewWithDocumentsAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the specified view function from the specified design document.
+        /// </summary>
+        /// <typeparam name="TRow">The type of the value that will be returned.</typeparam>
+        /// <param name="design">The design to use.</param>
+        /// <param name="view">The view to use.</param>
+        /// <param name="options">Optional options to pass to the view.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TValue}"/>.</returns>
+        Task<CouchViewResult<TValue>> GetDetailedViewAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the specified view function from the specified design document. Additionally, it returns the document.
+        /// </summary>
+        /// <typeparam name="TRow">The type of the value that will be returned.</typeparam>
+        /// <param name="design">The design to use.</param>
+        /// <param name="view">The view to use.</param>
+        /// <param name="options">Optional options to pass to the view.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TValue, TDoc}"/>.</returns>
+        /// <remarks>The options IncludeDocs will always be set to true.</remarks>
+        Task<CouchViewResult<TValue, TSource>> GetDetailedViewWithDocumentsAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Since CouchDB v3, it is deprecated (a no-op).
         /// 
         /// Commits any recent changes to the specified database to disk. You should call this if you want to ensure that recent changes have been flushed.
