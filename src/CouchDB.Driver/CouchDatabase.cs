@@ -24,6 +24,7 @@ using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using Newtonsoft.Json;
 using System.Net;
+using CouchDB.Driver.Views;
 
 namespace CouchDB.Driver
 {
@@ -266,7 +267,7 @@ namespace CouchDB.Driver
         {
             Check.NotNull(documents, nameof(documents));
 
-            foreach(TSource? document in documents)
+            foreach (TSource? document in documents)
             {
                 document.Discriminator = _discriminator;
             }
@@ -384,7 +385,7 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async IAsyncEnumerable<ChangesFeedResponseResult<TSource>> GetContinuousChangesAsync(ChangesFeedOptions options, ChangesFeedFilter filter,
+        public async IAsyncEnumerable<ChangesFeedResponseResult<TSource>> GetContinuousChangesAsync(ChangesFeedOptions? options, ChangesFeedFilter? filter,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var infiniteTimeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
@@ -507,49 +508,54 @@ namespace CouchDB.Driver
         #region View
 
         /// <inheritdoc/>
-        public async Task<IList<TValue>> GetViewAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        public async Task<List<CouchViewRow<TKey, TValue>>> GetViewAsync<TKey, TValue>(string design, string view,
+            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
         {
-            CouchViewResult<TValue> result = await GetDetailedViewAsync<TValue>(design, view, options, cancellationToken).ConfigureAwait(false);
-
-            return result.Rows.Select(x => x.Value).ToArray();
+            CouchViewResult<TKey, TValue> result = await GetDetailedViewAsync<TKey, TValue>(design, view, options, cancellationToken).ConfigureAwait(false);
+            return result.Rows.ToList();
         }
 
         /// <inheritdoc/>
-        public async Task<IList<CouchViewRow<TValue, TSource>>> GetViewWithDocumentsAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        public async Task<List<CouchViewRow<TKey, TValue, TSource>>> GetViewWithDocumentsAsync<TKey, TValue>(string design, string view,
+            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
         {
-            CouchViewResult<TValue, TSource> result = await GetDetailedViewWithDocumentsAsync<TValue>(design, view, options, cancellationToken).ConfigureAwait(false);
-
-            return result.Rows.ToArray();
+            CouchViewResult<TKey, TValue, TSource> result = await GetDetailedViewWithDocumentsAsync<TKey, TValue>(design, view, options, cancellationToken).ConfigureAwait(false);
+            return result.Rows.ToList();
         }
 
         /// <inheritdoc/>
-        public Task<CouchViewResult<TValue>> GetDetailedViewAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        public Task<CouchViewResult<TKey, TValue>> GetDetailedViewAsync<TKey, TValue>(string design, string view,
+            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
         {
+            Check.NotNull(design, nameof(design));
             Check.NotNull(view, nameof(view));
 
             IFlurlRequest request = NewRequest()
-                .AppendPathSegments("_design", design, "_view", view)
-                .SetQueryParams(options?.ToQueryParameters());
+                .AppendPathSegments("_design", design, "_view", view);
 
-            return request
-                .GetJsonAsync<CouchViewResult<TValue>>(cancellationToken)
-                .SendRequestAsync();
+            Task<CouchViewResult<TKey, TValue>>? requestTask = options == null
+                ? request.GetJsonAsync<CouchViewResult<TKey, TValue>>(cancellationToken)
+                : request
+                    .PostJsonAsync(options, cancellationToken)
+                    .ReceiveJson<CouchViewResult<TKey, TValue>>();
+
+            return requestTask.SendRequestAsync();
         }
 
         /// <inheritdoc/>
-        public Task<CouchViewResult<TValue, TSource>> GetDetailedViewWithDocumentsAsync<TValue>(string design, string view, CouchViewOptions? options = null, CancellationToken cancellationToken = default)
+        public Task<CouchViewResult<TKey, TValue, TSource>> GetDetailedViewWithDocumentsAsync<TKey, TValue>(string design, string view,
+            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
         {
+            Check.NotNull(design, nameof(design));
             Check.NotNull(view, nameof(view));
 
-            options ??= new CouchViewOptions();
+            options ??= new CouchViewOptions<TKey>();
             options.IncludeDocs = true;
 
-            IFlurlRequest request = NewRequest()
+            return NewRequest()
                 .AppendPathSegments("_design", design, "_view", view)
-                .SetQueryParams(options.ToQueryParameters());
-
-            return request
-                .GetJsonAsync<CouchViewResult<TValue, TSource>>(cancellationToken)
+                .PostJsonAsync(options, cancellationToken)
+                .ReceiveJson<CouchViewResult<TKey, TValue, TSource>>()
                 .SendRequestAsync();
         }
 

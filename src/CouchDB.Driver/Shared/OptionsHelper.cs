@@ -11,7 +11,7 @@ namespace CouchDB.Driver.Shared
     {
         public static IEnumerable<(string Name, object? Value)> ToQueryParameters(object options)
         {
-            static TAttribute GetAttribute<TAttribute>(ICustomAttributeProvider propertyInfo)
+            static TAttribute? GetAttribute<TAttribute>(ICustomAttributeProvider propertyInfo)
             {
                 return propertyInfo
                     .GetCustomAttributes(typeof(TAttribute), true)
@@ -22,8 +22,8 @@ namespace CouchDB.Driver.Shared
             Type optionsType = options.GetType();
             foreach (PropertyInfo propertyInfo in optionsType.GetProperties())
             {
-                JsonPropertyAttribute jsonProperty = GetAttribute<JsonPropertyAttribute>(propertyInfo);
-                DefaultValueAttribute defaultValue = GetAttribute<DefaultValueAttribute>(propertyInfo);
+                JsonPropertyAttribute? jsonProperty = GetAttribute<JsonPropertyAttribute>(propertyInfo);
+                DefaultValueAttribute? defaultValue = GetAttribute<DefaultValueAttribute>(propertyInfo);
                 if (jsonProperty == null || defaultValue == null)
                 {
                     continue;
@@ -44,7 +44,7 @@ namespace CouchDB.Driver.Shared
                 object? propertyStringValue = propertyValue?.ToString();
                 if (propertyInfo.PropertyType == typeof(bool))
                 {
-                    propertyStringValue = propertyValue;
+                    propertyStringValue = propertyValue?.ToString().ToLowerInvariant();
                 }
 
                 yield return (propertyName, propertyStringValue);

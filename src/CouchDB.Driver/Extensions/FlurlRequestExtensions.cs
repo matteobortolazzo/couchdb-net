@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using CouchDB.Driver.Shared;
 using Flurl.Http;
 using Flurl.Http.Content;
-using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Extensions
 {
@@ -51,13 +50,9 @@ namespace CouchDB.Driver.Extensions
         public static IFlurlRequest ApplyQueryParametersOptions(this IFlurlRequest request, object options)
         {
             IEnumerable<(string Name, object? Value)> queryParameters = OptionsHelper.ToQueryParameters(options);
-            foreach ((var name, object? value) in queryParameters)
+            foreach (var (name, value) in queryParameters)
             {
-                object? finalValue = value?.GetType() == typeof(bool)
-                    ? value.ToString().ToLowerInvariant()
-                    : value;
-
-                request = request.SetQueryParam(name, finalValue);
+                request = request.SetQueryParam(name, value);
             }
 
             return request;
