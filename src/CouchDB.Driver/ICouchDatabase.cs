@@ -93,55 +93,29 @@ namespace CouchDB.Driver
         /// Executes the specified view function from the specified design document.
         /// </summary>
         /// <typeparam name="TKey">The type of the value that will be returned.</typeparam>
-        /// <typeparam name="TValue">The type of the value that will be returned.</typeparam>
+        /// <typeparam name="TView">The type of the view.</typeparam>
         /// <param name="design">The design to use.</param>
         /// <param name="view">The view to use.</param>
         /// <param name="options">Options for the request.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TKey, TValue}"/>.</returns>
-        Task<List<CouchViewRow<TKey, TValue>>> GetViewAsync<TKey, TValue>(string design, string view,
-            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Executes the specified view function from the specified design document. Additionally, it returns the document.
-        /// </summary>
-        /// <typeparam name="TKey">The type of the value that will be returned.</typeparam>
-        /// <typeparam name="TValue">The type of the value that will be returned.</typeparam>
-        /// <param name="design">The design to use.</param>
-        /// <param name="view">The view to use.</param>
-        /// <param name="options">Options for the request.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TKey, TValue, TDoc}"/>.</returns>
-        /// <remarks>The options IncludeDocs will always be set to true.</remarks>
-        Task<List<CouchViewRow<TKey, TValue, TSource>>> GetViewWithDocumentsAsync<TKey, TValue>(string design, string view,
-            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default);
+        /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see cref="TView"/>.</returns>
+        Task<List<TView>> GetViewAsync<TKey, TView>(string design, string view,
+            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
+            where TView : CouchView<TKey, TSource>;
 
         /// <summary>
         /// Executes the specified view function from the specified design document.
         /// </summary>
-        /// <typeparam name="TKey">The type of the value that will be returned.</typeparam>
-        /// <typeparam name="TValue">The type of the value that will be returned.</typeparam>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TView">The type of the view.</typeparam>
         /// <param name="design">The design to use.</param>
         /// <param name="view">The view to use.</param>
         /// <param name="options">Options for the request.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TKey, TValue}"/>.</returns>
-        Task<CouchViewResult<TKey, TValue>> GetDetailedViewAsync<TKey, TValue>(string design, string view,
-            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Executes the specified view function from the specified design document. Additionally, it returns the document.
-        /// </summary>
-        /// <typeparam name="TKey">The type of the value that will be returned.</typeparam>
-        /// <typeparam name="TValue">The type of the value that will be returned.</typeparam>
-        /// <param name="design">The design to use.</param>
-        /// <param name="view">The view to use.</param>
-        /// <param name="options">Options for the request.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewResult{TKey, TValue, TDoc}"/>.</returns>
-        /// <remarks>The options IncludeDocs will always be set to true.</remarks>
-        Task<CouchViewResult<TKey, TValue, TSource>> GetDetailedViewWithDocumentsAsync<TKey, TValue>(string design, string view,
-            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default);
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewList{TKey, TSource, TView}"/>.</returns>
+        Task<CouchViewList<TKey, TSource, TView>> GetDetailedViewAsync<TKey, TView>(string design, string view,
+            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
+            where TView : CouchView<TKey, TSource>;
 
         /// <summary>
         /// Since CouchDB v3, it is deprecated (a no-op).

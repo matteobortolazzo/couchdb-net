@@ -105,6 +105,7 @@ The produced Mango JSON:
   * [Index Options](#index-options)
   * [Partial Indexes](#partial-indexes)
 * [Database Splitting](#database-splitting)
+* [Views](#views)
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
@@ -524,6 +525,29 @@ If you are not using `CouchContext`, you can still use the database slit feature
 ```csharp
 var rebels = client.GetDatabase<Rebel>("troups", nameof(Rebel));
 var vehicles = client.GetDatabase<Vehicle>("troups", nameof(Vehicle));
+```
+
+## Views
+
+To read a view create a new class that implements `CouchView` where:
+* `TKey` is the type of the key;
+* `TDoc` is the type of the document.
+```csharp
+public class RebelView : CouchView<string[], Rebel>
+{
+  public int NumberOfBattles { get; set; }
+}
+```
+Then you can query the view:
+```csharp
+var options = new CouchViewOptions<string[]>
+{
+    StartKey = new[] {"Luke", "Skywalker"},
+    IncludeDocs = true
+};
+var rebels = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
+// OR
+var details = await _rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name", options);
 ```
 
 ## Local (non-replicating) Documents

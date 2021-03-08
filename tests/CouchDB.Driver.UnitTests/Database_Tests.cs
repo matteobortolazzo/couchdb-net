@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
+using CouchDB.Driver.UnitTests._Models;
+using CouchDB.Driver.Views;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests
@@ -246,6 +248,127 @@ namespace CouchDB.Driver.UnitTests
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_bulk_docs")
                 .WithVerb(HttpMethod.Post);
+        }
+
+        #endregion
+
+        #region View
+
+        [Fact]
+        public async Task GetViewAsync_WithNoOptions_CallGet()
+        {
+            // Arrange
+            using var httpTest = new HttpTest();
+            SetupViewResponse(httpTest);
+
+            // Act
+            var rebels = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name");
+
+            // Assert
+            var rebel = Assert.Single(rebels);
+            Assert.Equal("luke", rebel.Id);
+            Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+            Assert.Equal(3, rebel.NumberOfBattles);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
+                .WithVerb(HttpMethod.Get);
+        }
+
+        [Fact]
+        public async Task GetViewAsync_WithOptions_CallPost()
+        {
+            // Arrange
+            using var httpTest = new HttpTest();
+            SetupViewResponse(httpTest);
+            var options = new CouchViewOptions<string[]>
+            {
+                Key = new[] {"Luke", "Skywalker"},
+                Skip = 10
+            };
+
+            // Act
+            var rebels = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
+
+            // Assert
+            var rebel = Assert.Single(rebels);
+            Assert.Equal("luke", rebel.Id);
+            Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+            Assert.Equal(3, rebel.NumberOfBattles);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
+                .WithVerb(HttpMethod.Post)
+                .WithRequestBody(@"{""key"":[""Luke"",""Skywalker""],""skip"":10}");
+        }
+
+        [Fact]
+        public async Task GetDetailed_WithNoOptions_CallGet()
+        {
+            // Arrange
+            using var httpTest = new HttpTest();
+            SetupViewResponse(httpTest);
+
+            // Act
+            var list = await _rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name");
+
+            // Assert
+            Assert.Equal(10, list.Offset);
+            Assert.Equal(20, list.TotalRows);
+            var rebel = Assert.Single(list.Rows);
+            Assert.Equal("luke", rebel.Id);
+            Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+            Assert.Equal(3, rebel.NumberOfBattles);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
+                .WithVerb(HttpMethod.Get);
+        }
+
+        [Fact]
+        public async Task GetDetailedViewAsync_WithOptions_CallPost()
+        {
+            // Arrange
+            using var httpTest = new HttpTest();
+            SetupViewResponse(httpTest);
+            var options = new CouchViewOptions<string[]>
+            {
+                Key = new[] { "Luke", "Skywalker" },
+                Skip = 10
+            };
+
+            // Act
+            var list = await _rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name", options);
+
+            // Assert
+            Assert.Equal(10, list.Offset);
+            Assert.Equal(20, list.TotalRows);
+            var rebel = Assert.Single(list.Rows);
+            Assert.Equal("luke", rebel.Id);
+            Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+            Assert.Equal(3, rebel.NumberOfBattles);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
+                .WithVerb(HttpMethod.Post)
+                .WithRequestBody(@"{""key"":[""Luke"",""Skywalker""],""skip"":10}");
+        }
+
+        private static void SetupViewResponse(HttpTest httpTest)
+        {
+            httpTest.RespondWithJson(new
+            {
+                Offset = 10,
+                Total_Rows = 20,
+                Rows = new[]
+                {
+                    new
+                    {
+                        Id = "luke",
+                        Key = new [] {"Luke", "Skywalker"},
+                        Value = new
+                        {
+                            NumberOfBattles = 3
+                        }
+                    }
+                }
+            });
         }
 
         #endregion

@@ -17,7 +17,7 @@ namespace CouchDB.Driver.Query
             return c;
         }
 
-        private void HandleConstant(object constant)
+        private void HandleConstant(object? constant)
         {
             if (constant is IQueryable)
             {

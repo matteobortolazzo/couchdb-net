@@ -1,18 +1,19 @@
-﻿#nullable disable
-#pragma warning disable CA2227 // Collection properties should be read only
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CouchDB.Driver.Types;
 using Newtonsoft.Json;
 
+#nullable disable
+#pragma warning disable CA2227 // Collection properties should be read only
 namespace CouchDB.Driver.Views
 {
     /// <summary>
     /// Result of a view query.
     /// </summary>
-    /// <typeparam name="TKey">The type of the value that will be returned.</typeparam>
-    /// <typeparam name="TValue">The type of the value that will be returned.</typeparam>
+    /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <typeparam name="TDoc">The type of the document.</typeparam>
-    public class CouchViewResult<TKey, TValue, TDoc>
+    /// <typeparam name="TView">The type of the view.</typeparam>
+    public class CouchViewList<TKey, TDoc, TView>
+        where TView : CouchView<TKey, TDoc>
         where TDoc : CouchDocument
     {
         /// <summary>
@@ -31,7 +32,7 @@ namespace CouchDB.Driver.Views
         /// Array of view row objects. This result contains the document ID, revision and the documents.
         /// </summary>
         [JsonProperty("rows")]
-        public IList<CouchViewRow<TKey, TValue, TDoc>> Rows { get; set; }
+        public List<TView> Rows { get; set; }
     }
 }
 #pragma warning restore CA2227 // Collection properties should be read only

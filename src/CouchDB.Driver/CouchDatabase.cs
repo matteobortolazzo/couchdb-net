@@ -25,6 +25,8 @@ using CouchDB.Driver.Query;
 using Newtonsoft.Json;
 using System.Net;
 using CouchDB.Driver.Views;
+using Flurl.Http.Configuration;
+using Newtonsoft.Json.Serialization;
 
 namespace CouchDB.Driver
 {
@@ -508,55 +510,47 @@ namespace CouchDB.Driver
         #region View
 
         /// <inheritdoc/>
-        public async Task<List<CouchViewRow<TKey, TValue>>> GetViewAsync<TKey, TValue>(string design, string view,
+        public async Task<List<TView>> GetViewAsync<TKey, TView>(string design, string view,
             CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
+            where TView : CouchView<TKey, TSource>
         {
-            CouchViewResult<TKey, TValue> result = await GetDetailedViewAsync<TKey, TValue>(design, view, options, cancellationToken).ConfigureAwait(false);
-            return result.Rows.ToList();
+            CouchViewList<TKey, TSource, TView> result =
+                await GetDetailedViewAsync<TKey, TView>(design, view, options, cancellationToken)
+                    .ConfigureAwait(false);
+            return result.Rows;
         }
 
         /// <inheritdoc/>
-        public async Task<List<CouchViewRow<TKey, TValue, TSource>>> GetViewWithDocumentsAsync<TKey, TValue>(string design, string view,
+        public async Task<CouchViewList<TKey, TSource, TView>> GetDetailedViewAsync<TKey, TView>(string design, string view,
             CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
-        {
-            CouchViewResult<TKey, TValue, TSource> result = await GetDetailedViewWithDocumentsAsync<TKey, TValue>(design, view, options, cancellationToken).ConfigureAwait(false);
-            return result.Rows.ToList();
-        }
-
-        /// <inheritdoc/>
-        public Task<CouchViewResult<TKey, TValue>> GetDetailedViewAsync<TKey, TValue>(string design, string view,
-            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
+            where TView : CouchView<TKey, TSource>
         {
             Check.NotNull(design, nameof(design));
             Check.NotNull(view, nameof(view));
 
             IFlurlRequest request = NewRequest()
                 .AppendPathSegments("_design", design, "_view", view);
-
-            Task<CouchViewResult<TKey, TValue>>? requestTask = options == null
-                ? request.GetJsonAsync<CouchViewResult<TKey, TValue>>(cancellationToken)
+            
+            Task<CouchViewResult<TKey, TView, TSource>>? requestTask = options == null
+                ? request.GetJsonAsync<CouchViewResult<TKey, TView, TSource>>(cancellationToken)
                 : request
                     .PostJsonAsync(options, cancellationToken)
-                    .ReceiveJson<CouchViewResult<TKey, TValue>>();
+                    .ReceiveJson<CouchViewResult<TKey, TView, TSource>>();
 
-            return requestTask.SendRequestAsync();
-        }
+            CouchViewResult<TKey, TView, TSource> result = await requestTask.SendRequestAsync().ConfigureAwait(false);
 
-        /// <inheritdoc/>
-        public Task<CouchViewResult<TKey, TValue, TSource>> GetDetailedViewWithDocumentsAsync<TKey, TValue>(string design, string view,
-            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
-        {
-            Check.NotNull(design, nameof(design));
-            Check.NotNull(view, nameof(view));
-
-            options ??= new CouchViewOptions<TKey>();
-            options.IncludeDocs = true;
-
-            return NewRequest()
-                .AppendPathSegments("_design", design, "_view", view)
-                .PostJsonAsync(options, cancellationToken)
-                .ReceiveJson<CouchViewResult<TKey, TValue, TSource>>()
-                .SendRequestAsync();
+            return new CouchViewList<TKey, TSource, TView>
+            {
+                Offset = result.Offset,
+                TotalRows = result.TotalRows,
+                Rows = result.Rows.Select(row =>
+                {
+                    row.Value.Id = row.Id;
+                    row.Value.Key = row.Key;
+                    row.Value.Document = row.Doc;
+                    return row.Value;
+                }).ToList()
+            };
         }
 
         #endregion

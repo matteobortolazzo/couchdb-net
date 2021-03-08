@@ -2,7 +2,6 @@
 #pragma warning disable CA2227 // Collection properties should be read only
 using System.Collections.Generic;
 using System.ComponentModel;
-using CouchDB.Driver.ChangesFeed;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Views
@@ -18,18 +17,21 @@ namespace CouchDB.Driver.Views
         /// Ignored if <see cref="IncludeDocs"/> isn't <c>True</c>. Default is <c>False</c>.
         /// </summary>
         [JsonProperty("conflicts")]
+        [DefaultValue(false)]
         public bool Conflicts { get; set; }
 
         /// <summary>
         /// Return the documents in descending order by key. Default is <c>False</c>.
         /// </summary>
         [JsonProperty("descending")]
+        [DefaultValue(false)]
         public bool Descending { get; set; }
 
         /// <summary>
         /// Stop returning records when the specified key is reached.
         /// </summary>
         [JsonProperty("endkey")]
+        [DefaultValue(null)]
         public TKey EndKey { get; set; }
 
         /// <summary>
@@ -37,6 +39,7 @@ namespace CouchDB.Driver.Views
         ///  Ignored if <see cref="EndKey"/> is not set.
         /// </summary>
         [JsonProperty("endkey_docid")]
+        [DefaultValue(null)]
         public string EndKeyDocId { get; set; }
 
         /// <summary>
@@ -44,25 +47,29 @@ namespace CouchDB.Driver.Views
         ///  Implies reduce is <c>True</c> and the maximum <see cref="GroupLevel"/>. Default is <c>False</c>.
         /// </summary>
         [JsonProperty("group")]
+        [DefaultValue(false)]
         public bool Group { get; set; }
 
         /// <summary>
         /// Specify the group level to be used. Implies group is <c>True</c>.
         /// </summary>
         [JsonProperty("group_level")]
+        [DefaultValue(null)]
         public int? GroupLevel { get; set; }
 
         /// <summary>
         ///  Include the associated document with each row. Default is <c>False</c>.
         /// </summary>
         [JsonProperty("include_docs")]
-        internal bool IncludeDocs { get; set; }
+        [DefaultValue(false)]
+        public bool IncludeDocs { get; set; }
 
         /// <summary>
         /// Include the Base64-encoded content of attachments in the documents that are included if <see cref="IncludeDocs"/> is <c>True</c>.
         /// Ignored if <see cref="IncludeDocs"/> isn’t <c>True</c>. Default is <c>False</c>.
         /// </summary>
         [JsonProperty("attachments")]
+        [DefaultValue(false)]
         public bool Attachments { get; set; }
 
         /// <summary>
@@ -70,69 +77,80 @@ namespace CouchDB.Driver.Views
         /// Ignored if <see cref="IncludeDocs"/> isn’t <c>True</c>. Default is <c>False</c>.
         /// </summary>
         [JsonProperty("att_encoding_info")]
+        [DefaultValue(false)]
         public bool AttachEncodingInfo { get; set; }
 
         /// <summary>
         ///  Specifies whether the specified end key should be included in the result. Default is <c>True</c>.
         /// </summary>
         [JsonProperty("inclusive_end")]
+        [DefaultValue(true)]
         public bool InclusiveEnd { get; set; } = true;
 
         /// <summary>
         /// Return only documents that match the specified key.
         /// </summary>
         [JsonProperty("key")]
+        [DefaultValue(null)]
         public TKey Key { get; set; }
 
         /// <summary>
         /// Return only documents where the key matches one of the keys specified in the array.
         /// </summary>
         [JsonProperty("keys")]
+        [DefaultValue(null)]
         public IList<TKey> Keys { get; set; }
 
         /// <summary>
         /// Limit the number of the returned documents to the specified number.
         /// </summary>
         [JsonProperty("limit")]
+        [DefaultValue(null)]
         public int? Limit { get; set; }
 
         /// <summary>
         /// Use the reduction function. Default is <c>True</c> when a reduce function is defined.
         /// </summary>
         [JsonProperty("reduce")]
-        public bool Reduce { get; set; } = false;
+        [DefaultValue(false)]
+        public bool Reduce { get; set; }
 
         /// <summary>
         /// Skip this number of records before starting to return the results. Default is <code>0</code>.
         /// </summary>
         [JsonProperty("skip")]
+        [DefaultValue(0)]
         public int Skip { get; set; }
 
         /// <summary>
         /// Sort returned rows (see Sorting <see href="https://docs.couchdb.org/en/stable/api/ddoc/views.html#api-ddoc-view-sorting"></see> Returned Rows).
         /// Setting this to false offers a performance boost.
-        /// The <see cref="CouchViewResult{TRow}.TotalRows"/> and <see cref="CouchViewResult{TRow}.Offset"/> fields are not available when this is set to <c>False</c>.
+        /// The <see cref="CouchViewResult{TKey, TRow}.TotalRows"/> and <see cref="CouchViewResult{TKey, TRow}.Offset"/> fields are not available when this is set to <c>False</c>.
         /// Default is <c>True</c>.
         /// </summary>
         [JsonProperty("sorted")]
+        [DefaultValue(true)]
         public bool Sorted { get; set; } = true;
 
         /// <summary>
         /// Whether or not the view results should be returned from a stable set of shards. Default is <c>False</c>.
         /// </summary>
         [JsonProperty("stable")]
+        [DefaultValue(false)]
         public bool Stable { get; set; }
 
         /// <summary>
         /// Return records starting with the specified key.
         /// </summary>
         [JsonProperty("startkey")]
+        [DefaultValue(null)]
         public TKey StartKey { get; set; }
 
         /// <summary>
         /// Return records starting with the specified document ID. Ignored if <see cref="StartKey"/> is not set.
         /// </summary>
         [JsonProperty("startkey_docid")]
+        [DefaultValue(null)]
         public string StartKeyDocId { get; set; }
 
         /// <summary>
@@ -143,6 +161,7 @@ namespace CouchDB.Driver.Views
         public UpdateStyle Update { get; set; } = UpdateStyle.True;
 
         [JsonProperty("update")]
+        [DefaultValue("true")]
         internal string UpdateString => Update.ToString();
 
         /// <summary>
@@ -150,6 +169,7 @@ namespace CouchDB.Driver.Views
         /// Default is <c>False</c>.
         /// </summary>
         [JsonProperty("update_seq")]
+        [DefaultValue(false)]
         public bool UpdateSeq { get; set; }
     }
 }
