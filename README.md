@@ -665,3 +665,5 @@ Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests
 Thanks to [n9](https://github.com/n9) for proxy authentication, some bug fixes, suggestions and the great feedback on the changes feed feature!
 
 Thanks to [Marc](https://github.com/bender-ristone) for NullValueHandling, bug fixes and suggestions!
+
+Thanks to [Panos](https://github.com/panoukos41) for the help with Views and Table splitting.
