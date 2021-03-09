@@ -6,7 +6,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Authentication;
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Shared;
 
 #pragma warning disable IDE0058 // Expression value is never used
@@ -180,7 +179,7 @@ namespace CouchDB.Driver.Query
             _sb.Append("\"selector\":");
             Expression lambdaBody = m.GetLambdaBody();
             Visit(lambdaBody);
-            _sb.Append(",");
+            _sb.Append(',');
             _isSelectorSet = true;
             return m;
         }
@@ -208,7 +207,7 @@ namespace CouchDB.Driver.Query
                         return;
                 }
 
-                _sb.Append(",");
+                _sb.Append(',');
             }
 
             InspectOrdering(m);
@@ -235,7 +234,7 @@ namespace CouchDB.Driver.Query
                         break;
                     case "ThenByDescending":
                         InspectOrdering(o.Arguments[0]);
-                        _sb.Append("{");
+                        _sb.Append('{');
                         Visit(lambdaBody);
                         _sb.Append(":\"desc\"}");
                         break;
@@ -243,7 +242,7 @@ namespace CouchDB.Driver.Query
                         return;
                 }
 
-                _sb.Append(",");
+                _sb.Append(',');
             }
 
             InspectOrdering(m);
@@ -274,7 +273,7 @@ namespace CouchDB.Driver.Query
                 foreach (Expression a in n.Arguments)
                 {
                     Visit(a);
-                    _sb.Append(",");
+                    _sb.Append(',');
                 }
                 _sb.Length--;
             }
@@ -298,7 +297,7 @@ namespace CouchDB.Driver.Query
 
         private Expression VisitAnyMethod(MethodCallExpression m)
         {
-            _sb.Append("{");
+            _sb.Append('{');
             Visit(m.Arguments[0]);
             _sb.Append(":{\"$elemMatch\":");
             Expression lambdaBody = m.GetLambdaBody();
@@ -308,7 +307,7 @@ namespace CouchDB.Driver.Query
         }
         private Expression VisitAllMethod(MethodCallExpression m)
         {
-            _sb.Append("{");
+            _sb.Append('{');
             Visit(m.Arguments[0]);
             _sb.Append(":{\"$allMatch\":");
             Expression lambdaBody = m.GetLambdaBody();
@@ -326,7 +325,7 @@ namespace CouchDB.Driver.Query
             Visit(m.Arguments[0]);
             _sb.Append("\"bookmark\":");
             Visit(m.Arguments[1]);
-            _sb.Append(",");
+            _sb.Append(',');
             return m;
         }
         private Expression VisitWithQuorumMethod(MethodCallExpression m)
@@ -334,21 +333,21 @@ namespace CouchDB.Driver.Query
             Visit(m.Arguments[0]);
             _sb.Append("\"r\":");
             Visit(m.Arguments[1]);
-            _sb.Append(",");
+            _sb.Append(',');
             return m;
         }
         private Expression VisitWithoutIndexUpdateMethod(MethodCallExpression m)
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"update\":false");
-            _sb.Append(",");
+            _sb.Append(',');
             return m;
         }
         private Expression VisitFromStableMethod(MethodCallExpression m)
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"stable\":true");
-            _sb.Append(",");
+            _sb.Append(',');
             return m;
         }
         private Expression VisitUseIndexMethod(MethodCallExpression m)
@@ -378,14 +377,14 @@ namespace CouchDB.Driver.Query
                     throw new ArgumentException("UseIndex requires 1 or 2 strings");
             }
 
-            _sb.Append(",");
+            _sb.Append(',');
             return m;
         }
         public Expression VisitIncludeExecutionStatsMethod(MethodCallExpression m)
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"execution_stats\":true");
-            _sb.Append(",");
+            _sb.Append(',');
             return m;
         }
 
@@ -393,7 +392,7 @@ namespace CouchDB.Driver.Query
         {
             Visit(m.Arguments[0]);
             _sb.Append("\"conflicts\":true");
-            _sb.Append(",");
+            _sb.Append(',');
             return m;
         }
 
@@ -410,7 +409,7 @@ namespace CouchDB.Driver.Query
             foreach (Expression a in fieldExpressions)
             {
                 Visit(a);
-                _sb.Append(",");
+                _sb.Append(',');
             }
 
             _sb.Length--;
@@ -446,7 +445,7 @@ namespace CouchDB.Driver.Query
 
         private Expression VisitEnumerableContains(MethodCallExpression m)
         {
-            _sb.Append("{");
+            _sb.Append('{');
             Visit(m.Arguments[0]);
             _sb.Append(":{\"$all\":");
             Visit(m.Arguments[1]);
@@ -455,7 +454,7 @@ namespace CouchDB.Driver.Query
         }
         private Expression VisitInMethod(MethodCallExpression m, bool not = false)
         {
-            _sb.Append("{");
+            _sb.Append('{');
             Visit(m.Arguments[0]);
             _sb.Append(not ? ":{\"$nin\":" : ":{\"$in\":");
 
@@ -470,7 +469,7 @@ namespace CouchDB.Driver.Query
 
         private Expression VisitFieldExistsMethod(MethodCallExpression m)
         {
-            _sb.Append("{");
+            _sb.Append('{');
             Visit(m.Arguments[1]);
             _sb.Append(":{\"$exists\":true");
             _sb.Append("}}");
@@ -478,7 +477,7 @@ namespace CouchDB.Driver.Query
         }
         private Expression VisitIsCouchTypeMethod(MethodCallExpression m)
         {
-            _sb.Append("{");
+            _sb.Append('{');
             Visit(m.Arguments[0]);
             _sb.Append(":{\"$type\":");
             ConstantExpression cExpression = m.Arguments[1] as ConstantExpression ?? throw new ArgumentException("Argument is not of type ConstantExpression.");
@@ -494,7 +493,7 @@ namespace CouchDB.Driver.Query
 
         private Expression VisitIsMatchMethod(MethodCallExpression m)
         {
-            _sb.Append("{");
+            _sb.Append('{');
             Visit(m.Arguments[0]);
             _sb.Append(":{\"$regex\":");
             Visit(m.Arguments[1]);
@@ -508,7 +507,7 @@ namespace CouchDB.Driver.Query
 
         private Expression VisitContainsMethod(MethodCallExpression m)
         {
-            _sb.Append("{");
+            _sb.Append('{');
             Visit(m.Object);
             _sb.Append(":{\"$all\":[");
             Visit(m.Arguments[0]);

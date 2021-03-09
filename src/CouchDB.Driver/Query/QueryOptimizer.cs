@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Query.Extensions;
 using CouchDB.Driver.Shared;
 
 namespace CouchDB.Driver.Query
@@ -15,6 +16,8 @@ namespace CouchDB.Driver.Query
     /// </summary>
     internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
     {
+        private static readonly MethodInfo WrapInWhereGenericMethod
+               = typeof(MethodCallExpressionBuilder).GetMethod(nameof(MethodCallExpressionBuilder.WrapInDiscriminatorFilter));
         private bool _isVisitingWhereMethodOrChild;
         private readonly Queue<MethodCallExpression> _nextWhereCalls;
 
@@ -23,8 +26,15 @@ namespace CouchDB.Driver.Query
             _nextWhereCalls = new Queue<MethodCallExpression>();
         }
 
-        public Expression Optimize(Expression e)
+        public Expression Optimize(Expression e, string? discriminator)
         {
+            if (discriminator is not null)
+            {
+                Type? sourceType = e.Type.GetGenericArguments()[0];
+                MethodInfo? wrapInWhere = WrapInWhereGenericMethod.MakeGenericMethod(new[] { sourceType });
+                e = (Expression)wrapInWhere.Invoke(null, new object[] { e, discriminator });
+            }
+
             e = LocalExpressions.PartialEval(e);
             return Visit(e);
         }
@@ -52,7 +62,10 @@ namespace CouchDB.Driver.Query
                 _isVisitingWhereMethodOrChild = true;
                 Expression whereNode = VisitMethodCall(node);
                 _isVisitingWhereMethodOrChild = false;
-                return whereNode;
+
+                return whereNode.IsBoolean()
+                    ? node.Arguments[0]
+                    : whereNode;
             }
 
             #endregion
@@ -71,8 +84,14 @@ namespace CouchDB.Driver.Query
 
                     while (_nextWhereCalls.Count > 0)
                     {
-                        Expression nextWhereBody = Visit(_nextWhereCalls.Dequeue().GetLambdaBody());
-                        conditionExpression = Expression.And(nextWhereBody, conditionExpression);
+                        Expression nextWhereBody = _nextWhereCalls.Dequeue().GetLambdaBody();
+                        conditionExpression = Expression.AndAlso(nextWhereBody, conditionExpression);
+                        conditionExpression = Visit(conditionExpression);
+                    }
+
+                    if (conditionExpression.IsBoolean())
+                    {
+                        return conditionExpression;
                     }
 
                     Expression conditionLambda = conditionExpression.WrapInLambda(currentLambda.Parameters);
@@ -271,6 +290,38 @@ namespace CouchDB.Driver.Query
 
         protected override Expression VisitBinary(BinaryExpression expression)
         {
+            if (expression.NodeType == ExpressionType.AndAlso)
+            {
+                if (expression.Right.IsFalse() || expression.Left.IsFalse())
+                {
+                    return Expression.Constant(false);
+                }
+                if (expression.Right.IsTrue())
+                {
+                    return Visit(expression.Left);
+                }
+                if (expression.Left.IsTrue())
+                {
+                    return Visit(expression.Right);
+                }
+            }
+
+            if (expression.NodeType == ExpressionType.OrElse)
+            {
+                if (expression.Right.IsTrue() || expression.Left.IsTrue())
+                {
+                    return Expression.Constant(false);
+                }
+                if (expression.Right.IsFalse())
+                {
+                    return Visit(expression.Left);
+                }
+                if (expression.Left.IsFalse())
+                {
+                    return Visit(expression.Right);
+                }
+            }
+
             if (_isVisitingWhereMethodOrChild && expression.Right is ConstantExpression c && c.Type == typeof(bool) &&
                 (expression.NodeType == ExpressionType.Equal || expression.NodeType == ExpressionType.NotEqual))
             {

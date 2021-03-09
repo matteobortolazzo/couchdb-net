@@ -19,13 +19,13 @@ namespace CouchDB.Driver.Indexes
         {
             var sb = new StringBuilder();
 
-            sb.Append("{");
+            sb.Append('{');
 
             // Partial Selector
             if (PartialSelector != null)
             {
                 sb.Append(PartialSelector);
-                sb.Append(",");
+                sb.Append(',');
             }
 
             // Fields

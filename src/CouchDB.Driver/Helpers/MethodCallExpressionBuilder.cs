@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Helpers
 {
@@ -106,6 +107,17 @@ namespace CouchDB.Driver.Helpers
 
             MethodInfo genericMethodInfo = methodInfo.MakeGenericMethod(node.Method.GetGenericArguments()[0]);
             return Expression.Call(genericMethodInfo, node);
+        }
+
+        public static MethodCallExpression WrapInDiscriminatorFilter<TSource>(this Expression node, string discriminator)
+            where TSource : CouchDocument
+        {
+            Check.NotNull(node, nameof(node));
+
+            Expression<Func<TSource, bool>> filter = (d) => d.Discriminator == discriminator;
+
+            return Expression.Call(typeof(Queryable), nameof(Queryable.Where),
+                new[] { typeof(TSource) }, node, filter);
         }
 
         #endregion

@@ -49,11 +49,15 @@ namespace CouchDB.Driver.UnitTests
 
             using var httpTest = new HttpTest();
             // Cookie response
-            var cookieResponse = new HttpResponseMessage();
-            cookieResponse.Headers.Add("Content-Typ", "application/json");
-            cookieResponse.Headers.Add("Set-Cookie", $"AuthSession={token}; Version=1; Path=/; HttpOnly");
-            cookieResponse.Content = new StringContent("{}");
-            httpTest.ResponseQueue.Enqueue(cookieResponse);
+            var headers = new
+            {
+                Content_Type = "application/json"
+            };
+            var cookies = new
+            {
+                AuthSession = token
+            };
+            httpTest.RespondWith(string.Empty, 200, headers, cookies);
             SetupListResponse(httpTest);
 
             await using var client = new CouchClient("http://localhost", s => s.UseCookieAuthentication("root", "relax"));
@@ -61,9 +65,9 @@ namespace CouchDB.Driver.UnitTests
             var all = await rebels.ToListAsync();
 
             var authCookie = httpTest.CallLog
-                .Single(c => c.Request.RequestUri.ToString().Contains("_session"))
-                .FlurlRequest.Cookies.Single(c => c.Key == "AuthSession").Value;
-            Assert.Equal(token, authCookie.Value);
+                .Single(c => c.Request.Url.ToString().Contains("_session"))
+                .Response.Cookies.Single(c => c.Name == "AuthSession").Value;
+            Assert.Equal(token, authCookie);
         }
 
         [Fact]

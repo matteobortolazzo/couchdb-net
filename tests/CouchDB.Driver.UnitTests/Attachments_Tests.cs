@@ -85,7 +85,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
                 .WithVerb(HttpMethod.Get)
-                .WithHeader("If-Match", "xxx");
+                .WithHeader("If-Match", "xxx2");
 
             Assert.Equal(@"anyfolder\luke.txt", newPath);
         }

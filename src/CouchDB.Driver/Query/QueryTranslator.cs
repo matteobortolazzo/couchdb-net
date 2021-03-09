@@ -20,7 +20,7 @@ namespace CouchDB.Driver.Query
         {
             _isSelectorSet = false;
             _sb.Clear();
-            _sb.Append("{");
+            _sb.Append('{');
             Visit(e);
             
             // If no Where() calls
@@ -30,7 +30,7 @@ namespace CouchDB.Driver.Query
                 if (_sb.Length > 1)
                 {
                     _sb.Length--;
-                    _sb.Append(",");
+                    _sb.Append(',');
                 }
                 _sb.Append("\"selector\":{}");
             }
@@ -39,7 +39,7 @@ namespace CouchDB.Driver.Query
                 _sb.Length--;
             }
 
-            _sb.Append("}");
+            _sb.Append('}');
             var body = _sb.ToString();
             return body;
         }

@@ -10,4 +10,4 @@ namespace CouchDB.Driver.DTOs
         public Dictionary<string, string>[] Fields { get; set; }
     }
 }
-#nullable enable
+#nullable restore

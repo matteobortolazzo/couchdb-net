@@ -104,6 +104,8 @@ The produced Mango JSON:
 * [Indexing](#indexing)
   * [Index Options](#index-options)
   * [Partial Indexes](#partial-indexes)
+* [Database Splitting](#database-splitting)
+* [Views](#views)
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
@@ -487,16 +489,7 @@ public class MyDeathStarContext : CouchContext
 {
     public CouchDatabase<Rebel> Rebels { get; set; }
 
-    protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder
-          .UseEndpoint("http://localhost:5984/")
-          .UseBasicAuthentication("admin", "admin")
-          // If it finds a index with the same name and ddoc (or null)
-          // but with different fields and/or sort order,
-          // it will override the index
-          .OverrideExistingIndexes(); 
-    }
+    // OnConfiguring(CouchOptionsBuilder optionsBuilder) { ... }
 
     protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
     {
@@ -504,6 +497,48 @@ public class MyDeathStarContext : CouchContext
             .HasIndex("rebel_surnames_index", b => b.IndexBy(b => b.Surname));
     }
 }
+```
+
+## Database Splitting
+
+It is possible to use the same database for multiple types:
+```csharp
+public class MyDeathStarContext : CouchContext
+{
+    public CouchDatabase<Rebel> Rebels { get; set; }
+    public CouchDatabase<Vehicle> Vehicles { get; set; }
+
+    // OnConfiguring(CouchOptionsBuilder optionsBuilder) { ... }
+
+    protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
+    {
+        databaseBuilder.Document<Rebel>().ToDatabase("troups");
+        databaseBuilder.Document<Vehicle>().ToDatabase("troups");
+    }
+}
+```
+> When multiple `CouchDatabase` point to the same **database**, a `_discriminator` field is added on documents creation.
+>
+> When querying, a filter by `discriminator` is added automatically.
+
+If you are not using `CouchContext`, you can still use the database slit feature:
+```csharp
+var rebels = client.GetDatabase<Rebel>("troups", nameof(Rebel));
+var vehicles = client.GetDatabase<Vehicle>("troups", nameof(Vehicle));
+```
+
+## Views
+
+It's possible to query a view with the following:
+```csharp
+var options = new CouchViewOptions<string[]>
+{
+    StartKey = new[] {"Luke", "Skywalker"},
+    IncludeDocs = true
+};
+var viewRows = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
+// OR
+var details = await _rebels.GetDetailedViewAsync<int, BattleView>("battle", "by_name", options);
 ```
 
 ## Local (non-replicating) Documents
@@ -630,3 +665,5 @@ Thanks to [Ben Origas](https://github.com/borigas) for features, ideas and tests
 Thanks to [n9](https://github.com/n9) for proxy authentication, some bug fixes, suggestions and the great feedback on the changes feed feature!
 
 Thanks to [Marc](https://github.com/bender-ristone) for NullValueHandling, bug fixes and suggestions!
+
+Thanks to [Panos](https://github.com/panoukos41) for the help with Views and Table splitting.

@@ -16,7 +16,7 @@ namespace CouchDB.Driver.Query
         private readonly IQueryOptimizer _queryOptimizer;
         private readonly IQueryTranslator _queryTranslator;
         private readonly IQuerySender _requestSender;
-
+        private readonly string? _discriminator;
         private static readonly MethodInfo RequestSendMethod
             = typeof(IQuerySender).GetRuntimeMethods()
                 .Single(m => (m.Name == nameof(IQuerySender.Send)) && m.IsGenericMethod);
@@ -29,16 +29,17 @@ namespace CouchDB.Driver.Query
             = typeof(QueryCompiler).GetMethod(nameof(PostProcessResultAsync),
                 BindingFlags.NonPublic | BindingFlags.Static);
 
-        public QueryCompiler(IQueryOptimizer queryOptimizer, IQueryTranslator queryTranslator, IQuerySender requestSender)
+        public QueryCompiler(IQueryOptimizer queryOptimizer, IQueryTranslator queryTranslator, IQuerySender requestSender, string? discriminator)
         {
             _queryOptimizer = queryOptimizer;
             _queryTranslator = queryTranslator;
             _requestSender = requestSender;
+            _discriminator = discriminator;
         }
 
         public string ToString(Expression query)
         {
-            Expression optimizedQuery = _queryOptimizer.Optimize(query);
+            Expression optimizedQuery = _queryOptimizer.Optimize(query, _discriminator);
             return _queryTranslator.Translate(optimizedQuery);
         }
 
@@ -70,7 +71,7 @@ namespace CouchDB.Driver.Query
 
         private TResult SendRequestWithoutFilter<TResult>(Expression query, bool async, CancellationToken cancellationToken)
         {
-            Expression optimizedQuery = _queryOptimizer.Optimize(query);
+            Expression optimizedQuery = _queryOptimizer.Optimize(query, _discriminator);
             var body = _queryTranslator.Translate(optimizedQuery);
             return _requestSender.Send<TResult>(body, async, cancellationToken);
         }
@@ -78,7 +79,7 @@ namespace CouchDB.Driver.Query
         private TResult SendRequestWithFilter<TResult>(MethodCallExpression methodCallExpression, Expression query,
             bool async, CancellationToken cancellationToken)
         {
-            Expression optimizedQuery = _queryOptimizer.Optimize(query);
+            Expression optimizedQuery = _queryOptimizer.Optimize(query, _discriminator);
 
             if (!(optimizedQuery is MethodCallExpression optimizedMethodCall))
             {

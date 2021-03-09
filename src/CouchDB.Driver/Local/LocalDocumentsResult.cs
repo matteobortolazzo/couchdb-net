@@ -10,5 +10,5 @@ namespace CouchDB.Driver.Local
         [JsonProperty("rows")]
         public IList<CouchDocumentInfo> Rows { get; set; }
     }
-#nullable enable
+#nullable restore
 }

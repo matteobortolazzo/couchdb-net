@@ -9,6 +9,7 @@ using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
+using CouchDB.Driver.Views;
 using Flurl.Http;
 
 namespace CouchDB.Driver
@@ -87,6 +88,32 @@ namespace CouchDB.Driver
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the elements created or updated.</returns>
         Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the specified view function from the specified design document.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <param name="design">The design to use.</param>
+        /// <param name="view">The view to use.</param>
+        /// <param name="options">Options for the request.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see cref="CouchView{TKey, TValue, TSource}"/>.</returns>
+        Task<List<CouchView<TKey, TValue, TSource>>> GetViewAsync<TKey, TValue>(string design, string view,
+            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the specified view function from the specified design document.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
+        /// <param name="design">The design to use.</param>
+        /// <param name="view">The view to use.</param>
+        /// <param name="options">Options for the request.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewList{TKey, TSource, TView}"/>.</returns>
+        Task<CouchViewList<TKey, TValue, TSource>> GetDetailedViewAsync<TKey, TValue>(string design, string view,
+            CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Since CouchDB v3, it is deprecated (a no-op).

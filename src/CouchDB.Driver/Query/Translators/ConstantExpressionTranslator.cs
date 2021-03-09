@@ -17,7 +17,7 @@ namespace CouchDB.Driver.Query
             return c;
         }
 
-        private void HandleConstant(object constant)
+        private void HandleConstant(object? constant)
         {
             if (constant is IQueryable)
             {
@@ -69,18 +69,18 @@ namespace CouchDB.Driver.Query
 
         private void VisitIEnumerable(IEnumerable list)
         {
-            _sb.Append("[");
+            _sb.Append('[');
             var needsComma = false;
             foreach (var item in list)
             {
                 if (needsComma)
                 {
-                    _sb.Append(",");
+                    _sb.Append(',');
                 }
                 HandleConstant(item);
                 needsComma = true;
             }
-            _sb.Append("]");
+            _sb.Append(']');
         }
     }
 }

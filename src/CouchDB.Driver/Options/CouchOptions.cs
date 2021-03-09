@@ -39,6 +39,7 @@ namespace CouchDB.Driver.Options
             PluralizeEntities = true;
             DocumentsCaseType = DocumentCaseType.UnderscoreCase;
             PropertiesCase = PropertyCaseType.CamelCase;
+            NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
             LogOutOnDispose = true;
         }
     }
