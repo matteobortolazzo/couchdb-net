@@ -529,25 +529,16 @@ var vehicles = client.GetDatabase<Vehicle>("troups", nameof(Vehicle));
 
 ## Views
 
-To read a view create a new class that implements `CouchView` where:
-* `TKey` is the type of the key;
-* `TDoc` is the type of the document.
-```csharp
-public class RebelView : CouchView<string[], Rebel>
-{
-  public int NumberOfBattles { get; set; }
-}
-```
-Then you can query the view:
+It's possible to query a view with the following:
 ```csharp
 var options = new CouchViewOptions<string[]>
 {
     StartKey = new[] {"Luke", "Skywalker"},
     IncludeDocs = true
 };
-var rebels = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
+var viewRows = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
 // OR
-var details = await _rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name", options);
+var details = await _rebels.GetDetailedViewAsync<int, BattleView>("battle", "by_name", options);
 ```
 
 ## Local (non-replicating) Documents
