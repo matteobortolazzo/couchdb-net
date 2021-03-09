@@ -268,7 +268,7 @@ namespace CouchDB.Driver.UnitTests
             var rebel = Assert.Single(rebels);
             Assert.Equal("luke", rebel.Id);
             Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
-            Assert.Equal(3, rebel.NumberOfBattles);
+            Assert.Equal(3, rebel.Value.NumberOfBattles);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
                 .WithVerb(HttpMethod.Get);
@@ -293,7 +293,7 @@ namespace CouchDB.Driver.UnitTests
             var rebel = Assert.Single(rebels);
             Assert.Equal("luke", rebel.Id);
             Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
-            Assert.Equal(3, rebel.NumberOfBattles);
+            Assert.Equal(3, rebel.Value.NumberOfBattles);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
                 .WithVerb(HttpMethod.Post)
@@ -316,7 +316,7 @@ namespace CouchDB.Driver.UnitTests
             var rebel = Assert.Single(list.Rows);
             Assert.Equal("luke", rebel.Id);
             Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
-            Assert.Equal(3, rebel.NumberOfBattles);
+            Assert.Equal(3, rebel.Value.NumberOfBattles);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
                 .WithVerb(HttpMethod.Get);
@@ -331,7 +331,7 @@ namespace CouchDB.Driver.UnitTests
             var options = new CouchViewOptions<string[]>
             {
                 Key = new[] { "Luke", "Skywalker" },
-                Skip = 10
+                Update = UpdateStyle.Lazy
             };
 
             // Act
@@ -343,11 +343,11 @@ namespace CouchDB.Driver.UnitTests
             var rebel = Assert.Single(list.Rows);
             Assert.Equal("luke", rebel.Id);
             Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
-            Assert.Equal(3, rebel.NumberOfBattles);
+            Assert.Equal(3, rebel.Value.NumberOfBattles);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
                 .WithVerb(HttpMethod.Post)
-                .WithRequestBody(@"{""key"":[""Luke"",""Skywalker""],""skip"":10}");
+                .WithRequestBody(@"{""key"":[""Luke"",""Skywalker""],""update"":""lazy""}");
         }
 
         private static void SetupViewResponse(HttpTest httpTest)

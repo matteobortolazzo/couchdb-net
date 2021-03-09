@@ -10,10 +10,9 @@ namespace CouchDB.Driver.Views
     /// Result of a view query.
     /// </summary>
     /// <typeparam name="TKey">The type of the key.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <typeparam name="TDoc">The type of the document.</typeparam>
-    /// <typeparam name="TView">The type of the view.</typeparam>
-    public class CouchViewList<TKey, TDoc, TView>
-        where TView : CouchView<TKey, TDoc>
+    public class CouchViewList<TKey, TValue, TDoc>
         where TDoc : CouchDocument
     {
         /// <summary>
@@ -29,10 +28,10 @@ namespace CouchDB.Driver.Views
         public int Offset { get; set; }
 
         /// <summary>
-        /// Array of view row objects. This result contains the document ID, revision and the documents.
+        /// Array of view row objects. This result contains the document ID, value and the documents.
         /// </summary>
         [JsonProperty("rows")]
-        public List<TView> Rows { get; set; }
+        public List<CouchView<TKey, TValue, TDoc>> Rows { get; set; }
     }
 }
 #pragma warning restore CA2227 // Collection properties should be read only

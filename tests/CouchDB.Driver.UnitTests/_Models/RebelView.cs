@@ -5,7 +5,7 @@ using CouchDB.Driver.Views;
 
 namespace CouchDB.Driver.UnitTests._Models
 {
-    public class RebelView : CouchView<string[], Rebel>
+    public class RebelView
     {
         public int NumberOfBattles { get; set; }
     }

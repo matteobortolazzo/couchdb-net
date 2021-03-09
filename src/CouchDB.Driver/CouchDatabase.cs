@@ -510,20 +510,18 @@ namespace CouchDB.Driver
         #region View
 
         /// <inheritdoc/>
-        public async Task<List<TView>> GetViewAsync<TKey, TView>(string design, string view,
+        public async Task<List<CouchView<TKey, TValue, TSource>>> GetViewAsync<TKey, TValue>(string design, string view,
             CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
-            where TView : CouchView<TKey, TSource>
         {
-            CouchViewList<TKey, TSource, TView> result =
-                await GetDetailedViewAsync<TKey, TView>(design, view, options, cancellationToken)
+            CouchViewList<TKey, TValue, TSource> result =
+                await GetDetailedViewAsync<TKey, TValue>(design, view, options, cancellationToken)
                     .ConfigureAwait(false);
             return result.Rows;
         }
 
         /// <inheritdoc/>
-        public async Task<CouchViewList<TKey, TSource, TView>> GetDetailedViewAsync<TKey, TView>(string design, string view,
+        public Task<CouchViewList<TKey, TValue, TSource>> GetDetailedViewAsync<TKey, TValue>(string design, string view,
             CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
-            where TView : CouchView<TKey, TSource>
         {
             Check.NotNull(design, nameof(design));
             Check.NotNull(view, nameof(view));
@@ -531,26 +529,13 @@ namespace CouchDB.Driver
             IFlurlRequest request = NewRequest()
                 .AppendPathSegments("_design", design, "_view", view);
             
-            Task<CouchViewResult<TKey, TView, TSource>>? requestTask = options == null
-                ? request.GetJsonAsync<CouchViewResult<TKey, TView, TSource>>(cancellationToken)
+            Task<CouchViewList<TKey, TValue, TSource>>? requestTask = options == null
+                ? request.GetJsonAsync<CouchViewList<TKey, TValue, TSource>>(cancellationToken)
                 : request
                     .PostJsonAsync(options, cancellationToken)
-                    .ReceiveJson<CouchViewResult<TKey, TView, TSource>>();
+                    .ReceiveJson<CouchViewList<TKey, TValue, TSource>>();
 
-            CouchViewResult<TKey, TView, TSource> result = await requestTask.SendRequestAsync().ConfigureAwait(false);
-
-            return new CouchViewList<TKey, TSource, TView>
-            {
-                Offset = result.Offset,
-                TotalRows = result.TotalRows,
-                Rows = result.Rows.Select(row =>
-                {
-                    row.Value.Id = row.Id;
-                    row.Value.Key = row.Key;
-                    row.Value.Document = row.Doc;
-                    return row.Value;
-                }).ToList()
-            };
+            return requestTask.SendRequestAsync();
         }
 
         #endregion
