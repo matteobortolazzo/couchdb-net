@@ -3,7 +3,7 @@
 
 ## Features
 * **Table Splitting**: Ability to use the same database for different document with automatic filtering. ([#106](https://github.com/matteobortolazzo/couchdb-net/issues/106))
-* **Views**: Ability to get views. Thanks to [panoukos41](https://github.com/panoukos41) ([#117](https://github.com/matteobortolazzo/couchdb-net/issues/117))
+* **Views**: Ability to get views. Thanks to [panoukos41](https://github.com/panoukos41)
 
 ## Improvements
 * **Logical Expressions Prune**: If expressions are constant booleans, they are removed automatically keeping the query valid. ([#113](https://github.com/matteobortolazzo/couchdb-net/issues/113))
