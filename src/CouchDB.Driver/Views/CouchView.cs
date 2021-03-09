@@ -32,7 +32,7 @@ namespace CouchDB.Driver.Views
         /// <summary>
         /// The document.
         /// </summary>
-        [JsonProperty("document")]
+        [JsonProperty("doc")]
         public TDoc Document { get; set; }
     }
 }
