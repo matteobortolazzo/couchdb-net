@@ -114,7 +114,7 @@ namespace CouchDB.Driver.Helpers
         {
             Check.NotNull(node, nameof(node));
 
-            Expression<Func<TSource, bool>> filter = (d) => d.Discriminator == discriminator;
+            Expression<Func<TSource, bool>> filter = (d) => d.SplitDiscriminator == discriminator;
 
             return Expression.Call(typeof(Queryable), nameof(Queryable.Where),
                 new[] { typeof(TSource) }, node, filter);

@@ -25,8 +25,6 @@ using CouchDB.Driver.Query;
 using Newtonsoft.Json;
 using System.Net;
 using CouchDB.Driver.Views;
-using Flurl.Http.Configuration;
-using Newtonsoft.Json.Serialization;
 
 namespace CouchDB.Driver
 {
@@ -192,7 +190,7 @@ namespace CouchDB.Driver
                 request = request.SetQueryParam("batch", "ok");
             }
 
-            document.Discriminator = _discriminator;
+            document.SplitDiscriminator = _discriminator;
             DocumentSaveResponse response = await request
                 .PostJsonAsync(document, cancellationToken)
                 .ReceiveJson<DocumentSaveResponse>()
@@ -224,7 +222,7 @@ namespace CouchDB.Driver
                 request = request.SetQueryParam("batch", "ok");
             }
 
-            document.Discriminator = _discriminator;
+            document.SplitDiscriminator = _discriminator;
             DocumentSaveResponse response = await request
                 .PutJsonAsync(document, cancellationToken)
                 .ReceiveJson<DocumentSaveResponse>()
@@ -271,7 +269,7 @@ namespace CouchDB.Driver
 
             foreach (TSource? document in documents)
             {
-                document.Discriminator = _discriminator;
+                document.SplitDiscriminator = _discriminator;
             }
 
             DocumentSaveResponse[] response = await NewRequest()

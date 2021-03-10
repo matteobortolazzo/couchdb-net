@@ -345,7 +345,7 @@ namespace CouchDB.Driver
 
         protected virtual async Task DisposeAsync(bool disposing)
         {
-            if (disposing && _flurlClient != null)
+            if (disposing)
             {
                 if (_options.AuthenticationType == AuthenticationType.Cookie && _options.LogOutOnDispose)
                 {

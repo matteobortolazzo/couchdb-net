@@ -123,7 +123,7 @@ namespace CouchDB.Driver.UnitTests
 
             var r = new Rebel { Name = "Luke" };
             var newR = await rebels.AddAsync(r);
-            Assert.Equal("myRebels", newR.Discriminator);
+            Assert.Equal("myRebels", newR.SplitDiscriminator);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels")
                 .WithVerb(HttpMethod.Post);
@@ -138,7 +138,7 @@ namespace CouchDB.Driver.UnitTests
 
             var r = new Rebel { Name = "Luke", Id = "1" };
             var newR = await rebels.AddOrUpdateAsync(r);
-            Assert.Equal("myRebels", newR.Discriminator);
+            Assert.Equal("myRebels", newR.SplitDiscriminator);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithVerb(HttpMethod.Put);
