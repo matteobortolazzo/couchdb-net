@@ -1,3 +1,8 @@
+# 3.0.1 (2020-03-10)
+
+## Bug Fixes
+* **Table Splitting**: Fix discriminator. ([#120](https://github.com/matteobortolazzo/couchdb-net/issues/120))
+
 # 3.0.0 (2020-03-09)
 
 ## Breaking Changes
