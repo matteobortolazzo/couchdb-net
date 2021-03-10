@@ -22,8 +22,8 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var json1 = _rebels.ToString();
             var json2 = _simpleRebels.ToString();
-            Assert.Equal(@"{""selector"":{""_discriminator"":""Rebel""}}", json1);
-            Assert.Equal(@"{""selector"":{""_discriminator"":""SimpleRebel""}}", json2);
+            Assert.Equal(@"{""selector"":{""discriminator"":""Rebel""}}", json1);
+            Assert.Equal(@"{""selector"":{""discriminator"":""SimpleRebel""}}", json2);
         }
 
         [Fact]
@@ -31,8 +31,8 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var json1 = _rebels.Where(c => c.Age == 19).ToString();
             var json2 = _simpleRebels.Where(c => c.Age == 19).ToString();
-            Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""_discriminator"":""Rebel""}]}}", json1);
-            Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""_discriminator"":""SimpleRebel""}]}}", json2);
+            Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""discriminator"":""Rebel""}]}}", json1);
+            Assert.Equal(@"{""selector"":{""$and"":[{""age"":19},{""discriminator"":""SimpleRebel""}]}}", json2);
         }
     }
 }
