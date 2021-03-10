@@ -58,7 +58,7 @@ namespace CouchDB.Driver.Types
         public CouchAttachmentsCollection Attachments { get; internal set; }
 
         [DataMember]
-        [JsonProperty("_discriminator", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("discriminator", NullValueHandling = NullValueHandling.Ignore)]
         internal string Discriminator { get; set; }
 
         [OnDeserialized]
