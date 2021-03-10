@@ -190,7 +190,7 @@ namespace CouchDB.Driver
                 request = request.SetQueryParam("batch", "ok");
             }
 
-            document.Discriminator = _discriminator;
+            document.SplitDiscriminator = _discriminator;
             DocumentSaveResponse response = await request
                 .PostJsonAsync(document, cancellationToken)
                 .ReceiveJson<DocumentSaveResponse>()
@@ -222,7 +222,7 @@ namespace CouchDB.Driver
                 request = request.SetQueryParam("batch", "ok");
             }
 
-            document.Discriminator = _discriminator;
+            document.SplitDiscriminator = _discriminator;
             DocumentSaveResponse response = await request
                 .PutJsonAsync(document, cancellationToken)
                 .ReceiveJson<DocumentSaveResponse>()
@@ -269,7 +269,7 @@ namespace CouchDB.Driver
 
             foreach (TSource? document in documents)
             {
-                document.Discriminator = _discriminator;
+                document.SplitDiscriminator = _discriminator;
             }
 
             DocumentSaveResponse[] response = await NewRequest()

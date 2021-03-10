@@ -523,7 +523,7 @@ public class MyDeathStarContext : CouchContext
 
 If you are not using `CouchContext`, you can still use the database slit feature:
 ```csharp
-var rebels = client.GetDatabase<Rebel>("troups", nameof(Rebel)); // Add [JsonObject("troups")] to Rebel
+var rebels = client.GetDatabase<Rebel>("troups", nameof(Rebel));
 var vehicles = client.GetDatabase<Vehicle>("troups", nameof(Vehicle));
 ```
 

@@ -199,9 +199,9 @@ namespace CouchDB.Driver
         #region CRUD reflection
 
         /// <inheritdoc />
-        public ICouchDatabase<TSource> GetDatabase<TSource>(string? discriminator = null) where TSource : CouchDocument
+        public ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument
         {
-            return GetDatabase<TSource>(GetClassName<TSource>(), discriminator);
+            return GetDatabase<TSource>(GetClassName<TSource>());
         }
 
         /// <inheritdoc />
