@@ -25,8 +25,6 @@ using CouchDB.Driver.Query;
 using Newtonsoft.Json;
 using System.Net;
 using CouchDB.Driver.Views;
-using Flurl.Http.Configuration;
-using Newtonsoft.Json.Serialization;
 
 namespace CouchDB.Driver
 {

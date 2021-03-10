@@ -62,8 +62,9 @@ namespace CouchDB.Driver
         /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
         /// </summary>
         /// <typeparam name="TSource">The type of database documents.</typeparam>
+        /// <param name="discriminator">Filters documents by the given discriminator.</param>
         /// <returns>The instance of the CouchDB database of the given type.</returns>
-        ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument;
+        ICouchDatabase<TSource> GetDatabase<TSource>(string? discriminator = null) where TSource : CouchDocument;
 
         /// <summary>
         /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.

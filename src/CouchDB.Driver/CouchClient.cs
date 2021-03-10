@@ -199,9 +199,9 @@ namespace CouchDB.Driver
         #region CRUD reflection
 
         /// <inheritdoc />
-        public ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument
+        public ICouchDatabase<TSource> GetDatabase<TSource>(string? discriminator = null) where TSource : CouchDocument
         {
-            return GetDatabase<TSource>(GetClassName<TSource>());
+            return GetDatabase<TSource>(GetClassName<TSource>(), discriminator);
         }
 
         /// <inheritdoc />
@@ -345,7 +345,7 @@ namespace CouchDB.Driver
 
         protected virtual async Task DisposeAsync(bool disposing)
         {
-            if (disposing && _flurlClient != null)
+            if (disposing)
             {
                 if (_options.AuthenticationType == AuthenticationType.Cookie && _options.LogOutOnDispose)
                 {
