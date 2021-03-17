@@ -371,6 +371,124 @@ namespace CouchDB.Driver.UnitTests
             });
         }
 
+        [Fact]
+        public async Task GetViewQueryAsync()
+        {
+            // Arrange
+            using var httpTest = new HttpTest();
+            SetupViewQueryResponse(httpTest);
+            var options = new CouchViewOptions<string[]>
+            {
+                Key = new[] {"Luke", "Skywalker"},
+                Skip = 10
+            };
+            var queries = new[]
+            {
+                options,
+                options
+            };
+
+            // Act
+            var results = await _rebels.GetViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
+
+            // Assert
+            Assert.Equal(2, results.Length);
+
+            Assert.All(results, result =>
+            {
+                var rebel = Assert.Single(result);
+                Assert.Equal("luke", rebel.Id);
+                Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+                Assert.Equal(3, rebel.Value.NumberOfBattles);
+            });
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name/queries")
+                .WithVerb(HttpMethod.Post)
+                .WithRequestBody(@"{""queries"":[{""key"":[""Luke"",""Skywalker""],""skip"":10},{""key"":[""Luke"",""Skywalker""],""skip"":10}]}");
+        }
+
+        [Fact]
+        public async Task GetDetailedViewQueryAsync()
+        {
+            // Arrange
+            using var httpTest = new HttpTest();
+            SetupViewQueryResponse(httpTest);
+            var options = new CouchViewOptions<string[]>
+            {
+                Key = new[] {"Luke", "Skywalker"},
+                Skip = 10
+            };
+            var queries = new[]
+            {
+                options,
+                options
+            };
+
+            // Act
+            var results = await _rebels.GetDetailedViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
+
+            // Assert
+            Assert.Equal(2, results.Length);
+
+            Assert.All(results, result =>
+            {
+                Assert.Equal(10, result.Offset);
+                Assert.Equal(20, result.TotalRows);
+                var rebel = Assert.Single(result.Rows);
+                Assert.Equal("luke", rebel.Id);
+                Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+                Assert.Equal(3, rebel.Value.NumberOfBattles);
+            });
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name/queries")
+                .WithVerb(HttpMethod.Post)
+                .WithRequestBody(@"{""queries"":[{""key"":[""Luke"",""Skywalker""],""skip"":10},{""key"":[""Luke"",""Skywalker""],""skip"":10}]}");
+        }
+
+        private static void SetupViewQueryResponse(HttpTest httpTest)
+        {
+            httpTest.RespondWithJson(new
+            {
+                Results = new[]
+                {
+                    new
+                    {
+                        Offset = 10,
+                        Total_Rows = 20,
+                        Rows = new[]
+                        {
+                            new
+                            {
+                                Id = "luke",
+                                Key = new [] {"Luke", "Skywalker"},
+                                Value = new
+                                {
+                                    NumberOfBattles = 3
+                                }
+                            }
+                        }
+                    },
+                    new
+                    {
+                        Offset = 10,
+                        Total_Rows = 20,
+                        Rows = new[]
+                        {
+                            new
+                            {
+                                Id = "luke",
+                                Key = new [] {"Luke", "Skywalker"},
+                                Value = new
+                                {
+                                    NumberOfBattles = 3
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         #endregion
 
         #region Utils
