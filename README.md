@@ -541,6 +541,33 @@ var viewRows = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name"
 var details = await _rebels.GetDetailedViewAsync<int, BattleView>("battle", "by_name", options);
 ```
 
+You can also query a view with multiple options to get multiple results:
+```csharp
+var lukeOptions = new CouchViewOptions<string[]>
+{
+    Key = new[] {"Luke", "Skywalker"},
+    IncludeDocs = true
+};
+var yodaOptions = new CouchViewOptions<string[]>
+{
+    Key = new[] {"Yoda"},
+    IncludeDocs = true
+};
+var queries = new[]
+{
+    lukeOptions,
+    yodaOptions
+};
+
+var results = await _rebels.GetViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
+var lukeRows = results[0];
+var yodaRows = results[1];
+// OR
+var details = await _rebels.GetDetailedViewQueryAsync<int, BattleView>("battle", "by_name", queries);
+var lukeDetails = details[0];
+var yodaDetails = details[1];
+```
+
 ## Local (non-replicating) Documents
 
 The Local (non-replicating) document interface allows you to create local documents that are not replicated to other databases.
