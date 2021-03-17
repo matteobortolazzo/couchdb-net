@@ -553,6 +553,7 @@ namespace CouchDB.Driver
         {
             Check.NotNull(design, nameof(design));
             Check.NotNull(view, nameof(view));
+            Check.NotNull(queries, nameof(queries));
 
             IFlurlRequest request = NewRequest()
                 .AppendPathSegments("_design", design, "_view", view, "queries");
