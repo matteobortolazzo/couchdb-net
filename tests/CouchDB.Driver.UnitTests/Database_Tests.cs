@@ -392,7 +392,7 @@ namespace CouchDB.Driver.UnitTests
             var results = await _rebels.GetViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
 
             // Assert
-            Assert.Equal(2, results.Count);
+            Assert.Equal(2, results.Length);
 
             Assert.All(results, result =>
             {
@@ -428,7 +428,7 @@ namespace CouchDB.Driver.UnitTests
             var results = await _rebels.GetDetailedViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
 
             // Assert
-            Assert.Equal(2, results.Count);
+            Assert.Equal(2, results.Length);
 
             Assert.All(results, result =>
             {

@@ -13,7 +13,7 @@ namespace CouchDB.Driver.DTOs
         /// The results in the same order as the queries.
         /// </summary>
         [JsonProperty("results")]
-        public List<CouchViewList<TKey, TValue, TDoc>> Results { get; set; }
+        public CouchViewList<TKey, TValue, TDoc>[] Results { get; set; }
     }
 }
 #nullable restore

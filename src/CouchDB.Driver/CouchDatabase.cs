@@ -537,19 +537,19 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc/>
-        public async Task<List<List<CouchView<TKey, TValue, TSource>>>> GetViewQueryAsync<TKey, TValue>(string design, string view,
-             IEnumerable<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default)
+        public async Task<List<CouchView<TKey, TValue, TSource>>[]> GetViewQueryAsync<TKey, TValue>(string design, string view,
+             IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default)
         {
-            List<CouchViewList<TKey, TValue, TSource>> result =
+            CouchViewList<TKey, TValue, TSource>[] result =
                 await GetDetailedViewQueryAsync<TKey, TValue>(design, view, queries, cancellationToken)
                     .ConfigureAwait(false);
 
-            return result.Select(x => x.Rows).ToList();
+            return result.Select(x => x.Rows).ToArray();
         }
 
         /// <inheritdoc/>
-        public async Task<List<CouchViewList<TKey, TValue, TSource>>> GetDetailedViewQueryAsync<TKey, TValue>(string design, string view,
-             IEnumerable<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default)
+        public async Task<CouchViewList<TKey, TValue, TSource>[]> GetDetailedViewQueryAsync<TKey, TValue>(string design, string view,
+             IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default)
         {
             Check.NotNull(design, nameof(design));
             Check.NotNull(view, nameof(view));

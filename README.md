@@ -563,7 +563,7 @@ var results = await _rebels.GetViewQueryAsync<string[], RebelView>("jedi", "by_n
 var lukeRows = results[0];
 var yodaRows = results[1];
 // OR
-var details = await _rebels.GetDetailedViewQueryAsync<int, BattleView>("battle", "by_name", queries);
+var details = await _rebels.GetDetailedViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
 var lukeDetails = details[0];
 var yodaDetails = details[1];
 ```

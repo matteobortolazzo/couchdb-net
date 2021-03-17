@@ -125,9 +125,9 @@ namespace CouchDB.Driver
         /// <param name="view">The view to use.</param>
         /// <param name="queries">Multiple query options for the request.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a list with a list of <see cref="CouchView{TKey, TValue, TSource}"/> for each query.</returns>
-        Task<List<List<CouchView<TKey, TValue, TSource>>>> GetViewQueryAsync<TKey, TValue>(string design, string view,
-             IEnumerable<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default);
+        /// <returns>A task that represents the asynchronous operation. The task result contains an array with a list of <see cref="CouchView{TKey, TValue, TSource}"/> for each query.</returns>
+        Task<List<CouchView<TKey, TValue, TSource>>[]> GetViewQueryAsync<TKey, TValue>(string design, string view,
+             IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default);
         
         /// <summary>
         /// Executes the specified view function from the specified design document using
@@ -140,8 +140,8 @@ namespace CouchDB.Driver
         /// <param name="queries">Multiple query options for the request.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list with a <see cref="CouchViewList{TKey, TSource, TView}"/> for each query.</returns>
-        Task<List<CouchViewList<TKey, TValue, TSource>>> GetDetailedViewQueryAsync<TKey, TValue>(string design, string view,
-             IEnumerable<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default);
+        Task<CouchViewList<TKey, TValue, TSource>[]> GetDetailedViewQueryAsync<TKey, TValue>(string design, string view,
+             IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Since CouchDB v3, it is deprecated (a no-op).
