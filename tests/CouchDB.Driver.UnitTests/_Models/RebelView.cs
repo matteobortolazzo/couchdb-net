@@ -1,4 +1,4 @@
-﻿using CouchDB.Driver.UnitTests.Models;
+﻿using CouchDB.UnitTests.Models;
 using CouchDB.Driver.Views;
 
 #nullable disable

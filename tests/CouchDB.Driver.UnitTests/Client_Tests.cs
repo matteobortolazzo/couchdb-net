@@ -1,6 +1,6 @@
 ﻿using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Types;
-using CouchDB.Driver.UnitTests.Models;
+using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
 using System.Collections.Generic;

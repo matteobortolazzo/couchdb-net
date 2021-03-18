@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace CouchDB.Driver.UnitTests.Models
+namespace CouchDB.UnitTests.Models
 {
     [JsonObject("custom_rebels")]
     public class OtherRebel : Rebel

@@ -1,6 +1,6 @@
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Types;
-using CouchDB.Driver.UnitTests.Models;
+using CouchDB.UnitTests.Models;
 using System;
 using System.Linq;
 using CouchDB.Driver.Query.Extensions;

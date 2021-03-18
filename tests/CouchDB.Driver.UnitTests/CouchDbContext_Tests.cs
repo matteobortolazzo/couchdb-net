@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
-using CouchDB.Driver.UnitTests.Models;
+using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
 using Xunit;
 

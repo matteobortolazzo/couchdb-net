@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.UnitTests.Models;
+using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
 using Xunit;
 

@@ -1,6 +1,6 @@
 ﻿using CouchDB.Driver.DTOs;
 using CouchDB.Driver.UnitTests._Helpers;
-using CouchDB.Driver.UnitTests.Models;
+using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
 using System.Net.Http;
