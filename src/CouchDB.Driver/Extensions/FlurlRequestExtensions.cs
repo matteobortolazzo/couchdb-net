@@ -50,7 +50,7 @@ namespace CouchDB.Driver.Extensions
         public static IFlurlRequest ApplyQueryParametersOptions(this IFlurlRequest request, object options)
         {
             IEnumerable<(string Name, object? Value)> queryParameters = OptionsHelper.ToQueryParameters(options);
-            foreach (var (name, value) in queryParameters)
+            foreach ((var name, object? value) in queryParameters)
             {
                 request = request.SetQueryParam(name, value);
             }

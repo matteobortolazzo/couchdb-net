@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using CouchDB.Driver.ChangesFeed.Filters;
-using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.ChangesFeed

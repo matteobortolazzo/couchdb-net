@@ -6,7 +6,7 @@ namespace CouchDB.Driver.Local
     public class LocalDocumentsOptions
     {
         /// <summary>
-        /// Includes conflicts information in response. Ignored if <see cref="IncludeDocs"/> isn’t <c>True</c>.
+        /// Includes conflicts information in response. Ignored if IncludeDocs isn’t <c>True</c>.
         /// </summary>
         [JsonProperty("conflicts")]
         [DefaultValue(false)]

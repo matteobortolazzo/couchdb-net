@@ -73,13 +73,13 @@ namespace CouchDB.Driver.Extensions
 
         public static IEnumerable<Type> GetGenericTypeImplementations(this Type type, Type interfaceOrBaseType)
         {
-            var typeInfo = type.GetTypeInfo();
+            TypeInfo? typeInfo = type.GetTypeInfo();
             if (!typeInfo.IsGenericTypeDefinition)
             {
-                var baseTypes = interfaceOrBaseType.GetTypeInfo().IsInterface
+                IEnumerable<Type> baseTypes = interfaceOrBaseType.GetTypeInfo().IsInterface
                     ? typeInfo.ImplementedInterfaces
                     : type.GetBaseTypes();
-                foreach (var baseType in baseTypes)
+                foreach (Type? baseType in baseTypes)
                 {
                     if (baseType.IsGenericType
                         && baseType.GetGenericTypeDefinition() == interfaceOrBaseType)
@@ -96,9 +96,9 @@ namespace CouchDB.Driver.Extensions
             }
         }
 
-        public static IEnumerable<Type> GetBaseTypes(this Type type)
+        private static IEnumerable<Type> GetBaseTypes(this Type? type)
         {
-            type = type.BaseType;
+            type = type?.BaseType;
 
             while (type != null)
             {
