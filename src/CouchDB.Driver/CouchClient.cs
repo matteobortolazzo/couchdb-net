@@ -117,11 +117,11 @@ namespace CouchDB.Driver
 
         /// <inheritdoc />
         public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, 
-            int? shards = null, int? replicas = null, string? discriminator = null, CancellationToken cancellationToken = default)
+            int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument
         {
             QueryContext queryContext = NewQueryContext(database);
-            IFlurlResponse response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
+            IFlurlResponse response = await CreateDatabaseAsync(queryContext, shards, replicas, partitioned, cancellationToken)
                 .ConfigureAwait(false);
             
             if (response.IsSuccessful())
@@ -139,11 +139,11 @@ namespace CouchDB.Driver
 
         /// <inheritdoc />
         public async Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
-            int? shards = null, int? replicas = null, string? discriminator = null, CancellationToken cancellationToken = default)
+            int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument
         {
             QueryContext queryContext = NewQueryContext(database);
-            IFlurlResponse response = await CreateDatabaseAsync(queryContext, shards, replicas, cancellationToken)
+            IFlurlResponse response = await CreateDatabaseAsync(queryContext, shards, replicas, partitioned, cancellationToken)
                 .ConfigureAwait(false);
 
             if (response.IsSuccessful() || response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
@@ -173,19 +173,24 @@ namespace CouchDB.Driver
         }
 
         private Task<IFlurlResponse> CreateDatabaseAsync(QueryContext queryContext,
-            int? shards = null, int? replicas = null, CancellationToken cancellationToken = default)
+            int? shards = null, int? replicas = null, bool? partitioned = null, CancellationToken cancellationToken = default)
         {
             IFlurlRequest request = NewRequest()
                 .AppendPathSegment(queryContext.EscapedDatabaseName);
 
-            if (shards.HasValue)
+            if (shards.HasValue && shards.Value != 8)
             {
                 request = request.SetQueryParam("q", shards.Value);
             }
 
-            if (replicas.HasValue)
+            if (replicas.HasValue && replicas.Value != 3)
             {
                 request = request.SetQueryParam("n", replicas.Value);
+            }
+
+            if (partitioned.HasValue && partitioned.Value)
+            {
+                request = request.SetQueryParam("partitioned", "true");
             }
 
             return request
@@ -205,17 +210,17 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, string? discriminator = null,
+        public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
             CancellationToken cancellationToken = default) where TSource : CouchDocument
         {
-            return CreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, discriminator, cancellationToken);
+            return CreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, partitioned, discriminator, cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, string? discriminator = null,
+        public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
             CancellationToken cancellationToken = default) where TSource : CouchDocument
         {
-            return GetOrCreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, discriminator, cancellationToken);
+            return GetOrCreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, partitioned, discriminator, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -243,13 +248,13 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
         {
-            return GetOrCreateDatabaseAsync<CouchUser>(null, null, null, cancellationToken);
+            return GetOrCreateDatabaseAsync<CouchUser>(null, null, null, null, cancellationToken);
         }
 
         /// <inheritdoc />
         public Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(CancellationToken cancellationToken = default) where TUser : CouchUser
         {
-            return GetOrCreateDatabaseAsync<TUser>(null, null, null, cancellationToken);
+            return GetOrCreateDatabaseAsync<TUser>(null, null, null, null, cancellationToken);
         }
 
         #endregion

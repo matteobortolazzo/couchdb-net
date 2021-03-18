@@ -33,6 +33,12 @@ namespace CouchDB.Driver.Options
             return this;
         }
 
+        public CouchDocumentBuilder<TSource> IsPartitioned()
+        {
+            Partitioned = true;
+            return this;
+        }
+
         public CouchDocumentBuilder<TSource> HasIndex(string name, Action<IIndexBuilder<TSource>> indexBuilderAction,
             IndexOptions? options = null)
         {
