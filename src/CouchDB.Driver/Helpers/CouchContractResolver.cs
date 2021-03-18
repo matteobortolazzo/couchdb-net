@@ -24,18 +24,6 @@ namespace CouchDB.Driver.Helpers
             if (property != null && !property.Ignored)
             {
                 property.PropertyName = member.GetCouchPropertyName(_propertyCaseType);
-
-                DefaultValueAttribute? defaultValueAttribute = member.GetCustomAttribute<DefaultValueAttribute>();
-                if (defaultValueAttribute != null && member is PropertyInfo propertyInfo)
-                {
-                    property.ShouldSerialize =
-                        instance =>
-                        {
-                            object? value = propertyInfo.GetValue(instance);
-                            var shouldSerialize = !Equals(value, defaultValueAttribute.Value);
-                            return shouldSerialize;
-                        };
-                }
             }
             return property;
         }
