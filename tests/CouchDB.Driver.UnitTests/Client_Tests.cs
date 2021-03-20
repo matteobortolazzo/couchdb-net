@@ -1,6 +1,6 @@
 ﻿using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Types;
-using CouchDB.Driver.UnitTests.Models;
+using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
 using System.Collections.Generic;
@@ -164,6 +164,41 @@ namespace CouchDB.Driver.UnitTests
             await using var client = new CouchClient("http://localhost");
             Func<Task> action = () => client.CreateDatabaseAsync<Rebel>();
             await Assert.ThrowsAsync<CouchException>(action);
+        }
+
+        [Fact]
+        public async Task CreateDatabaseAsync_Params()
+        {
+            using var httpTest = new HttpTest();
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            await using var client = new CouchClient("http://localhost");
+            httpTest.RespondWithJson(new { ok = true });
+            var rebels = await client.CreateDatabaseAsync<Rebel>(9, 2, true);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels*")
+                .WithQueryParam("q", 9)
+                .WithQueryParam("n", 2)
+                .WithQueryParam("partitioned", "true")
+                .WithVerb(HttpMethod.Put);
+            Assert.Equal("rebels", rebels.Database);
+        }
+
+        [Fact]
+        public async Task CreateDatabaseAsync_Params_Default()
+        {
+            using var httpTest = new HttpTest();
+            // Logout
+            httpTest.RespondWithJson(new { ok = true });
+
+            await using var client = new CouchClient("http://localhost");
+            httpTest.RespondWithJson(new { ok = true });
+            var rebels = await client.CreateDatabaseAsync<Rebel>(8, 3, false);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels")
+                .WithVerb(HttpMethod.Put);
+            Assert.Equal("rebels", rebels.Database);
         }
 
         #endregion

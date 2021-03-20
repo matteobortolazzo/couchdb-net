@@ -115,7 +115,7 @@ namespace CouchDB.Driver.Query
 
         private static Type GetDocumentType(MethodCallExpression methodCall)
         {
-            if (!(methodCall.Arguments[0] is ConstantExpression listExpression))
+            if (methodCall.Arguments[0] is not ConstantExpression listExpression)
             {
                 throw new InvalidOperationException();
             }

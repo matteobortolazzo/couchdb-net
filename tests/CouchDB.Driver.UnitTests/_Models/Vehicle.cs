@@ -1,4 +1,4 @@
-﻿namespace CouchDB.Driver.UnitTests.Models
+﻿namespace CouchDB.UnitTests.Models
 {
     public class Vehicle
     {

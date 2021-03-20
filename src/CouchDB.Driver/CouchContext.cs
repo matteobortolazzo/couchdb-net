@@ -99,7 +99,7 @@ namespace CouchDB.Driver
                 var documentBuilder = (CouchDocumentBuilder<TSource>)databaseBuilder.DocumentBuilders[documentType];
                 var databaseName = documentBuilder.Database ?? Client.GetClassName(documentType);
                 database = options.CheckDatabaseExists
-                    ? await Client.GetOrCreateDatabaseAsync<TSource>(databaseName, documentBuilder.Shards, documentBuilder.Replicas, documentBuilder.Discriminator).ConfigureAwait(false)
+                    ? await Client.GetOrCreateDatabaseAsync<TSource>(databaseName, documentBuilder.Shards, documentBuilder.Replicas, documentBuilder.Partitioned, documentBuilder.Discriminator).ConfigureAwait(false)
                     : Client.GetDatabase<TSource>(databaseName, documentBuilder.Discriminator);
             }
             else

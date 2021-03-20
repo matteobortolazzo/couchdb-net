@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDB.Driver.Indexes;
-using CouchDB.Driver.UnitTests.Models;
+using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
 using Xunit;
 

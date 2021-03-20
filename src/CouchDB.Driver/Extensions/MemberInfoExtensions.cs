@@ -12,7 +12,7 @@ namespace CouchDB.Driver.Extensions
     {
         public static string GetCouchPropertyName(this MemberInfo memberInfo, PropertyCaseType propertyCaseType)
         {
-            var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
+            object[] jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
             JsonPropertyAttribute? jsonProperty = jsonPropertyAttributes.Length > 0 
                 ? jsonPropertyAttributes[0] as JsonPropertyAttribute
                 : null;

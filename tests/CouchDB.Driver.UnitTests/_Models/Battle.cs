@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CouchDB.Driver.UnitTests.Models
+namespace CouchDB.UnitTests.Models
 {
     public class Battle
     {

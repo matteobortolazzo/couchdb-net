@@ -536,6 +536,38 @@ namespace CouchDB.Driver
             return requestTask.SendRequestAsync();
         }
 
+        /// <inheritdoc/>
+        public async Task<List<CouchView<TKey, TValue, TSource>>[]> GetViewQueryAsync<TKey, TValue>(string design, string view,
+             IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default)
+        {
+            CouchViewList<TKey, TValue, TSource>[] result =
+                await GetDetailedViewQueryAsync<TKey, TValue>(design, view, queries, cancellationToken)
+                    .ConfigureAwait(false);
+
+            return result.Select(x => x.Rows).ToArray();
+        }
+
+        /// <inheritdoc/>
+        public async Task<CouchViewList<TKey, TValue, TSource>[]> GetDetailedViewQueryAsync<TKey, TValue>(string design, string view,
+             IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(design, nameof(design));
+            Check.NotNull(view, nameof(view));
+            Check.NotNull(queries, nameof(queries));
+
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegments("_design", design, "_view", view, "queries");
+
+            CouchViewQueryResult<TKey, TValue, TSource> result = 
+                await request
+                .PostJsonAsync(new { queries }, cancellationToken)
+                .ReceiveJson<CouchViewQueryResult<TKey, TValue, TSource>>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            return result.Results;
+        }
+
         #endregion
 
         #region Utils

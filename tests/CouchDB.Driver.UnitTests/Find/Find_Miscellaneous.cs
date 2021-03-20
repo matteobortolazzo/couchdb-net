@@ -1,4 +1,4 @@
-﻿using CouchDB.Driver.UnitTests.Models;
+﻿using CouchDB.UnitTests.Models;
 using System;
 using System.Linq;
 using Xunit;

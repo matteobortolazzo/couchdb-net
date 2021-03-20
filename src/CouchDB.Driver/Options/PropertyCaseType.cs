@@ -13,27 +13,27 @@ namespace CouchDB.Driver.Options
         /// <summary>
         /// Represents no format.
         /// </summary>
-        public static readonly PropertyCaseType None = new PropertyCaseType("None");
+        public static readonly PropertyCaseType None = new("None");
         /// <summary>
         /// Represents underscore_case. 
         /// </summary>
-        public static readonly PropertyCaseType UnderscoreCase = new PropertyCaseType("UnderscoreCase");
+        public static readonly PropertyCaseType UnderscoreCase = new("UnderscoreCase");
         /// <summary>
         /// Represents dash-case, allows uppercase characters. 
         /// </summary>
-        public static readonly PropertyCaseType DashCase = new PropertyCaseType("DashCase");
+        public static readonly PropertyCaseType DashCase = new("DashCase");
         /// <summary>
         /// Represents kebab-case.
         /// </summary>
-        public static readonly PropertyCaseType KebabCase = new PropertyCaseType("KebabCase");
+        public static readonly PropertyCaseType KebabCase = new("KebabCase");
         /// <summary>
         /// Represents PascalCase.
         /// </summary>
-        public static readonly PropertyCaseType PascalCase = new PropertyCaseType("PascalCase");
+        public static readonly PropertyCaseType PascalCase = new("PascalCase");
         /// <summary>
         /// Represents camelCase.
         /// </summary>
-        public static readonly PropertyCaseType CamelCase = new PropertyCaseType("CamelCase");
+        public static readonly PropertyCaseType CamelCase = new("CamelCase");
 
         internal override string Convert(string str)
         {

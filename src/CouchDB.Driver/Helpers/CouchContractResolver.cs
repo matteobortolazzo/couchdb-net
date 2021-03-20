@@ -23,18 +23,10 @@ namespace CouchDB.Driver.Helpers
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             if (property != null && !property.Ignored)
             {
-                property.PropertyName = member.GetCouchPropertyName(_propertyCaseType);
-
-                DefaultValueAttribute? defaultValueAttribute = member.GetCustomAttribute<DefaultValueAttribute>();
-                if (defaultValueAttribute != null && member is PropertyInfo propertyInfo)
+                var declaringNamespace = member.DeclaringType?.Namespace;
+                if (declaringNamespace != null && !declaringNamespace.Contains("CouchDB.Driver"))
                 {
-                    property.ShouldSerialize =
-                        instance =>
-                        {
-                            object? value = propertyInfo.GetValue(instance);
-                            var shouldSerialize = !Equals(value, defaultValueAttribute.Value);
-                            return shouldSerialize;
-                        };
+                    property.PropertyName = member.GetCouchPropertyName(_propertyCaseType);
                 }
             }
             return property;
