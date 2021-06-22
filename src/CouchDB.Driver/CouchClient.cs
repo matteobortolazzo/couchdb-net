@@ -318,7 +318,7 @@ namespace CouchDB.Driver
 
         #region Implementations
 
-        private IFlurlRequest NewRequest()
+        public IFlurlRequest NewRequest()
         {
             return _flurlClient.Request(Endpoint);
         }
