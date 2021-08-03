@@ -21,9 +21,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.UnitTests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.E2ETests", "..\tests\CouchDB.Driver.E2ETests\CouchDB.Driver.E2ETests.csproj", "{F382E261-4BFD-4F99-90FB-1DC23B93FB80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Driver.DependencyInjection", "CouchDB.Driver.DependencyInjection\CouchDB.Driver.DependencyInjection.csproj", "{0E141FCF-9EF4-4F33-A050-07E869AF816A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.DependencyInjection", "CouchDB.Driver.DependencyInjection\CouchDB.Driver.DependencyInjection.csproj", "{0E141FCF-9EF4-4F33-A050-07E869AF816A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CouchDB.Driver.Example", "..\tests\CouchDB.Driver.Example\CouchDB.Driver.Example.csproj", "{32EC0116-7F6B-407E-905C-57445E184147}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CouchDB.Driver.DependencyInjection.Autofac", "CouchDB.Driver.DependencyInjection.Autofac\CouchDB.Driver.DependencyInjection.Autofac.csproj", "{9EDF4315-CBDA-4F78-8929-B84A3651F2B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{32EC0116-7F6B-407E-905C-57445E184147}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32EC0116-7F6B-407E-905C-57445E184147}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32EC0116-7F6B-407E-905C-57445E184147}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EDF4315-CBDA-4F78-8929-B84A3651F2B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EDF4315-CBDA-4F78-8929-B84A3651F2B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EDF4315-CBDA-4F78-8929-B84A3651F2B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EDF4315-CBDA-4F78-8929-B84A3651F2B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
