@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using CouchDB.Driver;
 using CouchDB.Driver.Options;
 using System;
 
