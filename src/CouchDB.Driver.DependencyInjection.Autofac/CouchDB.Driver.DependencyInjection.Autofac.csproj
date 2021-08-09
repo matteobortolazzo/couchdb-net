@@ -20,8 +20,19 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
   
   <ItemGroup>
+    <None Include="Images\icon.png" Pack="true" PackagePath="\" />
+    <None Include="License\LICENSE.txt" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" PrivateAssets="All" Version="3.3.1" />
     <PackageReference Include="Autofac" Version="5.2.0" />
   </ItemGroup>
 
