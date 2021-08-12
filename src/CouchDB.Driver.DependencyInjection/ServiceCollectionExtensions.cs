@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CouchDB.Driver.DependencyInjection
 {
-    public static  class ServiceCollectionExtensions
+    public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddCouchContext<TContext>(this IServiceCollection services,
             Action<CouchOptionsBuilder<TContext>> optionBuilderAction)
