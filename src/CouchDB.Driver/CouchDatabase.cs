@@ -24,6 +24,7 @@ using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using Newtonsoft.Json;
 using System.Net;
+using System.Text.RegularExpressions;
 using CouchDB.Driver.Views;
 
 namespace CouchDB.Driver
@@ -35,6 +36,7 @@ namespace CouchDB.Driver
     public class CouchDatabase<TSource> : ICouchDatabase<TSource>
         where TSource : CouchDocument
     {
+        private readonly Regex _feedChangeLineStartPattern;
         private readonly IAsyncQueryProvider _queryProvider;
         private readonly IFlurlClient _flurlClient;
         private readonly CouchOptions _options;
@@ -52,6 +54,7 @@ namespace CouchDB.Driver
 
         internal CouchDatabase(IFlurlClient flurlClient, CouchOptions options, QueryContext queryContext, string? discriminator)
         {
+            _feedChangeLineStartPattern = new Regex(@"{""seq");
             _flurlClient = flurlClient;
             _options = options;
             _queryContext = queryContext;
@@ -411,9 +414,16 @@ namespace CouchDB.Driver
                 {
                     continue;
                 }
-
-                ChangesFeedResponseResult<TSource> result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(line);
-                yield return result;
+                
+                MatchCollection matches = _feedChangeLineStartPattern.Matches(line);
+                for (var i = 0; i < matches.Count; i++)
+                {
+                    var startIndex = matches[i].Index;
+                    var endIndex = i < matches.Count - 1 ? matches[i + 1].Index : line.Length;
+                    var lineLength = endIndex - startIndex;
+                    var substring = line.Substring(startIndex, lineLength);
+                    yield return JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(substring);
+                }
             }
         }
 
@@ -526,7 +536,7 @@ namespace CouchDB.Driver
 
             IFlurlRequest request = NewRequest()
                 .AppendPathSegments("_design", design, "_view", view);
-            
+
             Task<CouchViewList<TKey, TValue, TSource>>? requestTask = options == null
                 ? request.GetJsonAsync<CouchViewList<TKey, TValue, TSource>>(cancellationToken)
                 : request
@@ -558,7 +568,7 @@ namespace CouchDB.Driver
             IFlurlRequest request = NewRequest()
                 .AppendPathSegments("_design", design, "_view", view, "queries");
 
-            CouchViewQueryResult<TKey, TValue, TSource> result = 
+            CouchViewQueryResult<TKey, TValue, TSource> result =
                 await request
                 .PostJsonAsync(new { queries }, cancellationToken)
                 .ReceiveJson<CouchViewQueryResult<TKey, TValue, TSource>>()
