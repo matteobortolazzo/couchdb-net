@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
 using CouchDB.UnitTests.Models;
@@ -107,6 +109,17 @@ namespace CouchDB.Driver.UnitTests
             Assert.Equal(@"{""_conflicts"":[],""name"":""Leia"",""age"":0,""split_discriminator"":""SimpleRebel""}", httpTest.CallLog[0].RequestBody);
             Assert.Equal(@"{""_conflicts"":[],""rebel_bith_date"":""0001-01-01T00:00:00"",""name"":""Luke"",""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""split_discriminator"":""OtherRebel""}", httpTest.CallLog[1].RequestBody);
             Assert.Equal(@"{""selector"":{""split_discriminator"":""OtherRebel""}}", httpTest.CallLog[2].RequestBody);
+        }
+
+        [Fact]
+        public async Task Context_Query_MultiThread()
+        {
+            var context = new MyDeathStarContext();
+            var tasks = new int[1000].Select(_ => Task.Run(() => context.Rebels.Take(int.MaxValue).ToString()));
+            var results = await Task.WhenAll(tasks);
+            
+            Assert.All(results, query => Assert.Equal(@"{""limit"":2147483647,""selector"":{}}", query));
+            await context.DisposeAsync();
         }
     }
 }
