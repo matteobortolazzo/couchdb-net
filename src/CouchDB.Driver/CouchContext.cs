@@ -204,7 +204,7 @@ namespace CouchDB.Driver
             return true;
         }
 
-        private IEnumerable<PropertyInfo> GetDatabaseProperties() =>
+        protected virtual IEnumerable<PropertyInfo> GetDatabaseProperties() =>
             GetType()
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.PropertyType.IsGenericType &&
