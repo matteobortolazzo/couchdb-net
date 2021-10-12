@@ -39,7 +39,7 @@ namespace CouchDB.Driver.Helpers
             return Expression.Call(typeof(Queryable), nameof(Queryable.Select), genericArgumentTypes, node.Arguments[0], selectorNode.Arguments[1]);
         }
 
-        public static MethodCallExpression SubstituteWithWhere(this MethodCallExpression node, bool negate = false)
+        public static MethodCallExpression SubstituteWithWhere(this MethodCallExpression node, ExpressionVisitor optimizer, bool negate = false)
         {
             Check.NotNull(node, nameof(node));
 
@@ -52,7 +52,8 @@ namespace CouchDB.Driver.Helpers
                 predicate = body.WrapInLambda(lambdaExpression.Parameters);
             }
 
-            return Expression.Call(typeof(Queryable), nameof(Queryable.Where), node.Method.GetGenericArguments(), node.Arguments[0], predicate);
+            var e = Expression.Call(typeof(Queryable), nameof(Queryable.Where), node.Method.GetGenericArguments(), node.Arguments[0], predicate);
+            return (MethodCallExpression)optimizer.Visit(e);
         }
 
         #endregion

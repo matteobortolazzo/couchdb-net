@@ -30,9 +30,31 @@ namespace CouchDB.Driver.Query
         {
             if (discriminator is not null)
             {
-                Type? sourceType = e.Type.GetGenericArguments()[0];
-                MethodInfo? wrapInWhere = WrapInWhereGenericMethod.MakeGenericMethod(new[] { sourceType });
-                e = (Expression)wrapInWhere.Invoke(null, new object[] { e, discriminator });
+                if (e.Type.IsGenericType)
+                {
+                    Type? sourceType = e.Type.GetGenericArguments()[0];
+                    MethodInfo wrapInWhere = WrapInWhereGenericMethod.MakeGenericMethod(sourceType);
+                    e = (Expression)wrapInWhere.Invoke(null, new object[] { e, discriminator });
+                }
+                else
+                {
+                    Type sourceType = e.Type;
+                    MethodInfo wrapInWhere = WrapInWhereGenericMethod.MakeGenericMethod(sourceType);
+
+                    var rootMethodCallExpression = e as MethodCallExpression;
+                    Expression source = rootMethodCallExpression!.Arguments[0];
+                    var discriminatorWrap = (MethodCallExpression)wrapInWhere.Invoke(null, new object[] { source, discriminator });
+
+
+                    if (rootMethodCallExpression.Arguments.Count == 1)
+                    {
+                        e = Expression.Call(rootMethodCallExpression.Method, discriminatorWrap);
+                    }
+                    else
+                    {
+                        e = Expression.Call(rootMethodCallExpression.Method, discriminatorWrap, rootMethodCallExpression.Arguments[1]);
+                    }
+                }
             }
 
             e = LocalExpressions.PartialEval(e);
@@ -163,7 +185,7 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.AnyWithPredicate)
             {
                 return node
-                    .SubstituteWithWhere()
+                    .SubstituteWithWhere(this)
                     .WrapInTake(1)
                     .WrapInMethodWithoutSelector(QueryableMethods.AnyWithoutPredicate);
             }
@@ -172,7 +194,7 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.All)
             {
                 return node
-                    .SubstituteWithWhere(true)
+                    .SubstituteWithWhere(this, true)
                     .WrapInTake(1)
                     .WrapInMethodWithoutSelector(QueryableMethods.AnyWithoutPredicate);
             }
@@ -201,8 +223,8 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.SingleWithPredicate)
             {
                 return node
-                    .SubstituteWithWhere()
-                    .SubstituteWithTake(2)
+                    .SubstituteWithWhere(this)
+                    .WrapInTake(2)
                     .WrapInMethodWithoutSelector(QueryableMethods.SingleWithoutPredicate);
             }
 
@@ -210,8 +232,8 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.SingleOrDefaultWithPredicate)
             {
                 return node
-                    .SubstituteWithWhere()
-                    .SubstituteWithTake(2)
+                    .SubstituteWithWhere(this)
+                    .WrapInTake(2)
                     .WrapInMethodWithoutSelector(QueryableMethods.SingleOrDefaultWithoutPredicate);
             }
 
@@ -239,8 +261,8 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.FirstWithPredicate)
             {
                 return node
-                    .SubstituteWithWhere()
-                    .SubstituteWithTake(1)
+                    .SubstituteWithWhere(this)
+                    .WrapInTake(1)
                     .WrapInMethodWithoutSelector(QueryableMethods.FirstWithoutPredicate);
             }
 
@@ -248,8 +270,8 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.FirstOrDefaultWithPredicate)
             {
                 return node
-                    .SubstituteWithWhere()
-                    .SubstituteWithTake(1)
+                    .SubstituteWithWhere(this)
+                    .WrapInTake(1)
                     .WrapInMethodWithoutSelector(QueryableMethods.FirstOrDefaultWithoutPredicate);
             }
 
@@ -269,7 +291,7 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.LastWithPredicate)
             {
                 return node
-                    .SubstituteWithWhere()
+                    .SubstituteWithWhere(this)
                     .WrapInMethodWithoutSelector(QueryableMethods.LastWithoutPredicate);
             }
 
@@ -277,7 +299,7 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.LastOrDefaultWithPredicate)
             {
                 return node
-                    .SubstituteWithWhere()
+                    .SubstituteWithWhere(this)
                     .WrapInMethodWithoutSelector(QueryableMethods.LastOrDefaultWithoutPredicate);
             }
 
