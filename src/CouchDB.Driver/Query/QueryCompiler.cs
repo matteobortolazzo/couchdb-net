@@ -81,7 +81,7 @@ namespace CouchDB.Driver.Query
         {
             Expression optimizedQuery = _queryOptimizer.Optimize(query, _discriminator);
 
-            if (!(optimizedQuery is MethodCallExpression optimizedMethodCall))
+            if (optimizedQuery is not MethodCallExpression optimizedMethodCall)
             {
                 throw new ArgumentException($"Expression of type {optimizedQuery.GetType().Name} is not valid.");
             }
@@ -115,12 +115,21 @@ namespace CouchDB.Driver.Query
 
         private static Type GetDocumentType(MethodCallExpression methodCall)
         {
-            if (methodCall.Arguments[0] is not ConstantExpression listExpression)
+            while (true)
             {
+                if (methodCall.Arguments[0] is ConstantExpression listExpression)
+                {
+                    return listExpression.Type.GetGenericArguments()[0];
+                }
+
+                if (methodCall.Arguments[0] is MethodCallExpression methodCallArg)
+                {
+                    methodCall = methodCallArg;
+                    continue;
+                }
+
                 throw new InvalidOperationException();
             }
-
-            return listExpression.Type.GetGenericArguments()[0];
         }
 
         private static Type GetCouchListType(Type documentType, bool async)

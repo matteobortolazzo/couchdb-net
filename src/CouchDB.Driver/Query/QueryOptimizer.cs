@@ -44,8 +44,7 @@ namespace CouchDB.Driver.Query
                     var rootMethodCallExpression = e as MethodCallExpression;
                     Expression source = rootMethodCallExpression!.Arguments[0];
                     var discriminatorWrap = (MethodCallExpression)wrapInWhere.Invoke(null, new object[] { source, discriminator });
-
-
+                    
                     if (rootMethodCallExpression.Arguments.Count == 1)
                     {
                         e = Expression.Call(rootMethodCallExpression.Method, discriminatorWrap);

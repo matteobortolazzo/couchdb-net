@@ -52,7 +52,7 @@ namespace CouchDB.Driver.Helpers
                 predicate = body.WrapInLambda(lambdaExpression.Parameters);
             }
 
-            var e = Expression.Call(typeof(Queryable), nameof(Queryable.Where), node.Method.GetGenericArguments(), node.Arguments[0], predicate);
+            MethodCallExpression e = Expression.Call(typeof(Queryable), nameof(Queryable.Where), node.Method.GetGenericArguments(), node.Arguments[0], predicate);
             return (MethodCallExpression)optimizer.Visit(e);
         }
 
