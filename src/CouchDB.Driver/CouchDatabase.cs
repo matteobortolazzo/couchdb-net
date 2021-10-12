@@ -125,6 +125,7 @@ namespace CouchDB.Driver
             var documents = bulkGetResult.Results
                 .SelectMany(r => r.Docs)
                 .Select(d => d.Item)
+                .Where(i => i != null)
                 .ToList();
 
             foreach (TSource document in documents)
