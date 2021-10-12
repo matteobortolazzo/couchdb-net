@@ -89,6 +89,28 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
+        public async Task FindManyWithNotFoundError()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWith(@"{""results"":[{""id"":""1"",""docs"":[{""error"":{""id"":""1"",""rev"":""undefined"",""error"":""not_found"",""reason"":""missing""}}]}]}");
+            var ids = new string[] { "1" };
+            var result = await _rebels.FindManyAsync(ids);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_bulk_get")
+                .WithRequestJson(new
+                {
+                    docs = new[]
+                    {
+                            new { id = "1" },
+                    }
+                })
+                .WithVerb(HttpMethod.Post);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
         public async Task Create()
         {
             using var httpTest = new HttpTest();
