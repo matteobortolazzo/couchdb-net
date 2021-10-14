@@ -46,7 +46,7 @@ namespace CouchDB.Driver.Types
 
         // This must be for serialization only field
         [DataMember]
-        [JsonProperty("_attachments")]
+        [JsonProperty("_attachments", NullValueHandling = NullValueHandling.Ignore)]
         private Dictionary<string, CouchAttachment> AttachmentsParsed { get; set; }
 
         [JsonIgnore]
