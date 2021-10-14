@@ -636,7 +636,10 @@ luke = await users.ChangeUserPassword(luke, "r2d2");
 
 ## Dependency Injection
 
-* Install the DI package from NuGet: [https://www.nuget.org/packages/CouchDB.NET.DependencyInjection](https://www.nuget.org/packages/CouchDB.NET.DependencyInjection)
+As always you can leverage all the benefits of Dependency Injection.
+
+**Info:** The context will be registered as a `singleton`.
+
 * Create a `CouchContext` with a constructor like the following:
 
 ```csharp
@@ -649,14 +652,7 @@ public class MyDeathStarContext : CouchContext
 }
 ```
 
-* In the `Startup` class register the context:
-
-```csharp
-// ConfigureServices
-services.AddCouchContext<MyDeathStarContext>(builder => builder
-    .UseEndpoint("http://localhost:5984")
-    .UseBasicAuthentication(username: "admin", password: "admin"));
-```
+* Register the context via any of supported containers (see appropriate section section below)
 
 * Inject the context:
 
@@ -673,7 +669,30 @@ public class RebelsController : Controller
 }
 ```
 
-**Info:** The context is registered as a `singleton`.
+### Microsoft container
+* Install the DI package from NuGet: [https://www.nuget.org/packages/CouchDB.NET.DependencyInjection](https://www.nuget.org/packages/CouchDB.NET.DependencyInjection)
+
+* In the `Startup` class register the context:
+
+```csharp
+// ConfigureServices
+services.AddCouchContext<MyDeathStarContext>(builder => builder
+    .UseEndpoint("http://localhost:5984")
+    .UseBasicAuthentication(username: "admin", password: "admin"));
+```
+
+### Autofac container
+* Install the DI package from NuGet: [https://www.nuget.org/packages/CouchDB.NET.DependencyInjection.Autofac](https://www.nuget.org/packages/CouchDB.NET.DependencyInjection.Autofac)
+
+* In the `Startup` class register the context:
+
+```csharp
+// ConfigureServices
+var containerBuilder = new ContainerBuilder();
+containerBuilder.AddCouchContext<MyDeathStarContext>(optionsBuilder => optionsBuilder
+    .UseEndpoint("http://localhost:5984")
+    .UseBasicAuthentication(username: "admin", password: "admin"));
+```
 
 ## Advanced
 
