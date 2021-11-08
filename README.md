@@ -512,19 +512,19 @@ public class MyDeathStarContext : CouchContext
 
     protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
     {
-        databaseBuilder.Document<Rebel>().ToDatabase("troups");
-        databaseBuilder.Document<Vehicle>().ToDatabase("troups");
+        databaseBuilder.Document<Rebel>().ToDatabase("troops");
+        databaseBuilder.Document<Vehicle>().ToDatabase("troops");
     }
 }
 ```
-> When multiple `CouchDatabase` point to the same **database**, a `_discriminator` field is added on documents creation.
+> When multiple `CouchDatabase` point to the same **database**, a `split_discriminator` field is added on document creation.
 >
-> When querying, a filter by `discriminator` is added automatically.
+> When querying, a filter by `split_discriminator` is added automatically.
 
-If you are not using `CouchContext`, you can still use the database slit feature:
+If you are not using `CouchContext`, you can still use the database split feature:
 ```csharp
-var rebels = client.GetDatabase<Rebel>("troups", nameof(Rebel));
-var vehicles = client.GetDatabase<Vehicle>("troups", nameof(Vehicle));
+var rebels = client.GetDatabase<Rebel>("troops", nameof(Rebel));
+var vehicles = client.GetDatabase<Vehicle>("troops", nameof(Vehicle));
 ```
 
 ## Views
