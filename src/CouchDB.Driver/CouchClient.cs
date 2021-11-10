@@ -329,6 +329,21 @@ namespace CouchDB.Driver
             return result.Ok;
         }
 
+        public async Task<bool> RemoveReplicationAsync(CouchReplication replication, CancellationToken cancellationToken = default)
+        {
+            var request = NewRequest();
+
+            replication.Cancel = true;
+
+            OperationResult result = await request
+                .AppendPathSegments("_replicate")
+                .PostJsonAsync(replication, cancellationToken)
+                .SendRequestAsync()
+                .ReceiveJson<OperationResult>()
+                .ConfigureAwait(false);
+
+            return result.Ok;
+        }
         #endregion
 
         #endregion
