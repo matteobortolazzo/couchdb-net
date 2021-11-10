@@ -1,6 +1,7 @@
 ﻿using Humanizer;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -94,6 +95,11 @@ namespace CouchDB.Driver.Extensions
                     yield return type;
                 }
             }
+        }
+
+        public static bool IsEnumerable(this Type type)
+        {
+            return type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
         }
 
         private static IEnumerable<Type> GetBaseTypes(this Type? type)

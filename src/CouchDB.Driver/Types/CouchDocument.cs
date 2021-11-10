@@ -13,7 +13,7 @@ namespace CouchDB.Driver.Types
         protected CouchDocument()
         {
             _conflicts = new List<string>();
-            _attachments = new Dictionary<string, CouchAttachment>();
+            AttachmentsParsed = new Dictionary<string, CouchAttachment>();
             Attachments = new CouchAttachmentsCollection();
         }
 
@@ -44,15 +44,10 @@ namespace CouchDB.Driver.Types
         [JsonIgnore]
         public IReadOnlyCollection<string> Conflicts => _conflicts.AsReadOnly();
 
-        // This must be Deserilizable-only field
-        [JsonIgnore]
-        private Dictionary<string, CouchAttachment> _attachments;
+        // This must be for serialization only field
         [DataMember]
-        [JsonProperty("_attachments")]
-        private Dictionary<string, CouchAttachment> AttachmentsSetter
-        {
-            set { _attachments = value; }
-        }
+        [JsonProperty("_attachments", NullValueHandling = NullValueHandling.Ignore)]
+        private Dictionary<string, CouchAttachment> AttachmentsParsed { get; set; }
 
         [JsonIgnore]
         public CouchAttachmentsCollection Attachments { get; internal set; }
@@ -64,9 +59,9 @@ namespace CouchDB.Driver.Types
         [OnDeserialized]
         internal void OnDeserializedMethod(StreamingContext context)
         {
-            if (_attachments != null && _attachments.Count > 0)
+            if (AttachmentsParsed is { Count: > 0 })
             {
-                Attachments = new CouchAttachmentsCollection(_attachments);
+                Attachments = new CouchAttachmentsCollection(AttachmentsParsed);
             }
         }
     }

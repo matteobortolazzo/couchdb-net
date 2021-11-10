@@ -26,6 +26,11 @@ namespace CouchDB.Driver.Extensions
 
             Expression currentExpression = m.Expression;
 
+            if (currentExpression is MemberExpression rootMemberExpression && rootMemberExpression.Type.IsEnumerable())
+            {
+                throw new NotSupportedException();
+            }
+
             while (currentExpression is MemberExpression cm)
             {
                 members.Add(cm.Member.GetCouchPropertyName(caseType));

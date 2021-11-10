@@ -9,6 +9,7 @@ namespace CouchDB.Driver.Query
         private readonly CouchOptions _options;
         private readonly StringBuilder _sb;
         private bool _isSelectorSet;
+        private readonly object _sbLock = new();
 
         internal QueryTranslator(CouchOptions options)
         {
@@ -18,30 +19,34 @@ namespace CouchDB.Driver.Query
 
         public string Translate(Expression e)
         {
-            _isSelectorSet = false;
-            _sb.Clear();
-            _sb.Append('{');
-            Visit(e);
-            
-            // If no Where() calls
-            if (!_isSelectorSet)
+            lock (_sbLock)
             {
-                // If no other methods calls - ToList()
-                if (_sb.Length > 1)
+                _isSelectorSet = false;
+                _sb.Clear();
+                _sb.Append('{');
+                Visit(e);
+
+                // If no Where() calls
+                if (!_isSelectorSet)
+                {
+                    // If no other methods calls - ToList()
+                    if (_sb.Length > 1)
+                    {
+                        _sb.Length--;
+                        _sb.Append(',');
+                    }
+
+                    _sb.Append("\"selector\":{}");
+                }
+                else
                 {
                     _sb.Length--;
-                    _sb.Append(',');
                 }
-                _sb.Append("\"selector\":{}");
-            }
-            else
-            {
-                _sb.Length--;
-            }
 
-            _sb.Append('}');
-            var body = _sb.ToString();
-            return body;
+                _sb.Append('}');
+                var body = _sb.ToString();
+                return body;
+            }
         }
 
         protected override Expression VisitLambda<T>(Expression<T> l)
