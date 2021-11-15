@@ -109,6 +109,7 @@ The produced Mango JSON:
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
+* [Replication](#replication)
 * [Dependency Injection](#dependency-injection)
 * [Advanced](#advanced)
 * [Contributors](#contributors)
@@ -601,7 +602,7 @@ var docs = await local.GetAsync(searchOpt);
 
 ### Bookmark and Execution stats
 
-If bookmark and execution stats must be retrived, call *ToCouchList* or *ToCouchListAsync*.
+If bookmark and execution stats must be retrieved, call *ToCouchList* or *ToCouchListAsync*.
 
 ```csharp
 var allRebels = await rebels.ToCouchListAsync();
@@ -633,6 +634,23 @@ To change password:
 ```csharp
 luke = await users.ChangeUserPassword(luke, "r2d2");
 ```
+
+### Replication
+
+The driver provides the ability to configure and cancel replication between databases.
+
+```csharp
+if (await client.ReplicateAsync(new CouchReplication(source:"anakin", target: "jedi", continuous: true)))
+{
+  await client.RemoveReplicationAsync(new CouchReplication(source:"anakin", target: "jedi", continuous: true));
+}
+```
+
+It is also possible to specify a selector to apply to the replication
+```csharp
+await client.ReplicateAsync(new CouchReplication(source:"stormtroopers", target: "deathstar", continuous: true, selector: new { designation = "FN-2187" }));
+```
+
 
 ## Dependency Injection
 
