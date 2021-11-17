@@ -19,11 +19,11 @@ namespace CouchDB.Driver.Types
 
         [DataMember]
         [JsonProperty("continuous")]
-        public bool Continuous { get; private set; }
+        public bool Continuous { get; set; }
 
         [DataMember]
         [JsonProperty("selector")]
-        public object? Selector { get; private set; }
+        public object? Selector { get; set; }
 
         [DataMember]
         [JsonProperty("cancel")]

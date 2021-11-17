@@ -336,7 +336,7 @@ namespace CouchDB.Driver
             return result.Ok;
         }
 
-        public async Task<bool> RemoveReplicationAsync(string source, string target, CouchReplication replication, CancellationToken cancellationToken = default)
+        public async Task<bool> RemoveReplicationAsync(string source, string target, CouchReplication? replication = null, CancellationToken cancellationToken = default)
         {
             var request = NewRequest();
 
