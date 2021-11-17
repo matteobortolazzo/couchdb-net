@@ -315,9 +315,16 @@ namespace CouchDB.Driver
         #endregion
 
         #region Replication
-        public async Task<bool> ReplicateAsync(CouchReplication replication, CancellationToken cancellationToken = default)
+        public async Task<bool> ReplicateAsync(string source, string target, CouchReplication? replication = null, CancellationToken cancellationToken = default)
         {
             var request = NewRequest();
+
+            if (replication == null)
+            {
+                replication = new CouchReplication();
+            }
+            replication.Source = source;
+            replication.Target = target;
 
             OperationResult result = await request
                 .AppendPathSegments("_replicate")
@@ -329,10 +336,16 @@ namespace CouchDB.Driver
             return result.Ok;
         }
 
-        public async Task<bool> RemoveReplicationAsync(CouchReplication replication, CancellationToken cancellationToken = default)
+        public async Task<bool> RemoveReplicationAsync(string source, string target, CouchReplication replication, CancellationToken cancellationToken = default)
         {
             var request = NewRequest();
 
+            if (replication == null)
+            {
+                replication = new CouchReplication();
+            }
+            replication.Source = source;
+            replication.Target = target;
             replication.Cancel = true;
 
             OperationResult result = await request

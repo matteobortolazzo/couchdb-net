@@ -9,21 +9,13 @@ namespace CouchDB.Driver.Types
     [JsonObject("_replication")]
     public class CouchReplication : CouchDocument
     {
-        public CouchReplication(string source, string target, bool continuous, object? selector = null)
-        {
-            Source = source;
-            Target = target;
-            Continuous = continuous;
-            Selector = selector;
-        }
-
         [DataMember]
         [JsonProperty("source")]
-        public string Source { get; private set; }
+        public string? Source { get; internal set; }
 
         [DataMember]
         [JsonProperty("target")]
-        public string Target { get; private set; }
+        public string? Target { get; internal set; }
 
         [DataMember]
         [JsonProperty("continuous")]
