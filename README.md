@@ -109,6 +109,7 @@ The produced Mango JSON:
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
+* [Replication](#replication)
 * [Dependency Injection](#dependency-injection)
 * [Advanced](#advanced)
 * [Contributors](#contributors)
@@ -512,19 +513,19 @@ public class MyDeathStarContext : CouchContext
 
     protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
     {
-        databaseBuilder.Document<Rebel>().ToDatabase("troups");
-        databaseBuilder.Document<Vehicle>().ToDatabase("troups");
+        databaseBuilder.Document<Rebel>().ToDatabase("troops");
+        databaseBuilder.Document<Vehicle>().ToDatabase("troops");
     }
 }
 ```
-> When multiple `CouchDatabase` point to the same **database**, a `_discriminator` field is added on documents creation.
+> When multiple `CouchDatabase` point to the same **database**, a `split_discriminator` field is added on document creation.
 >
-> When querying, a filter by `discriminator` is added automatically.
+> When querying, a filter by `split_discriminator` is added automatically.
 
-If you are not using `CouchContext`, you can still use the database slit feature:
+If you are not using `CouchContext`, you can still use the database split feature:
 ```csharp
-var rebels = client.GetDatabase<Rebel>("troups", nameof(Rebel));
-var vehicles = client.GetDatabase<Vehicle>("troups", nameof(Vehicle));
+var rebels = client.GetDatabase<Rebel>("troops", nameof(Rebel));
+var vehicles = client.GetDatabase<Vehicle>("troops", nameof(Vehicle));
 ```
 
 ## Views
@@ -601,7 +602,7 @@ var docs = await local.GetAsync(searchOpt);
 
 ### Bookmark and Execution stats
 
-If bookmark and execution stats must be retrived, call *ToCouchList* or *ToCouchListAsync*.
+If bookmark and execution stats must be retrieved, call *ToCouchList* or *ToCouchListAsync*.
 
 ```csharp
 var allRebels = await rebels.ToCouchListAsync();
@@ -633,6 +634,28 @@ To change password:
 ```csharp
 luke = await users.ChangeUserPassword(luke, "r2d2");
 ```
+
+### Replication
+
+The driver provides the ability to configure and cancel replication between databases.
+
+```csharp
+if (await client.ReplicateAsync("anakin", "jedi", new CouchReplication() { Continuous = true}))
+{
+  await client.RemoveReplicationAsync("anakin", "jedi", new CouchReplication() { Continuous = true });
+}
+```
+
+It is also possible to specify a selector to apply to the replication
+```csharp
+await client.ReplicateAsync("stormtroopers", "deathstar", new CouchReplication() { Continuous = true, Selector = new { designation = "FN-2187" } }));
+```
+
+Credentials can be specified as follows
+```csharp
+await client.ReplicateAsync("luke", "jedi", new CouchReplication() { SourceCredentials = new CouchReplicationBasicCredentials()username: "luke", password: "r2d2") }));
+```
+
 
 ## Dependency Injection
 
