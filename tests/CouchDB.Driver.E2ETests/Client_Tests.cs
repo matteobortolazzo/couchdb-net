@@ -209,6 +209,35 @@ namespace CouchDB.Driver.E2E
         }
 
         [Fact]
+        public async Task AttachmentAsStream()
+        {
+            var luke = new Rebel { Name = "Luke", Age = 19 };
+            var runningPath = Directory.GetCurrentDirectory();
+
+            var fileOnDisk = File.ReadAllBytes($@"{runningPath}\Assets\luke.txt");
+
+            // Create
+            luke.Attachments.AddOrUpdate($@"{runningPath}\Assets\luke.txt", MediaTypeNames.Text.Plain);
+            luke = await _rebels.AddAsync(luke);
+
+            Assert.Equal("Luke", luke.Name);
+            Assert.NotEmpty(luke.Attachments);
+
+            CouchAttachment attachment = luke.Attachments.First();
+            Assert.NotNull(attachment);
+            Assert.NotNull(attachment.Uri);
+
+            // Download
+            var responseStream = await _rebels.DownloadAttachmentAsStreamAsync(attachment);
+            var memStream = new MemoryStream();
+            responseStream.CopyTo(memStream);
+            var fileFromDb = memStream.ToArray();
+            var areEqual = fileOnDisk.SequenceEqual(fileFromDb);
+
+            Assert.True(areEqual);
+        }
+
+        [Fact]
         public async Task LocalDocuments()
         {
             var local = _rebels.LocalDocuments;

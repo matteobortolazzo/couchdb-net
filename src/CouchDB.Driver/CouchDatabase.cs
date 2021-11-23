@@ -603,6 +603,24 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
+        public async Task<Stream> DownloadAttachmentAsStreamAsync(CouchAttachment attachment, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(attachment, nameof(attachment));
+
+            if (attachment.Uri == null)
+            {
+                throw new InvalidOperationException("The attachment is not uploaded yet.");
+            }
+
+            return await NewRequest()
+                .AppendPathSegment(attachment.DocumentId)
+                .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
+                .WithHeader("If-Match", attachment.DocumentRev)
+                .GetStreamAsync(cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task CompactAsync(CancellationToken cancellationToken = default)
         {
             OperationResult result = await NewRequest()
