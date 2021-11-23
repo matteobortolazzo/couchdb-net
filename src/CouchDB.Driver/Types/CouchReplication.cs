@@ -11,11 +11,15 @@ namespace CouchDB.Driver.Types
     {
         [DataMember]
         [JsonProperty("source")]
-        public string? Source { get; internal set; }
+        public object? Source { get; internal set; }
+
+        public CouchReplicationBasicCredentials? SourceCredentials { get; set; }
 
         [DataMember]
         [JsonProperty("target")]
-        public string? Target { get; internal set; }
+        public object? Target { get; internal set; }
+
+        public CouchReplicationBasicCredentials? TargetCredentials { get; set; }
 
         [DataMember]
         [JsonProperty("continuous")]

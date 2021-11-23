@@ -323,8 +323,38 @@ namespace CouchDB.Driver
             {
                 replication = new CouchReplication();
             }
-            replication.Source = source;
-            replication.Target = target;
+
+            if (replication.SourceCredentials == null)
+            {
+                replication.Source = source;
+            }
+            else
+            {
+                replication.Source = new CouchReplicationHost()
+                {
+                    Url = source,
+                    Auth = new CouchReplicationAuth()
+                    {
+                        BasicCredentials = replication.SourceCredentials,
+                    }
+                };
+            }
+
+            if (replication.TargetCredentials == null)
+            {
+                replication.Target = target;
+            }
+            else
+            {
+                replication.Target = new CouchReplicationHost()
+                {
+                    Url = target,
+                    Auth = new CouchReplicationAuth()
+                    {
+                        BasicCredentials = replication.TargetCredentials,
+                    }
+                };
+            }
 
             OperationResult result = await request
                 .AppendPathSegments(persistent ? "_replicator" : "_replicate")
@@ -344,8 +374,39 @@ namespace CouchDB.Driver
             {
                 replication = new CouchReplication();
             }
-            replication.Source = source;
-            replication.Target = target;
+
+            if (replication.SourceCredentials == null)
+            {
+                replication.Source = source;
+            }
+            else
+            {
+                replication.Source = new CouchReplicationHost()
+                {
+                    Url = source,
+                    Auth = new CouchReplicationAuth()
+                    {
+                        BasicCredentials = replication.SourceCredentials,
+                    }
+                };
+            }
+
+            if (replication.TargetCredentials == null)
+            {
+                replication.Target = target;
+            }
+            else
+            {
+                replication.Target = new CouchReplicationHost()
+                {
+                    Url = target,
+                    Auth = new CouchReplicationAuth()
+                    {
+                        BasicCredentials = replication.TargetCredentials,
+                    }
+                };
+            }
+
             replication.Cancel = true;
 
             OperationResult result = await request

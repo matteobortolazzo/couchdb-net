@@ -640,15 +640,20 @@ luke = await users.ChangeUserPassword(luke, "r2d2");
 The driver provides the ability to configure and cancel replication between databases.
 
 ```csharp
-if (await client.ReplicateAsync(new CouchReplication(source:"anakin", target: "jedi", continuous: true)))
+if (await client.ReplicateAsync("anakin", "jedi", new CouchReplication() { Continuous = true}))
 {
-  await client.RemoveReplicationAsync(new CouchReplication(source:"anakin", target: "jedi", continuous: true));
+  await client.RemoveReplicationAsync("anakin", "jedi", new CouchReplication() { Continuous = true });
 }
 ```
 
 It is also possible to specify a selector to apply to the replication
 ```csharp
-await client.ReplicateAsync(new CouchReplication(source:"stormtroopers", target: "deathstar", continuous: true, selector: new { designation = "FN-2187" }));
+await client.ReplicateAsync("stormtroopers", "deathstar", new CouchReplication() { Continuous = true, Selector = new { designation = "FN-2187" } }));
+```
+
+Credentials can be specified as follows
+```csharp
+await client.ReplicateAsync("luke", "jedi", new CouchReplication() { SourceCredentials = new CouchReplicationBasicCredentials()username: "luke", password: "r2d2") }));
 ```
 
 
