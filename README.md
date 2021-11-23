@@ -385,6 +385,8 @@ foreach (CouchAttachment attachment in luke.Attachments)
 
 // Download
 string downloadFilePath = await rebels.DownloadAttachment(attachment, downloadFolderPath, "luke-downloaded.txt");
+//or
+Stream responseStream = await rebels.DownloadAttachmentAsStreamAsync(attachment);
 ```
 
 ## DB Changes Feed
