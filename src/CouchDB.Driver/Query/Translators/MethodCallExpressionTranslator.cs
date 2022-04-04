@@ -170,7 +170,7 @@ namespace CouchDB.Driver.Query
 
             throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
         }
-        
+
         #region Queryable
 
         private Expression VisitWhereMethod(MethodCallExpression m)
@@ -219,7 +219,7 @@ namespace CouchDB.Driver.Query
         {
             void InspectOrdering(Expression e)
             {
-                MethodCallExpression o = e as MethodCallExpression?? throw new AuthenticationException($"Invalid expression type {e.GetType().Name}");
+                MethodCallExpression o = e as MethodCallExpression ?? throw new AuthenticationException($"Invalid expression type {e.GetType().Name}");
                 Expression lambdaBody = o.GetLambdaBody();
 
                 switch (o.Method.Name)
@@ -494,10 +494,18 @@ namespace CouchDB.Driver.Query
         private Expression VisitIsMatchMethod(MethodCallExpression m)
         {
             _sb.Append('{');
+
             Visit(m.Arguments[0]);
-            _sb.Append(":{\"$regex\":");
+            var isParameter = m.Arguments[0].NodeType == ExpressionType.Parameter;
+            if (!isParameter)
+            {
+                _sb.Append(":{");
+            }
+
+            _sb.Append("\"$regex\":");
             Visit(m.Arguments[1]);
-            _sb.Append("}}");
+            _sb.Append(!isParameter ? "}}" : "}");
+
             return m;
         }
 
