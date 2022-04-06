@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using CouchDB.Driver.Query.Extensions;
 using Xunit;
+using System.Text.RegularExpressions;
 
 namespace CouchDB.Driver.UnitTests.Find
 {
@@ -142,6 +143,13 @@ namespace CouchDB.Driver.UnitTests.Find
         {
             var json = _rebels.Where(r => r.Name.IsMatch(@"^FN-[0-9]{4}$")).ToString();
             Assert.Equal(@"{""selector"":{""name"":{""$regex"":""^FN-[0-9]{4}$""}}}", json);
+        }
+
+        [Fact]
+        public void Miscellaneous_RegexMultiLine()
+        {
+            var json = _rebels.Where(r => r.Skills.Any(s => s.IsMatch($"(?i)sab") || s.IsMatch($"(?)orce"))).ToString();
+            Assert.Equal(@"{""selector"":{""skills"":{""$elemMatch"":{""$or"":[{""$regex"":""(?i)sab""},{""$regex"":""(?)orce""}]}}}}", json);
         }
 
         #endregion
