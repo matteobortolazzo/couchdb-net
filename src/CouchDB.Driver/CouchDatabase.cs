@@ -89,9 +89,19 @@ namespace CouchDB.Driver
                 .GetAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            return response != null && response.StatusCode == (int)HttpStatusCode.OK
-                ? await response.GetJsonAsync<TSource>().ConfigureAwait(false)
-                : null;
+            TSource? document = null;
+            if (response is not { StatusCode: (int)HttpStatusCode.OK })
+            {
+                return document;
+            }
+
+            document = await response.GetJsonAsync<TSource>().ConfigureAwait(false);
+            if (document != null)
+            {
+                InitAttachments(document);
+            }
+
+            return document;
         }
 
         /// <inheritdoc />

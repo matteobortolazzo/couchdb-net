@@ -27,6 +27,10 @@ namespace CouchDB.Driver.Types
         public Uri Uri { get; internal set; }
 
         [DataMember]
+        [JsonProperty("stub")]
+        public bool Stub { get; set; }
+
+        [DataMember]
         [JsonProperty("content_type")]
         public string ContentType { get; set; }
 
@@ -37,6 +41,10 @@ namespace CouchDB.Driver.Types
         [DataMember]
         [JsonProperty("length")]
         public int? Length { get; private set; }
+
+        [DataMember]
+        [JsonProperty("revpos")]
+        public int? RevPos { get; private set; }
     }
 }
 #nullable restore
