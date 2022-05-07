@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using CouchDB.Driver.Converters;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.Types
@@ -47,6 +48,7 @@ namespace CouchDB.Driver.Types
         // This must be for serialization only field
         [DataMember]
         [JsonProperty("_attachments", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(AttachmentsParsedConverter))]
         private Dictionary<string, CouchAttachment> AttachmentsParsed { get; set; }
 
         [JsonIgnore]
