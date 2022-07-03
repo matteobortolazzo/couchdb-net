@@ -31,10 +31,10 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new
             {
-                Attachments = new Dictionary<string, object>
-                    {
-                        { "luke.txt", new { ContentType = "text/plain" } }
-                    }
+                _attachments = new Dictionary<string, object>
+                {
+                    { "luke.txt", new { ContentType = "text/plain" } }
+                }
             });
 
             var a = new List<Rebel>();
@@ -43,6 +43,11 @@ namespace CouchDB.Driver.UnitTests
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithoutQueryParam("conflicts")
                 .WithVerb(HttpMethod.Get);
+
+            Assert.NotNull(newR);
+            Assert.NotEmpty(newR.Attachments);
+            Assert.NotNull(newR.Attachments["luke.txt"].Uri);
+
         }
 
         [Fact]
@@ -51,10 +56,10 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             httpTest.RespondWithJson(new
             {
-                Attachments = new Dictionary<string, object>
-                    {
-                        { "luke.txt", new { ContentType = "text/plain" } }
-                    }
+                _attachments = new Dictionary<string, object>
+                {
+                    { "luke.txt", new { ContentType = "text/plain" } }
+                }
             });
 
             var newR = await _rebels.FindAsync("1", true);

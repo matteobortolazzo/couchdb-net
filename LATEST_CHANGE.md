@@ -1,8 +1,13 @@
-﻿## Bug Fixes
+﻿## Features
 
-* **Query**: Fix First/Last with conditions fail. ([#142](https://github.com/matteobortolazzo/couchdb-net/issues/142))
-* **Query**: Fix First/Last on splitted database. ([#136](https://github.com/matteobortolazzo/couchdb-net/issues/136))
-* **Query**: Throws exception on List.Count instead of wrong query. ([#138](https://github.com/matteobortolazzo/couchdb-net/issues/138))
-* **Query**: Fix multi thread call issues. ([#133](https://github.com/matteobortolazzo/couchdb-net/issues/133))
-* **FindManyAsync**: Filters out null results. ([#141](https://github.com/matteobortolazzo/couchdb-net/issues/141)) Thanks [AlexandrSHad](https://github.com/AlexandrSHad)
-* **Continuous Changes**: Fix multi thread issues. ([#140](https://github.com/matteobortolazzo/couchdb-net/issues/140))
+* **Replication**: Adds support to replication ([#151](https://github.com/matteobortolazzo/couchdb-net/pull/151))
+* **Attachments**: Adds DownloadAttachmentAsStreamAsync ([#152](https://github.com/matteobortolazzo/couchdb-net/pull/152))
+* **IsMatch**: Support multiline regex ([#161](https://github.com/matteobortolazzo/couchdb-net/pull/161))
+
+## Bug Fixes
+
+* **ElementAt**: Fixes query on .NET 6. ([#156](https://github.com/matteobortolazzo/couchdb-net/pull/156))
+* **Attachments**: Fixes attachments in FindAsync. ([#159](https://github.com/matteobortolazzo/couchdb-net/pull/159))
+* **Attachments**: Fixes attachments uploads ([#159](https://github.com/matteobortolazzo/couchdb-net/pull/159))
+* **Attachments**: Fixes Bad Request on attachment upload. ([#164](https://github.com/matteobortolazzo/couchdb-net/pull/164))
+* **GetInfoAsync**: Fixed 32-bit integer overflow. ([#165](https://github.com/matteobortolazzo/couchdb-net/pull/165))

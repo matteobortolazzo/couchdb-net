@@ -109,6 +109,7 @@ The produced Mango JSON:
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
+* [Replication](#replication)
 * [Dependency Injection](#dependency-injection)
 * [Advanced](#advanced)
 * [Contributors](#contributors)
@@ -384,6 +385,8 @@ foreach (CouchAttachment attachment in luke.Attachments)
 
 // Download
 string downloadFilePath = await rebels.DownloadAttachment(attachment, downloadFolderPath, "luke-downloaded.txt");
+//or
+Stream responseStream = await rebels.DownloadAttachmentAsStreamAsync(attachment);
 ```
 
 ## DB Changes Feed
@@ -601,7 +604,7 @@ var docs = await local.GetAsync(searchOpt);
 
 ### Bookmark and Execution stats
 
-If bookmark and execution stats must be retrived, call *ToCouchList* or *ToCouchListAsync*.
+If bookmark and execution stats must be retrieved, call *ToCouchList* or *ToCouchListAsync*.
 
 ```csharp
 var allRebels = await rebels.ToCouchListAsync();
@@ -633,6 +636,28 @@ To change password:
 ```csharp
 luke = await users.ChangeUserPassword(luke, "r2d2");
 ```
+
+### Replication
+
+The driver provides the ability to configure and cancel replication between databases.
+
+```csharp
+if (await client.ReplicateAsync("anakin", "jedi", new CouchReplication() { Continuous = true}))
+{
+  await client.RemoveReplicationAsync("anakin", "jedi", new CouchReplication() { Continuous = true });
+}
+```
+
+It is also possible to specify a selector to apply to the replication
+```csharp
+await client.ReplicateAsync("stormtroopers", "deathstar", new CouchReplication() { Continuous = true, Selector = new { designation = "FN-2187" } }));
+```
+
+Credentials can be specified as follows
+```csharp
+await client.ReplicateAsync("luke", "jedi", new CouchReplication() { SourceCredentials = new CouchReplicationBasicCredentials()username: "luke", password: "r2d2") }));
+```
+
 
 ## Dependency Injection
 

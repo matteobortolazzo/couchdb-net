@@ -89,9 +89,19 @@ namespace CouchDB.Driver
                 .GetAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            return response != null && response.StatusCode == (int)HttpStatusCode.OK
-                ? await response.GetJsonAsync<TSource>().ConfigureAwait(false)
-                : null;
+            TSource? document = null;
+            if (response is not { StatusCode: (int)HttpStatusCode.OK })
+            {
+                return document;
+            }
+
+            document = await response.GetJsonAsync<TSource>().ConfigureAwait(false);
+            if (document != null)
+            {
+                InitAttachments(document);
+            }
+
+            return document;
         }
 
         /// <inheritdoc />
@@ -599,6 +609,24 @@ namespace CouchDB.Driver
                 .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                 .WithHeader("If-Match", attachment.DocumentRev)
                 .DownloadFileAsync(localFolderPath, localFileName, bufferSize, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<Stream> DownloadAttachmentAsStreamAsync(CouchAttachment attachment, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(attachment, nameof(attachment));
+
+            if (attachment.Uri == null)
+            {
+                throw new InvalidOperationException("The attachment is not uploaded yet.");
+            }
+
+            return await NewRequest()
+                .AppendPathSegment(attachment.DocumentId)
+                .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
+                .WithHeader("If-Match", attachment.DocumentRev)
+                .GetStreamAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
 

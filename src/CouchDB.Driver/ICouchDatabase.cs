@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -227,6 +228,14 @@ namespace CouchDB.Driver
         /// <returns>A task that represents the asynchronous operation. The task result contains the path of the download file.</returns>
         Task<string> DownloadAttachmentAsync(CouchAttachment attachment, string localFolderPath,
             string? localFileName = null, int bufferSize = 4096, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Asynchronously downloads a specific attachment as stream.
+        /// </summary>
+        /// <param name="attachment">The attachment to download.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains of the file stream.</returns>
+        Task<Stream> DownloadAttachmentAsStreamAsync(CouchAttachment attachment, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Requests compaction of the specified database.

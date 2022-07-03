@@ -314,6 +314,112 @@ namespace CouchDB.Driver
 
         #endregion
 
+        #region Replication
+        public async Task<bool> ReplicateAsync(string source, string target, CouchReplication? replication = null, bool persistent = true, CancellationToken cancellationToken = default)
+        {
+            var request = NewRequest();
+
+            if (replication == null)
+            {
+                replication = new CouchReplication();
+            }
+
+            if (replication.SourceCredentials == null)
+            {
+                replication.Source = source;
+            }
+            else
+            {
+                replication.Source = new CouchReplicationHost()
+                {
+                    Url = source,
+                    Auth = new CouchReplicationAuth()
+                    {
+                        BasicCredentials = replication.SourceCredentials,
+                    }
+                };
+            }
+
+            if (replication.TargetCredentials == null)
+            {
+                replication.Target = target;
+            }
+            else
+            {
+                replication.Target = new CouchReplicationHost()
+                {
+                    Url = target,
+                    Auth = new CouchReplicationAuth()
+                    {
+                        BasicCredentials = replication.TargetCredentials,
+                    }
+                };
+            }
+
+            OperationResult result = await request
+                .AppendPathSegments(persistent ? "_replicator" : "_replicate")
+                .PostJsonAsync(replication, cancellationToken)
+                .SendRequestAsync()
+                .ReceiveJson<OperationResult>()
+                .ConfigureAwait(false);
+
+            return result.Ok;
+        }
+
+        public async Task<bool> RemoveReplicationAsync(string source, string target, CouchReplication? replication = null, bool persistent = true, CancellationToken cancellationToken = default)
+        {
+            var request = NewRequest();
+
+            if (replication == null)
+            {
+                replication = new CouchReplication();
+            }
+
+            if (replication.SourceCredentials == null)
+            {
+                replication.Source = source;
+            }
+            else
+            {
+                replication.Source = new CouchReplicationHost()
+                {
+                    Url = source,
+                    Auth = new CouchReplicationAuth()
+                    {
+                        BasicCredentials = replication.SourceCredentials,
+                    }
+                };
+            }
+
+            if (replication.TargetCredentials == null)
+            {
+                replication.Target = target;
+            }
+            else
+            {
+                replication.Target = new CouchReplicationHost()
+                {
+                    Url = target,
+                    Auth = new CouchReplicationAuth()
+                    {
+                        BasicCredentials = replication.TargetCredentials,
+                    }
+                };
+            }
+
+            replication.Cancel = true;
+
+            OperationResult result = await request
+                .AppendPathSegments(persistent ? "_replicator" : "_replicate")
+                .PostJsonAsync(replication, cancellationToken)
+                .SendRequestAsync()
+                .ReceiveJson<OperationResult>()
+                .ConfigureAwait(false);
+
+            return result.Ok;
+        }
+        #endregion
+
         #endregion
 
         #region Implementations
