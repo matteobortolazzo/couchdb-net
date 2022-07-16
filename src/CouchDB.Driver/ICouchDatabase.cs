@@ -8,6 +8,7 @@ using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
 using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
+using CouchDB.Driver.DatabaseApiMethodOptions;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
 using CouchDB.Driver.Views;
@@ -30,6 +31,15 @@ namespace CouchDB.Driver
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null.</returns>
         Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Finds the document with the given ID. If no document is found, then null is returned.
+        /// </summary>
+        /// <param name="docId">The document ID.</param>
+        /// <param name="options">Set of options available for GET /{db}/{docid}</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null</returns>
+        Task<TSource?> FindAsync(string docId, FindOptions options, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Finds all documents matching the MangoQuery.
@@ -65,6 +75,15 @@ namespace CouchDB.Driver
         Task<TSource> AddAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Creates a new document and returns it.
+        /// </summary>
+        /// <param name="document">The document to create.</param>
+        /// <param name="options">Set of options available for both PUT /{db}/{docid} and POST /{db}</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
+        Task<TSource> AddAsync(TSource document, AddOptions options, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Creates or updates the document with the given ID.
         /// </summary>
         /// <param name="document">The document to create or update</param>
@@ -72,6 +91,15 @@ namespace CouchDB.Driver
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
         Task<TSource> AddOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Creates or updates the document with the given ID.
+        /// </summary>
+        /// <param name="document">The document to create or update</param>
+        /// <param name="options">Set of options available for PUT /{db}/{docid}</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
+        Task<TSource> AddOrUpdateAsync(TSource document, AddOrUpdateOptions options, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes the document with the given ID.

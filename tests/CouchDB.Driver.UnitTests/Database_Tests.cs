@@ -9,6 +9,7 @@ using CouchDB.Driver.Extensions;
 using CouchDB.Driver.UnitTests._Models;
 using CouchDB.Driver.Views;
 using Xunit;
+using CouchDB.Driver.DatabaseApiMethodOptions;
 
 namespace CouchDB.Driver.UnitTests
 {
@@ -63,6 +64,44 @@ namespace CouchDB.Driver.UnitTests
             });
 
             var newR = await _rebels.FindAsync("1", true);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/1*")
+                .WithQueryParam("conflicts", "true")
+                .WithVerb(HttpMethod.Get);
+        }
+
+        [Fact]
+        public async Task FindWithOptionsRevision()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new
+            {
+                _attachments = new Dictionary<string, object>
+                {
+                    { "luke.txt", new { ContentType = "text/plain" } }
+                }
+            });
+
+            var newR = await _rebels.FindAsync("1", new FindOptions { Rev = "1-xxx" });
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/1*")
+                .WithQueryParam("rev", "1-xxx")
+                .WithVerb(HttpMethod.Get);
+        }
+
+        [Fact]
+        public async Task FindWithOptionsConflicts()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new
+            {
+                _attachments = new Dictionary<string, object>
+                {
+                    { "luke.txt", new { ContentType = "text/plain" } }
+                }
+            });
+
+            var newR = await _rebels.FindAsync("1", new FindOptions { Conflicts = true });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1*")
                 .WithQueryParam("conflicts", "true")
@@ -129,6 +168,20 @@ namespace CouchDB.Driver.UnitTests
         }
 
         [Fact]
+        public async Task CreateWithOptionsBatch()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
+
+            var r = new Rebel { Name = "Luke" };
+            var newR = await _rebels.AddAsync(r, new AddOptions { Batch = true });
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels")
+                .WithQueryParam("batch", "ok")
+                .WithVerb(HttpMethod.Post);
+        }
+
+        [Fact]
         public async Task CreateOrUpdate()
         {
             using var httpTest = new HttpTest();
@@ -138,6 +191,34 @@ namespace CouchDB.Driver.UnitTests
             var newR = await _rebels.AddOrUpdateAsync(r);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
+                .WithVerb(HttpMethod.Put);
+        }
+
+        [Fact]
+        public async Task CreateOrUpdateWithOptionsRevision()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "2-xxx" });
+
+            var r = new Rebel { Name = "Luke", Id = "1" };
+            var newR = await _rebels.AddOrUpdateAsync(r, new AddOrUpdateOptions { Rev = "1-xxx" });
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/1")
+                .WithQueryParam("rev", "1-xxx")
+                .WithVerb(HttpMethod.Put);
+        }
+
+        [Fact]
+        public async Task CreateOrUpdateWithOptionsBatch()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "2-xxx" });
+
+            var r = new Rebel { Name = "Luke", Id = "1" };
+            var newR = await _rebels.AddOrUpdateAsync(r, new AddOrUpdateOptions { Batch = true });
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/1")
+                .WithQueryParam("batch", "ok")
                 .WithVerb(HttpMethod.Put);
         }
 
