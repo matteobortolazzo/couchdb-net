@@ -268,7 +268,9 @@ var tasks = await client.GetActiveTasksAsync();
 ```csharp
 // CRUD
 await rebels.AddAsync(rebel);
+await rebels.AddAsync(rebel, batch: true);
 await rebels.AddOrUpdateAsync(rebel);
+await rebels.AddOrUpdateAsync(rebel, batch: true);
 await rebels.RemoveAsync(rebel);
 var rebel = await rebels.FindAsync(id);
 var rebel = await rebels.FindAsync(id, withConflicts: true);
@@ -388,6 +390,19 @@ string downloadFilePath = await rebels.DownloadAttachment(attachment, downloadFo
 //or
 Stream responseStream = await rebels.DownloadAttachmentAsStreamAsync(attachment);
 ```
+
+## Revisions
+
+The options for 'FindAsync(..)' and 'AddOrUpdateAsync(..)' support passing revision:
+
+```csharp
+await _rebels.FindAsync("1", new FindOptions { Rev = "1-xxx" });
+await _rebels.AddOrUpdateAsync(r, new AddOrUpdateOptions { Rev = "1-xxx" });
+```
+
+Options also can be used to pass 'Batch', 'Conflicts' where applicable.
+
+For attachements revisions are supported by 'CouchAttachment' class which is passing 'DocumentRev' to 'DownloadAttachmentAsync(..)' and 'DownloadAttachmentAsStreamAsync(..)'.
 
 ## DB Changes Feed
 
