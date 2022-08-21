@@ -165,6 +165,30 @@ namespace CouchDB.Driver
         Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Configures a database replication operation.
+        /// </summary>
+        /// <param name="source">Fully qualified source database URL or an object which contains the full URL of the source database with additional parameters like headers.</param>
+        /// <param name="target">Fully qualified target database URL or an object which contains the full URL of the target database with additional parameters like headers.</param>
+        /// <param name="replication">An instance of <see cref="CouchReplication"/>.</param>
+        /// <param name="persistent">Persist the operation to the replication database.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>Returns True if the operation succeeded, False otherwise.</returns>
+        Task<bool> ReplicateAsync(string source, string target, CouchReplication? replication = null,
+            bool persistent = true, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Removes a database replication operation.
+        /// </summary>
+        /// <param name="source">Fully qualified source database URL or an object which contains the full URL of the source database with additional parameters like headers.</param>
+        /// <param name="target">Fully qualified target database URL or an object which contains the full URL of the target database with additional parameters like headers.</param>
+        /// <param name="replication">An instance of <see cref="CouchReplication"/>.</param>
+        /// <param name="persistent"></param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>Returns True if the operation succeeded, False otherwise.</returns>
+        Task<bool> RemoveReplicationAsync(string source, string target, CouchReplication? replication = null,
+            bool persistent = true, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Get the database name for the given type.
         /// </summary>
         /// <param name="type">The type of database documents.</param>
