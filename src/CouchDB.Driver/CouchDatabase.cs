@@ -26,6 +26,7 @@ using Newtonsoft.Json;
 using System.Net;
 using System.Text.RegularExpressions;
 using CouchDB.Driver.Views;
+using CouchDB.Driver.DatabaseApiMethodOptions;
 
 namespace CouchDB.Driver
 {
@@ -73,16 +74,20 @@ namespace CouchDB.Driver
         #region Find
 
         /// <inheritdoc />
-        public async Task<TSource?> FindAsync(string docId, bool withConflicts = false,
-            CancellationToken cancellationToken = default)
+        public Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default) 
+            => FindAsync(docId, new FindOptions { Conflicts = withConflicts }, cancellationToken);
+
+        /// <inheritdoc />
+        public async Task<TSource?> FindAsync(string docId, FindOptions options, CancellationToken cancellationToken = default)
         {
             IFlurlRequest request = NewRequest()
-                    .AppendPathSegment(docId);
+                    .AppendPathSegment(Uri.EscapeDataString(docId));
 
-            if (withConflicts)
-            {
+            if (options.Conflicts)
                 request = request.SetQueryParam("conflicts", "true");
-            }
+
+            if (options.Rev != null)
+                request = request.SetQueryParam("rev", options.Rev);
 
             IFlurlResponse? response = await request
                 .AllowHttpStatus(HttpStatusCode.NotFound)
@@ -187,22 +192,24 @@ namespace CouchDB.Driver
         #region Writing
 
         /// <inheritdoc />
-        public async Task<TSource> AddAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+        public Task<TSource> AddAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+            => AddAsync(document, new AddOptions { Batch = batch }, cancellationToken);
+
+        /// <inheritdoc />
+        public async Task<TSource> AddAsync(TSource document, AddOptions options, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 
             if (!string.IsNullOrEmpty(document.Id))
             {
-                return await AddOrUpdateAsync(document, batch, cancellationToken)
+                return await AddOrUpdateAsync(document, new AddOrUpdateOptions { Batch = options.Batch }, cancellationToken)
                     .ConfigureAwait(false);
             }
 
             IFlurlRequest request = NewRequest();
 
-            if (batch)
-            {
+            if (options.Batch)
                 request = request.SetQueryParam("batch", "ok");
-            }
 
             document.SplitDiscriminator = _discriminator;
             DocumentSaveResponse response = await request
@@ -219,7 +226,11 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
-        public async Task<TSource> AddOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+        public Task<TSource> AddOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+            => AddOrUpdateAsync(document, new AddOrUpdateOptions { Batch = batch }, cancellationToken);
+
+        /// <inheritdoc />
+        public async Task<TSource> AddOrUpdateAsync(TSource document, AddOrUpdateOptions options, CancellationToken cancellationToken = default)
         {
             Check.NotNull(document, nameof(document));
 
@@ -229,12 +240,13 @@ namespace CouchDB.Driver
             }
 
             IFlurlRequest request = NewRequest()
-                .AppendPathSegment(document.Id);
+                .AppendPathSegment(Uri.EscapeDataString(document.Id));
 
-            if (batch)
-            {
+            if (options.Batch)
                 request = request.SetQueryParam("batch", "ok");
-            }
+
+            if (options.Rev != null)
+                request = request.SetQueryParam("rev", options.Rev);
 
             document.SplitDiscriminator = _discriminator;
             DocumentSaveResponse response = await request
@@ -256,7 +268,7 @@ namespace CouchDB.Driver
             Check.NotNull(document, nameof(document));
 
             IFlurlRequest request = NewRequest()
-                .AppendPathSegment(document.Id);
+                .AppendPathSegment(Uri.EscapeDataString(document.Id));
 
             if (batch)
             {
@@ -308,6 +320,35 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
+        public Task DeleteRangeAsync(IEnumerable<TSource> documents, CancellationToken cancellationToken = default)
+        {
+            DocumentId[] docIds = documents.Cast<DocumentId>().ToArray();
+            return DeleteRangeAsync(docIds, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteRangeAsync(IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(documentIds, nameof(documentIds));
+
+            var documents = documentIds
+                .Select(docId => new
+                {
+                    _id = docId.Id,
+                    _rev = docId.Rev,
+                    _deleted = true
+                })
+                .ToArray();
+
+            await NewRequest()
+                .AppendPathSegment("_bulk_docs")
+                .PostJsonAsync(new { docs = documents }, cancellationToken)
+                .ReceiveJson<DocumentSaveResponse[]>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task EnsureFullCommitAsync(CancellationToken cancellationToken = default)
         {
             OperationResult result = await NewRequest()
@@ -336,7 +377,7 @@ namespace CouchDB.Driver
                     new FileStream(attachment.FileInfo.FullName, FileMode.Open));
 
                 AttachmentResult response = await NewRequest()
-                    .AppendPathSegment(document.Id)
+                    .AppendPathSegment(Uri.EscapeDataString(document.Id))
                     .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                     .WithHeader("Content-Type", attachment.ContentType)
                     .WithHeader("If-Match", document.Rev)
@@ -354,8 +395,8 @@ namespace CouchDB.Driver
             foreach (CouchAttachment attachment in document.Attachments.GetDeletedAttachments())
             {
                 AttachmentResult response = await NewRequest()
-                    .AppendPathSegment(document.Id)
-                    .AppendPathSegment(attachment.Name)
+                    .AppendPathSegment(Uri.EscapeDataString(document.Id))
+                    .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
                     .WithHeader("If-Match", document.Rev)
                     .DeleteAsync(cancellationToken)
                     .ReceiveJson<AttachmentResult>()
@@ -623,7 +664,7 @@ namespace CouchDB.Driver
             }
 
             return await NewRequest()
-                .AppendPathSegment(attachment.DocumentId)
+                .AppendPathSegment(Uri.EscapeDataString(attachment.DocumentId))
                 .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                 .WithHeader("If-Match", attachment.DocumentRev)
                 .GetStreamAsync(cancellationToken)
