@@ -14,9 +14,6 @@ trigger:
     - azure-pipelines.yml
 
 pr:
-  branches:
-    include:
-    - master
   paths:
     exclude:
     - README.md

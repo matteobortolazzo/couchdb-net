@@ -374,7 +374,7 @@ namespace CouchDB.Driver.UnitTests
             var moreRebels = new[] {
                 new Rebel { Name = "Luke", Id = "1" },
                 new Rebel { Name = "Leia", Id = "2" }
-            }.Cast<DocumentId>().ToArray();
+            }.Select(doc => (DocumentId)doc).ToArray();
             await _rebels.DeleteRangeAsync(moreRebels);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_bulk_docs")

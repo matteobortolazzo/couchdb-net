@@ -322,7 +322,7 @@ namespace CouchDB.Driver
         /// <inheritdoc />
         public Task DeleteRangeAsync(IEnumerable<TSource> documents, CancellationToken cancellationToken = default)
         {
-            DocumentId[] docIds = documents.Cast<DocumentId>().ToArray();
+            DocumentId[] docIds = documents.Select(doc => (DocumentId)doc).ToArray();
             return DeleteRangeAsync(docIds, cancellationToken);
         }
 
