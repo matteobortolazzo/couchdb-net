@@ -19,7 +19,7 @@ public class DocumentId
     public string Id { get; }
     public string Rev { get; }
         
-    public static implicit operator DocumentId(CouchDocument documentId)
+    public static explicit operator DocumentId(CouchDocument documentId)
     {
         return new DocumentId(documentId.Id,  documentId.Rev);
     }
