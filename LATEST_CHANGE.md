@@ -6,3 +6,4 @@
 ## Bug Fixes
 
 * **Replication**: Added replication methods in `ICouchDatabase` interface ([#173](https://github.com/matteobortolazzo/couchdb-net/pull/173)) 
+* **Document ID**: Support IDs with special characters ([#172](https://github.com/matteobortolazzo/couchdb-net/pull/172)) 
