@@ -38,6 +38,7 @@ namespace CouchDB.Driver.Types
         [JsonProperty("rev", NullValueHandling = NullValueHandling.Ignore)]
         private string RevOther { set => Rev = value; }
 
+        [DataMember]
         [JsonIgnore]
         public bool Deleted { get; private set; }
         [DataMember]
