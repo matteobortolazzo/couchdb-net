@@ -39,6 +39,16 @@ namespace CouchDB.Driver.Types
         private string RevOther { set => Rev = value; }
 
         [DataMember]
+        [JsonIgnore]
+        public bool Deleted { get; private set; }
+        [DataMember]
+        [JsonProperty("_deleted", NullValueHandling = NullValueHandling.Ignore)]
+        private bool DeletedOther
+        {
+            set => Deleted = value;
+        }
+
+        [DataMember]
         [JsonProperty("_conflicts")]
         private readonly List<string> _conflicts;
 
