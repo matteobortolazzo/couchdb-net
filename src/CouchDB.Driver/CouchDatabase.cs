@@ -81,7 +81,7 @@ namespace CouchDB.Driver
         public async Task<TSource?> FindAsync(string docId, FindOptions options, CancellationToken cancellationToken = default)
         {
             IFlurlRequest request = NewRequest()
-                    .AppendPathSegment(docId);
+                    .AppendPathSegment(Uri.EscapeDataString(docId));
 
             if (options.Conflicts)
                 request = request.SetQueryParam("conflicts", "true");
@@ -240,7 +240,7 @@ namespace CouchDB.Driver
             }
 
             IFlurlRequest request = NewRequest()
-                .AppendPathSegment(document.Id);
+                .AppendPathSegment(Uri.EscapeDataString(document.Id));
 
             if (options.Batch)
                 request = request.SetQueryParam("batch", "ok");
@@ -268,7 +268,7 @@ namespace CouchDB.Driver
             Check.NotNull(document, nameof(document));
 
             IFlurlRequest request = NewRequest()
-                .AppendPathSegment(document.Id);
+                .AppendPathSegment(Uri.EscapeDataString(document.Id));
 
             if (batch)
             {
@@ -377,7 +377,7 @@ namespace CouchDB.Driver
                     new FileStream(attachment.FileInfo.FullName, FileMode.Open));
 
                 AttachmentResult response = await NewRequest()
-                    .AppendPathSegment(document.Id)
+                    .AppendPathSegment(Uri.EscapeDataString(document.Id))
                     .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                     .WithHeader("Content-Type", attachment.ContentType)
                     .WithHeader("If-Match", document.Rev)
@@ -395,8 +395,8 @@ namespace CouchDB.Driver
             foreach (CouchAttachment attachment in document.Attachments.GetDeletedAttachments())
             {
                 AttachmentResult response = await NewRequest()
-                    .AppendPathSegment(document.Id)
-                    .AppendPathSegment(attachment.Name)
+                    .AppendPathSegment(Uri.EscapeDataString(document.Id))
+                    .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
                     .WithHeader("If-Match", document.Rev)
                     .DeleteAsync(cancellationToken)
                     .ReceiveJson<AttachmentResult>()
@@ -664,7 +664,7 @@ namespace CouchDB.Driver
             }
 
             return await NewRequest()
-                .AppendPathSegment(attachment.DocumentId)
+                .AppendPathSegment(Uri.EscapeDataString(attachment.DocumentId))
                 .AppendPathSegment(Uri.EscapeUriString(attachment.Name))
                 .WithHeader("If-Match", attachment.DocumentRev)
                 .GetStreamAsync(cancellationToken)
