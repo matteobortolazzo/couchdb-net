@@ -119,6 +119,22 @@ namespace CouchDB.Driver
         Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Delete multiple documents based on their ID and revision.
+        /// </summary>
+        /// <param name="documents">The documents to delete.</param>
+        /// <param name="cancellationToken"> <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task DeleteRangeAsync(IEnumerable<TSource> documents, CancellationToken cancellationToken = default);
+        
+        /// <summary>
+        /// Delete multiple documents based on their ID and revision.
+        /// </summary>
+        /// <param name="documentIds">Documents to delete</param>
+        /// <param name="cancellationToken"> <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task DeleteRangeAsync(IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken = default);
+        
+        /// <summary>
         /// Executes the specified view function from the specified design document.
         /// </summary>
         /// <typeparam name="TKey">The type of the key.</typeparam>

@@ -277,6 +277,8 @@ var list = await rebels.QueryAsync(someMangoJson);
 var list = await rebels.QueryAsync(someMangoObject);
 // Bulk
 await rebels.AddOrUpdateRangeAsync(moreRebels);
+await rebels.DeleteRangeAsync(ids);
+await rebels.DeleteRangeAsync(moreRebels);
 // Utils
 await rebels.CompactAsync();
 var info = await rebels.GetInfoAsync();

@@ -320,6 +320,35 @@ namespace CouchDB.Driver
         }
 
         /// <inheritdoc />
+        public Task DeleteRangeAsync(IEnumerable<TSource> documents, CancellationToken cancellationToken = default)
+        {
+            DocumentId[] docIds = documents.Cast<DocumentId>().ToArray();
+            return DeleteRangeAsync(docIds, cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteRangeAsync(IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(documentIds, nameof(documentIds));
+
+            var documents = documentIds
+                .Select(docId => new
+                {
+                    _id = docId.Id,
+                    _rev = docId.Rev,
+                    _deleted = true
+                })
+                .ToArray();
+
+            await NewRequest()
+                .AppendPathSegment("_bulk_docs")
+                .PostJsonAsync(new { docs = documents }, cancellationToken)
+                .ReceiveJson<DocumentSaveResponse[]>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public async Task EnsureFullCommitAsync(CancellationToken cancellationToken = default)
         {
             OperationResult result = await NewRequest()
