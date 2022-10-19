@@ -744,7 +744,7 @@ Also, the configurator has `ConfigureFlurlClient` to set custom HTTP client opti
 
 ## Contributors
 
-[Ben Origas](https://github.com/borigas): Features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authenication and many others.
+[Ben Origas](https://github.com/borigas): Features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authentication and many others.
 
 [n9](https://github.com/n9): Proxy authentication, some bug fixes, suggestions and the great feedback on the changes feed feature!
 
@@ -752,6 +752,8 @@ Also, the configurator has `ConfigureFlurlClient` to set custom HTTP client opti
 
 [Panos](https://github.com/panoukos41): Help with Views and Table splitting.
 
-[Benjamin Höglinger-Stelzer](https://github.com/nefarius), [mwasson74](https://github.com/mwasson74), [Emre ÇAĞLAR](https://github.com/emrecaglar): Attachments improvments and fixes.
+[Benjamin Höglinger-Stelzer](https://github.com/nefarius), [mwasson74](https://github.com/mwasson74), [Emre ÇAĞLAR](https://github.com/emrecaglar): Attachments improvements and fixes.
 
 [Dhiren Sham](https://github.com/dhirensham): Implementing replication.
+
+[Dmitriy Larionov](https://github.com/dmlarionov): Revisions improvements.
