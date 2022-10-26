@@ -1,3 +1,9 @@
+# 3.3.1 (2022-10-26)
+
+## Bug Fixes
+
+* **Dependency Injection**: Fix dependency injection packages references ([#180](https://github.com/matteobortolazzo/couchdb-net/pull/180)) 
+
 # 3.3.0 (2022-10-20)
 
 ## Features
