@@ -8,7 +8,6 @@
     <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
     <PackageTags>couchdb,driver,nosql,netstandard,pouchdb,xamarin</PackageTags>
-    <PackageReleaseNotes></PackageReleaseNotes>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />
@@ -30,8 +29,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Flurl.Http" Version="3.2.0" />
-    <PackageReference Include="Humanizer.Core" Version="2.11.10" />
+    <PackageReference Include="Flurl.Http" Version="3.2.4" />
+    <PackageReference Include="Humanizer.Core" Version="2.14.1" />
   </ItemGroup>
 
   <ItemGroup>
