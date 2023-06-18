@@ -432,11 +432,19 @@ namespace CouchDB.Driver
                 request = request.ApplyQueryParametersOptions(options);
             }
 
-            return filter == null
+            ChangesFeedResponse<TSource>? response = filter == null
                 ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false)
                 : await request.QueryWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
+            
+            if (string.IsNullOrWhiteSpace(_discriminator))
+            {
+                return response;
+            }
+
+            response.Results = response.Results.Where(result => result.Document.SplitDiscriminator == _discriminator).ToArray();
+            return response;
         }
 
         /// <inheritdoc />
@@ -474,7 +482,11 @@ namespace CouchDB.Driver
                     var endIndex = i < matches.Count - 1 ? matches[i + 1].Index : line.Length;
                     var lineLength = endIndex - startIndex;
                     var substring = line.Substring(startIndex, lineLength);
-                    yield return JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(substring);
+                    ChangesFeedResponseResult<TSource>? result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(substring);
+                    if (string.IsNullOrWhiteSpace(_discriminator) || result.Document.SplitDiscriminator == _discriminator)
+                    {
+                        yield return result;
+                    }
                 }
             }
         }
