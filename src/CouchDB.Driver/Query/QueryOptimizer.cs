@@ -244,6 +244,7 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.FirstWithoutPredicate)
             {
                 return node
+                    .TrySubstituteWithOptimized(nameof(Queryable.First), VisitMethodCall)
                     .SubstituteWithTake(1)
                     .WrapInMethodWithoutSelector(QueryableMethods.FirstWithoutPredicate);
             }
@@ -252,6 +253,7 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.FirstOrDefaultWithoutPredicate)
             {
                 return node
+                    .TrySubstituteWithOptimized(nameof(Queryable.FirstOrDefault), VisitMethodCall)
                     .SubstituteWithTake(1)
                     .WrapInMethodWithoutSelector(QueryableMethods.FirstOrDefaultWithoutPredicate);
             }
@@ -279,11 +281,15 @@ namespace CouchDB.Driver.Query
             #region Last/LastOrDefault
 
             // Last() == Last()
-            // LastOrDefault() == LastOrDefault()
-            if (genericDefinition == QueryableMethods.LastWithoutPredicate ||
-                genericDefinition == QueryableMethods.LastOrDefaultWithoutPredicate)
+            if (genericDefinition == QueryableMethods.LastWithoutPredicate)
             {
-                return node;
+                return node.TrySubstituteWithOptimized(nameof(Queryable.Last), VisitMethodCall);
+            } 
+            
+            // LastOrDefault() == LastOrDefault()
+            if (genericDefinition == QueryableMethods.LastOrDefaultWithoutPredicate)
+            {
+                return node.TrySubstituteWithOptimized(nameof(Queryable.LastOrDefault), VisitMethodCall);
             }
 
             // Last(d => condition) == Where(d => condition).Last()
