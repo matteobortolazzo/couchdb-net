@@ -126,6 +126,14 @@ namespace CouchDB.Driver.UnitTests.Find
                 @"{""selector"":{""battles"":{""$elemMatch"":{""vehicles"":{""$elemMatch"":{""canFly"":true}}}}}}",
                 json);
         }
+        
+        [Fact]
+        public void ElemMatch_In()
+        {
+            var search = new[] { "battle" };
+            var json = _rebels.Where(r => r.Skills.Any(s => s.In(search))).ToString();
+            Assert.Equal(@"{""selector"":{""skills"":{""$elemMatch"":{""$in"":[""battle""]}}}}", json);
+        }
 
         [Fact]
         public void AllMatch()

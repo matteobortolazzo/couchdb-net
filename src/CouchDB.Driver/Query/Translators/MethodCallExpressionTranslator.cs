@@ -456,10 +456,21 @@ namespace CouchDB.Driver.Query
         {
             _sb.Append('{');
             Visit(m.Arguments[0]);
-            _sb.Append(not ? ":{\"$nin\":" : ":{\"$in\":");
+
+            var bracketOpened = _sb[^1] == '{';
+            if (!bracketOpened)
+            {
+                _sb.Append(":{"); 
+            }
+            
+            _sb.Append(not ? "\"$nin\":" : "\"$in\":");
 
             Visit(m.Arguments[1]);
-            _sb.Append("}}");
+            if (!bracketOpened)
+            {
+                _sb.Append("}");
+            }
+            _sb.Append("}");
             return m;
         }
 
