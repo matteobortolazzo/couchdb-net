@@ -54,6 +54,33 @@ namespace CouchDB.Driver.Types
 
         [JsonIgnore]
         public IReadOnlyCollection<string> Conflicts => _conflicts.AsReadOnly();
+        
+        [DataMember]
+        [JsonProperty("_deleted_conflicts")]
+        private readonly List<string> _deletedConflicts;
+
+        [JsonIgnore]
+        public IReadOnlyCollection<string> DeletedConflicts => _deletedConflicts.AsReadOnly();
+        
+        [DataMember]
+        [JsonProperty("_localSeq")]
+        private readonly int _localSeq;
+
+        [JsonIgnore] public int LocalSeq => _localSeq;
+        
+        [DataMember]
+        [JsonProperty("_revs_info")]
+        private readonly List<RevisionInfo> _revInfo;
+
+        [JsonIgnore]
+        public IReadOnlyCollection<RevisionInfo> RevInfo => _revInfo;
+        
+        [DataMember]
+        [JsonProperty("_revisions")]
+        private readonly Revisions _revisions;
+
+        [JsonIgnore]
+        public Revisions Revisions => _revisions;
 
         // This must be for serialization only field
         [DataMember]

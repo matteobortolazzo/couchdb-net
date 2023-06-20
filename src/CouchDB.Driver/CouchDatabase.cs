@@ -83,13 +83,7 @@ namespace CouchDB.Driver
             IFlurlRequest request = NewRequest()
                     .AppendPathSegment(Uri.EscapeDataString(docId));
 
-            if (options.Conflicts)
-                request = request.SetQueryParam("conflicts", "true");
-
-            if (options.Rev != null)
-                request = request.SetQueryParam("rev", options.Rev);
-
-            IFlurlResponse? response = await request
+            IFlurlResponse? response = await SetFindOptions(request, options)
                 .AllowHttpStatus(HttpStatusCode.NotFound)
                 .GetAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -748,6 +742,64 @@ namespace CouchDB.Driver
             var builder = new IndexBuilder<TSource>(_options, _queryProvider);
             indexBuilderAction(builder);
             return builder;
+        }
+
+        private static IFlurlRequest SetFindOptions(IFlurlRequest request, FindOptions options)
+        {
+            if (options.Attachments)
+            {
+                request = request.SetQueryParam("attachments", "true");
+            }
+            if (options.AttachmentsEncodingInfo)
+            {
+                request = request.SetQueryParam("att_encoding_info", "true");
+            }
+            if (options.AttachmentsSince != null && options.AttachmentsSince.Any())
+            {
+                request = request.SetQueryParam("att_encoding_info", options.AttachmentsSince);
+            }
+            if (options.Conflicts)
+            {
+                request = request.SetQueryParam("conflicts", "true");
+            }
+            if (options.DeleteConflicts)
+            {
+                request = request.SetQueryParam("deleted_conflicts", "true");
+            }
+            if (options.DeleteConflicts)
+            {
+                request = request.SetQueryParam("deleted_conflicts", "true");
+            }
+            if (options.Latest)
+            {
+                request = request.SetQueryParam("latest", "true");
+            }
+            if (options.LocalSequence)
+            {
+                request = request.SetQueryParam("local_seq", "true");
+            }
+            if (options.Meta)
+            {
+                request = request.SetQueryParam("meta", "true");
+            }
+            if (options.OpenRevs != null && options.OpenRevs.Any())
+            {
+                request = request.SetQueryParam("open_revs", options.AttachmentsSince);
+            }
+            if (options.Rev != null)
+            {
+                request = request.SetQueryParam("rev", options.Rev);
+            }
+            if (options.Revs)
+            {
+                request = request.SetQueryParam("revs", "true");
+            }
+            if (options.RevInfo)
+            {
+                request = request.SetQueryParam("revs_info", "true");
+            }
+
+            return request;
         }
 
         #endregion
