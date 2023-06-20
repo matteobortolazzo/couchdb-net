@@ -536,6 +536,8 @@ public class MyDeathStarContext : CouchContext
 > When multiple `CouchDatabase` point to the same **database**, a `split_discriminator` field is added on document creation.
 >
 > When querying, a filter by `split_discriminator` is added automatically.
+> 
+> The field name can be overriden with the `WithDatabaseSplitDiscriminator`.
 
 If you are not using `CouchContext`, you can still use the database split feature:
 ```csharp

@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Reflection;
+﻿using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
 using Newtonsoft.Json;
@@ -10,10 +9,12 @@ namespace CouchDB.Driver.Helpers
     public class CouchContractResolver : DefaultContractResolver
     {
         private readonly PropertyCaseType _propertyCaseType;
+        private readonly string? _databaseSplitDiscriminator;
 
-        internal CouchContractResolver(PropertyCaseType propertyCaseType)
+        internal CouchContractResolver(PropertyCaseType propertyCaseType, string? databaseSplitDiscriminator)
         {
             _propertyCaseType = propertyCaseType;
+            _databaseSplitDiscriminator = databaseSplitDiscriminator;
         }
 
         protected override JsonProperty? CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
@@ -21,13 +22,17 @@ namespace CouchDB.Driver.Helpers
             Check.NotNull(member, nameof(member));
 
             JsonProperty property = base.CreateProperty(member, memberSerialization);
-            if (property != null && !property.Ignored)
+            if (property is { Ignored: false })
             {
-                var declaringNamespace = member.DeclaringType?.Namespace;
-                if (declaringNamespace != null && !declaringNamespace.Contains("CouchDB.Driver"))
+                if (member.DeclaringType!.Assembly != GetType().Assembly)
                 {
                     property.PropertyName = member.GetCouchPropertyName(_propertyCaseType);
                 }
+            }
+
+            if (property.PropertyName == CouchClient.DefaultDatabaseSplitDiscriminator && !string.IsNullOrWhiteSpace(_databaseSplitDiscriminator))
+            {
+                property.PropertyName = _databaseSplitDiscriminator;
             }
             return property;
         }

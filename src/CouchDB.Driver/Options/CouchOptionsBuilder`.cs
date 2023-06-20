@@ -129,6 +129,14 @@ namespace CouchDB.Driver.Options
         /// <returns>Return the current instance to chain calls.</returns>
         public new virtual CouchOptionsBuilder<TContext> SetPropertyCase(PropertyCaseType type)
             => (CouchOptionsBuilder<TContext>)base.SetPropertyCase(type);
+        
+        /// <summary>
+        /// Set the field to use to identify document types. Default: <c>split_discriminator</c>.
+        /// </summary>
+        /// <param name="databaseSplitDiscriminator">The document field to use as discriminator.</param>
+        /// <returns>Return the current instance to chain calls.</returns>
+        public new virtual CouchOptionsBuilder<TContext> WithDatabaseSplitDiscriminator(string databaseSplitDiscriminator)
+            => (CouchOptionsBuilder<TContext>)base.WithDatabaseSplitDiscriminator(databaseSplitDiscriminator);
 
         /// <summary>
         /// Sets how to handle null values during serialization.

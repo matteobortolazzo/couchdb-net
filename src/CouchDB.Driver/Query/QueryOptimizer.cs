@@ -16,7 +16,7 @@ namespace CouchDB.Driver.Query
     /// </summary>
     internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
     {
-        private static readonly MethodInfo WrapInWhereGenericMethod
+        private static readonly MethodInfo WrapInDiscriminatorFilterGenericMethod
                = typeof(MethodCallExpressionBuilder).GetMethod(nameof(MethodCallExpressionBuilder.WrapInDiscriminatorFilter));
         private bool _isVisitingWhereMethodOrChild;
         private readonly Queue<MethodCallExpression> _nextWhereCalls;
@@ -33,13 +33,13 @@ namespace CouchDB.Driver.Query
                 if (e.Type.IsGenericType)
                 {
                     Type? sourceType = e.Type.GetGenericArguments()[0];
-                    MethodInfo wrapInWhere = WrapInWhereGenericMethod.MakeGenericMethod(sourceType);
+                    MethodInfo wrapInWhere = WrapInDiscriminatorFilterGenericMethod.MakeGenericMethod(sourceType);
                     e = (Expression)wrapInWhere.Invoke(null, new object[] { e, discriminator });
                 }
                 else
                 {
                     Type sourceType = e.Type;
-                    MethodInfo wrapInWhere = WrapInWhereGenericMethod.MakeGenericMethod(sourceType);
+                    MethodInfo wrapInWhere = WrapInDiscriminatorFilterGenericMethod.MakeGenericMethod(sourceType);
 
                     var rootMethodCallExpression = e as MethodCallExpression;
                     Expression source = rootMethodCallExpression!.Arguments[0];
@@ -244,6 +244,7 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.FirstWithoutPredicate)
             {
                 return node
+                    .TrySubstituteWithOptimized(nameof(Queryable.First), VisitMethodCall)
                     .SubstituteWithTake(1)
                     .WrapInMethodWithoutSelector(QueryableMethods.FirstWithoutPredicate);
             }
@@ -252,6 +253,7 @@ namespace CouchDB.Driver.Query
             if (genericDefinition == QueryableMethods.FirstOrDefaultWithoutPredicate)
             {
                 return node
+                    .TrySubstituteWithOptimized(nameof(Queryable.FirstOrDefault), VisitMethodCall)
                     .SubstituteWithTake(1)
                     .WrapInMethodWithoutSelector(QueryableMethods.FirstOrDefaultWithoutPredicate);
             }
@@ -279,11 +281,15 @@ namespace CouchDB.Driver.Query
             #region Last/LastOrDefault
 
             // Last() == Last()
-            // LastOrDefault() == LastOrDefault()
-            if (genericDefinition == QueryableMethods.LastWithoutPredicate ||
-                genericDefinition == QueryableMethods.LastOrDefaultWithoutPredicate)
+            if (genericDefinition == QueryableMethods.LastWithoutPredicate)
             {
-                return node;
+                return node.TrySubstituteWithOptimized(nameof(Queryable.Last), VisitMethodCall);
+            } 
+            
+            // LastOrDefault() == LastOrDefault()
+            if (genericDefinition == QueryableMethods.LastOrDefaultWithoutPredicate)
+            {
+                return node.TrySubstituteWithOptimized(nameof(Queryable.LastOrDefault), VisitMethodCall);
             }
 
             // Last(d => condition) == Where(d => condition).Last()

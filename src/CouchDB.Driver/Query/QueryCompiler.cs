@@ -17,6 +17,7 @@ namespace CouchDB.Driver.Query
         private readonly IQueryTranslator _queryTranslator;
         private readonly IQuerySender _requestSender;
         private readonly string? _discriminator;
+
         private static readonly MethodInfo RequestSendMethod
             = typeof(IQuerySender).GetRuntimeMethods()
                 .Single(m => (m.Name == nameof(IQuerySender.Send)) && m.IsGenericMethod);
@@ -29,7 +30,8 @@ namespace CouchDB.Driver.Query
             = typeof(QueryCompiler).GetMethod(nameof(PostProcessResultAsync),
                 BindingFlags.NonPublic | BindingFlags.Static);
 
-        public QueryCompiler(IQueryOptimizer queryOptimizer, IQueryTranslator queryTranslator, IQuerySender requestSender, string? discriminator)
+        public QueryCompiler(IQueryOptimizer queryOptimizer, IQueryTranslator queryTranslator,
+            IQuerySender requestSender, string? discriminator)
         {
             _queryOptimizer = queryOptimizer;
             _queryTranslator = queryTranslator;
@@ -57,7 +59,8 @@ namespace CouchDB.Driver.Query
                 {
                     ConstantExpression _ => SendRequestWithoutFilter<TResult>(query,
                         async, cancellationToken),
-                    MethodCallExpression methodCallExpression => SendRequestWithFilter<TResult>(methodCallExpression, query,
+                    MethodCallExpression methodCallExpression => SendRequestWithFilter<TResult>(methodCallExpression,
+                        query,
                         async, cancellationToken),
                     _ => throw new ArgumentException($"Expression of type {query.GetType().Name} is not valid.")
                 };
@@ -69,7 +72,8 @@ namespace CouchDB.Driver.Query
             }
         }
 
-        private TResult SendRequestWithoutFilter<TResult>(Expression query, bool async, CancellationToken cancellationToken)
+        private TResult SendRequestWithoutFilter<TResult>(Expression query, bool async,
+            CancellationToken cancellationToken)
         {
             Expression optimizedQuery = _queryOptimizer.Optimize(query, _discriminator);
             var body = _queryTranslator.Translate(optimizedQuery);
@@ -87,7 +91,7 @@ namespace CouchDB.Driver.Query
             }
 
             var body = _queryTranslator.Translate(optimizedQuery);
-            
+
             // If no operation must be done on the list return
             if (!methodCallExpression.Method.IsSupportedByComposition())
             {
@@ -101,12 +105,12 @@ namespace CouchDB.Driver.Query
             // Query database
             object couchQueryable = RequestSendMethod
                 .MakeGenericMethod(couchListType)
-                .Invoke(_requestSender, new object[]{ body, async, cancellationToken });
+                .Invoke(_requestSender, new object[] { body, async, cancellationToken });
 
             // Apply in-memory operations
             MethodInfo postProcessResultMethodInfo = (async
-                ? PostProcessResultAsyncMethod
-                : PostProcessResultMethod)
+                    ? PostProcessResultAsyncMethod
+                    : PostProcessResultMethod)
                 .MakeGenericMethod(documentType, returnType);
 
             return (TResult)postProcessResultMethodInfo.Invoke(null,
@@ -174,7 +178,7 @@ namespace CouchDB.Driver.Query
             // Execute
             try
             {
-                return (TResult)enumerableMethodInfo.Invoke(null, new[] {result});
+                return (TResult)enumerableMethodInfo.Invoke(null, new[] { result });
             }
             catch (TargetInvocationException ex)
             {

@@ -32,5 +32,9 @@ namespace CouchDB.Driver.Types
         [DataMember]
         [JsonProperty("cancel")]
         public bool Cancel { get; internal set; }
+        
+        [DataMember]
+        [JsonProperty("create_target")]
+        public bool CreateTarget{ get; set; }
     }
 }

@@ -27,6 +27,8 @@ namespace CouchDB.Driver.Options
         internal bool PluralizeEntities { get; set; }
         internal DocumentCaseType DocumentsCaseType { get; set; }
         internal PropertyCaseType PropertiesCase { get; set; }
+        
+        internal string? DatabaseSplitDiscriminator { get; set; }
         internal NullValueHandling? NullValueHandling { get; set; }
         internal bool LogOutOnDispose { get; set; }
 

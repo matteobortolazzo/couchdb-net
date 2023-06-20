@@ -11,6 +11,18 @@ namespace CouchDB.Driver.Helpers
     {
         #region Substitute
 
+        public static MethodCallExpression TrySubstituteWithOptimized(this MethodCallExpression node, string methodName, Func<MethodCallExpression, Expression> visitMethod)
+        {
+            if (node.Arguments.Count > 0 && node.Arguments[0] is MethodCallExpression methodCallExpression)
+            {
+                Expression? optimizedArgument = visitMethod(methodCallExpression);
+                node = Expression.Call(typeof(Queryable), methodName,
+                    node.Method.GetGenericArguments(), optimizedArgument);
+            }
+
+            return node;
+        }
+        
         public static MethodCallExpression SubstituteWithQueryableCall(this MethodCallExpression node, string methodName)
         {
             Check.NotNull(node, nameof(node));

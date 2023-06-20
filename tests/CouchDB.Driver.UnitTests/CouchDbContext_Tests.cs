@@ -35,6 +35,31 @@ namespace CouchDB.Driver.UnitTests
                     .ToDatabase("shared-rebels");
             }
         }
+        
+        private class MyDeathStarContextCustomSplit: CouchContext
+        {
+            public CouchDatabase<OtherRebel> OtherRebels { get; set; }
+            public CouchDatabase<SimpleRebel> SimpleRebels { get; set; }
+
+            protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
+            {
+                optionsBuilder
+                    .UseEndpoint("http://localhost:5984/")
+                    .UseBasicAuthentication("admin", "admin")
+                    .WithDatabaseSplitDiscriminator("docType");
+            }
+
+            protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
+            {
+                databaseBuilder
+                    .Document<OtherRebel>()
+                    .ToDatabase("shared-rebels");
+
+                databaseBuilder
+                    .Document<SimpleRebel>()
+                    .ToDatabase("shared-rebels");
+            }
+        }
 
         [Fact]
         public async Task Context_Query()
@@ -106,11 +131,55 @@ namespace CouchDB.Driver.UnitTests
             var result = await context.OtherRebels.ToListAsync();
             Assert.NotEmpty(result);
             Assert.Equal("Luke", result[0].Name);
-            Assert.Equal(@"{""_conflicts"":[],""name"":""Leia"",""age"":0,""split_discriminator"":""SimpleRebel"",""_attachments"":{}}", httpTest.CallLog[0].RequestBody);
-            Assert.Equal(@"{""_conflicts"":[],""rebel_bith_date"":""0001-01-01T00:00:00"",""name"":""Luke"",""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""split_discriminator"":""OtherRebel"",""_attachments"":{}}", httpTest.CallLog[1].RequestBody);
+            Assert.Equal(@"{""name"":""Leia"",""age"":0,""split_discriminator"":""SimpleRebel"",""_attachments"":{}}", httpTest.CallLog[0].RequestBody);
+            Assert.Equal(@"{""rebel_bith_date"":""0001-01-01T00:00:00"",""name"":""Luke"",""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""split_discriminator"":""OtherRebel"",""_attachments"":{}}", httpTest.CallLog[1].RequestBody);
             Assert.Equal(@"{""selector"":{""split_discriminator"":""OtherRebel""}}", httpTest.CallLog[2].RequestBody);
         }
 
+        [Fact]
+        public async Task Context_Query_Discriminator_Override()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(new
+            {
+                Id = "176694",
+                Ok = true,
+                Rev = "1-54f8e950cc338d2385d9b0cda2fd918e"
+            });
+            httpTest.RespondWithJson(new
+            {
+                Id = "173694",
+                Ok = true,
+                Rev = "1-54f8e950cc338d2385d9b0cda2fd918e"
+            });
+            httpTest.RespondWithJson(new
+            {
+                docs = new object[] {
+                    new {
+                        Id = "176694",
+                        Rev = "1-54f8e950cc338d2385d9b0cda2fd918e",
+                        Name = "Luke"
+                    }
+                }
+            });
+
+            await using var context = new MyDeathStarContextCustomSplit();
+            await context.SimpleRebels.AddAsync(new SimpleRebel
+            {
+                Name = "Leia"
+            });
+            await context.OtherRebels.AddAsync(new OtherRebel
+            {
+                Name = "Luke"
+            });
+            var result = await context.OtherRebels.ToListAsync();
+            Assert.NotEmpty(result);
+            Assert.Equal("Luke", result[0].Name);
+            Assert.Equal(@"{""name"":""Leia"",""age"":0,""docType"":""SimpleRebel"",""_attachments"":{}}", httpTest.CallLog[0].RequestBody);
+            Assert.Equal(@"{""rebel_bith_date"":""0001-01-01T00:00:00"",""name"":""Luke"",""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""docType"":""OtherRebel"",""_attachments"":{}}", httpTest.CallLog[1].RequestBody);
+            Assert.Equal(@"{""selector"":{""docType"":""OtherRebel""}}", httpTest.CallLog[2].RequestBody);
+        }
+        
         [Fact]
         public async Task Context_Query_MultiThread()
         {

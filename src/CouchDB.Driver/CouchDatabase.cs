@@ -83,13 +83,7 @@ namespace CouchDB.Driver
             IFlurlRequest request = NewRequest()
                     .AppendPathSegment(Uri.EscapeDataString(docId));
 
-            if (options.Conflicts)
-                request = request.SetQueryParam("conflicts", "true");
-
-            if (options.Rev != null)
-                request = request.SetQueryParam("rev", options.Rev);
-
-            IFlurlResponse? response = await request
+            IFlurlResponse? response = await SetFindOptions(request, options)
                 .AllowHttpStatus(HttpStatusCode.NotFound)
                 .GetAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -432,11 +426,19 @@ namespace CouchDB.Driver
                 request = request.ApplyQueryParametersOptions(options);
             }
 
-            return filter == null
+            ChangesFeedResponse<TSource>? response = filter == null
                 ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false)
                 : await request.QueryWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
+            
+            if (string.IsNullOrWhiteSpace(_discriminator))
+            {
+                return response;
+            }
+
+            response.Results = response.Results.Where(result => result.Document.SplitDiscriminator == _discriminator).ToArray();
+            return response;
         }
 
         /// <inheritdoc />
@@ -474,7 +476,11 @@ namespace CouchDB.Driver
                     var endIndex = i < matches.Count - 1 ? matches[i + 1].Index : line.Length;
                     var lineLength = endIndex - startIndex;
                     var substring = line.Substring(startIndex, lineLength);
-                    yield return JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(substring);
+                    ChangesFeedResponseResult<TSource>? result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(substring);
+                    if (string.IsNullOrWhiteSpace(_discriminator) || result.Document.SplitDiscriminator == _discriminator)
+                    {
+                        yield return result;
+                    }
                 }
             }
         }
@@ -736,6 +742,64 @@ namespace CouchDB.Driver
             var builder = new IndexBuilder<TSource>(_options, _queryProvider);
             indexBuilderAction(builder);
             return builder;
+        }
+
+        private static IFlurlRequest SetFindOptions(IFlurlRequest request, FindOptions options)
+        {
+            if (options.Attachments)
+            {
+                request = request.SetQueryParam("attachments", "true");
+            }
+            if (options.AttachmentsEncodingInfo)
+            {
+                request = request.SetQueryParam("att_encoding_info", "true");
+            }
+            if (options.AttachmentsSince != null && options.AttachmentsSince.Any())
+            {
+                request = request.SetQueryParam("att_encoding_info", options.AttachmentsSince);
+            }
+            if (options.Conflicts)
+            {
+                request = request.SetQueryParam("conflicts", "true");
+            }
+            if (options.DeleteConflicts)
+            {
+                request = request.SetQueryParam("deleted_conflicts", "true");
+            }
+            if (options.DeleteConflicts)
+            {
+                request = request.SetQueryParam("deleted_conflicts", "true");
+            }
+            if (options.Latest)
+            {
+                request = request.SetQueryParam("latest", "true");
+            }
+            if (options.LocalSequence)
+            {
+                request = request.SetQueryParam("local_seq", "true");
+            }
+            if (options.Meta)
+            {
+                request = request.SetQueryParam("meta", "true");
+            }
+            if (options.OpenRevisions != null && options.OpenRevisions.Any())
+            {
+                request = request.SetQueryParam("open_revs", options.AttachmentsSince);
+            }
+            if (options.Revision != null)
+            {
+                request = request.SetQueryParam("rev", options.Revision);
+            }
+            if (options.Revisions)
+            {
+                request = request.SetQueryParam("revs", "true");
+            }
+            if (options.RevisionsInfo)
+            {
+                request = request.SetQueryParam("revs_info", "true");
+            }
+
+            return request;
         }
 
         #endregion

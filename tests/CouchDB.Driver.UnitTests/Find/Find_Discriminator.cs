@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using CouchDB.UnitTests.Models;
 using System.Linq;
+using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Query.Extensions;
 using Flurl.Http.Testing;
 using Xunit;
 
@@ -75,6 +77,32 @@ namespace CouchDB.Driver.UnitTests.Find
             _simpleRebels.FirstOrDefault(c => c.Age == 19);
             Assert.Equal(@"{""selector"":{""$and"":[{""split_discriminator"":""Rebel""},{""age"":19}]},""limit"":1}", httpTest.CallLog[0].RequestBody);
             Assert.Equal(@"{""selector"":{""$and"":[{""split_discriminator"":""SimpleRebel""},{""age"":19}]},""limit"":1}", httpTest.CallLog[1].RequestBody);
+        }
+        
+        [Fact]
+        public void Discriminator_FirstOrDefault_WithWhere()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var query = _rebels.Where(r => r.Id == "1").Select(r => r.Id, r => r.Rev);
+            query.FirstOrDefault();
+            query.FirstOrDefault(r => r.Age == 19);
+            query.LastOrDefault();
+            query.LastOrDefaultAsync(r => r.Age == 19);
+            Assert.Equal(@"{""fields"":[""_id"",""_rev""],""selector"":{""$and"":[{""_id"":""1""},{""split_discriminator"":""Rebel""}]},""limit"":1}", httpTest.CallLog[0].RequestBody);
+            Assert.Equal(@"{""fields"":[""_id"",""_rev""],""selector"":{""$and"":[{""_id"":""1""},{""split_discriminator"":""Rebel""},{""age"":19}]},""limit"":1}", httpTest.CallLog[1].RequestBody);
+        }
+        
+        [Fact]
+        public void Discriminator_LastOrDefault_WithWhere()
+        {
+            using var httpTest = new HttpTest();
+            httpTest.RespondWithJson(_response);
+            var query = _rebels.Where(r => r.Id == "1").Select(r => r.Id, r => r.Rev);
+            query.LastOrDefault();
+            query.LastOrDefaultAsync(r => r.Age == 19);
+            Assert.Equal(@"{""fields"":[""_id"",""_rev""],""selector"":{""$and"":[{""_id"":""1""},{""split_discriminator"":""Rebel""}]}}", httpTest.CallLog[0].RequestBody);
+            Assert.Equal(@"{""fields"":[""_id"",""_rev""],""selector"":{""$and"":[{""_id"":""1""},{""split_discriminator"":""Rebel""},{""age"":19}]}}", httpTest.CallLog[1].RequestBody);
         }
     }
 }

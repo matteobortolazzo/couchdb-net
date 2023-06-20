@@ -194,6 +194,17 @@ namespace CouchDB.Driver.Options
         }
 
         /// <summary>
+        /// Set the field to use to identify document types. Default: <c>split_discriminator</c>.
+        /// </summary>
+        /// <param name="databaseSplitDiscriminator">The document field to use as discriminator.</param>
+        /// <returns>Return the current instance to chain calls.</returns>
+        public virtual CouchOptionsBuilder WithDatabaseSplitDiscriminator(string databaseSplitDiscriminator)
+        {
+            Options.DatabaseSplitDiscriminator = databaseSplitDiscriminator;
+            return this;
+        }
+
+        /// <summary>
         /// Sets how to handle null values during serialization.
         /// </summary>
         /// <param name="nullValueHandling">The type of null value handling.</param>
