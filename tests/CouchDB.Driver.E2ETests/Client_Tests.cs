@@ -1,5 +1,4 @@
-﻿using CouchDB.Driver.E2E.Models;
-using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Types;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -9,7 +8,7 @@ using CouchDB.Driver.E2ETests;
 using CouchDB.Driver.E2ETests._Models;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Local;
-using CouchDB.Driver.Query.Extensions;
+using E2ETests.Models;
 using Xunit;
 
 namespace CouchDB.Driver.E2E

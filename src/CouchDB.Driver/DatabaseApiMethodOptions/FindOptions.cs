@@ -46,28 +46,28 @@ namespace CouchDB.Driver.DatabaseApiMethodOptions
         public bool LocalSequence { get; set; }
 
         /// <summary>
-        /// Acts same as specifying all <see cref="Conflicts"/>, <see cref="DeleteConflicts"/> and <see cref="RevInfo"/> query parameters. Default is <c>False</c>
+        /// Acts same as specifying all <see cref="Conflicts"/>, <see cref="DeleteConflicts"/> and <see cref="RevisionsInfo"/> query parameters. Default is <c>False</c>
         /// </summary>
         public bool Meta { get; set; }
         
         /// <summary>
         /// Retrieves documents of specified leaf revisions. Additionally, it accepts value as all to return all leaf revisions. Optional
         /// </summary>
-        public IList<string>? OpenRevs { get; set; }
+        public IList<string>? OpenRevisions { get; set; }
         
         /// <summary>
         /// Retrieves document of specified revision. Optional
         /// </summary>
-        public string? Rev { get; set; }
+        public string? Revision { get; set; }
         
         /// <summary>
         /// Includes list of all known document revisions. Default is <c>False</c>
         /// </summary>
-        public bool Revs { get; set; }
+        public bool Revisions { get; set; }
         
         /// <summary>
         /// Includes detailed information for all known document revisions. Default is <c>False</c>
         /// </summary>
-        public bool RevInfo { get; set; }
+        public bool RevisionsInfo { get; set; }
     }
 }

@@ -83,7 +83,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             });
 
-            var newR = await _rebels.FindAsync("1", new FindOptions { Rev = "1-xxx" });
+            var newR = await _rebels.FindAsync("1", new FindOptions { Revision = "1-xxx" });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1*")
                 .WithQueryParam("rev", "1-xxx")

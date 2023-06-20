@@ -106,8 +106,8 @@ namespace CouchDB.Driver.UnitTests
             var result = await context.OtherRebels.ToListAsync();
             Assert.NotEmpty(result);
             Assert.Equal("Luke", result[0].Name);
-            Assert.Equal(@"{""_conflicts"":[],""name"":""Leia"",""age"":0,""split_discriminator"":""SimpleRebel"",""_attachments"":{}}", httpTest.CallLog[0].RequestBody);
-            Assert.Equal(@"{""_conflicts"":[],""rebel_bith_date"":""0001-01-01T00:00:00"",""name"":""Luke"",""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""split_discriminator"":""OtherRebel"",""_attachments"":{}}", httpTest.CallLog[1].RequestBody);
+            Assert.Equal(@"{""name"":""Leia"",""age"":0,""split_discriminator"":""SimpleRebel"",""_attachments"":{}}", httpTest.CallLog[0].RequestBody);
+            Assert.Equal(@"{""rebel_bith_date"":""0001-01-01T00:00:00"",""name"":""Luke"",""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""split_discriminator"":""OtherRebel"",""_attachments"":{}}", httpTest.CallLog[1].RequestBody);
             Assert.Equal(@"{""selector"":{""split_discriminator"":""OtherRebel""}}", httpTest.CallLog[2].RequestBody);
         }
 

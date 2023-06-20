@@ -206,7 +206,7 @@ namespace CouchDB.Driver.UnitTests
 
             var call = httpTest.CallLog.First();
             Assert.NotNull(call);
-            Assert.Equal(@"{""_conflicts"":[],""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""_attachments"":{}}", call.RequestBody);
+            Assert.Equal(@"{""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""_attachments"":{}}", call.RequestBody);
         }
 
         [Fact]
@@ -222,7 +222,7 @@ namespace CouchDB.Driver.UnitTests
 
             var call = httpTest.CallLog.First();
             Assert.NotNull(call);
-            Assert.Equal(@"{""_conflicts"":[],""name"":null,""surname"":null,""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""skills"":null,""battles"":null,""vehicle"":null,""_attachments"":{}}", call.RequestBody);
+            Assert.Equal(@"{""name"":null,""surname"":null,""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""skills"":null,""battles"":null,""vehicle"":null,""_attachments"":{}}", call.RequestBody);
         }
 
         [Fact]
@@ -238,7 +238,7 @@ namespace CouchDB.Driver.UnitTests
 
             var call = httpTest.CallLog.First();
             Assert.NotNull(call);
-            Assert.Equal(@"{""_conflicts"":[],""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""_attachments"":{}}", call.RequestBody);
+            Assert.Equal(@"{""age"":0,""isJedi"":false,""species"":0,""guid"":""00000000-0000-0000-0000-000000000000"",""_attachments"":{}}", call.RequestBody);
         }
 
         #endregion

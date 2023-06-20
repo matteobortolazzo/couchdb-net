@@ -782,19 +782,19 @@ namespace CouchDB.Driver
             {
                 request = request.SetQueryParam("meta", "true");
             }
-            if (options.OpenRevs != null && options.OpenRevs.Any())
+            if (options.OpenRevisions != null && options.OpenRevisions.Any())
             {
                 request = request.SetQueryParam("open_revs", options.AttachmentsSince);
             }
-            if (options.Rev != null)
+            if (options.Revision != null)
             {
-                request = request.SetQueryParam("rev", options.Rev);
+                request = request.SetQueryParam("rev", options.Revision);
             }
-            if (options.Revs)
+            if (options.Revisions)
             {
                 request = request.SetQueryParam("revs", "true");
             }
-            if (options.RevInfo)
+            if (options.RevisionsInfo)
             {
                 request = request.SetQueryParam("revs_info", "true");
             }

@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Reflection;
+﻿using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
 using Newtonsoft.Json;
