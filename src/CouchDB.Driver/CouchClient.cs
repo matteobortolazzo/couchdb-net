@@ -23,6 +23,7 @@ namespace CouchDB.Driver
     /// </summary>
     public partial class CouchClient : ICouchClient
     {
+        public const string DefaultDatabaseSplitDiscriminator = "split_discriminator";
         private DateTime? _cookieCreationDate;
         private string? _cookieToken;
 
@@ -91,7 +92,7 @@ namespace CouchDB.Driver
             {
                 s.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
                 {
-                    ContractResolver = new CouchContractResolver(_options.PropertiesCase),
+                    ContractResolver = new CouchContractResolver(_options.PropertiesCase, _options.DatabaseSplitDiscriminator),
                     NullValueHandling = _options.NullValueHandling ?? NullValueHandling.Include
                 });
                 s.BeforeCallAsync = OnBeforeCallAsync;

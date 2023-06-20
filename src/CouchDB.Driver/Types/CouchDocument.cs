@@ -111,7 +111,7 @@ namespace CouchDB.Driver.Types
         /// Used for database splitting
         /// </summary>
         [DataMember]
-        [JsonProperty("split_discriminator", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(CouchClient.DefaultDatabaseSplitDiscriminator, NullValueHandling = NullValueHandling.Ignore)]
         internal string SplitDiscriminator { get; set; }
 
         [OnDeserialized]

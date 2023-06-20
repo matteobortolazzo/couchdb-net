@@ -1,5 +1,5 @@
-﻿using CouchDB.Driver.Options;
-using E2ETests.Models;
+﻿using CouchDB.Driver.E2ETests.Models;
+using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.E2ETests
 {

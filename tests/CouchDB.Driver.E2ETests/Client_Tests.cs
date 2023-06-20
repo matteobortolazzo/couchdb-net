@@ -5,10 +5,9 @@ using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.E2ETests;
-using CouchDB.Driver.E2ETests._Models;
+using CouchDB.Driver.E2ETests.Models;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Local;
-using E2ETests.Models;
 using Xunit;
 
 namespace CouchDB.Driver.E2E

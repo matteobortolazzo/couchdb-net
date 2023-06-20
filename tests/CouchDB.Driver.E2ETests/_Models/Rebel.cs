@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using CouchDB.Driver.Types;
 
-namespace E2ETests.Models
+namespace CouchDB.Driver.E2ETests.Models
 {
     public class Rebel : CouchDocument
     {
