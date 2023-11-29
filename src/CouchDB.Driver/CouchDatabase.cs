@@ -414,6 +414,7 @@ namespace CouchDB.Driver
         public async Task<ChangesFeedResponse<TSource>> GetChangesAsync(ChangesFeedOptions? options = null, ChangesFeedFilter? filter = null, CancellationToken cancellationToken = default)
         {
             IFlurlRequest request = NewRequest()
+                .WithHeader("Accept", "application/json")
                 .AppendPathSegment("_changes");
 
             if (options?.LongPoll == true)
@@ -448,6 +449,7 @@ namespace CouchDB.Driver
             var infiniteTimeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
             IFlurlRequest request = NewRequest()
                 .WithTimeout(infiniteTimeout)
+                .WithHeader("Accept", "application/json")
                 .AppendPathSegment("_changes")
                 .SetQueryParam("feed", "continuous");
 
