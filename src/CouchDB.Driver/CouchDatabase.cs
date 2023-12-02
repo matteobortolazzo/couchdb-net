@@ -81,6 +81,7 @@ namespace CouchDB.Driver
         public async Task<TSource?> FindAsync(string docId, FindOptions options, CancellationToken cancellationToken = default)
         {
             IFlurlRequest request = NewRequest()
+                    .WithHeader("Accept", "application/json")
                     .AppendPathSegment(Uri.EscapeDataString(docId));
 
             IFlurlResponse? response = await SetFindOptions(request, options)
