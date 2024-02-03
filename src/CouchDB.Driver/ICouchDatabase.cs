@@ -222,7 +222,7 @@ namespace CouchDB.Driver
         /// <param name="cancellationToken">A cancellation token to stop receiving changes.</param>
         /// <returns>A IAsyncEnumerable that represents the asynchronous operation. The task result contains the feed change.</returns>
         IAsyncEnumerable<ChangesFeedResponseResult<TSource>> GetContinuousChangesAsync(
-            ChangesFeedOptions options, ChangesFeedFilter filter,
+            ChangesFeedOptions? options, ChangesFeedFilter? filter,
             CancellationToken cancellationToken);
 
         /// <summary>
