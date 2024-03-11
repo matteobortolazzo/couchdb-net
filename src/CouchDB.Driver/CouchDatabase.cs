@@ -459,33 +459,45 @@ namespace CouchDB.Driver
                 request = request.ApplyQueryParametersOptions(options);
             }
 
-            await using Stream stream = filter == null
-                ? await request.GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
-                    .ConfigureAwait(false)
-                : await request.QueryContinuousWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
-                    .ConfigureAwait(false);
-
-            await foreach (var line in stream.ReadLinesAsync(cancellationToken))
+            do
             {
-                if (string.IsNullOrEmpty(line))
+                await using Stream stream = filter == null
+                    ? await request.GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
+                        .ConfigureAwait(false)
+                    : await request.QueryContinuousWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
+                        .ConfigureAwait(false);
+
+                var lastSequence = options?.Since ?? "0";
+
+                await foreach (var line in stream.ReadLinesAsync(cancellationToken))
                 {
-                    continue;
-                }
-                
-                MatchCollection matches = _feedChangeLineStartPattern.Matches(line);
-                for (var i = 0; i < matches.Count; i++)
-                {
-                    var startIndex = matches[i].Index;
-                    var endIndex = i < matches.Count - 1 ? matches[i + 1].Index : line.Length;
-                    var lineLength = endIndex - startIndex;
-                    var substring = line.Substring(startIndex, lineLength);
-                    ChangesFeedResponseResult<TSource>? result = JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(substring);
-                    if (string.IsNullOrWhiteSpace(_discriminator) || result.Document.SplitDiscriminator == _discriminator)
+                    if (string.IsNullOrEmpty(line))
                     {
-                        yield return result;
+                        continue;
+                    }
+
+                    MatchCollection matches = _feedChangeLineStartPattern.Matches(line);
+                    for (var i = 0; i < matches.Count; i++)
+                    {
+                        var startIndex = matches[i].Index;
+                        var endIndex = i < matches.Count - 1 ? matches[i + 1].Index : line.Length;
+                        var lineLength = endIndex - startIndex;
+                        var substring = line.Substring(startIndex, lineLength);
+                        ChangesFeedResponseResult<TSource>? result =
+                            JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(substring);
+                        if (string.IsNullOrWhiteSpace(_discriminator) ||
+                            result.Document.SplitDiscriminator == _discriminator)
+                        {
+                            lastSequence = result.Seq;
+                            yield return result;
+                        }
                     }
                 }
-            }
+
+                // stream broke, pick up listening after last successful processed sequence
+                request = request.SetQueryParam("since", lastSequence);
+
+            } while (!cancellationToken.IsCancellationRequested);
         }
 
         #endregion

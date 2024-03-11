@@ -1,3 +1,15 @@
+# 3.6.0 (2024-03-11)
+
+## Bugs
+
+* **Change feed**: Fixed automatic resume at last change in continuous feed ([#198](https://github.com/matteobortolazzo/couchdb-net/issues/198))
+
+# 3.5.0 (2024-02-03)
+
+## Features
+
+* **Find**: Added support for fetching attachments with entire content ([#194](https://github.com/matteobortolazzo/couchdb-net/issues/194))
+
 # 3.4.0 (2023-06-21)
 
 ## Features
@@ -16,7 +28,7 @@
 
 ## Bug Fixes
 
-* **Dependency Injection**: Fix dependency injection packages references ([#180](https://github.com/matteobortolazzo/couchdb-net/pull/180)) 
+* **Dependency Injection**: Fix dependency injection packages references ([#180](https://github.com/matteobortolazzo/couchdb-net/pull/180))
 
 # 3.3.0 (2022-10-20)
 

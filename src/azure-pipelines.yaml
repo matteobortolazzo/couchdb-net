@@ -1,6 +1,6 @@
 variables:
   BuildConfiguration: Release
-  PackageVersion: '3.5.0'
+  PackageVersion: '3.6.0'
 
 trigger:
   branches:
