@@ -1,5 +1,5 @@
-﻿# 3.6.0 (2024-03-11)
+﻿# 3.6.1 (2024-04-23)
 
 ## Bugs
 
-* **Change feed**: Fixed automatic resume at last change in continuous feed ([#198](https://github.com/matteobortolazzo/couchdb-net/issues/198))
+* **Change feed**: Fixed an issue causing an endless change notification for all documents under certain conditions ([#200](https://github.com/matteobortolazzo/couchdb-net/pull/201))

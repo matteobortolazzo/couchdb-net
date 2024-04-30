@@ -459,6 +459,8 @@ namespace CouchDB.Driver
                 request = request.ApplyQueryParametersOptions(options);
             }
 
+            var lastSequence = options?.Since ?? "0";
+
             do
             {
                 await using Stream stream = filter == null
@@ -466,9 +468,7 @@ namespace CouchDB.Driver
                         .ConfigureAwait(false)
                     : await request.QueryContinuousWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                         .ConfigureAwait(false);
-
-                var lastSequence = options?.Since ?? "0";
-
+                
                 await foreach (var line in stream.ReadLinesAsync(cancellationToken))
                 {
                     if (string.IsNullOrEmpty(line))
