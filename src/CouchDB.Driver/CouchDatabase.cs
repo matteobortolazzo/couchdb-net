@@ -27,7 +27,6 @@ using System.Net;
 using System.Text.RegularExpressions;
 using CouchDB.Driver.Views;
 using CouchDB.Driver.DatabaseApiMethodOptions;
-using System.Net.Mail;
 
 namespace CouchDB.Driver
 {
