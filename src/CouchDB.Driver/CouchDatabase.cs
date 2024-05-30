@@ -27,6 +27,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using CouchDB.Driver.Views;
 using CouchDB.Driver.DatabaseApiMethodOptions;
+using System.Net.Mail;
 
 namespace CouchDB.Driver
 {
@@ -715,6 +716,34 @@ namespace CouchDB.Driver
                 .GetJsonAsync<CouchDatabaseInfo>(cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<int> GetRevisionLimitAsync(CancellationToken cancellationToken = default)
+        {
+            return Convert.ToInt32(await NewRequest()
+                .AppendPathSegment("_revs_limit")
+                .GetStringAsync(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false));
+        }
+
+        /// <inheritdoc />
+        public async Task SetRevisionLimitAsync(int limit, CancellationToken cancellationToken = default)
+        {
+            using var content = new StringContent(limit.ToString());
+
+            OperationResult result = await NewRequest()
+                .AppendPathSegment("_revs_limit")
+                .PutAsync(content, cancellationToken)
+                .ReceiveJson<OperationResult>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (!result.Ok)
+            {
+                throw new CouchException("Something wrong happened while updating the revision limit.");
+            }
         }
 
         #endregion
