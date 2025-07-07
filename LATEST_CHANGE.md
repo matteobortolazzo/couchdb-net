@@ -2,4 +2,4 @@
 
 ## Features
 
-* **Dependency Injection**: Added `AddCouchContext` overloads that supply the service provider to the caller.
+* **Dependency Injection**: Added `AddCouchContext` overloads that supply the service provider to the caller ([#210](https://github.com/matteobortolazzo/couchdb-net/pull/210))
