@@ -1,5 +1,5 @@
-﻿# 3.6.1 (2024-04-23)
+﻿# 3.7.0 (2025-07-07)
 
-## Bugs
+## Features
 
-* **Change feed**: Fixed an issue causing an endless change notification for all documents under certain conditions ([#200](https://github.com/matteobortolazzo/couchdb-net/pull/201))
+* **Dependency Injection**: Added `AddCouchContext` overloads that supply the service provider to the caller.
