@@ -717,6 +717,97 @@ namespace CouchDB.Driver
                 .ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
+        public async Task<CouchPartitionInfo> GetPartitionInfoAsync(string partitionKey, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(partitionKey, nameof(partitionKey));
+
+            return await NewRequest()
+                .AppendPathSegment("_partition")
+                .AppendPathSegment(Uri.EscapeDataString(partitionKey))
+                .GetJsonAsync<CouchPartitionInfo>(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public Task<List<TSource>> QueryPartitionAsync(string partitionKey, string mangoQueryJson, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(partitionKey, nameof(partitionKey));
+            Check.NotNull(mangoQueryJson, nameof(mangoQueryJson));
+
+            return QueryPartitionInternalAsync(partitionKey, r => r
+                .WithHeader("Content-Type", "application/json")
+                .PostStringAsync(mangoQueryJson, cancellationToken));
+        }
+
+        /// <inheritdoc />
+        public Task<List<TSource>> QueryPartitionAsync(string partitionKey, object mangoQuery, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(partitionKey, nameof(partitionKey));
+            Check.NotNull(mangoQuery, nameof(mangoQuery));
+
+            return QueryPartitionInternalAsync(partitionKey, r => r
+                .PostJsonAsync(mangoQuery, cancellationToken));
+        }
+
+        /// <inheritdoc />
+        public async Task<List<TSource>> GetPartitionAllDocsAsync(string partitionKey, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(partitionKey, nameof(partitionKey));
+
+            var result = await NewRequest()
+                .AppendPathSegment("_partition")
+                .AppendPathSegment(Uri.EscapeDataString(partitionKey))
+                .AppendPathSegment("_all_docs")
+                .SetQueryParam("include_docs", "true")
+                .GetJsonAsync<AllDocsResult<TSource>>(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            var documents = result.Rows
+                .Select(r => r.Doc)
+                .Where(d => d != null)
+                .ToList();
+
+            foreach (var document in documents!)
+            {
+                if (document != null)
+                {
+                    InitAttachments(document);
+                }
+            }
+
+            return documents!;
+        }
+
+        private async Task<List<TSource>> QueryPartitionInternalAsync(string partitionKey, Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc)
+        {
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegment("_partition")
+                .AppendPathSegment(Uri.EscapeDataString(partitionKey))
+                .AppendPathSegment("_find");
+
+            Task<IFlurlResponse> message = requestFunc(request);
+
+            FindResult<TSource> findResult = await message
+                .ReceiveJson<FindResult<TSource>>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            var documents = findResult.Docs.ToList();
+
+            foreach (TSource document in documents)
+            {
+                if (document != null)
+                {
+                    InitAttachments(document);
+                }
+            }
+
+            return documents;
+        }
+
         #endregion
 
         #region Override
