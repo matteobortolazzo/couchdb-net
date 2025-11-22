@@ -766,19 +766,16 @@ namespace CouchDB.Driver
                 .ConfigureAwait(false);
 
             var documents = result.Rows
-                .Select(r => r.Doc)
-                .Where(d => d != null)
+                .Where(r => r.Doc != null)
+                .Select(r => r.Doc!)
                 .ToList();
 
-            foreach (var document in documents!)
+            foreach (var document in documents)
             {
-                if (document != null)
-                {
-                    InitAttachments(document);
-                }
+                InitAttachments(document);
             }
 
-            return documents!;
+            return documents;
         }
 
         private async Task<List<TSource>> QueryPartitionInternalAsync(string partitionKey, Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc)
@@ -799,10 +796,7 @@ namespace CouchDB.Driver
 
             foreach (TSource document in documents)
             {
-                if (document != null)
-                {
-                    InitAttachments(document);
-                }
+                InitAttachments(document);
             }
 
             return documents;
