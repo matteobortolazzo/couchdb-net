@@ -445,9 +445,46 @@ var filter = ChangesFeedFilter.Selector<Rebel>(rebel => rebel.Age == 19);
 var filter = ChangesFeedFilter.Design();
 // _view
 var filter = ChangesFeedFilter.View(view);
+// Design document filter with custom query parameters
+var filter = ChangesFeedFilter.DesignDocument("replication/by_partition", 
+    new Dictionary<string, string> { { "partition", "skywalker" } });
 
 // Use
 ChangesFeedResponse<Rebel> changes = await GetChangesAsync(options: null, filter);
+```
+
+#### Design Document Filters with Query Parameters
+
+For partitioned databases or custom filtering logic, you can use design document filters with query parameters:
+
+```csharp
+// Create a design document in CouchDB with a filter function
+// _design/replication
+{
+  "filters": {
+    "by_partition": function(doc, req) {
+      var partition = req.query.partition;
+      return doc._id.indexOf(partition + ':') === 0;
+    }
+  }
+}
+
+// Use the filter with query parameters
+var filter = ChangesFeedFilter.DesignDocument("replication/by_partition", 
+    new Dictionary<string, string> { { "partition", "businessId123" } });
+
+await foreach (var change in db.GetContinuousChangesAsync(null, filter, cancellationToken))
+{
+    // Process changes from specific partition
+}
+
+// Or pass query parameters via options
+var options = new ChangesFeedOptions
+{
+    Filter = "replication/by_partition",
+    QueryParameters = new Dictionary<string, string> { { "partition", "businessId123" } }
+};
+var changes = await db.GetChangesAsync(options);
 ```
 
 ## Indexing

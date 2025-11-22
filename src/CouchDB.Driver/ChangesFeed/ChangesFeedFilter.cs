@@ -49,5 +49,18 @@ namespace CouchDB.Driver.ChangesFeed
         /// <returns></returns>
         public static ChangesFeedFilter View(string view)
             => new ViewChangesFeedFilter(view);
+
+        /// <summary>
+        /// Create a filter using a design document filter function with optional query parameters.
+        /// </summary>
+        /// <remarks>
+        /// The filter function in the design document can access query parameters via <c>req.query</c>.
+        /// This is useful for passing partition keys or other custom filtering parameters.
+        /// </remarks>
+        /// <param name="filterName">The filter name in format "designdoc/filtername" (e.g., "replication/by_partition").</param>
+        /// <param name="queryParameters">Optional query parameters to pass to the filter function.</param>
+        /// <returns></returns>
+        public static ChangesFeedFilter DesignDocument(string filterName, Dictionary<string, string>? queryParameters = null)
+            => new DesignDocumentChangesFeedFilter(filterName, queryParameters);
     }
 }

@@ -426,6 +426,15 @@ namespace CouchDB.Driver
             if (options != null)
             {
                 request = request.ApplyQueryParametersOptions(options);
+                
+                // Apply custom query parameters for design document filters
+                if (options.QueryParameters != null)
+                {
+                    foreach (var param in options.QueryParameters)
+                    {
+                        request = request.SetQueryParam(param.Key, param.Value);
+                    }
+                }
             }
 
             ChangesFeedResponse<TSource>? response = filter == null
@@ -457,6 +466,15 @@ namespace CouchDB.Driver
             if (options != null)
             {
                 request = request.ApplyQueryParametersOptions(options);
+                
+                // Apply custom query parameters for design document filters
+                if (options.QueryParameters != null)
+                {
+                    foreach (var param in options.QueryParameters)
+                    {
+                        request = request.SetQueryParam(param.Key, param.Value);
+                    }
+                }
             }
 
             var lastSequence = options?.Since ?? "0";
