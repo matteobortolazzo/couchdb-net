@@ -60,15 +60,7 @@ namespace CouchDB.Driver.ChangesFeed
 
             if (filter is DesignDocumentChangesFeedFilter designDocFilter)
             {
-                var req = request.SetQueryParam("filter", designDocFilter.FilterName);
-                
-                if (designDocFilter.QueryParameters != null)
-                {
-                    foreach (var param in designDocFilter.QueryParameters)
-                    {
-                        req = req.SetQueryParam(param.Key, param.Value);
-                    }
-                }
+                var req = ApplyDesignDocumentFilterParams(request, designDocFilter);
 
                 return await req
                     .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
@@ -120,15 +112,7 @@ namespace CouchDB.Driver.ChangesFeed
 
             if (filter is DesignDocumentChangesFeedFilter designDocFilter)
             {
-                var req = request.SetQueryParam("filter", designDocFilter.FilterName);
-                
-                if (designDocFilter.QueryParameters != null)
-                {
-                    foreach (var param in designDocFilter.QueryParameters)
-                    {
-                        req = req.SetQueryParam(param.Key, param.Value);
-                    }
-                }
+                var req = ApplyDesignDocumentFilterParams(request, designDocFilter);
 
                 return await req
                     .GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
@@ -136,6 +120,21 @@ namespace CouchDB.Driver.ChangesFeed
             }
 
             throw new InvalidOperationException($"Filter of type {filter.GetType().Name} not supported.");
+        }
+
+        private static IFlurlRequest ApplyDesignDocumentFilterParams(IFlurlRequest request, DesignDocumentChangesFeedFilter filter)
+        {
+            var req = request.SetQueryParam("filter", filter.FilterName);
+            
+            if (filter.QueryParameters != null)
+            {
+                foreach (var param in filter.QueryParameters)
+                {
+                    req = req.SetQueryParam(param.Key, param.Value);
+                }
+            }
+
+            return req;
         }
     }
 }

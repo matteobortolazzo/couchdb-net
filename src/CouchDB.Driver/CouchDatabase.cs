@@ -423,19 +423,7 @@ namespace CouchDB.Driver
                 _ = request.SetQueryParam("feed", "longpoll");
             }
 
-            if (options != null)
-            {
-                request = request.ApplyQueryParametersOptions(options);
-                
-                // Apply custom query parameters for design document filters
-                if (options.QueryParameters != null)
-                {
-                    foreach (var param in options.QueryParameters)
-                    {
-                        request = request.SetQueryParam(param.Key, param.Value);
-                    }
-                }
-            }
+            request = ApplyChangesFeedOptions(request, options);
 
             ChangesFeedResponse<TSource>? response = filter == null
                 ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
@@ -463,19 +451,7 @@ namespace CouchDB.Driver
                 .AppendPathSegment("_changes")
                 .SetQueryParam("feed", "continuous");
 
-            if (options != null)
-            {
-                request = request.ApplyQueryParametersOptions(options);
-                
-                // Apply custom query parameters for design document filters
-                if (options.QueryParameters != null)
-                {
-                    foreach (var param in options.QueryParameters)
-                    {
-                        request = request.SetQueryParam(param.Key, param.Value);
-                    }
-                }
-            }
+            request = ApplyChangesFeedOptions(request, options);
 
             var lastSequence = options?.Since ?? "0";
 
@@ -860,6 +836,27 @@ namespace CouchDB.Driver
             var builder = new IndexBuilder<TSource>(_options, _queryProvider);
             indexBuilderAction(builder);
             return builder;
+        }
+
+        private static IFlurlRequest ApplyChangesFeedOptions(IFlurlRequest request, ChangesFeedOptions? options)
+        {
+            if (options == null)
+            {
+                return request;
+            }
+
+            request = request.ApplyQueryParametersOptions(options);
+            
+            // Apply custom query parameters for design document filters
+            if (options.QueryParameters != null)
+            {
+                foreach (var param in options.QueryParameters)
+                {
+                    request = request.SetQueryParam(param.Key, param.Value);
+                }
+            }
+
+            return request;
         }
 
         private static IFlurlRequest SetFindOptions(IFlurlRequest request, FindOptions options)
