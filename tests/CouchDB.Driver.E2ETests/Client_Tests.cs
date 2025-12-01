@@ -1,4 +1,4 @@
-using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Types;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -305,6 +305,7 @@ namespace CouchDB.Driver.E2E
             {
                 Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
             }
+        }
 
         public async Task ExecutionStats()
         {

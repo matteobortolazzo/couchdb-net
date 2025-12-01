@@ -776,7 +776,8 @@ namespace CouchDB.Driver
             return documents;
         }
 
-        private async Task<List<TSource>> QueryPartitionInternalAsync(string partitionKey, Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc)
+        private async Task<List<TSource>> QueryPartitionInternalAsync(string partitionKey,
+            Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc)
         {
             IFlurlRequest request = NewRequest()
                 .AppendPathSegment("_partition")
@@ -798,6 +799,8 @@ namespace CouchDB.Driver
             }
 
             return documents;
+        }
+
         public async Task<int> GetRevisionLimitAsync(CancellationToken cancellationToken = default)
         {
             return Convert.ToInt32(await NewRequest()
