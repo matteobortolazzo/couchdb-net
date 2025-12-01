@@ -95,6 +95,12 @@ namespace CouchDB.Driver.Options
             return this;
         }
 
+        public virtual CouchOptionsBuilder ThrowOnQueryWarning()
+        {
+            Options.ThrowOnQueryWarning = true;
+            return this;
+        }
+
         /// <summary>
         /// Enables cookie authentication. 
         /// For cookie authentication (RFC 2109) CouchDB generates a token that the client can use for the next few requests to CouchDB. Tokens are valid until a timeout.

@@ -27,13 +27,15 @@ namespace CouchDB.Driver.Options
         internal bool PluralizeEntities { get; set; }
         internal DocumentCaseType DocumentsCaseType { get; set; }
         internal PropertyCaseType PropertiesCase { get; set; }
-        
+
         internal string? DatabaseSplitDiscriminator { get; set; }
         internal NullValueHandling? NullValueHandling { get; set; }
         internal bool LogOutOnDispose { get; set; }
 
         internal Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>? ServerCertificateCustomValidationCallback { get; set; }
         internal Action<ClientFlurlHttpSettings>? ClientFlurlHttpSettingsAction { get; set; }
+
+        internal bool ThrowOnQueryWarning { get; set; }
 
         internal CouchOptions()
         {

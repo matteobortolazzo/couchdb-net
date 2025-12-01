@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
+using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
@@ -57,13 +58,22 @@ namespace CouchDB.Driver.Query
             return new CouchList<TItem>(result.Docs.ToList(), result.Bookmark, result.ExecutionStats);
         }
 
-        private Task<FindResult<TItem>> SendAsync<TItem>(string body, CancellationToken cancellationToken) =>
-            _client
+        private async Task<FindResult<TItem>> SendAsync<TItem>(string body, CancellationToken cancellationToken)
+        {
+            var findResult = await _client
                 .Request(_queryContext.Endpoint)
                 .AppendPathSegments(_queryContext.DatabaseName, "_find")
                 .WithHeader("Content-Type", "application/json")
                 .PostStringAsync(body, cancellationToken)
                 .ReceiveJson<FindResult<TItem>>()
                 .SendRequestAsync();
+
+            if (this._queryContext.ThrowOnQueryWarning && !String.IsNullOrEmpty(findResult.Warning))
+            {
+                throw new CouchDBQueryWarningException(findResult.Warning);
+            }
+
+            return findResult;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using CouchDB.Driver.Types;
+using CouchDB.Driver.Types;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -6,14 +6,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.E2ETests;
 using CouchDB.Driver.E2ETests.Models;
+using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Local;
+using CouchDB.Driver.Query.Extensions;
 using Xunit;
 
 namespace CouchDB.Driver.E2E
 {
     [Trait("Category", "Integration")]
-    public class ClientTests: IAsyncLifetime
+    public class ClientTests : IAsyncLifetime
     {
         private ICouchClient _client;
         private ICouchDatabase<Rebel> _rebels;
@@ -22,6 +24,9 @@ namespace CouchDB.Driver.E2E
         {
             _client = new CouchClient("http://localhost:5984", c =>
                 c.UseBasicAuthentication("admin", "admin"));
+            // ensure the _users database exists to prevent couchdb from
+            // generating tons of errors in the logs
+            await _client.GetOrCreateUsersDatabaseAsync();
             _rebels = await _client.GetOrCreateDatabaseAsync<Rebel>();
         }
 
@@ -152,7 +157,7 @@ namespace CouchDB.Driver.E2E
         public async Task Users()
         {
             var users = await _client.GetOrCreateUsersDatabaseAsync();
-            
+
             CouchUser luke = await users.AddAsync(new CouchUser(name: "luke", password: "lasersword"));
             Assert.Equal("luke", luke.Name);
 
@@ -265,6 +270,52 @@ namespace CouchDB.Driver.E2E
             var docs = await local.GetAsync(searchOpt);
             var containsId = docs.Select(d => d.Id).Contains("_local/" + docId);
             Assert.True(containsId);
+        }
+
+        [Fact]
+        public async Task ThrowOnQueryWarning()
+        {
+            await using var context = new MyDeathStarContextWithQueryWarning();
+            // There is an index for Name and Surname so it should not cause a warning
+            await context.Rebels.Where(r => r.Name == "Luke" && r.Surname == "Skywalker").ToListAsync();
+            try
+            {
+                // There is no index for Age so it should cause a warning
+                await context.Rebels.Where(r => r.Age == 19).ToListAsync();
+                Assert.Fail("Expected exception not thrown");
+            }
+            catch (CouchDBQueryWarningException e)
+            {
+                Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
+            }
+
+            var client = new CouchClient("http://localhost:5984", c =>
+                c.UseBasicAuthentication("admin", "admin")
+                    .ThrowOnQueryWarning());
+            var crebels = client.GetDatabase<Rebel>();
+            // There is an index for Name and Surname so it should not cause a warning
+            await crebels.QueryAsync(@"{""selector"":{""$and"":[{""name"":""Luke""},{""surname"":""Skywalker""}]}}");
+            try
+            {
+                // There is no index for Age so it should cause a warning
+                await crebels.QueryAsync(@"{""selector"":{""age"":""19""}}");
+                Assert.Fail("Expected exception not thrown");
+            }
+            catch (CouchDBQueryWarningException e)
+            {
+                Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
+            }
+
+        public async Task ExecutionStats()
+        {
+            await using var context = new MyDeathStarContext();
+
+            var rebels = await context.Rebels
+                .Where(r => r.Age == 19)
+                .IncludeExecutionStats()
+                .ToCouchListAsync();
+
+            Assert.True(rebels.ExecutionStats.ExecutionTimeMs > 0);
         }
     }
 }

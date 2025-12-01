@@ -74,7 +74,7 @@ namespace CouchDB.Driver
         #region Find
 
         /// <inheritdoc />
-        public Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default) 
+        public Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default)
             => FindAsync(docId, new FindOptions { Conflicts = withConflicts }, cancellationToken);
 
         /// <inheritdoc />
@@ -161,6 +161,10 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
+            if (this._options.ThrowOnQueryWarning && !String.IsNullOrEmpty(findResult.Warning))
+            {
+                throw new CouchDBQueryWarningException(findResult.Warning);
+            }
             var documents = findResult.Docs.ToList();
 
             foreach (TSource document in documents)
@@ -430,7 +434,7 @@ namespace CouchDB.Driver
                     .ConfigureAwait(false)
                 : await request.QueryWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
-            
+
             if (string.IsNullOrWhiteSpace(_discriminator))
             {
                 return response;
@@ -462,7 +466,7 @@ namespace CouchDB.Driver
                         .ConfigureAwait(false)
                     : await request.QueryContinuousWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                         .ConfigureAwait(false);
-                
+
                 await foreach (var line in stream.ReadLinesAsync(cancellationToken))
                 {
                     if (string.IsNullOrEmpty(line))
@@ -794,6 +798,31 @@ namespace CouchDB.Driver
             }
 
             return documents;
+        public async Task<int> GetRevisionLimitAsync(CancellationToken cancellationToken = default)
+        {
+            return Convert.ToInt32(await NewRequest()
+                .AppendPathSegment("_revs_limit")
+                .GetStringAsync(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false));
+        }
+
+        /// <inheritdoc />
+        public async Task SetRevisionLimitAsync(int limit, CancellationToken cancellationToken = default)
+        {
+            using var content = new StringContent(limit.ToString());
+
+            OperationResult result = await NewRequest()
+                .AppendPathSegment("_revs_limit")
+                .PutAsync(content, cancellationToken)
+                .ReceiveJson<OperationResult>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (!result.Ok)
+            {
+                throw new CouchException("Something wrong happened while updating the revision limit.");
+            }
         }
 
         #endregion

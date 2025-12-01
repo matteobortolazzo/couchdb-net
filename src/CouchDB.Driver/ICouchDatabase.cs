@@ -328,6 +328,19 @@ namespace CouchDB.Driver
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of documents from the partition.</returns>
         Task<List<TSource>> GetPartitionAllDocsAsync(string partitionKey, CancellationToken cancellationToken = default);
+        /// Gets the revision limit for the specified database.
+        /// </summary>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the database information.</returns>
+        Task<int> GetRevisionLimitAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Sets the revision limit for the specified database.
+        /// </summary>
+        /// <param name="limit">The limit to set.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the database information.</returns>
+        Task SetRevisionLimitAsync(int limit, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Get an empty request that targets the current database.
