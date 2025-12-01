@@ -16,6 +16,9 @@ namespace CouchDB.Driver.DTOs
 
         [JsonProperty("execution_stats")]
         public ExecutionStats ExecutionStats { get; internal set; }
+
+        [JsonProperty("warning")]
+        public string Warning { get; internal set; }
     }
 }
 #nullable restore

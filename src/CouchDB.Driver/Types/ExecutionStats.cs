@@ -35,6 +35,6 @@ namespace CouchDB.Driver.Types
         /// Total execution time in milliseconds as measured by the database.
         /// </summary>
         [JsonProperty("execution_time_ms")]
-        public int ExecutionTimeMs { get; internal set; }
+        public float ExecutionTimeMs { get; internal set; }
     }
 }
