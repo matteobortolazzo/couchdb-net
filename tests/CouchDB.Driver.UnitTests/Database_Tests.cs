@@ -709,6 +709,29 @@ namespace CouchDB.Driver.UnitTests
                 .WithRequestJson(securityInfo);
         }
 
+
+        [Fact]
+        public async Task GetRevLimit()
+        {
+            using var httpTest = new HttpTest();
+            await _rebels.GetRevisionLimitAsync();
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_rev_limit")
+                .WithVerb(HttpMethod.Get);
+        }
+
+        [Fact]
+        public async Task SetRevLimit()
+        {
+            using var httpTest = new HttpTest();
+            // Operation response
+            httpTest.RespondWithJson(new { ok = true });
+
+            await _rebels.SetRevisionLimitAsync(10);
+            httpTest
+                .ShouldHaveCalled("http://localhost/rebels/_rev_limit")
+                .WithVerb(HttpMethod.Put);
+        }
         #endregion
 
         public ValueTask DisposeAsync()
