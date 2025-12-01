@@ -112,19 +112,19 @@ namespace CouchDB.Driver
         public ICouchDatabase<TSource> GetDatabase<TSource>(string database, string? discriminator = null) where TSource : CouchDocument
         {
             CheckDatabaseName(database);
-            var queryContext = new QueryContext(Endpoint, database);
+            var queryContext = new QueryContext(Endpoint, database, _options.ThrowOnQueryWarning);
             return new CouchDatabase<TSource>(_flurlClient, _options, queryContext, discriminator);
         }
 
         /// <inheritdoc />
-        public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database, 
+        public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database,
             int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null, CancellationToken cancellationToken = default)
             where TSource : CouchDocument
         {
             QueryContext queryContext = NewQueryContext(database);
             IFlurlResponse response = await CreateDatabaseAsync(queryContext, shards, replicas, partitioned, cancellationToken)
                 .ConfigureAwait(false);
-            
+
             if (response.IsSuccessful())
             {
                 return new CouchDatabase<TSource>(_flurlClient, _options, queryContext, discriminator);
@@ -167,7 +167,7 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-            if (!result.Ok) 
+            if (!result.Ok)
             {
                 throw new CouchException("Something went wrong during the delete.", null, "S");
             }
@@ -433,7 +433,7 @@ namespace CouchDB.Driver
         private QueryContext NewQueryContext(string database)
         {
             CheckDatabaseName(database);
-            return new QueryContext(Endpoint, database);
+            return new QueryContext(Endpoint, database, _options.ThrowOnQueryWarning);
         }
 
         private void CheckDatabaseName(string database)

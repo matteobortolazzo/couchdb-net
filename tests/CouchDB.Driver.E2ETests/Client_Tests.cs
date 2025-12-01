@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.E2ETests;
 using CouchDB.Driver.E2ETests.Models;
+using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Query.Extensions;
@@ -272,6 +273,39 @@ namespace CouchDB.Driver.E2E
         }
 
         [Fact]
+        public async Task ThrowOnQueryWarning()
+        {
+            await using var context = new MyDeathStarContextWithQueryWarning();
+            // There is an index for Name and Surname so it should not cause a warning
+            await context.Rebels.Where(r => r.Name == "Luke" && r.Surname == "Skywalker").ToListAsync();
+            try
+            {
+                // There is no index for Age so it should cause a warning
+                await context.Rebels.Where(r => r.Age == 19).ToListAsync();
+                Assert.Fail("Expected exception not thrown");
+            }
+            catch (CouchDBQueryWarningException e)
+            {
+                Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
+            }
+
+            var client = new CouchClient("http://localhost:5984", c =>
+                c.UseBasicAuthentication("admin", "admin")
+                    .ThrowOnQueryWarning());
+            var crebels = client.GetDatabase<Rebel>();
+            // There is an index for Name and Surname so it should not cause a warning
+            await crebels.QueryAsync(@"{""selector"":{""$and"":[{""name"":""Luke""},{""surname"":""Skywalker""}]}}");
+            try
+            {
+                // There is no index for Age so it should cause a warning
+                await crebels.QueryAsync(@"{""selector"":{""age"":""19""}}");
+                Assert.Fail("Expected exception not thrown");
+            }
+            catch (CouchDBQueryWarningException e)
+            {
+                Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
+            }
+
         public async Task ExecutionStats()
         {
             await using var context = new MyDeathStarContext();
