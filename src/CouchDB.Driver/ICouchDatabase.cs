@@ -296,6 +296,38 @@ namespace CouchDB.Driver
         Task<CouchDatabaseInfo> GetInfoAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets information about a specific partition in a partitioned database.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the partition information.</returns>
+        Task<CouchPartitionInfo> GetPartitionInfoAsync(string partitionKey, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Queries documents in a specific partition using Mango query syntax.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="mangoQueryJson">The JSON representing the Mango query.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a list of documents from the partition.</returns>
+        Task<List<TSource>> QueryPartitionAsync(string partitionKey, string mangoQueryJson, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Queries documents in a specific partition using Mango query syntax.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="mangoQuery">The object representing the Mango query.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a list of documents from the partition.</returns>
+        Task<List<TSource>> QueryPartitionAsync(string partitionKey, object mangoQuery, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets all document IDs and revisions in a specific partition.
+        /// </summary>
+        /// <param name="partitionKey">The partition key.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a list of documents from the partition.</returns>
+        Task<List<TSource>> GetPartitionAllDocsAsync(string partitionKey, CancellationToken cancellationToken = default);
         /// Gets the revision limit for the specified database.
         /// </summary>
         /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>

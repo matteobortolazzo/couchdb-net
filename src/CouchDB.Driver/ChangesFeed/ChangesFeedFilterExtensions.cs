@@ -57,6 +57,16 @@ namespace CouchDB.Driver.ChangesFeed
                     .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false);
             }
+
+            if (filter is DesignDocumentChangesFeedFilter designDocFilter)
+            {
+                var req = ApplyDesignDocumentFilterParams(request, designDocFilter);
+
+                return await req
+                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             throw new InvalidOperationException($"Filter of type {filter.GetType().Name} not supported.");
         }
 
@@ -99,7 +109,32 @@ namespace CouchDB.Driver.ChangesFeed
                     .GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false);
             }
+
+            if (filter is DesignDocumentChangesFeedFilter designDocFilter)
+            {
+                var req = ApplyDesignDocumentFilterParams(request, designDocFilter);
+
+                return await req
+                    .GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
+                    .ConfigureAwait(false);
+            }
+
             throw new InvalidOperationException($"Filter of type {filter.GetType().Name} not supported.");
+        }
+
+        private static IFlurlRequest ApplyDesignDocumentFilterParams(IFlurlRequest request, DesignDocumentChangesFeedFilter filter)
+        {
+            var req = request.SetQueryParam("filter", filter.FilterName);
+            
+            if (filter.QueryParameters != null)
+            {
+                foreach (var param in filter.QueryParameters)
+                {
+                    req = req.SetQueryParam(param.Key, param.Value);
+                }
+            }
+
+            return req;
         }
     }
 }

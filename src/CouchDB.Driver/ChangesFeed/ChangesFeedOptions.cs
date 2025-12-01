@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using Newtonsoft.Json;
 
 namespace CouchDB.Driver.ChangesFeed
@@ -128,5 +129,15 @@ namespace CouchDB.Driver.ChangesFeed
         [JsonProperty("seq_interval")]
         [DefaultValue(null)]
         public int? SeqInterval { get; set; }
+
+        /// <summary>
+        /// Custom query parameters to pass to design document filter functions.
+        /// </summary>
+        /// <remarks>
+        /// These parameters are accessible in design document filter functions via <c>req.query</c>.
+        /// Useful for passing partition keys or other custom filtering parameters to filter functions.
+        /// </remarks>
+        [JsonIgnore]
+        public Dictionary<string, string>? QueryParameters { get; set; }
     }
 }

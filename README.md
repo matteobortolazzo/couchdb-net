@@ -104,6 +104,7 @@ The produced Mango JSON:
 * [Indexing](#indexing)
   * [Index Options](#index-options)
   * [Partial Indexes](#partial-indexes)
+* [Partitioned Databases](#partitioned-databases)
 * [Database Splitting](#database-splitting)
 * [Views](#views)
 * [Local (non-replicating) Documents](#local-(non-replicating)-documents)
@@ -446,9 +447,46 @@ var filter = ChangesFeedFilter.Selector<Rebel>(rebel => rebel.Age == 19);
 var filter = ChangesFeedFilter.Design();
 // _view
 var filter = ChangesFeedFilter.View(view);
+// Design document filter with custom query parameters
+var filter = ChangesFeedFilter.DesignDocument("replication/by_partition", 
+    new Dictionary<string, string> { { "partition", "skywalker" } });
 
 // Use
 ChangesFeedResponse<Rebel> changes = await GetChangesAsync(options: null, filter);
+```
+
+#### Design Document Filters with Query Parameters
+
+For partitioned databases or custom filtering logic, you can use design document filters with query parameters:
+
+```csharp
+// Create a design document in CouchDB with a filter function
+// _design/replication
+{
+  "filters": {
+    "by_partition": function(doc, req) {
+      var partition = req.query.partition;
+      return doc._id.indexOf(partition + ':') === 0;
+    }
+  }
+}
+
+// Use the filter with query parameters
+var filter = ChangesFeedFilter.DesignDocument("replication/by_partition", 
+    new Dictionary<string, string> { { "partition", "businessId123" } });
+
+await foreach (var change in db.GetContinuousChangesAsync(null, filter, cancellationToken))
+{
+    // Process changes from specific partition
+}
+
+// Or pass query parameters via options
+var options = new ChangesFeedOptions
+{
+    Filter = "replication/by_partition",
+    QueryParameters = new Dictionary<string, string> { { "partition", "businessId123" } }
+};
+var changes = await db.GetChangesAsync(options);
 ```
 
 ## Indexing
@@ -515,6 +553,86 @@ public class MyDeathStarContext : CouchContext
             .HasIndex("rebel_surnames_index", b => b.IndexBy(b => b.Surname));
     }
 }
+```
+
+## Partitioned Databases
+
+CouchDB partitioned databases allow you to optimize query performance by grouping related documents together using a partition key. This feature is supported in CouchDB 3.0+.
+
+### Creating a Partitioned Database
+
+```csharp
+// Create a partitioned database
+var rebels = await client.CreateDatabaseAsync<Rebel>("rebels", partitioned: true);
+
+// Or with GetOrCreateDatabaseAsync
+var rebels = await client.GetOrCreateDatabaseAsync<Rebel>("rebels", partitioned: true);
+```
+
+### Partitioned Document IDs
+
+In partitioned databases, document IDs must follow the format: `{partition_key}:{document_id}`
+
+```csharp
+var luke = new Rebel 
+{ 
+    Id = "skywalker:luke",  // partition key is "skywalker"
+    Name = "Luke", 
+    Surname = "Skywalker" 
+};
+await rebels.AddAsync(luke);
+```
+
+### Getting Partition Information
+
+```csharp
+// Get metadata about a specific partition
+var partitionInfo = await rebels.GetPartitionInfoAsync("skywalker");
+Console.WriteLine($"Documents in partition: {partitionInfo.DocCount}");
+Console.WriteLine($"Partition size: {partitionInfo.Sizes.Active} bytes");
+```
+
+### Querying Partitioned Databases
+
+Partition-specific queries are more efficient as they only scan documents within the partition:
+
+```csharp
+// Query a partition using Mango selector
+var skywalkers = await rebels.QueryPartitionAsync("skywalker", new
+{
+    selector = new { name = new { $gt = "A" } },
+    sort = new[] { "name" }
+});
+
+// Or with JSON string
+var json = "{\"selector\": {\"name\": {\"$gt\": \"A\"}}}";
+var results = await rebels.QueryPartitionAsync("skywalker", json);
+
+// Get all documents in a partition
+var allSkywalkers = await rebels.GetPartitionAllDocsAsync("skywalker");
+```
+
+### Checking if Database is Partitioned
+
+```csharp
+var dbInfo = await rebels.GetInfoAsync();
+bool isPartitioned = dbInfo.Props?.Partitioned ?? false;
+```
+
+### Partitioned Indexes
+
+When creating indexes for partitioned databases, specify whether the index should be partitioned or global:
+
+```csharp
+// Create a partitioned index (default for partitioned databases)
+await rebels.CreateIndexAsync("name_index", 
+    b => b.IndexBy(r => r.Name),
+    new IndexOptions { Partitioned = true });
+
+// Create a global index (queries across all partitions)
+await rebels.CreateIndexAsync("global_index", 
+    b => b.IndexBy(r => r.Age),
+    new IndexOptions { Partitioned = false });
 ```
 
 ## Database Splitting
