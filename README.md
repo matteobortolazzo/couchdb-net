@@ -282,6 +282,8 @@ await rebels.DeleteRangeAsync(moreRebels);
 // Utils
 await rebels.CompactAsync();
 var info = await rebels.GetInfoAsync();
+var limit = await rebels.GetRevisionLimitAsync();
+await rebels.SetRevisionLimitAsync(limit)
 // Security
 await rebels.Security.SetInfoAsync(securityInfo);
 var securityInfo = await rebels.Security.GetInfoAsync();
