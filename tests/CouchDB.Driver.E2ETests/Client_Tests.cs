@@ -1,4 +1,4 @@
-﻿using CouchDB.Driver.Types;
+using CouchDB.Driver.Types;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -9,6 +9,7 @@ using CouchDB.Driver.E2ETests.Models;
 using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Local;
+using CouchDB.Driver.Query.Extensions;
 using Xunit;
 
 namespace CouchDB.Driver.E2E
@@ -23,6 +24,9 @@ namespace CouchDB.Driver.E2E
         {
             _client = new CouchClient("http://localhost:5984", c =>
                 c.UseBasicAuthentication("admin", "admin"));
+            // ensure the _users database exists to prevent couchdb from
+            // generating tons of errors in the logs
+            await _client.GetOrCreateUsersDatabaseAsync();
             _rebels = await _client.GetOrCreateDatabaseAsync<Rebel>();
         }
 
@@ -302,6 +306,16 @@ namespace CouchDB.Driver.E2E
                 Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
             }
 
+        public async Task ExecutionStats()
+        {
+            await using var context = new MyDeathStarContext();
+
+            var rebels = await context.Rebels
+                .Where(r => r.Age == 19)
+                .IncludeExecutionStats()
+                .ToCouchListAsync();
+
+            Assert.True(rebels.ExecutionStats.ExecutionTimeMs > 0);
         }
     }
 }
