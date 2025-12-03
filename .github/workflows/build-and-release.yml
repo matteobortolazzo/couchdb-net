@@ -44,12 +44,14 @@ jobs:
       - name: Create NuGet packages
         if: github.event_name != 'pull_request'
         run: |
-          dotnet pack **/**/*.csproj \
-            --configuration ${{ env.BuildConfiguration }} \
-            --no-build \
-            --output ./artifacts \
-            -p:PackageVersion=${{ env.PackageVersion }} \
-            --include-symbols
+          for project in src/**/*.csproj; do
+            dotnet pack "$project" \
+              --configuration ${{ env.BuildConfiguration }} \
+              --no-build \
+              --output ./artifacts \
+              -p:PackageVersion=${{ env.PackageVersion }} \
+              --include-symbols
+          done
         shell: bash
 
       - name: Copy release notes
