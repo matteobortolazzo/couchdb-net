@@ -3,14 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28714.193
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{4D37247A-2FC3-4EDA-A6C4-668A7AA67B8F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4D37247A-2FC3-4EDA-A6C4-668A7AA67B8F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		..\.gitignore = ..\.gitignore
-		azure-pipelines.yaml = azure-pipelines.yaml
 		..\CHANGELOG.md = ..\CHANGELOG.md
 		..\LATEST_CHANGE.md = ..\LATEST_CHANGE.md
 		..\README.md = ..\README.md
+		..\.github\workflows\build-and-release.yml = ..\.github\workflows\build-and-release.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{17AFFCE7-6EA4-4036-9885-4448FC315C57}"
