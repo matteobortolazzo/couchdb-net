@@ -39,7 +39,7 @@ jobs:
         run: dotnet build **/*.sln --configuration ${{ env.BuildConfiguration }} --no-restore
 
       - name: Run unit tests
-        run: dotnet test **/*UnitTests*.csproj --configuration ${{ env.BuildConfiguration }} --no-build
+        run: dotnet test **/**/*UnitTests*.csproj --configuration ${{ env.BuildConfiguration }} --no-build
 
       - name: Create NuGet packages
         if: github.event_name != 'pull_request'
