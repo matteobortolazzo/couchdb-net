@@ -714,9 +714,10 @@ namespace CouchDB.Driver.UnitTests
         public async Task GetRevLimit()
         {
             using var httpTest = new HttpTest();
+            httpTest.RespondWith("3");
             await _rebels.GetRevisionLimitAsync();
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_rev_limit")
+                .ShouldHaveCalled("http://localhost/rebels/_revs_limit")
                 .WithVerb(HttpMethod.Get);
         }
 
@@ -729,7 +730,7 @@ namespace CouchDB.Driver.UnitTests
 
             await _rebels.SetRevisionLimitAsync(10);
             httpTest
-                .ShouldHaveCalled("http://localhost/rebels/_rev_limit")
+                .ShouldHaveCalled("http://localhost/rebels/_revs_limit")
                 .WithVerb(HttpMethod.Put);
         }
         #endregion

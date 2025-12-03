@@ -87,7 +87,7 @@ namespace CouchDB.Driver.UnitTests
                 .WithVerb(HttpMethod.Get)
                 .WithHeader("If-Match", "xxx2");
 
-            Assert.Equal(@"anyfolder\luke.txt", newPath);
+            Assert.Equal(@"anyfolder/luke.txt", newPath);
         }
 
         public ValueTask DisposeAsync()
