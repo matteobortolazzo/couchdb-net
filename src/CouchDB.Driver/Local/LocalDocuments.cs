@@ -54,7 +54,7 @@ namespace CouchDB.Driver.Local
 
             LocalDocumentsResult result = await request
                 .AppendPathSegments("_local_docs")
-                .PostJsonAsync(new {keys}, cancellationToken)
+                .PostJsonAsync(new { keys }, cancellationToken)
                 .SendRequestAsync()
                 .ReceiveJson<LocalDocumentsResult>()
                 .ConfigureAwait(false);
@@ -67,7 +67,7 @@ namespace CouchDB.Driver.Local
         {
             Check.NotNull(id, nameof(id));
             return NewRequest()
-                .AppendPathSegments(GetLocalId(Uri.EscapeDataString(id)))
+                .AppendPathSegments(Uri.EscapeDataString(GetLocalId(id)))
                 .GetJsonAsync<TSource>(cancellationToken)
                 .SendRequestAsync();
         }
@@ -78,7 +78,7 @@ namespace CouchDB.Driver.Local
         {
             Check.NotNull(document, nameof(document));
             return NewRequest()
-                .AppendPathSegments(GetLocalId(Uri.EscapeDataString(document.Id)))
+                .AppendPathSegments(Uri.EscapeDataString(GetLocalId(document.Id)))
                 .PutJsonAsync(document, cancellationToken)
                 .SendRequestAsync();
         }
@@ -89,7 +89,7 @@ namespace CouchDB.Driver.Local
         {
             Check.NotNull(document, nameof(document));
             return NewRequest()
-                .AppendPathSegments(GetLocalId(Uri.EscapeDataString(document.Id)))
+                .AppendPathSegments(Uri.EscapeDataString(GetLocalId(document.Id)))
                 .DeleteAsync(cancellationToken)
                 .SendRequestAsync();
         }

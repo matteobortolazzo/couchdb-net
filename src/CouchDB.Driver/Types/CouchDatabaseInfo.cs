@@ -61,6 +61,24 @@ namespace CouchDB.Driver.Types
         /// </summary>
         [JsonProperty("update_seq")]
         public string UpdateSeq { get; internal set; }
+
+        /// <summary>
+        /// Indicates whether the database is partitioned or not.
+        /// </summary>
+        [JsonProperty("props")]
+        public DatabaseProps Props { get; internal set; }
+    }
+
+    /// <summary>
+    /// Represents database properties.
+    /// </summary>
+    public sealed class DatabaseProps
+    {
+        /// <summary>
+        /// Indicates whether the database is partitioned.
+        /// </summary>
+        [JsonProperty("partitioned")]
+        public bool Partitioned { get; internal set; }
     }
 }
 #nullable restore

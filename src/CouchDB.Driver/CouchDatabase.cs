@@ -74,7 +74,7 @@ namespace CouchDB.Driver
         #region Find
 
         /// <inheritdoc />
-        public Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default) 
+        public Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default)
             => FindAsync(docId, new FindOptions { Conflicts = withConflicts }, cancellationToken);
 
         /// <inheritdoc />
@@ -161,6 +161,10 @@ namespace CouchDB.Driver
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
+            if (this._options.ThrowOnQueryWarning && !String.IsNullOrEmpty(findResult.Warning))
+            {
+                throw new CouchDBQueryWarningException(findResult.Warning);
+            }
             var documents = findResult.Docs.ToList();
 
             foreach (TSource document in documents)
@@ -423,17 +427,14 @@ namespace CouchDB.Driver
                 _ = request.SetQueryParam("feed", "longpoll");
             }
 
-            if (options != null)
-            {
-                request = request.ApplyQueryParametersOptions(options);
-            }
+            request = ApplyChangesFeedOptions(request, options);
 
             ChangesFeedResponse<TSource>? response = filter == null
                 ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
                     .ConfigureAwait(false)
                 : await request.QueryWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
-            
+
             if (string.IsNullOrWhiteSpace(_discriminator))
             {
                 return response;
@@ -454,10 +455,7 @@ namespace CouchDB.Driver
                 .AppendPathSegment("_changes")
                 .SetQueryParam("feed", "continuous");
 
-            if (options != null)
-            {
-                request = request.ApplyQueryParametersOptions(options);
-            }
+            request = ApplyChangesFeedOptions(request, options);
 
             var lastSequence = options?.Since ?? "0";
 
@@ -468,7 +466,7 @@ namespace CouchDB.Driver
                         .ConfigureAwait(false)
                     : await request.QueryContinuousWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                         .ConfigureAwait(false);
-                
+
                 await foreach (var line in stream.ReadLinesAsync(cancellationToken))
                 {
                     if (string.IsNullOrEmpty(line))
@@ -717,6 +715,119 @@ namespace CouchDB.Driver
                 .ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
+        public async Task<CouchPartitionInfo> GetPartitionInfoAsync(string partitionKey, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(partitionKey, nameof(partitionKey));
+
+            return await NewRequest()
+                .AppendPathSegment("_partition")
+                .AppendPathSegment(Uri.EscapeDataString(partitionKey))
+                .GetJsonAsync<CouchPartitionInfo>(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public Task<List<TSource>> QueryPartitionAsync(string partitionKey, string mangoQueryJson, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(partitionKey, nameof(partitionKey));
+            Check.NotNull(mangoQueryJson, nameof(mangoQueryJson));
+
+            return QueryPartitionInternalAsync(partitionKey, r => r
+                .WithHeader("Content-Type", "application/json")
+                .PostStringAsync(mangoQueryJson, cancellationToken));
+        }
+
+        /// <inheritdoc />
+        public Task<List<TSource>> QueryPartitionAsync(string partitionKey, object mangoQuery, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(partitionKey, nameof(partitionKey));
+            Check.NotNull(mangoQuery, nameof(mangoQuery));
+
+            return QueryPartitionInternalAsync(partitionKey, r => r
+                .PostJsonAsync(mangoQuery, cancellationToken));
+        }
+
+        /// <inheritdoc />
+        public async Task<List<TSource>> GetPartitionAllDocsAsync(string partitionKey, CancellationToken cancellationToken = default)
+        {
+            Check.NotNull(partitionKey, nameof(partitionKey));
+
+            var result = await NewRequest()
+                .AppendPathSegment("_partition")
+                .AppendPathSegment(Uri.EscapeDataString(partitionKey))
+                .AppendPathSegment("_all_docs")
+                .SetQueryParam("include_docs", "true")
+                .GetJsonAsync<AllDocsResult<TSource>>(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            var documents = result.Rows
+                .Where(r => r.Doc != null)
+                .Select(r => r.Doc!)
+                .ToList();
+
+            foreach (var document in documents)
+            {
+                InitAttachments(document);
+            }
+
+            return documents;
+        }
+
+        private async Task<List<TSource>> QueryPartitionInternalAsync(string partitionKey,
+            Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc)
+        {
+            IFlurlRequest request = NewRequest()
+                .AppendPathSegment("_partition")
+                .AppendPathSegment(Uri.EscapeDataString(partitionKey))
+                .AppendPathSegment("_find");
+
+            Task<IFlurlResponse> message = requestFunc(request);
+
+            FindResult<TSource> findResult = await message
+                .ReceiveJson<FindResult<TSource>>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            var documents = findResult.Docs.ToList();
+
+            foreach (TSource document in documents)
+            {
+                InitAttachments(document);
+            }
+
+            return documents;
+        }
+
+        public async Task<int> GetRevisionLimitAsync(CancellationToken cancellationToken = default)
+        {
+            return Convert.ToInt32(await NewRequest()
+                .AppendPathSegment("_revs_limit")
+                .GetStringAsync(cancellationToken)
+                .SendRequestAsync()
+                .ConfigureAwait(false));
+        }
+
+        /// <inheritdoc />
+        public async Task SetRevisionLimitAsync(int limit, CancellationToken cancellationToken = default)
+        {
+            using var content = new StringContent(limit.ToString());
+
+            OperationResult result = await NewRequest()
+                .AppendPathSegment("_revs_limit")
+                .PutAsync(content, cancellationToken)
+                .ReceiveJson<OperationResult>()
+                .SendRequestAsync()
+                .ConfigureAwait(false);
+
+            if (!result.Ok)
+            {
+                throw new CouchException("Something wrong happened while updating the revision limit.");
+            }
+        }
+
         #endregion
 
         #region Override
@@ -757,6 +868,27 @@ namespace CouchDB.Driver
             var builder = new IndexBuilder<TSource>(_options, _queryProvider);
             indexBuilderAction(builder);
             return builder;
+        }
+
+        private static IFlurlRequest ApplyChangesFeedOptions(IFlurlRequest request, ChangesFeedOptions? options)
+        {
+            if (options == null)
+            {
+                return request;
+            }
+
+            request = request.ApplyQueryParametersOptions(options);
+            
+            // Apply custom query parameters for design document filters
+            if (options.QueryParameters != null)
+            {
+                foreach (var param in options.QueryParameters)
+                {
+                    request = request.SetQueryParam(param.Key, param.Value);
+                }
+            }
+
+            return request;
         }
 
         private static IFlurlRequest SetFindOptions(IFlurlRequest request, FindOptions options)

@@ -2,6 +2,7 @@
 using Flurl.Http.Testing;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Mime;
@@ -32,7 +33,8 @@ namespace CouchDB.Driver.UnitTests
         public void AddedAttachment_ShouldBeInList()
         {
             var r = new Rebel { Name = "Luke" };
-            r.Attachments.AddOrUpdate("Assets/luke.txt", MediaTypeNames.Text.Plain);
+            var attachFile = Path.Combine("Assets", "luke.txt");
+            r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
             Assert.NotEmpty(r.Attachments);
         }
 
@@ -40,7 +42,8 @@ namespace CouchDB.Driver.UnitTests
         public void RemovedAttachment_ShouldBeNotInList()
         {
             var r = new Rebel { Name = "Luke" };
-            r.Attachments.AddOrUpdate("Assets/luke.txt", MediaTypeNames.Text.Plain);
+            var attachFile = Path.Combine("Assets", "luke.txt");
+            r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
             r.Attachments.Delete("luke.txt");
             Assert.Empty(r.Attachments);
         }
@@ -68,7 +71,8 @@ namespace CouchDB.Driver.UnitTests
             });
 
             var r = new Rebel { Id = "1", Name = "Luke" };
-            r.Attachments.AddOrUpdate("Assets/luke.txt", MediaTypeNames.Text.Plain);
+            var attachFile = Path.Combine("Assets", "luke.txt");
+            r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
 
             r = await _rebels.AddOrUpdateAsync(r);
 
@@ -87,7 +91,8 @@ namespace CouchDB.Driver.UnitTests
                 .WithVerb(HttpMethod.Get)
                 .WithHeader("If-Match", "xxx2");
 
-            Assert.Equal(@"anyfolder\luke.txt", newPath);
+            var newAttachFile = Path.Combine("anyfolder", "luke.txt");
+            Assert.Equal(newAttachFile, newPath);
         }
 
         public ValueTask DisposeAsync()
