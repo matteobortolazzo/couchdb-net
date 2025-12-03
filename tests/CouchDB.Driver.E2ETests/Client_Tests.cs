@@ -180,7 +180,8 @@ namespace CouchDB.Driver.E2E
             var runningPath = Directory.GetCurrentDirectory();
 
             // Create
-            luke.Attachments.AddOrUpdate($@"{runningPath}\Assets\luke.txt", MediaTypeNames.Text.Plain);
+            var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
+            luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
             luke = await _rebels.AddAsync(luke);
 
             Assert.Equal("Luke", luke.Name);
@@ -191,7 +192,8 @@ namespace CouchDB.Driver.E2E
             Assert.NotNull(attachment.Uri);
 
             // Download
-            var downloadFilePath = await _rebels.DownloadAttachmentAsync(attachment, $@"{runningPath}\Assets", "luke-downloaded.txt");
+            var downloadDir = Path.Combine(runningPath, "Assets");
+            var downloadFilePath = await _rebels.DownloadAttachmentAsync(attachment, downloadDir, "luke-downloaded.txt");
 
             Assert.True(File.Exists(downloadFilePath));
             File.Delete(downloadFilePath);
@@ -217,10 +219,12 @@ namespace CouchDB.Driver.E2E
             var luke = new Rebel { Name = "Luke", Age = 19 };
             var runningPath = Directory.GetCurrentDirectory();
 
-            var fileOnDisk = File.ReadAllBytes($@"{runningPath}\Assets\luke.txt");
+            var fileOnDiskPath = Path.Combine(runningPath, "Assets", "luke.txt");
+            var fileOnDisk = File.ReadAllBytes(fileOnDiskPath);
 
             // Create
-            luke.Attachments.AddOrUpdate($@"{runningPath}\Assets\luke.txt", MediaTypeNames.Text.Plain);
+            var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
+            luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
             luke = await _rebels.AddAsync(luke);
 
             Assert.Equal("Luke", luke.Name);
