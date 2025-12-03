@@ -1,0 +1,112 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'LATEST_CHANGE.md'
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'LATEST_CHANGE.md'
+
+env:
+  BuildConfiguration: Release
+  PackageVersion: '3.7.0'
+
+jobs:
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10
+
+      - name: Restore NuGet packages
+        run: dotnet restore **/*.sln
+
+      - name: Build solution
+        run: dotnet build **/*.sln --configuration ${{ env.BuildConfiguration }} --no-restore
+
+      - name: Run unit tests
+        run: dotnet test **/*UnitTests*.csproj --configuration ${{ env.BuildConfiguration }} --no-build --verbosity normal --logger "trx" --results-directory ./TestResults
+
+      - name: Create NuGet packages
+        if: github.event_name != 'pull_request'
+        run: |
+          dotnet pack **/*.csproj \
+            --configuration ${{ env.BuildConfiguration }} \
+            --no-build \
+            --output ./artifacts \
+            -p:PackageVersion=${{ env.PackageVersion }} \
+            --include-symbols
+        shell: bash
+
+      - name: Filter out test and example projects
+        if: github.event_name != 'pull_request'
+        run: |
+          find ./artifacts -type f \( -name "*Tests*.nupkg" -o -name "*Example*.nupkg" \) -delete
+        shell: bash
+
+      - name: Copy release notes
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ -f "LATEST_CHANGE.md" ]; then
+            cp LATEST_CHANGE.md ./artifacts/
+          fi
+        shell: bash
+
+      - name: Upload artifacts
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: ./artifacts/
+
+  release:
+    name: Release Package
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment: NuGet
+    
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: ./artifacts
+
+      - name: Push to NuGet
+        run: |
+          for package in ./artifacts/*.nupkg; do
+            if [[ ! "$package" =~ \.symbols\.nupkg$ ]]; then
+              dotnet nuget push "$package" \
+                --api-key ${{ secrets.NUGET_API_KEY }} \
+                --source https://api.nuget.org/v3/index.json \
+                --skip-duplicate
+            fi
+          done
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.PackageVersion }}
+          name: v${{ env.PackageVersion }}
+          body_path: ./artifacts/LATEST_CHANGE.md
+          files: ./artifacts/*.nupkg
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
