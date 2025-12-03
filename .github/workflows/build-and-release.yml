@@ -44,7 +44,7 @@ jobs:
       - name: Create NuGet packages
         if: github.event_name != 'pull_request'
         run: |
-          dotnet pack **/CouchDB.Driver.csproj \
+          dotnet pack **/**/*.csproj \
             --configuration ${{ env.BuildConfiguration }} \
             --no-build \
             --output ./artifacts \
