@@ -39,23 +39,17 @@ jobs:
         run: dotnet build **/*.sln --configuration ${{ env.BuildConfiguration }} --no-restore
 
       - name: Run unit tests
-        run: dotnet test **/*UnitTests*.csproj --configuration ${{ env.BuildConfiguration }} --no-build --verbosity normal --logger "trx" --results-directory ./TestResults
+        run: dotnet test **/*UnitTests*.csproj --configuration ${{ env.BuildConfiguration }} --no-build
 
       - name: Create NuGet packages
         if: github.event_name != 'pull_request'
         run: |
-          dotnet pack **/*.csproj \
+          dotnet pack **/CouchDB.Driver.csproj \
             --configuration ${{ env.BuildConfiguration }} \
             --no-build \
             --output ./artifacts \
             -p:PackageVersion=${{ env.PackageVersion }} \
             --include-symbols
-        shell: bash
-
-      - name: Filter out test and example projects
-        if: github.event_name != 'pull_request'
-        run: |
-          find ./artifacts -type f \( -name "*Tests*.nupkg" -o -name "*Example*.nupkg" \) -delete
         shell: bash
 
       - name: Copy release notes

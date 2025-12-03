@@ -484,9 +484,9 @@ namespace CouchDB.Driver
                         ChangesFeedResponseResult<TSource>? result =
                             JsonConvert.DeserializeObject<ChangesFeedResponseResult<TSource>>(substring);
                         if (string.IsNullOrWhiteSpace(_discriminator) ||
-                            result.Document.SplitDiscriminator == _discriminator)
+                            result?.Document.SplitDiscriminator == _discriminator)
                         {
-                            lastSequence = result.Seq;
+                            lastSequence = result!.Seq;
                             yield return result;
                         }
                     }

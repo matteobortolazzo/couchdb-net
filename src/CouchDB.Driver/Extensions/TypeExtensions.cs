@@ -20,7 +20,7 @@ namespace CouchDB.Driver.Extensions
 
             if (jsonObject != null)
             {
-                return jsonObject.Id;
+                return jsonObject.Id!;
             }
 
             var typeName = t.Name;

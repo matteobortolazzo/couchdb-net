@@ -18,7 +18,7 @@ namespace CouchDB.Driver.Extensions
                 : null;
 
             return jsonProperty != null
-                ? jsonProperty.PropertyName
+                ? jsonProperty.PropertyName!
                 : propertyCaseType.Convert(memberInfo.Name);
         }
 

@@ -17,7 +17,7 @@ namespace CouchDB.Driver.Helpers
             _databaseSplitDiscriminator = databaseSplitDiscriminator;
         }
 
-        protected override JsonProperty? CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             Check.NotNull(member, nameof(member));
 
