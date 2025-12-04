@@ -22,7 +22,7 @@ using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using System.Net;
 using System.Text.RegularExpressions;
 using CouchDB.Driver.Views;

@@ -1,14 +1,13 @@
-﻿#nullable disable
+﻿using System;
 using System.Collections.Generic;
 using CouchDB.Driver.Types;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
+internal class GetIndexesResult
 {
-    internal class GetIndexesResult
-    {
-        [JsonProperty("indexes")]
-        public List<IndexInfo> Indexes { get; set; }
-    }
+    [JsonPropertyName("indexes")]
+    public List<IndexInfo> Indexes { get; set; }
 }
-#nullable restore

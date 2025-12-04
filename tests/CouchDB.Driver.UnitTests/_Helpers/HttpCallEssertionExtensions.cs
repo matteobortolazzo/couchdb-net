@@ -1,5 +1,5 @@
 ﻿using Flurl.Http.Testing;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using System;
 
 namespace CouchDB.Driver.UnitTests._Helpers

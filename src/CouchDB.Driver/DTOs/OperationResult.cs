@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
+internal class OperationResult
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes")]
-    internal class OperationResult
-    {
-        [JsonProperty("ok")]
-        public bool Ok { get; set; }
-    }
+    [JsonPropertyName("ok")]
+    public bool Ok { get; set; }
 }

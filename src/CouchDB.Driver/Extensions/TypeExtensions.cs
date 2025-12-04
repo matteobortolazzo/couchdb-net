@@ -1,5 +1,5 @@
 ﻿using Humanizer;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using System;
 using System.Collections;
 using System.Collections.Generic;

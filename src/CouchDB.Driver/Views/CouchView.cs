@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 #nullable disable
 namespace CouchDB.Driver.Views
@@ -14,25 +14,25 @@ namespace CouchDB.Driver.Views
         /// <summary>
         /// The document ID.
         /// </summary>
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public string Id { get; set; }
 
         /// <summary>
         /// The view key.
         /// </summary>
-        [JsonProperty("key")]
+        [JsonPropertyName("key")]
         public TKey Key { get; set; }
 
         /// <summary>
         /// The view key.
         /// </summary>
-        [JsonProperty("value")]
+        [JsonPropertyName("value")]
         public TValue Value { get; set; }
 
         /// <summary>
         /// The document.
         /// </summary>
-        [JsonProperty("doc")]
+        [JsonPropertyName("doc")]
         public TDoc Document { get; set; }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Options;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Extensions
 {

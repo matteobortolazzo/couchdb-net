@@ -1,7 +1,7 @@
 ﻿using CouchDB.Driver.UnitTests._Helpers;
 using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using System;
 using System.Net.Http;
 using System.Threading;

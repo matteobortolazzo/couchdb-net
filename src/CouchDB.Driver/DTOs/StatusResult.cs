@@ -1,13 +1,11 @@
-﻿#nullable disable
-using Newtonsoft.Json;
+﻿using System;
+using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
+internal class StatusResult
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes")]
-    internal class StatusResult
-    {
-        [JsonProperty("status")]
-        public string Status { get; set; }
-    }
+    [JsonPropertyName("status")]
+    public string Status { get; set; }
 }
-#nullable restore

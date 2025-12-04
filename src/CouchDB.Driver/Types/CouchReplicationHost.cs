@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -9,11 +9,11 @@ namespace CouchDB.Driver.Types
     public class CouchReplicationHost
     {
         [DataMember]
-        [JsonProperty("url")]
+        [JsonPropertyName("url")]
         public string? Url { get; internal set; }
 
         [DataMember]
-        [JsonProperty("auth")]
+        [JsonPropertyName("auth")]
         public CouchReplicationAuth? Auth { get; internal set; }
 
 

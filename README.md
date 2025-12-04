@@ -357,7 +357,7 @@ If you need custom values for documents and properties, it's possible to use Jso
 [JsonObject("custom-rebels")]
 public class OtherRebel : Rebel
 
-[JsonProperty("rebel_bith_date")]
+[JsonPropertyName("rebel_bith_date")]
 public DateTime BirthDate { get; set; }
 ```
 

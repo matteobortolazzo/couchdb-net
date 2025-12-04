@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using System.Net;
 using System.Threading;
 using CouchDB.Driver.Options;

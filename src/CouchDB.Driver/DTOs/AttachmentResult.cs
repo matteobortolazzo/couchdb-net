@@ -1,18 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
+internal class AttachmentResult
 {
-    #nullable disable
-    internal class AttachmentResult
-    {
-        [JsonProperty("id")]
-        public string Id { get; set; }
+    [JsonPropertyName("id")]
+    public required string Id { get; set; }
 
-        [JsonProperty("ok")]
-        public bool Ok { get; set; }
+    [JsonPropertyName("ok")]
+    public bool Ok { get; set; }
 
-        [JsonProperty("rev")]
-        public string Rev { get; set; }
-    }
-    #nullable restore
+    [JsonPropertyName("rev")]
+    public required string Rev { get; set; }
 }

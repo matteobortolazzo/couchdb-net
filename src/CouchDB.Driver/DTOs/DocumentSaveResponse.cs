@@ -1,14 +1,13 @@
-﻿#nullable disable
-namespace CouchDB.Driver.DTOs
+﻿using System;
+
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
+internal class DocumentSaveResponse
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes")]
-    internal class DocumentSaveResponse
-    {
-        public bool Ok { get; set; }
-        public string Id { get; set; }
-        public string Rev { get; set; }
-        public string Error { get; set; }
-        public string Reason { get; set; }
-    }
+    public bool Ok { get; set; }
+    public required string Id { get; set; }
+    public required string Rev { get; set; }
+    public required string Error { get; set; }
+    public required string Reason { get; set; }
 }
-#nullable restore

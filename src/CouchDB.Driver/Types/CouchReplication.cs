@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -10,31 +10,31 @@ namespace CouchDB.Driver.Types
     public class CouchReplication : CouchDocument
     {
         [DataMember]
-        [JsonProperty("source")]
+        [JsonPropertyName("source")]
         public object? Source { get; internal set; }
 
         public CouchReplicationBasicCredentials? SourceCredentials { get; set; }
 
         [DataMember]
-        [JsonProperty("target")]
+        [JsonPropertyName("target")]
         public object? Target { get; internal set; }
 
         public CouchReplicationBasicCredentials? TargetCredentials { get; set; }
 
         [DataMember]
-        [JsonProperty("continuous")]
+        [JsonPropertyName("continuous")]
         public bool Continuous { get; set; }
 
         [DataMember]
-        [JsonProperty("selector")]
+        [JsonPropertyName("selector")]
         public object? Selector { get; set; }
 
         [DataMember]
-        [JsonProperty("cancel")]
+        [JsonPropertyName("cancel")]
         public bool Cancel { get; internal set; }
         
         [DataMember]
-        [JsonProperty("create_target")]
+        [JsonPropertyName("create_target")]
         public bool CreateTarget{ get; set; }
     }
 }

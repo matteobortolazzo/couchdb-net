@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Security
 {
@@ -17,13 +17,13 @@ namespace CouchDB.Driver.Security
         /// <summary>
         /// List of CouchDB user names.
         /// </summary>
-        [JsonProperty("names")]
+        [JsonPropertyName("names")]
         public List<string> Names { get; }
 
         /// <summary>
         /// List of users roles.
         /// </summary>
-        [JsonProperty("roles")]
+        [JsonPropertyName("roles")]
         public List<string> Roles { get; }
     }
 }

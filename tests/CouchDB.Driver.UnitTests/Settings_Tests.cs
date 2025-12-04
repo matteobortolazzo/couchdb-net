@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests

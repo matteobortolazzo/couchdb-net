@@ -1,5 +1,5 @@
 ﻿using CouchDB.Driver.Helpers;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -20,11 +20,11 @@ namespace CouchDB.Driver.Types
         }
 
         [DataMember]
-        [JsonProperty("username")]
+        [JsonPropertyName("username")]
         public string Username { get; set; }
 
         [DataMember]
-        [JsonProperty("password")]
+        [JsonPropertyName("password")]
         public string Password { get; set; }
     }
 }

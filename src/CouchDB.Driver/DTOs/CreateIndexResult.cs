@@ -1,18 +1,13 @@
-﻿#nullable disable
-using Newtonsoft.Json;
+﻿using System;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
+internal class CreateIndexResult
 {
-    internal class CreateIndexResult
-    {
-        [JsonProperty("result")]
-        public string Result { get; set; }
+    public required string Result { get; set; }
 
-        [JsonProperty("id")]
-        public string Id { get; set; }
+    public required string Id { get; set; }
 
-        [JsonProperty("name")]
-        public string Name { get; set; }
-    }
+    public required string Name { get; set; }
 }
-#nullable restore

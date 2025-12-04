@@ -1,41 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>CouchDB.NET</AssemblyName>
-    <Authors>Matteo Bortolazzo</Authors>
-    <Description>A .NET Standard driver for CouchDB.</Description>
-    <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-net</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
-    <PackageTags>couchdb,driver,nosql,netstandard,pouchdb,xamarin</PackageTags>
-    <ApplicationIcon />
-    <OutputType>Library</OutputType>
-    <StartupObject />
-    <NeutralLanguage>en</NeutralLanguage>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-    <PackageIcon>icon.png</PackageIcon>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <AssemblyName>CouchDB.NET</AssemblyName>
+        <Authors>Matteo Bortolazzo</Authors>
+        <Description>A .NET Standard driver for CouchDB.</Description>
+        <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-net</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
+        <PackageTags>couchdb,driver,nosql,netstandard,pouchdb,xamarin</PackageTags>
+        <OutputType>Library</OutputType>
+        <NeutralLanguage>en</NeutralLanguage>
+        <Nullable>enable</Nullable>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="Images\icon.png" Pack="true" PackagePath="\" />
-    <None Include="License\LICENSE.txt" Pack="true" PackagePath="\" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="Images\icon.png" Pack="true" PackagePath="\"/>
+        <None Include="License\LICENSE.txt" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WarningsAsErrors/>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Flurl.Http" Version="3.2.4" />
-    <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Flurl.Http" Version="4.*"/>
+        <PackageReference Include="Humanizer.Core" Version="2.*"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="License\" />
-  </ItemGroup>
+    <ItemGroup>
+        <Folder Include="License\"/>
+    </ItemGroup>
 
 </Project>

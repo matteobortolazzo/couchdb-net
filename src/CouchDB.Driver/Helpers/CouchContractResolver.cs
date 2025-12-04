@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json.Serialization;
 
 namespace CouchDB.Driver.Helpers

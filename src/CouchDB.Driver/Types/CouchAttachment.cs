@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Types
 {
@@ -33,14 +33,14 @@ namespace CouchDB.Driver.Types
         ///     Gets whether the attachment object contains stub info and no content. 
         /// </summary>
         [DataMember]
-        [JsonProperty("stub")]
+        [JsonPropertyName("stub")]
         public bool Stub { get; set; }
 
         /// <summary>
         ///     Gets the attachment MIME type.
         /// </summary>
         [DataMember]
-        [JsonProperty("content_type")]
+        [JsonPropertyName("content_type")]
         public string ContentType { get; set; }
 
         /// <summary>
@@ -48,21 +48,21 @@ namespace CouchDB.Driver.Types
         ///     Base64-encoded hash digest.
         /// </summary>
         [DataMember]
-        [JsonProperty("digest")]
+        [JsonPropertyName("digest")]
         public string Digest { get; private set; }
 
         /// <summary>
         ///     Gets the real attachment size in bytes. Not available if attachment content requested.
         /// </summary>
         [DataMember]
-        [JsonProperty("length")]
+        [JsonPropertyName("length")]
         public long? Length { get; private set; }
 
         /// <summary>
         ///     Gets the revision number when attachment was added.
         /// </summary>
         [DataMember]
-        [JsonProperty("revpos")]
+        [JsonPropertyName("revpos")]
         public int? RevPos { get; private set; }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace CouchDB.Driver.Types
         ///     </list>
         /// </remarks>
         [DataMember]
-        [JsonProperty("encoded_length")]
+        [JsonPropertyName("encoded_length")]
         public long? EncodedLength { get; private set; }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace CouchDB.Driver.Types
         ///     </list>
         /// </remarks>
         [DataMember]
-        [JsonProperty("data")]
+        [JsonPropertyName("data")]
         public string Data { get; private set; }
     }
 }

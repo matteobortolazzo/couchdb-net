@@ -6,7 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using CouchDB.Driver.Helpers;
 using Flurl.Http.Configuration;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Options
 {

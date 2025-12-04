@@ -1,6 +1,6 @@
 ﻿#nullable disable
 using System.Runtime.Serialization;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Types
 {
@@ -10,22 +10,22 @@ namespace CouchDB.Driver.Types
     public class CouchDocumentInfo
     {
         [DataMember]
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public string Id { get; private set; }
 
         [DataMember]
-        [JsonProperty("key")]
+        [JsonPropertyName("key")]
         public string Key { get; private set; }
 
         [DataMember]
-        [JsonProperty("value")]
+        [JsonPropertyName("value")]
         private CouchDocumentInfoValue Value { get; set; }
 
         public string Rev => Value.Rev;
 
         private class CouchDocumentInfoValue
         {
-            [JsonProperty("rev")]
+            [JsonPropertyName("rev")]
             public string Rev { get; set; }
         }
     }

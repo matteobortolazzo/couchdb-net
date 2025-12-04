@@ -1,14 +1,12 @@
-﻿#nullable disable
+﻿using System;
 using CouchDB.Driver.Types;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
+internal class BulkGetResultItem<TSource> where TSource : CouchDocument
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes")]
-    internal class BulkGetResultItem<TSource> where TSource : CouchDocument
-    {
-        [JsonProperty("ok")]
-        public TSource Item { get; set; }
-    }
+    [JsonPropertyName("ok")]
+    public required TSource Item { get; set; }
 }
-#nullable restore

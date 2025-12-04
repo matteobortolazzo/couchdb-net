@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CouchDB.Driver.DTOs;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Types
 {
@@ -19,13 +19,13 @@ namespace CouchDB.Driver.Types
         /// <summary>
         /// ID of the design document the index belongs to.
         /// </summary>
-        [JsonProperty("ddoc")]
+        [JsonPropertyName("ddoc")]
         public string DesignDocument { get; set; }
 
         /// <summary>
         /// The name of the index.
         /// </summary>
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace CouchDB.Driver.Types
         [JsonIgnore]
         public Dictionary<string, IndexFieldDirection> Fields { get; }
 
-        [JsonProperty("def")]
+        [JsonPropertyName("def")]
         internal IndexDefinitionInfo Definition 
         {
             set

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CouchDB.Driver.Types;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Converters
 {

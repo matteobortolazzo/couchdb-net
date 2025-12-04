@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using CouchDB.Driver.Converters;
 using CouchDB.Driver.DatabaseApiMethodOptions;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Types
 {
@@ -111,7 +111,7 @@ namespace CouchDB.Driver.Types
         /// Used for database splitting
         /// </summary>
         [DataMember]
-        [JsonProperty(CouchClient.DefaultDatabaseSplitDiscriminator, NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName(CouchClient.DefaultDatabaseSplitDiscriminator, NullValueHandling = NullValueHandling.Ignore)]
         internal string SplitDiscriminator { get; set; }
 
         [OnDeserialized]

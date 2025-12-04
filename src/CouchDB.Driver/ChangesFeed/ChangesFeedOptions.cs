@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.ChangesFeed
 {
@@ -23,21 +23,21 @@ namespace CouchDB.Driver.ChangesFeed
         /// <summary>
         /// Includes conflicts information in response. Ignored if <see cref="IncludeDocs"/> isn’t <c>True</c>.
         /// </summary>
-        [JsonProperty("conflicts")]
+        [JsonPropertyName("conflicts")]
         [DefaultValue(false)]
         public bool Conflicts { get; set; }
 
         /// <summary>
         /// Return the change results in descending sequence order (most recent change first).
         /// </summary>
-        [JsonProperty("descending")]
+        [JsonPropertyName("descending")]
         [DefaultValue(false)]
         public bool Descending { get; set; }
 
         /// <summary>
         /// Reference to a filter function from a design document that will filter whole stream emitting only filtered events.
         /// </summary>
-        [JsonProperty("filter")]
+        [JsonPropertyName("filter")]
         [DefaultValue(null)]
         public string? Filter { get; set; }
 
@@ -48,28 +48,28 @@ namespace CouchDB.Driver.ChangesFeed
         /// Only applicable for <c>longpoll</c>, <c>continuous</c>, and <c>eventsource</c> feeds.
         /// Overrides any timeout to keep the feed alive indefinitely.
         /// </remarks>
-        [JsonProperty("heartbeat")]
+        [JsonPropertyName("heartbeat")]
         [DefaultValue(60000)]
         public int Heartbeat { get; set; } = 60000;
 
         /// <summary>
         /// Include the associated document with each result. If there are conflicts, only the winning revision is returned. 
         /// </summary>
-        [JsonProperty("include_docs")]
+        [JsonPropertyName("include_docs")]
         [DefaultValue(false)]
         public bool IncludeDocs { get; set; }
 
         /// <summary>
         /// Include the Base64-encoded content of attachments in the documents that are included if <see cref="IncludeDocs"/> is <c>True</c>.
         /// </summary>
-        [JsonProperty("attachments")]
+        [JsonPropertyName("attachments")]
         [DefaultValue(false)]
         public bool Attachments { get; set; }
 
         /// <summary>
         /// Include encoding information in attachment stubs if <see cref="IncludeDocs"/> is <c>True</c> and the particular attachment is compressed.
         /// </summary>
-        [JsonProperty("att_encoding_info")]
+        [JsonPropertyName("att_encoding_info")]
         [DefaultValue(false)]
         public bool AttachEncodingInfo { get; set; }
 
@@ -79,7 +79,7 @@ namespace CouchDB.Driver.ChangesFeed
         /// <remarks>
         /// Note that using <c>0</c> here has the same effect as <c>1</c>.
         /// </remarks>
-        [JsonProperty("limit")]
+        [JsonPropertyName("limit")]
         [DefaultValue(null)]
         public int? Limit { get; set; }
 
@@ -89,7 +89,7 @@ namespace CouchDB.Driver.ChangesFeed
         /// <remarks>
         /// Can be valid update sequence or <c>now</c> value.
         /// </remarks>
-        [JsonProperty("since")]
+        [JsonPropertyName("since")]
         [DefaultValue("0")]
         public string? Since { get; set; } = "0";
 
@@ -99,7 +99,7 @@ namespace CouchDB.Driver.ChangesFeed
         /// <remarks>
         /// <see cref="ChangesFeedStyle.MainOnly"/> will only return the current "winning" revision; <see cref="ChangesFeedStyle.AllDocs"/> will return all leaf revisions (including conflicts and deleted former conflicts).
         /// </remarks>
-        [JsonProperty("style")]
+        [JsonPropertyName("style")]
         [DefaultValue("main_only")]
         public ChangesFeedStyle Style { get; set; } = ChangesFeedStyle.MainOnly;
 
@@ -110,14 +110,14 @@ namespace CouchDB.Driver.ChangesFeed
         /// Only applicable for <c>longpoll</c> or <c>continuous</c> feeds. Default value is specified by <see href="https://docs.couchdb.org/en/master/config/http.html#httpd/changes_timeout">httpd/changes_timeout</see> configuration option.
         /// Note that <c>60000</c> value is also the default maximum timeout to prevent undetected dead connections.
         /// </remarks>
-        [JsonProperty("timeout")]
+        [JsonPropertyName("timeout")]
         [DefaultValue(null)]
         public int? Timeout { get; set; }
 
         /// <summary>
         /// Allows to use view functions as filters. Documents counted as "passed" for view filter in case if map function emits at least one record for them. 
         /// </summary>
-        [JsonProperty("view")]
+        [JsonPropertyName("view")]
         [DefaultValue(null)]
         public string? View { get; set; }
 
@@ -126,7 +126,7 @@ namespace CouchDB.Driver.ChangesFeed
         /// By setting <c>seq_interval=&lt;batch size&gt;</c>, where <c>&lt;batch size&gt;</c> is the number of results requested per batch, load can be reduced on the source CouchDB database;
         /// computing the seq value across many shards (esp. in highly-sharded databases) is expensive in a heavily loaded CouchDB cluster.
         /// </summary>
-        [JsonProperty("seq_interval")]
+        [JsonPropertyName("seq_interval")]
         [DefaultValue(null)]
         public int? SeqInterval { get; set; }
 

@@ -1,16 +1,10 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.ChangesFeed.Filters
+namespace CouchDB.Driver.ChangesFeed.Filters;
+
+internal class ChangesFeedFilterDocuments(IList<string> documentIds)
 {
-    internal class ChangesFeedFilterDocuments
-    {
-        public ChangesFeedFilterDocuments(IList<string> documentIds)
-        {
-            DocumentIds = documentIds;
-        }
-
-        [JsonProperty("doc_ids")]
-        public IList<string> DocumentIds { get; set; }
-    }
+    [JsonPropertyName("doc_ids")]
+    public IList<string> DocumentIds { get; set; } = documentIds;
 }

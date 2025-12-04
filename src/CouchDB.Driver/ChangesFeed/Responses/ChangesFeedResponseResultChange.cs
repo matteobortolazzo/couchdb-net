@@ -1,11 +1,11 @@
 ﻿#nullable disable
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.ChangesFeed.Responses
 {
     public class ChangesFeedResponseResultChange
     {
-        [JsonProperty("rev")]
+        [JsonPropertyName("rev")]
         public string Rev { get; set; }
     }
 }

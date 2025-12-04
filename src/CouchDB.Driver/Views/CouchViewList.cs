@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using CouchDB.Driver.Types;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 #nullable disable
 #pragma warning disable CA2227 // Collection properties should be read only
@@ -18,19 +18,19 @@ namespace CouchDB.Driver.Views
         /// <summary>
         /// Number of documents in the database/view.
         /// </summary>
-        [JsonProperty("total_rows")]
+        [JsonPropertyName("total_rows")]
         public int TotalRows { get; set; }
 
         /// <summary>
         /// Offset where the document list started.
         /// </summary>
-        [JsonProperty("offset")]
+        [JsonPropertyName("offset")]
         public int Offset { get; set; }
 
         /// <summary>
         /// Array of view row objects. This result contains the document ID, value and the documents.
         /// </summary>
-        [JsonProperty("rows")]
+        [JsonPropertyName("rows")]
         public List<CouchView<TKey, TValue, TDoc>> Rows { get; set; }
     }
 }

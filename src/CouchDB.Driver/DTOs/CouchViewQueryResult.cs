@@ -1,19 +1,17 @@
-﻿using CouchDB.Driver.Types;
+﻿using System;
+using CouchDB.Driver.Types;
 using CouchDB.Driver.Views;
-using Newtonsoft.Json;
-using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
-#nullable disable
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
+internal class CouchViewQueryResult<TKey, TValue, TDoc>
+    where TDoc : CouchDocument
 {
-    internal class CouchViewQueryResult<TKey, TValue, TDoc>
-        where TDoc : CouchDocument
-    {
-        /// <summary>
-        /// The results in the same order as the queries.
-        /// </summary>
-        [JsonProperty("results")]
-        public CouchViewList<TKey, TValue, TDoc>[] Results { get; set; }
-    }
+    /// <summary>
+    /// The results in the same order as the queries.
+    /// </summary>
+    [JsonPropertyName("results")]
+    public required CouchViewList<TKey, TValue, TDoc>[] Results { get; set; }
 }
-#nullable restore

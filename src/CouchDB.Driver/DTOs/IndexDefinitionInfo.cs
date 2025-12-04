@@ -1,13 +1,12 @@
-﻿#nullable disable
+﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.DTOs
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
+internal class IndexDefinitionInfo
 {
-    internal class IndexDefinitionInfo
-    {
-        [JsonProperty("fields")]
-        public Dictionary<string, string>[] Fields { get; set; }
-    }
+    [JsonPropertyName("fields")]
+    public Dictionary<string, string>[] Fields { get; set; }
 }
-#nullable restore

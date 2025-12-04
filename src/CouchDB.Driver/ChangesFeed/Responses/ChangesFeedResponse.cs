@@ -1,19 +1,19 @@
 ﻿#nullable disable
 using System.Collections.Generic;
 using CouchDB.Driver.Types;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.ChangesFeed.Responses
 {
     public class ChangesFeedResponse<TSource> where TSource : CouchDocument
     {
-        [JsonProperty("last_seq")]
+        [JsonPropertyName("last_seq")]
         public string LastSequence { get; set; }
 
-        [JsonProperty("pending")]
+        [JsonPropertyName("pending")]
         public int Pending { get; set; }
 
-        [JsonProperty("results")]
+        [JsonPropertyName("results")]
         public IList<ChangesFeedResponseResult<TSource>> Results { get; internal set; }
     }
 }
