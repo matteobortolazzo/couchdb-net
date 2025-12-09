@@ -1,34 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using CouchDB.Driver.Types;
 using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.Converters
+namespace CouchDB.Driver.Converters;
+
+internal class AttachmentsParsedConverter : JsonConverter<Dictionary<string, CouchAttachment>>
 {
-    internal class AttachmentsParsedConverter : JsonConverter<Dictionary<string, CouchAttachment>>
+    public override void Write(Utf8JsonWriter writer, Dictionary<string, CouchAttachment>? value,
+        JsonSerializerOptions options)
     {
-        public override void WriteJson(JsonWriter writer, Dictionary<string, CouchAttachment>? value,
-            JsonSerializer serializer)
+        if (value == null)
         {
-            if (value == null)
-            {
-                return;
-            }
-            
-            serializer.Serialize(writer, value
-                .Where(kvp => kvp.Value.FileInfo is null)
-                .ToDictionary(k => k.Key, v => v.Value)
-            );
+            writer.WriteNullValue();
+            return;
         }
 
-        public override bool CanRead => false;
+        var filtered = value
+            .Where(kvp => kvp.Value.FileInfo is null)
+            .ToDictionary(k => k.Key, v => v.Value);
 
-        public override Dictionary<string, CouchAttachment> ReadJson(JsonReader reader, Type objectType,
-            Dictionary<string, CouchAttachment>? existingValue, bool hasExistingValue,
-            JsonSerializer serializer)
-        {
-            throw new NotImplementedException();
-        }
+        JsonSerializer.Serialize(writer, filtered, options);
+    }
+
+    public override bool CanConvert(Type typeToConvert)
+    {
+        return typeToConvert == typeof(Dictionary<string, CouchAttachment>);
+    }
+
+    public override Dictionary<string, CouchAttachment> Read(ref Utf8JsonReader reader, Type typeToConvert,
+        JsonSerializerOptions options)
+    {
+        throw new NotImplementedException();
     }
 }

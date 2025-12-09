@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-#pragma warning disable IDE0058 // Expression value is never used
 namespace CouchDB.Driver.Query
 {
     internal partial class QueryTranslator
@@ -13,12 +12,13 @@ namespace CouchDB.Driver.Query
                 case ExpressionType.Not:
                     switch (u.Operand)
                     {
-                        case BinaryExpression b when (b.NodeType == ExpressionType.Or || b.NodeType == ExpressionType.OrElse):
+                        case BinaryExpression b
+                            when (b.NodeType == ExpressionType.Or || b.NodeType == ExpressionType.OrElse):
                             _sb.Append('{');
                             VisitBinaryCombinationOperator(b, true);
                             _sb.Append('}');
                             break;
-                        case MethodCallExpression m when m.Method.Name == "In":
+                        case MethodCallExpression { Method.Name: "In" } m:
                             VisitInMethod(m, true);
                             break;
                         default:
@@ -28,6 +28,7 @@ namespace CouchDB.Driver.Query
                             _sb.Append('}');
                             break;
                     }
+
                     break;
                 case ExpressionType.Convert:
                     Visit(u.Operand);
@@ -35,9 +36,8 @@ namespace CouchDB.Driver.Query
                 default:
                     throw new NotSupportedException($"The unary operator '{u.NodeType}' is not supported");
             }
+
             return u;
         }
-
     }
 }
-#pragma warning restore IDE0058 // Expression value is never used

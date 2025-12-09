@@ -5,42 +5,47 @@ using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Helpers
-{
-    internal static class MethodCallExpressionBuilder
-    {
-        #region Substitute
+namespace CouchDB.Driver.Helpers;
 
-        public static MethodCallExpression TrySubstituteWithOptimized(this MethodCallExpression node, string methodName, Func<MethodCallExpression, Expression> visitMethod)
+internal static class MethodCallExpressionBuilder
+{
+    #region Substitute
+
+    extension(MethodCallExpression node)
+    {
+        public MethodCallExpression TrySubstituteWithOptimized(string methodName,
+            Func<MethodCallExpression, Expression> visitMethod)
         {
             if (node.Arguments.Count > 0 && node.Arguments[0] is MethodCallExpression methodCallExpression)
             {
-                Expression? optimizedArgument = visitMethod(methodCallExpression);
+                Expression optimizedArgument = visitMethod(methodCallExpression);
                 node = Expression.Call(typeof(Queryable), methodName,
                     node.Method.GetGenericArguments(), optimizedArgument);
             }
 
             return node;
         }
-        
-        public static MethodCallExpression SubstituteWithQueryableCall(this MethodCallExpression node, string methodName)
-        {
-            Check.NotNull(node, nameof(node));
 
-            return Expression.Call(typeof(Queryable), methodName, node.Method.GetGenericArguments(), node.Arguments[0], node.Arguments[1]);
+        public MethodCallExpression SubstituteWithQueryableCall(string methodName)
+        {
+            ArgumentNullException.ThrowIfNull(node);
+
+            return Expression.Call(typeof(Queryable), methodName, node.Method.GetGenericArguments(), node.Arguments[0],
+                node.Arguments[1]);
         }
 
-        public static MethodCallExpression SubstituteWithTake(this MethodCallExpression node, int numberOfElements)
+        public MethodCallExpression SubstituteWithTake(int numberOfElements)
         {
-            Check.NotNull(node, nameof(node));
+            ArgumentNullException.ThrowIfNull(node);
 
             return Expression.Call(typeof(Queryable), nameof(Queryable.Take),
-                node.Method.GetGenericArguments().Take(1).ToArray(), node.Arguments[0], Expression.Constant(numberOfElements));
+                node.Method.GetGenericArguments().Take(1).ToArray(), node.Arguments[0],
+                Expression.Constant(numberOfElements));
         }
 
-        public static MethodCallExpression SubstituteWithSelect(this MethodCallExpression node, MethodCallExpression selectorNode)
+        public MethodCallExpression SubstituteWithSelect(MethodCallExpression selectorNode)
         {
-            Check.NotNull(node, nameof(node));
+            ArgumentNullException.ThrowIfNull(node);
 
             Type selectorType = selectorNode.GetSelectorType();
             Type[] genericArgumentTypes = node.Method
@@ -48,12 +53,13 @@ namespace CouchDB.Driver.Helpers
                 .Append(selectorType)
                 .ToArray();
 
-            return Expression.Call(typeof(Queryable), nameof(Queryable.Select), genericArgumentTypes, node.Arguments[0], selectorNode.Arguments[1]);
+            return Expression.Call(typeof(Queryable), nameof(Queryable.Select), genericArgumentTypes, node.Arguments[0],
+                selectorNode.Arguments[1]);
         }
 
-        public static MethodCallExpression SubstituteWithWhere(this MethodCallExpression node, ExpressionVisitor optimizer, bool negate = false)
+        public MethodCallExpression SubstituteWithWhere(ExpressionVisitor optimizer, bool negate = false)
         {
-            Check.NotNull(node, nameof(node));
+            ArgumentNullException.ThrowIfNull(node);
 
             Expression predicate = node.Arguments[1];
 
@@ -64,25 +70,29 @@ namespace CouchDB.Driver.Helpers
                 predicate = body.WrapInLambda(lambdaExpression.Parameters);
             }
 
-            MethodCallExpression e = Expression.Call(typeof(Queryable), nameof(Queryable.Where), node.Method.GetGenericArguments(), node.Arguments[0], predicate);
+            MethodCallExpression e = Expression.Call(typeof(Queryable), nameof(Queryable.Where),
+                node.Method.GetGenericArguments(), node.Arguments[0], predicate);
             return (MethodCallExpression)optimizer.Visit(e);
         }
+    }
 
-        #endregion
+    #endregion
 
-        #region Wrap
+    #region Wrap
 
-        public static MethodCallExpression WrapInTake(this MethodCallExpression node, int numberOfElements)
+    extension(MethodCallExpression node)
+    {
+        public MethodCallExpression WrapInTake(int numberOfElements)
         {
-            Check.NotNull(node, nameof(node));
+            ArgumentNullException.ThrowIfNull(node);
 
             return Expression.Call(typeof(Queryable), nameof(Queryable.Take),
                 node.Method.GetGenericArguments().Take(1).ToArray(), node, Expression.Constant(numberOfElements));
         }
 
-        public static MethodCallExpression WrapInSelect(this MethodCallExpression node, MethodCallExpression selectorNode)
+        public MethodCallExpression WrapInSelect(MethodCallExpression selectorNode)
         {
-            Check.NotNull(node, nameof(node));
+            ArgumentNullException.ThrowIfNull(node);
 
             Type selectorType = selectorNode.GetSelectorType();
             Type[] genericArgumentTypes = node.Method
@@ -90,49 +100,50 @@ namespace CouchDB.Driver.Helpers
                 .Append(selectorType)
                 .ToArray();
 
-            return Expression.Call(typeof(Queryable), nameof(Queryable.Select), genericArgumentTypes, node, selectorNode.Arguments[1]);
+            return Expression.Call(typeof(Queryable), nameof(Queryable.Select), genericArgumentTypes, node,
+                selectorNode.Arguments[1]);
         }
 
-        public static MethodCallExpression WrapInAverageSum(this MethodCallExpression node, MethodCallExpression wrap)
+        public MethodCallExpression WrapInAverageSum(MethodCallExpression wrap)
         {
-            Check.NotNull(node, nameof(node));
-            Check.NotNull(wrap, nameof(wrap));
+            ArgumentNullException.ThrowIfNull(node);
+            ArgumentNullException.ThrowIfNull(wrap);
 
             Type selectorType = wrap.GetSelectorType();
             Type queryableType = typeof(IQueryable<>).MakeGenericType(selectorType);
-            MethodInfo numberMethod = typeof(Queryable).GetMethod(wrap.Method.Name, new []{queryableType});
+            MethodInfo numberMethod = typeof(Queryable).GetMethod(wrap.Method.Name, [queryableType])!;
             return Expression.Call(numberMethod, node);
         }
 
-        public static MethodCallExpression WrapInMinMax(this MethodCallExpression node, MethodInfo methodInfo)
+        public MethodCallExpression WrapInMinMax(MethodInfo methodInfo)
         {
-            Check.NotNull(node, nameof(node));
-            Check.NotNull(methodInfo, nameof(methodInfo));
+            ArgumentNullException.ThrowIfNull(node);
+            ArgumentNullException.ThrowIfNull(methodInfo);
 
             MethodInfo genericMethodInfo = methodInfo.MakeGenericMethod(node.Method.GetGenericArguments()[1]);
             return Expression.Call(genericMethodInfo, node);
         }
 
-        public static MethodCallExpression WrapInMethodWithoutSelector(this MethodCallExpression node, MethodInfo methodInfo)
+        public MethodCallExpression WrapInMethodWithoutSelector(MethodInfo methodInfo)
         {
-            Check.NotNull(node, nameof(node));
-            Check.NotNull(methodInfo, nameof(methodInfo));
+            ArgumentNullException.ThrowIfNull(node);
+            ArgumentNullException.ThrowIfNull(methodInfo);
 
             MethodInfo genericMethodInfo = methodInfo.MakeGenericMethod(node.Method.GetGenericArguments()[0]);
             return Expression.Call(genericMethodInfo, node);
         }
-
-        public static MethodCallExpression WrapInDiscriminatorFilter<TSource>(this Expression node, string discriminator)
-            where TSource : CouchDocument
-        {
-            Check.NotNull(node, nameof(node));
-
-            Expression<Func<TSource, bool>> filter = (d) => d.SplitDiscriminator == discriminator;
-
-            return Expression.Call(typeof(Queryable), nameof(Queryable.Where),
-                new[] { typeof(TSource) }, node, filter);
-        }
-
-        #endregion
     }
+
+    public static MethodCallExpression WrapInDiscriminatorFilter<TSource>(this Expression node, string discriminator)
+        where TSource : CouchDocument
+    {
+        ArgumentNullException.ThrowIfNull(node);
+
+        Expression<Func<TSource, bool>> filter = (d) => d.SplitDiscriminator == discriminator;
+
+        return Expression.Call(typeof(Queryable), nameof(Queryable.Where),
+            [typeof(TSource)], node, filter);
+    }
+
+    #endregion
 }

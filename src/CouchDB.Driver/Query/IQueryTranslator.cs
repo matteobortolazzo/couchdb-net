@@ -1,9 +1,8 @@
 ﻿using System.Linq.Expressions;
 
-namespace CouchDB.Driver.Query
+namespace CouchDB.Driver.Query;
+
+internal interface IQueryTranslator
 {
-    internal interface IQueryTranslator
-    {
-        string Translate(Expression e);
-    }
+    string Translate(Expression e);
 }

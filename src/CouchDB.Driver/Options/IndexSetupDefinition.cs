@@ -2,20 +2,15 @@
 using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Options
-{
-    internal class IndexSetupDefinition<TSource>
-        where TSource : CouchDocument
-    {
-        public IndexSetupDefinition(string name, Action<IIndexBuilder<TSource>> indexBuilderAction, IndexOptions? options)
-        {
-            Name = name;
-            IndexBuilderAction = indexBuilderAction;
-            Options = options;
-        }
+namespace CouchDB.Driver.Options;
 
-        public string Name { get; }
-        public Action<IIndexBuilder<TSource>> IndexBuilderAction { get; }
-        public IndexOptions? Options { get; }
-    }
+internal class IndexSetupDefinition<TSource>(
+    string name,
+    Action<IIndexBuilder<TSource>> indexBuilderAction,
+    IndexOptions? options)
+    where TSource : CouchDocument
+{
+    public string Name { get; } = name;
+    public Action<IIndexBuilder<TSource>> IndexBuilderAction { get; } = indexBuilderAction;
+    public IndexOptions? Options { get; } = options;
 }

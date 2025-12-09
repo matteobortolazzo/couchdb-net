@@ -1,31 +1,27 @@
 ﻿using System;
+using System.Text.Json;
 using System.Text.Json.Serialization;
-using Newtonsoft.Json.Converters;
 
-namespace CouchDB.Driver.Helpers
+namespace CouchDB.Driver.Helpers;
+
+internal class MicrosecondEpochConverter : JsonConverter<DateTime>
 {
-    internal class MicrosecondEpochConverter : DateTimeConverterBase
+    private static readonly DateTime Epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+    public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
     {
-        private static readonly DateTime Epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var microseconds = (long)((value - Epoch).TotalMilliseconds * 1000);
+        writer.WriteNumberValue(microseconds);
+    }
 
-        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Number)
         {
-            if (value == null)
-            {
-                writer.WriteNull();
-                return;
-            }
-            
-            writer.WriteRawValue(((DateTime)value - Epoch).TotalMilliseconds + "000");
+            var microseconds = reader.GetInt64();
+            return Epoch.AddMilliseconds(microseconds / 1000d);
         }
 
-        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
-        {
-            Check.NotNull(reader, nameof(reader));
-
-            return reader.Value != null ?                 
-                Epoch.AddMilliseconds((long)reader.Value / 1000d) : 
-                null;
-        }
+        throw new JsonException("Expected number token for DateTime conversion.");
     }
 }

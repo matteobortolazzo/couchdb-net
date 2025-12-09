@@ -2,23 +2,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Query.Extensions
+namespace CouchDB.Driver.Query.Extensions;
+
+public static class ObjectQueryExtensions
 {
-    public static class ObjectQueryExtensions
+    /// <param name="value">The value to locate in the input.</param>
+    /// <typeparam name="T">The type of the elements of source.</typeparam>
+    extension<T>(T value)
     {
         /// <summary>
         /// Determines whether value is contained in the sequence provided.
         /// </summary>
-        /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="value">The value to locate in the input.</param>
         /// <param name="input">A sequence in which to locate the value.</param>
         /// <returns>true if the input sequence contains an element that has the specified value; otherwise, false.</returns>
-        public static bool In<T>(this T value, IEnumerable<T> input)
+        public bool In(IEnumerable<T> input)
         {
-            Check.NotNull(input, nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
 
             return input.Contains(value);
         }
@@ -26,49 +27,47 @@ namespace CouchDB.Driver.Query.Extensions
         /// <summary>
         /// Determines the field exists in the database. 
         /// </summary>
-        /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">The value to check.</param>
         /// <param name="fieldName">The name of the field to check.</param>
         /// <returns>true if the field exists; otherwise, false.</returns>
-        public static bool FieldExists<T>(this T source, string fieldName)
+        public bool FieldExists(string fieldName)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
+            ArgumentNullException.ThrowIfNull(value);
 
-            return source.GetType().GetProperties().Any(p => p.Name == fieldName);
+            return value.GetType().GetProperties().Any(p => p.Name == fieldName);
         }
 
         /// <summary>
         /// Determines the field is of the specified type. 
         /// </summary>
-        /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">The value to check.</param>
         /// <param name="couchType">Type couch type to compare.</param>
         /// <returns>true if the field has the specified type; otherwise, false.</returns>
-        public static bool IsCouchType<T>(this T source, CouchType couchType)
+        public bool IsCouchType(CouchType couchType)
         {
-            if (couchType == CouchType.CNull && source == null)
+            if (couchType == CouchType.CNull && value == null)
             {
                 return true;
             }
-            if (couchType == CouchType.CBoolean && source is bool)
+
+            if (couchType == CouchType.CBoolean && value is bool)
             {
                 return true;
             }
-            if (couchType == CouchType.CString && source is string)
+
+            if (couchType == CouchType.CString && value is string)
             {
                 return true;
             }
+
             if (couchType == CouchType.CNumber && typeof(T).IsPrimitive)
             {
                 return true;
             }
-            if (couchType == CouchType.CArray && source is IEnumerable)
+
+            if (couchType == CouchType.CArray && value is IEnumerable)
             {
                 return true;
             }
+
             return couchType == CouchType.CObject && typeof(T).IsClass;
         }
     }

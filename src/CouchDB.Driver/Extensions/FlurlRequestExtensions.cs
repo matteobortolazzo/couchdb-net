@@ -8,63 +8,59 @@ using CouchDB.Driver.Shared;
 using Flurl.Http;
 using Flurl.Http.Content;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.Extensions;
+
+internal static class FlurlRequestExtensions
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1068:CancellationToken parameters must come last", Justification = "<Pending>")]
-    internal static class FlurlRequestExtensions
+    /// <param name="request">The IFlurlRequest instance.</param>
+    extension(IFlurlRequest request)
     {
         /// <summary>Sends an asynchronous POST request.</summary>
-        /// <param name="request">The IFlurlRequest instance.</param>
         /// <param name="data">Data to parse.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="completionOption">The HttpCompletionOption used in the request. Optional.</param>
         /// <returns>A Task whose result is the response body as a Stream.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
-        public static Task<Stream> PostJsonStreamAsync(
-            this IFlurlRequest request,
-            object data,
-            CancellationToken cancellationToken = default,
-            HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead)
+        public Task<Stream> PostJsonStreamAsync(object data,
+            HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
+            CancellationToken cancellationToken = default)
         {
             var capturedJsonContent = new CapturedJsonContent(request.Settings.JsonSerializer.Serialize(data));
-            return request.SendAsync(HttpMethod.Post, capturedJsonContent, cancellationToken, completionOption).ReceiveStream();
+            return request.SendAsync(HttpMethod.Post, capturedJsonContent, completionOption, cancellationToken)
+                .ReceiveStream();
         }
-         
+
         /// <summary>Sends an asynchronous POST request.</summary>
-        /// <param name="request">The IFlurlRequest instance.</param>
         /// <param name="data">Data to parse.</param>
         /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         /// <param name="completionOption">The HttpCompletionOption used in the request. Optional.</param>
         /// <returns>A Task whose result is the response body as a Stream.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "<Pending>")]
-        public static Task<Stream> PostStringStreamAsync(
-            this IFlurlRequest request,
-            string data,
-            CancellationToken cancellationToken = default,
-            HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead)
+        public Task<Stream> PostStringStreamAsync(string data,
+            HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
+            CancellationToken cancellationToken = default)
         {
             var capturedStringContent = new CapturedStringContent(data);
-            return request.SendAsync(HttpMethod.Post, capturedStringContent, cancellationToken, completionOption).ReceiveStream();
+            return request.SendAsync(HttpMethod.Post, capturedStringContent, completionOption, cancellationToken)
+                .ReceiveStream();
         }
 
-        public static IFlurlRequest ApplyQueryParametersOptions(this IFlurlRequest request, object options)
+        public IFlurlRequest ApplyQueryParametersOptions(object options)
         {
             IEnumerable<(string Name, object? Value)> queryParameters = OptionsHelper.ToQueryParameters(options);
-            foreach ((var name, object? value) in queryParameters)
+            foreach (var (name, value) in queryParameters)
             {
                 request = request.SetQueryParam(name, value);
             }
 
             return request;
         }
+    }
 
-        public static bool IsSuccessful(this IFlurlResponse response)
-        {
-            return
-                response.StatusCode == (int)HttpStatusCode.OK ||
-                response.StatusCode == (int)HttpStatusCode.Created ||
-                response.StatusCode == (int)HttpStatusCode.Accepted ||
-                response.StatusCode == (int)HttpStatusCode.NoContent;
-        }
+    public static bool IsSuccessful(this IFlurlResponse response)
+    {
+        return
+            response.StatusCode == (int)HttpStatusCode.OK ||
+            response.StatusCode == (int)HttpStatusCode.Created ||
+            response.StatusCode == (int)HttpStatusCode.Accepted ||
+            response.StatusCode == (int)HttpStatusCode.NoContent;
     }
 }

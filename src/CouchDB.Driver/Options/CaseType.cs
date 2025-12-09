@@ -1,37 +1,35 @@
 ﻿using System;
-using CouchDB.Driver.Helpers;
 
-namespace CouchDB.Driver.Options
+namespace CouchDB.Driver.Options;
+
+/// <summary>
+/// A helper class for specify a case format for strings.
+/// </summary>
+public class CaseType
 {
     /// <summary>
-    /// A helper class for specify a case format for strings.
+    /// Name of the case format type.
     /// </summary>
-    public class CaseType
+    public string Value { get; }
+
+    protected CaseType(string value)
     {
-        /// <summary>
-        /// Name of the case format type.
-        /// </summary>
-        public string Value { get; }
+        ArgumentNullException.ThrowIfNull(value);
+        Value = value;
+    }
 
-        protected CaseType(string value)
-        {
-            Check.NotNull(value, nameof(value));
-            Value = value;
-        }
+    internal virtual string Convert(string str)
+    {
+        throw new NotImplementedException();
+    }
 
-        internal virtual string Convert(string str)
-        {
-            throw new NotImplementedException();
-        }
+    public override bool Equals(object? obj)
+    {
+        return obj is CaseType item && Value == item.Value;
+    }
 
-        public override bool Equals(object obj)
-        {
-            return obj is CaseType item && Value == item.Value;
-        }
-
-        public override int GetHashCode()
-        {
-            return Value.GetHashCode(StringComparison.InvariantCultureIgnoreCase);
-        }
+    public override int GetHashCode()
+    {
+        return Value.GetHashCode(StringComparison.InvariantCultureIgnoreCase);
     }
 }

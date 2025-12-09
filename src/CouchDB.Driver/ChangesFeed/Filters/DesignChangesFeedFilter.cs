@@ -1,4 +1,3 @@
-﻿namespace CouchDB.Driver.ChangesFeed.Filters
-{
-    internal class DesignChangesFeedFilter : ChangesFeedFilter { }
-}
+﻿namespace CouchDB.Driver.ChangesFeed.Filters;
+
+internal class DesignChangesFeedFilter : ChangesFeedFilter { }

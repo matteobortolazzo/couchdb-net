@@ -1,58 +1,58 @@
 ﻿using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using CouchDB.Driver.Options;
 
-namespace CouchDB.Driver.Query
+namespace CouchDB.Driver.Query;
+
+internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
 {
-    internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
+    private readonly CouchOptions _options;
+    private readonly StringBuilder _sb;
+    private bool _isSelectorSet;
+    private readonly Lock _sbLock = new();
+
+    internal QueryTranslator(CouchOptions options)
     {
-        private readonly CouchOptions _options;
-        private readonly StringBuilder _sb;
-        private bool _isSelectorSet;
-        private readonly object _sbLock = new();
+        _sb = new StringBuilder();
+        _options = options;
+    }
 
-        internal QueryTranslator(CouchOptions options)
+    public string Translate(Expression e)
+    {
+        lock (_sbLock)
         {
-            _sb = new StringBuilder();
-            _options = options;
-        }
+            _isSelectorSet = false;
+            _sb.Clear();
+            _sb.Append('{');
+            Visit(e);
 
-        public string Translate(Expression e)
-        {
-            lock (_sbLock)
+            // If no Where() calls
+            if (!_isSelectorSet)
             {
-                _isSelectorSet = false;
-                _sb.Clear();
-                _sb.Append('{');
-                Visit(e);
-
-                // If no Where() calls
-                if (!_isSelectorSet)
-                {
-                    // If no other methods calls - ToList()
-                    if (_sb.Length > 1)
-                    {
-                        _sb.Length--;
-                        _sb.Append(',');
-                    }
-
-                    _sb.Append("\"selector\":{}");
-                }
-                else
+                // If no other methods calls - ToList()
+                if (_sb.Length > 1)
                 {
                     _sb.Length--;
+                    _sb.Append(',');
                 }
 
-                _sb.Append('}');
-                var body = _sb.ToString();
-                return body;
+                _sb.Append("\"selector\":{}");
             }
-        }
+            else
+            {
+                _sb.Length--;
+            }
 
-        protected override Expression VisitLambda<T>(Expression<T> l)
-        {
-            Visit(l.Body);
-            return l;
+            _sb.Append('}');
+            var body = _sb.ToString();
+            return body;
         }
+    }
+
+    protected override Expression VisitLambda<T>(Expression<T> l)
+    {
+        Visit(l.Body);
+        return l;
     }
 }

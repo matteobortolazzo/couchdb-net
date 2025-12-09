@@ -1,15 +1,13 @@
-﻿using System.Text.Json.Serialization;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using System.Text.Json.Serialization;
 using System.Runtime.Serialization;
-using System.Text;
 
-namespace CouchDB.Driver.Types
+namespace CouchDB.Driver.Types;
+
+[Serializable]
+public class CouchReplicationAuth
 {
-    public class CouchReplicationAuth
-    {
-        [DataMember]
-        [JsonPropertyName("basic")]
-        public CouchReplicationBasicCredentials? BasicCredentials { get; internal set; }
-    }
+    [DataMember]
+    [JsonPropertyName("basic")]
+    public CouchReplicationBasicCredentials? BasicCredentials { get; internal set; }
 }

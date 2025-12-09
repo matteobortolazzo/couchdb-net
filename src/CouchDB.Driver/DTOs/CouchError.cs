@@ -1,7 +1,13 @@
-﻿namespace CouchDB.Driver.DTOs;
+﻿using System;
+using System.Text.Json.Serialization;
 
+namespace CouchDB.Driver.DTOs;
+
+[Serializable]
 internal class CouchError
 {
-    public required string Error { get; set; }
-    public required string Reason { get; set; }
+    [JsonPropertyName("error")]
+    public string? Error { get; init; }
+    [JsonPropertyName("reason")]
+    public string? Reason { get; init; }
 }

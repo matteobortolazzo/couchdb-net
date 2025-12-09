@@ -1,7 +1,6 @@
-﻿namespace CouchDB.Driver.Options
+﻿namespace CouchDB.Driver.Options;
+
+internal enum AuthenticationType
 {
-    internal enum AuthenticationType
-    {
-        None, Basic, Cookie, Proxy, Jwt
-    }
+    None, Basic, Cookie, Proxy, Jwt
 }

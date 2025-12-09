@@ -11,6 +11,7 @@ using CouchDB.Driver.UnitTests._Models;
 using CouchDB.Driver.Views;
 using Xunit;
 using CouchDB.Driver.DatabaseApiMethodOptions;
+using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.UnitTests
 {

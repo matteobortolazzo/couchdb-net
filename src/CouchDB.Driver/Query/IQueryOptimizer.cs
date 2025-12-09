@@ -1,9 +1,8 @@
 ﻿using System.Linq.Expressions;
 
-namespace CouchDB.Driver.Query
+namespace CouchDB.Driver.Query;
+
+internal interface IQueryOptimizer
 {
-    internal interface IQueryOptimizer
-    {
-        Expression Optimize(Expression e, string? discriminator);
-    }
+    Expression Optimize(Expression e, string? discriminator);
 }

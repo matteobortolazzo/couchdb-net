@@ -1,9 +1,10 @@
-#nullable disable
+using System;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Types;
 
+[Serializable]
 public class RevisionInfo
 {
     [DataMember]
@@ -14,5 +15,3 @@ public class RevisionInfo
     [JsonPropertyName("status")]
     public string Status { get; internal set; }
 }
-
-#nullable restore

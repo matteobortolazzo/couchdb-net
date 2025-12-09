@@ -2,11 +2,10 @@
 using System.Linq.Expressions;
 using System.Threading;
 
-namespace CouchDB.Driver.Query
+namespace CouchDB.Driver.Query;
+
+internal interface IAsyncQueryProvider: IQueryProvider
 {
-    internal interface IAsyncQueryProvider: IQueryProvider
-    {
-        TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default);
-        string ToString(Expression expression);
-    }
+    TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default);
+    string ToString(Expression expression);
 }

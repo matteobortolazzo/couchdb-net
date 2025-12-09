@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -11,11 +12,13 @@ using CouchDB.Driver.Query;
 using CouchDB.Driver.Types;
 using Flurl.Http;
 
-namespace CouchDB.Driver.ChangesFeed
+namespace CouchDB.Driver.ChangesFeed;
+
+internal static class ChangesFeedFilterExtensions
 {
-    internal static class ChangesFeedFilterExtensions
+    extension(IFlurlRequest request)
     {
-        public static async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(this IFlurlRequest request, IAsyncQueryProvider queryProvider, ChangesFeedFilter filter,
+        public async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider, ChangesFeedFilter filter,
             CancellationToken cancellationToken)
             where TSource : CouchDocument
         {
@@ -23,7 +26,8 @@ namespace CouchDB.Driver.ChangesFeed
             {
                 return await request
                     .SetQueryParam("filter", "_doc_ids")
-                    .PostJsonAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value), cancellationToken)
+                    .PostJsonAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value),
+                        cancellationToken: cancellationToken)
                     .ReceiveJson<ChangesFeedResponse<TSource>>()
                     .ConfigureAwait(false);
             }
@@ -36,7 +40,7 @@ namespace CouchDB.Driver.ChangesFeed
                 return await request
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
-                    .PostStringAsync(jsonSelector, cancellationToken)
+                    .PostStringAsync(jsonSelector, cancellationToken: cancellationToken)
                     .ReceiveJson<ChangesFeedResponse<TSource>>()
                     .ConfigureAwait(false);
             }
@@ -45,7 +49,7 @@ namespace CouchDB.Driver.ChangesFeed
             {
                 return await request
                     .SetQueryParam("filter", "_design")
-                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
+                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -54,30 +58,31 @@ namespace CouchDB.Driver.ChangesFeed
                 return await request
                     .SetQueryParam("filter", "_view")
                     .SetQueryParam("view", viewFilter.Value)
-                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
+                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
 
             if (filter is DesignDocumentChangesFeedFilter designDocFilter)
             {
-                var req = ApplyDesignDocumentFilterParams(request, designDocFilter);
+                IFlurlRequest req = ApplyDesignDocumentFilterParams(request, designDocFilter);
 
                 return await req
-                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken)
+                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
 
             throw new InvalidOperationException($"Filter of type {filter.GetType().Name} not supported.");
         }
 
-        public static async Task<Stream> QueryContinuousWithFilterAsync<TSource>(this IFlurlRequest request, IAsyncQueryProvider queryProvider, ChangesFeedFilter filter, CancellationToken cancellationToken)
-            where TSource: CouchDocument
+        public async Task<Stream> QueryContinuousWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider, ChangesFeedFilter filter, CancellationToken cancellationToken)
+            where TSource : CouchDocument
         {
             if (filter is DocumentIdsChangesFeedFilter documentIdsFilter)
             {
                 return await request
                     .SetQueryParam("filter", "_doc_ids")
-                    .PostJsonStreamAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value), cancellationToken, HttpCompletionOption.ResponseHeadersRead)
+                    .PostJsonStreamAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value), cancellationToken,
+                        HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false);
             }
 
@@ -97,7 +102,7 @@ namespace CouchDB.Driver.ChangesFeed
             {
                 return await request
                     .SetQueryParam("filter", "_design")
-                    .GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
+                    .GetStreamAsync(HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -106,35 +111,38 @@ namespace CouchDB.Driver.ChangesFeed
                 return await request
                     .SetQueryParam("filter", "_view")
                     .SetQueryParam("view", viewFilter.Value)
-                    .GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
+                    .GetStreamAsync(HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
             }
 
             if (filter is DesignDocumentChangesFeedFilter designDocFilter)
             {
-                var req = ApplyDesignDocumentFilterParams(request, designDocFilter);
+                IFlurlRequest req = ApplyDesignDocumentFilterParams(request, designDocFilter);
 
                 return await req
-                    .GetStreamAsync(cancellationToken, HttpCompletionOption.ResponseHeadersRead)
+                    .GetStreamAsync(HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
             }
 
             throw new InvalidOperationException($"Filter of type {filter.GetType().Name} not supported.");
         }
+    }
 
-        private static IFlurlRequest ApplyDesignDocumentFilterParams(IFlurlRequest request, DesignDocumentChangesFeedFilter filter)
+    private static IFlurlRequest ApplyDesignDocumentFilterParams(IFlurlRequest request,
+        DesignDocumentChangesFeedFilter filter)
+    {
+        IFlurlRequest? req = request.SetQueryParam("filter", filter.FilterName);
+
+        if (filter.QueryParameters == null)
         {
-            var req = request.SetQueryParam("filter", filter.FilterName);
-            
-            if (filter.QueryParameters != null)
-            {
-                foreach (var param in filter.QueryParameters)
-                {
-                    req = req.SetQueryParam(param.Key, param.Value);
-                }
-            }
-
             return req;
         }
+
+        foreach (KeyValuePair<string, string> param in filter.QueryParameters)
+        {
+            req = req.SetQueryParam(param.Key, param.Value);
+        }
+
+        return req;
     }
 }

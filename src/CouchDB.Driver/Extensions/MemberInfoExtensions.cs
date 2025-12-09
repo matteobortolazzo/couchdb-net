@@ -3,50 +3,54 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using CouchDB.Driver.Options;
 using System.Text.Json.Serialization;
+using CouchDB.Driver.Options;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.Extensions;
+
+internal static class MemberInfoExtensions
 {
-    internal static class MemberInfoExtensions
+    public static string GetCouchPropertyName(this MemberInfo memberInfo, PropertyCaseType propertyCaseType)
     {
-        public static string GetCouchPropertyName(this MemberInfo memberInfo, PropertyCaseType propertyCaseType)
-        {
-            object[] jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), true);
-            JsonPropertyAttribute? jsonProperty = jsonPropertyAttributes.Length > 0 
-                ? jsonPropertyAttributes[0] as JsonPropertyAttribute
-                : null;
+        var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyNameAttribute), true);
+        JsonPropertyNameAttribute? jsonProperty = jsonPropertyAttributes.Length > 0
+            ? jsonPropertyAttributes[0] as JsonPropertyNameAttribute
+            : null;
 
-            return jsonProperty != null
-                ? jsonProperty.PropertyName!
-                : propertyCaseType.Convert(memberInfo.Name);
-        }
+        return jsonProperty != null
+            ? jsonProperty.Name!
+            : propertyCaseType.Convert(memberInfo.Name);
+    }
 
-        public static MethodInfo GetMinOrMaxWithoutSelector<T>(this List<MethodInfo> queryableMethods, string methodName)
-            => queryableMethods.Single(
-                mi => mi.Name == methodName
-                      && mi.GetParameters().Length == 1
-                      && mi.GetParameters()[0].ParameterType.GetGenericArguments()[0] == typeof(T));
+    extension(List<MethodInfo> queryableMethods)
+    {
+        public MethodInfo GetMinOrMaxWithoutSelector<T>(string methodName)
+            => queryableMethods.Single(mi => mi.Name == methodName
+                                             && mi.GetParameters().Length == 1
+                                             && mi.GetParameters()[0].ParameterType.GetGenericArguments()[0] ==
+                                             typeof(T));
 
-        public static MethodInfo GetSumOrAverageWithoutSelector<T>(this List<MethodInfo> queryableMethods, string methodName)
-            => queryableMethods.Single(
-                mi => mi.Name == methodName
-                      && mi.GetParameters().Length == 1
-                      && mi.GetParameters()[0].ParameterType.GetGenericArguments()[0] == typeof(T));
+        public MethodInfo GetSumOrAverageWithoutSelector<T>(string methodName)
+            => queryableMethods.Single(mi => mi.Name == methodName
+                                             && mi.GetParameters().Length == 1
+                                             && mi.GetParameters()[0].ParameterType.GetGenericArguments()[0] ==
+                                             typeof(T));
 
-        public static MethodInfo GetSumOrAverageWithSelector<T>(this List<MethodInfo> queryableMethods, string methodName)
-            => queryableMethods.Single(
-                mi => mi.Name == methodName
-                      && mi.GetParameters().Length == 2
-                      && IsSelector<T>(mi.GetParameters()[1].ParameterType));
+        public MethodInfo GetSumOrAverageWithSelector<T>(string methodName)
+            => queryableMethods.Single(mi => mi.Name == methodName
+                                             && mi.GetParameters().Length == 2
+                                             && IsSelector<T>(mi.GetParameters()[1].ParameterType));
+    }
 
-        public static bool IsExpressionOfFunc(this Type type, int funcGenericArgs = 2)
+    extension(Type type)
+    {
+        public bool IsExpressionOfFunc(int funcGenericArgs = 2)
             => type.IsGenericType
                && type.GetGenericTypeDefinition() == typeof(Expression<>)
                && type.GetGenericArguments()[0].IsGenericType
                && type.GetGenericArguments()[0].GetGenericArguments().Length == funcGenericArgs;
 
-        public static bool IsSelector<T>(this Type type)
+        public bool IsSelector<T>()
             => type.IsGenericType
                && type.GetGenericTypeDefinition() == typeof(Expression<>)
                && type.GetGenericArguments()[0].IsGenericType

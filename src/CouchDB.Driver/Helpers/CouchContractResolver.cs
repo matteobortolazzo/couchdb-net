@@ -1,40 +1,38 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
-using System.Text.Json.Serialization;
-using Newtonsoft.Json.Serialization;
 
-namespace CouchDB.Driver.Helpers
+namespace CouchDB.Driver.Helpers;
+
+public class CouchContractResolver : DefaultContractResolver
 {
-    public class CouchContractResolver : DefaultContractResolver
+    private readonly PropertyCaseType _propertyCaseType;
+    private readonly string? _databaseSplitDiscriminator;
+
+    internal CouchContractResolver(PropertyCaseType propertyCaseType, string? databaseSplitDiscriminator)
     {
-        private readonly PropertyCaseType _propertyCaseType;
-        private readonly string? _databaseSplitDiscriminator;
+        _propertyCaseType = propertyCaseType;
+        _databaseSplitDiscriminator = databaseSplitDiscriminator;
+    }
 
-        internal CouchContractResolver(PropertyCaseType propertyCaseType, string? databaseSplitDiscriminator)
+    protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+    {
+        ArgumentNullException.ThrowIfNull(member, nameof(member));
+
+        JsonProperty property = base.CreateProperty(member, memberSerialization);
+        if (property is { Ignored: false })
         {
-            _propertyCaseType = propertyCaseType;
-            _databaseSplitDiscriminator = databaseSplitDiscriminator;
+            if (member.DeclaringType!.Assembly != GetType().Assembly)
+            {
+                property.PropertyName = member.GetCouchPropertyName(_propertyCaseType);
+            }
         }
 
-        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+        if (property.PropertyName == CouchClient.DefaultDatabaseSplitDiscriminator && !string.IsNullOrWhiteSpace(_databaseSplitDiscriminator))
         {
-            Check.NotNull(member, nameof(member));
-
-            JsonProperty property = base.CreateProperty(member, memberSerialization);
-            if (property is { Ignored: false })
-            {
-                if (member.DeclaringType!.Assembly != GetType().Assembly)
-                {
-                    property.PropertyName = member.GetCouchPropertyName(_propertyCaseType);
-                }
-            }
-
-            if (property.PropertyName == CouchClient.DefaultDatabaseSplitDiscriminator && !string.IsNullOrWhiteSpace(_databaseSplitDiscriminator))
-            {
-                property.PropertyName = _databaseSplitDiscriminator;
-            }
-            return property;
+            property.PropertyName = _databaseSplitDiscriminator;
         }
+        return property;
     }
 }

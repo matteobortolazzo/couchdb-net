@@ -1,56 +1,48 @@
-﻿#nullable disable
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CouchDB.Driver.DTOs;
 using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.Types
+namespace CouchDB.Driver.Types;
+
+/// <summary>
+/// Represent info about the index.
+/// </summary>
+public class IndexInfo
 {
     /// <summary>
-    /// Represent info about the index.
+    /// ID of the design document the index belongs to.
     /// </summary>
-    public class IndexInfo
+    [JsonPropertyName("ddoc")]
+    public string DesignDocument { get; set; }
+
+    /// <summary>
+    /// The name of the index.
+    /// </summary>
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+
+    /// <summary>
+    /// The fields used in the index
+    /// </summary>
+    [JsonIgnore]
+    public Dictionary<string, IndexFieldDirection> Fields { get; } = new();
+
+    [JsonPropertyName("def")]
+    internal IndexDefinitionInfo Definition 
     {
-        public IndexInfo()
+        set
         {
-            Fields = new Dictionary<string, IndexFieldDirection>();
-        }
+            Fields.Clear();
 
-        /// <summary>
-        /// ID of the design document the index belongs to.
-        /// </summary>
-        [JsonPropertyName("ddoc")]
-        public string DesignDocument { get; set; }
-
-        /// <summary>
-        /// The name of the index.
-        /// </summary>
-        [JsonPropertyName("name")]
-        public string Name { get; set; }
-
-        /// <summary>
-        /// The fields used in the index
-        /// </summary>
-        [JsonIgnore]
-        public Dictionary<string, IndexFieldDirection> Fields { get; }
-
-        [JsonPropertyName("def")]
-        internal IndexDefinitionInfo Definition 
-        {
-            set
+            foreach (Dictionary<string, string> definitions in value.Fields)
             {
-                Fields.Clear();
-
-                foreach (Dictionary<string, string> definitions in value.Fields)
-                {
-                    var (name, direction) = definitions.First();
-                    IndexFieldDirection fieldDirection = direction == "asc"
-                        ? IndexFieldDirection.Ascending
-                        : IndexFieldDirection.Descending;
-                    Fields.Add(name, fieldDirection);
-                }
+                var (name, direction) = definitions.First();
+                IndexFieldDirection fieldDirection = direction == "asc"
+                    ? IndexFieldDirection.Ascending
+                    : IndexFieldDirection.Descending;
+                Fields.Add(name, fieldDirection);
             }
         }
     }
 }
-#nullable restore

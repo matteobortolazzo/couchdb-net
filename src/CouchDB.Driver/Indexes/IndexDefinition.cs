@@ -2,48 +2,41 @@
 using System.Text;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Indexes
+namespace CouchDB.Driver.Indexes;
+
+internal class IndexDefinition(Dictionary<string, IndexFieldDirection> fields, string? partialSelector)
 {
-    internal class IndexDefinition
+    public Dictionary<string, IndexFieldDirection> Fields { get; } = fields;
+    public string? PartialSelector { get; } = partialSelector;
+
+    public override string ToString()
     {
-        public IndexDefinition(Dictionary<string, IndexFieldDirection> fields, string? partialSelector)
+        var sb = new StringBuilder();
+
+        sb.Append('{');
+
+        // Partial Selector
+        if (PartialSelector != null)
         {
-            Fields = fields;
-            PartialSelector = partialSelector;
+            sb.Append(PartialSelector);
+            sb.Append(',');
         }
 
-        public Dictionary<string, IndexFieldDirection> Fields { get; }
-        public string? PartialSelector { get; }
+        // Fields
+        sb.Append("\"fields\":[");
 
-        public override string ToString()
+        foreach ((var fieldName, IndexFieldDirection fieldDirection) in Fields)
         {
-            var sb = new StringBuilder();
+            var fieldString = fieldDirection == IndexFieldDirection.Ascending
+                ? $"\"{fieldName}\","
+                : $"{{\"{fieldName}\":\"desc\"}},";
 
-            sb.Append('{');
-
-            // Partial Selector
-            if (PartialSelector != null)
-            {
-                sb.Append(PartialSelector);
-                sb.Append(',');
-            }
-
-            // Fields
-            sb.Append("\"fields\":[");
-
-            foreach ((var fieldName, IndexFieldDirection fieldDirection) in Fields)
-            {
-                var fieldString = fieldDirection == IndexFieldDirection.Ascending
-                    ? $"\"{fieldName}\","
-                    : $"{{\"{fieldName}\":\"desc\"}},";
-
-                sb.Append(fieldString);
-            }
-
-            sb.Length--;
-            sb.Append("]}");
-
-            return sb.ToString();
+            sb.Append(fieldString);
         }
+
+        sb.Length--;
+        sb.Append("]}");
+
+        return sb.ToString();
     }
 }

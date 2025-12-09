@@ -5,17 +5,24 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Query;
 using CouchDB.Driver.Shared;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Extensions
-{
-    public static class QueryableAsyncExtensions
-    {
-        #region Any/All
+namespace CouchDB.Driver.Extensions;
 
+public static class QueryableAsyncExtensions
+{
+    #region Any/All
+
+    /// <param name="source">
+    ///     An <see cref="IQueryable{T}" /> to check for being empty.
+    /// </param>
+    /// <typeparam name="TSource">
+    ///     The type of the elements of <paramref name="source" />.
+    /// </typeparam>
+    extension<TSource>(IQueryable<TSource> source)
+    {
         /// <summary>
         ///     Asynchronously determines whether a sequence contains any elements.
         /// </summary>
@@ -23,12 +30,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to check for being empty.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -39,11 +40,9 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> is <see langword="null" />.
         /// </exception>
-        public static Task<bool> AnyAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
+        public Task<bool> AnyAsync(CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
             return ExecuteAsync<TSource, Task<bool>>(QueryableMethods.AnyWithoutPredicate, source, cancellationToken);
         }
@@ -55,12 +54,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> whose elements to test for a condition.
-        /// </param>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -73,15 +66,14 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
-        public static Task<bool> AnyAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, bool>> predicate,
+        public Task<bool> AnyAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(predicate);
 
-            return ExecuteAsync<TSource, Task<bool>>(QueryableMethods.AnyWithPredicate, source, predicate, cancellationToken);
+            return ExecuteAsync<TSource, Task<bool>>(QueryableMethods.AnyWithPredicate, source, predicate,
+                cancellationToken);
         }
 
         /// <summary>
@@ -91,12 +83,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> whose elements to test for a condition.
-        /// </param>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -109,21 +95,28 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
-        public static Task<bool> AllAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, bool>> predicate,
+        public Task<bool> AllAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(predicate);
 
             return ExecuteAsync<TSource, Task<bool>>(QueryableMethods.All, source, predicate, cancellationToken);
         }
+    }
 
-        #endregion
+    #endregion
 
-        #region First/FirstOrDefault
+    #region First/FirstOrDefault
 
+    /// <param name="source">
+    ///     An <see cref="IQueryable{T}" /> to return the first element of.
+    /// </param>
+    /// <typeparam name="TSource">
+    ///     The type of the elements of <paramref name="source" />.
+    /// </typeparam>
+    extension<TSource>(IQueryable<TSource> source)
+    {
         /// <summary>
         ///     Asynchronously returns the first element of a sequence.
         /// </summary>
@@ -131,12 +124,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the first element of.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -150,13 +137,12 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="InvalidOperationException">
         ///     <paramref name = "source"/> contains no elements.
         /// </exception>
-        public static Task<TSource> FirstAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
+        public Task<TSource> FirstAsync(CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.FirstWithoutPredicate, source, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.FirstWithoutPredicate, source,
+                cancellationToken);
         }
 
         /// <summary>
@@ -166,12 +152,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the first element of.
-        /// </param>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -195,15 +175,14 @@ namespace CouchDB.Driver.Extensions
         ///         <paramref name="source"/> contains no elements.
         ///     </para>
         /// </exception>
-        public static Task<TSource> FirstAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, bool>> predicate,
+        public Task<TSource> FirstAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(predicate);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.FirstWithPredicate, source, predicate, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.FirstWithPredicate, source, predicate,
+                cancellationToken);
         }
 
         /// <summary>
@@ -213,12 +192,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the first element of.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -230,13 +203,12 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> is <see langword="null" />.
         /// </exception>
-        public static Task<TSource> FirstOrDefaultAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
+        public Task<TSource> FirstOrDefaultAsync(CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.FirstOrDefaultWithoutPredicate, source, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.FirstOrDefaultWithoutPredicate, source,
+                cancellationToken);
         }
 
         /// <summary>
@@ -247,12 +219,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the first element of.
-        /// </param>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -266,21 +232,29 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name = "source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
-        public static Task<TSource> FirstOrDefaultAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, bool>> predicate,
+        public Task<TSource> FirstOrDefaultAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(predicate);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.FirstOrDefaultWithPredicate, source, predicate, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.FirstOrDefaultWithPredicate, source, predicate,
+                cancellationToken);
         }
+    }
 
-        #endregion
+    #endregion
 
-        #region Last/LastOrDefault
+    #region Last/LastOrDefault
 
+    /// <param name="source">
+    ///     An <see cref="IQueryable{T}" /> to return the last element of.
+    /// </param>
+    /// <typeparam name="TSource">
+    ///     The type of the elements of <paramref name="source" />.
+    /// </typeparam>
+    extension<TSource>(IQueryable<TSource> source)
+    {
         /// <summary>
         ///     Asynchronously returns the last element of a sequence.
         /// </summary>
@@ -288,12 +262,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the last element of.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -307,13 +275,12 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="InvalidOperationException">
         ///     <paramref name="source"/> contains no elements.
         /// </exception>
-        public static Task<TSource> LastAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
+        public Task<TSource> LastAsync(CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.LastWithoutPredicate, source, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.LastWithoutPredicate, source,
+                cancellationToken);
         }
 
         /// <summary>
@@ -323,12 +290,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the last element of.
-        /// </param>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -352,15 +313,14 @@ namespace CouchDB.Driver.Extensions
         ///         <paramref name="source"/> contains no elements.
         ///     </para>
         /// </exception>
-        public static Task<TSource> LastAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, bool>> predicate,
+        public Task<TSource> LastAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(predicate);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.LastWithPredicate, source, predicate, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.LastWithPredicate, source, predicate,
+                cancellationToken);
         }
 
         /// <summary>
@@ -370,12 +330,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the last element of.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -387,13 +341,12 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> is <see langword="null" />.
         /// </exception>
-        public static Task<TSource> LastOrDefaultAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
+        public Task<TSource> LastOrDefaultAsync(CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.LastOrDefaultWithoutPredicate, source, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.LastOrDefaultWithoutPredicate, source,
+                cancellationToken);
         }
 
         /// <summary>
@@ -404,12 +357,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the last element of.
-        /// </param>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -423,21 +370,29 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
-        public static Task<TSource> LastOrDefaultAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, bool>> predicate,
+        public Task<TSource> LastOrDefaultAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(predicate);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.LastOrDefaultWithPredicate, source, predicate, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.LastOrDefaultWithPredicate, source, predicate,
+                cancellationToken);
         }
+    }
 
-        #endregion
+    #endregion
 
-        #region Single/SingleOrDefault
+    #region Single/SingleOrDefault
 
+    /// <param name="source">
+    ///     An <see cref="IQueryable{T}" /> to return the single element of.
+    /// </param>
+    /// <typeparam name="TSource">
+    ///     The type of the elements of <paramref name="source" />.
+    /// </typeparam>
+    extension<TSource>(IQueryable<TSource> source)
+    {
         /// <summary>
         ///     Asynchronously returns the only element of a sequence, and throws an exception
         ///     if there is not exactly one element in the sequence.
@@ -446,12 +401,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the single element of.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -473,13 +422,12 @@ namespace CouchDB.Driver.Extensions
         ///         <paramref name="source"/> contains no elements.
         ///     </para>
         /// </exception>
-        public static Task<TSource> SingleAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
+        public Task<TSource> SingleAsync(CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.SingleWithoutPredicate, source, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.SingleWithoutPredicate, source,
+                cancellationToken);
         }
 
         /// <summary>
@@ -490,12 +438,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the single element of.
-        /// </param>
         /// <param name="predicate"> A function to test an element for a condition. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -525,15 +467,14 @@ namespace CouchDB.Driver.Extensions
         ///         <paramref name="source"/> contains no elements.
         ///     </para>
         /// </exception>
-        public static Task<TSource> SingleAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, bool>> predicate,
+        public Task<TSource> SingleAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(predicate);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.SingleWithPredicate, source, predicate, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.SingleWithPredicate, source, predicate,
+                cancellationToken);
         }
 
         /// <summary>
@@ -544,12 +485,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the single element of.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -565,13 +500,12 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="InvalidOperationException">
         ///     <paramref name="source"/> contains more than one element.
         /// </exception>
-        public static Task<TSource> SingleOrDefaultAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
+        public Task<TSource> SingleOrDefaultAsync(CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
 
-            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.SingleOrDefaultWithoutPredicate, source, cancellationToken);
+            return ExecuteAsync<TSource, Task<TSource>>(QueryableMethods.SingleOrDefaultWithoutPredicate, source,
+                cancellationToken);
         }
 
         /// <summary>
@@ -583,12 +517,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to return the single element of.
-        /// </param>
         /// <param name="predicate"> A function to test an element for a condition. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -604,106 +532,112 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="InvalidOperationException">
         ///    More than one element satisfies the condition in <paramref name="predicate"/>.
         /// </exception>
-        public static Task<TSource> SingleOrDefaultAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, bool>> predicate,
+        public Task<TSource> SingleOrDefaultAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(predicate, nameof(predicate));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(predicate);
 
             return ExecuteAsync<TSource, Task<TSource>>(
                 QueryableMethods.SingleOrDefaultWithPredicate, source, predicate, cancellationToken);
         }
+    }
 
-        #endregion
+    #endregion
 
-        #region Min
-        
-        /// <summary>
-        ///     Asynchronously invokes a projection function on each element of a sequence and returns the minimum resulting value.
-        /// </summary>
-        /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
-        /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <typeparam name="TResult">
-        ///     The type of the value returned by the function represented by <paramref name="selector" /> .
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> that contains the elements to determine the minimum of.
-        /// </param>
-        /// <param name="selector"> A projection function to apply to each element. </param>
-        /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
-        /// </param>
-        /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the minimum value in the sequence.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
-        /// </exception>
-        public static Task<TResult> MinAsync<TSource, TResult>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, TResult>> selector,
-            CancellationToken cancellationToken = default)
-        {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+    #region Min
 
-            return ExecuteAsync<TSource, Task<TResult>>(QueryableMethods.MinWithSelector, source, selector, cancellationToken);
-        }
+    /// <summary>
+    ///     Asynchronously invokes a projection function on each element of a sequence and returns the minimum resulting value.
+    /// </summary>
+    /// <remarks>
+    ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+    ///     that any asynchronous operations have completed before calling another method on this context.
+    /// </remarks>
+    /// <typeparam name="TSource">
+    ///     The type of the elements of <paramref name="source" />.
+    /// </typeparam>
+    /// <typeparam name="TResult">
+    ///     The type of the value returned by the function represented by <paramref name="selector" /> .
+    /// </typeparam>
+    /// <param name="source">
+    ///     An <see cref="IQueryable{T}" /> that contains the elements to determine the minimum of.
+    /// </param>
+    /// <param name="selector"> A projection function to apply to each element. </param>
+    /// <param name="cancellationToken">
+    ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation.
+    ///     The task result contains the minimum value in the sequence.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+    /// </exception>
+    public static Task<TResult> MinAsync<TSource, TResult>(
+        this IQueryable<TSource> source,
+        Expression<Func<TSource, TResult>> selector,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
 
-        #endregion
+        return ExecuteAsync<TSource, Task<TResult>>(QueryableMethods.MinWithSelector, source, selector,
+            cancellationToken);
+    }
 
-        #region Max
-        
-        /// <summary>
-        ///     Asynchronously invokes a projection function on each element of a sequence and returns the maximum resulting value.
-        /// </summary>
-        /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
-        /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <typeparam name="TResult">
-        ///     The type of the value returned by the function represented by <paramref name="selector" /> .
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> that contains the elements to determine the maximum of.
-        /// </param>
-        /// <param name="selector"> A projection function to apply to each element. </param>
-        /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
-        /// </param>
-        /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the maximum value in the sequence.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
-        /// </exception>
-        public static Task<TResult> MaxAsync<TSource, TResult>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, TResult>> selector,
-            CancellationToken cancellationToken = default)
-        {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+    #endregion
 
-            return ExecuteAsync<TSource, Task<TResult>>(QueryableMethods.MaxWithSelector, source, selector, cancellationToken);
-        }
+    #region Max
 
-        #endregion
+    /// <summary>
+    ///     Asynchronously invokes a projection function on each element of a sequence and returns the maximum resulting value.
+    /// </summary>
+    /// <remarks>
+    ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+    ///     that any asynchronous operations have completed before calling another method on this context.
+    /// </remarks>
+    /// <typeparam name="TSource">
+    ///     The type of the elements of <paramref name="source" />.
+    /// </typeparam>
+    /// <typeparam name="TResult">
+    ///     The type of the value returned by the function represented by <paramref name="selector" /> .
+    /// </typeparam>
+    /// <param name="source">
+    ///     An <see cref="IQueryable{T}" /> that contains the elements to determine the maximum of.
+    /// </param>
+    /// <param name="selector"> A projection function to apply to each element. </param>
+    /// <param name="cancellationToken">
+    ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation.
+    ///     The task result contains the maximum value in the sequence.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+    /// </exception>
+    public static Task<TResult> MaxAsync<TSource, TResult>(
+        this IQueryable<TSource> source,
+        Expression<Func<TSource, TResult>> selector,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
 
-        #region Sum
+        return ExecuteAsync<TSource, Task<TResult>>(QueryableMethods.MaxWithSelector, source, selector,
+            cancellationToken);
+    }
 
+    #endregion
+
+    #region Sum
+
+    /// <param name="source">
+    ///     A sequence of values of type <typeparamref name="TSource" />.
+    /// </param>
+    extension<TSource>(IQueryable<TSource> source)
+    {
         /// <summary>
         ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
         ///     each element of the input sequence.
@@ -712,9 +646,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -726,13 +657,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<decimal> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, decimal>> selector,
+        public Task<decimal> SumAsync(Expression<Func<TSource, decimal>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<decimal>>(
                 QueryableMethods.GetSumWithSelector(typeof(decimal)), source, selector, cancellationToken);
@@ -746,9 +675,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -760,13 +686,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<decimal?> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, decimal?>> selector,
+        public Task<decimal?> SumAsync(Expression<Func<TSource, decimal?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<decimal?>>(
                 QueryableMethods.GetSumWithSelector(typeof(decimal?)), source, selector, cancellationToken);
@@ -780,9 +704,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -794,15 +715,14 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<int> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, int>> selector,
+        public Task<int> SumAsync(Expression<Func<TSource, int>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
-            return ExecuteAsync<TSource, Task<int>>(QueryableMethods.GetSumWithSelector(typeof(int)), source, selector, cancellationToken);
+            return ExecuteAsync<TSource, Task<int>>(QueryableMethods.GetSumWithSelector(typeof(int)), source, selector,
+                cancellationToken);
         }
 
         /// <summary>
@@ -813,9 +733,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -827,18 +744,16 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<int?> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, int?>> selector,
+        public Task<int?> SumAsync(Expression<Func<TSource, int?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<int?>>(
                 QueryableMethods.GetSumWithSelector(typeof(int?)), source, selector, cancellationToken);
         }
-        
+
         /// <summary>
         ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
         ///     each element of the input sequence.
@@ -847,9 +762,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -861,13 +773,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<long> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, long>> selector,
+        public Task<long> SumAsync(Expression<Func<TSource, long>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<long>>(
                 QueryableMethods.GetSumWithSelector(typeof(long)), source, selector, cancellationToken);
@@ -881,9 +791,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -895,13 +802,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<long?> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, long?>> selector,
+        public Task<long?> SumAsync(Expression<Func<TSource, long?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<long?>>(
                 QueryableMethods.GetSumWithSelector(typeof(long?)), source, selector, cancellationToken);
@@ -915,9 +820,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -929,13 +831,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<double> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, double>> selector,
+        public Task<double> SumAsync(Expression<Func<TSource, double>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<double>>(
                 QueryableMethods.GetSumWithSelector(typeof(double)), source, selector, cancellationToken);
@@ -949,9 +849,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -963,13 +860,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<double?> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, double?>> selector,
+        public Task<double?> SumAsync(Expression<Func<TSource, double?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<double?>>(
                 QueryableMethods.GetSumWithSelector(typeof(double?)), source, selector, cancellationToken);
@@ -983,9 +878,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -997,13 +889,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<float> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, float>> selector,
+        public Task<float> SumAsync(Expression<Func<TSource, float>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<float>>(
                 QueryableMethods.GetSumWithSelector(typeof(float)), source, selector, cancellationToken);
@@ -1017,9 +907,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <param name="source">
-        ///     A sequence of values of type <typeparamref name="TSource" />.
-        /// </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1031,22 +918,27 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<float?> SumAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, float?>> selector,
+        public Task<float?> SumAsync(Expression<Func<TSource, float?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<float?>>(
                 QueryableMethods.GetSumWithSelector(typeof(float?)), source, selector, cancellationToken);
         }
+    }
 
-        #endregion
+    #endregion
 
-        #region Average
+    #region Average
 
+    /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
+    /// <typeparam name="TSource">
+    ///     The type of the elements of <paramref name="source" /> .
+    /// </typeparam>
+    extension<TSource>(IQueryable<TSource> source)
+    {
         /// <summary>
         ///     Asynchronously computes the average of a sequence of values that is obtained
         ///     by invoking a projection function on each element of the input sequence.
@@ -1055,10 +947,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1073,13 +961,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="InvalidOperationException">
         ///     <paramref name="source"/> contains no elements.
         /// </exception>
-        public static Task<decimal> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, decimal>> selector,
+        public Task<decimal> AverageAsync(Expression<Func<TSource, decimal>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<decimal>>(
                 QueryableMethods.GetAverageWithSelector(typeof(decimal)), source, selector, cancellationToken);
@@ -1093,10 +979,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1108,18 +990,16 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<decimal?> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, decimal?>> selector,
+        public Task<decimal?> AverageAsync(Expression<Func<TSource, decimal?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<decimal?>>(
                 QueryableMethods.GetAverageWithSelector(typeof(decimal?)), source, selector, cancellationToken);
         }
-        
+
         /// <summary>
         ///     Asynchronously computes the average of a sequence of values that is obtained
         ///     by invoking a projection function on each element of the input sequence.
@@ -1128,10 +1008,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1146,13 +1022,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="InvalidOperationException">
         ///     <paramref name="source"/> contains no elements.
         /// </exception>
-        public static Task<double> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, int>> selector,
+        public Task<double> AverageAsync(Expression<Func<TSource, int>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<double>>(
                 QueryableMethods.GetAverageWithSelector(typeof(int)), source, selector, cancellationToken);
@@ -1166,10 +1040,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1181,13 +1051,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<double?> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, int?>> selector,
+        public Task<double?> AverageAsync(Expression<Func<TSource, int?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<double?>>(
                 QueryableMethods.GetAverageWithSelector(typeof(int?)), source, selector, cancellationToken);
@@ -1201,10 +1069,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1219,13 +1083,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="InvalidOperationException">
         ///     <paramref name="source"/> contains no elements.
         /// </exception>
-        public static Task<double> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, long>> selector,
+        public Task<double> AverageAsync(Expression<Func<TSource, long>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<double>>(
                 QueryableMethods.GetAverageWithSelector(typeof(long)), source, selector, cancellationToken);
@@ -1239,10 +1101,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1254,13 +1112,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<double?> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, long?>> selector,
+        public Task<double?> AverageAsync(Expression<Func<TSource, long?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<double?>>(
                 QueryableMethods.GetAverageWithSelector(typeof(long?)), source, selector, cancellationToken);
@@ -1274,10 +1130,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1292,13 +1144,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="InvalidOperationException">
         ///     <paramref name="source"/> contains no elements.
         /// </exception>
-        public static Task<double> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, double>> selector,
+        public Task<double> AverageAsync(Expression<Func<TSource, double>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<double>>(
                 QueryableMethods.GetAverageWithSelector(typeof(double)), source, selector, cancellationToken);
@@ -1312,10 +1162,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1327,13 +1173,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<double?> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, double?>> selector,
+        public Task<double?> AverageAsync(Expression<Func<TSource, double?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<double?>>(
                 QueryableMethods.GetAverageWithSelector(typeof(double?)), source, selector, cancellationToken);
@@ -1347,10 +1191,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1365,13 +1205,11 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="InvalidOperationException">
         ///     <paramref name="source"/> contains no elements.
         /// </exception>
-        public static Task<float> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, float>> selector,
+        public Task<float> AverageAsync(Expression<Func<TSource, float>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<float>>(
                 QueryableMethods.GetAverageWithSelector(typeof(float)), source, selector, cancellationToken);
@@ -1385,10 +1223,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" /> .
-        /// </typeparam>
-        /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1400,22 +1234,29 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<float?> AverageAsync<TSource>(
-            this IQueryable<TSource> source,
-            Expression<Func<TSource, float?>> selector,
+        public Task<float?> AverageAsync(Expression<Func<TSource, float?>> selector,
             CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(selector, nameof(selector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             return ExecuteAsync<TSource, Task<float?>>(
                 QueryableMethods.GetAverageWithSelector(typeof(float?)), source, selector, cancellationToken);
         }
+    }
 
-        #endregion
+    #endregion
 
-        #region ToList/Array
+    #region ToList/Array
 
+    /// <param name="source">
+    ///     An <see cref="IQueryable{T}" /> to create a list from.
+    /// </param>
+    /// <typeparam name="TSource">
+    ///     The type of the elements of <paramref name="source" />.
+    /// </typeparam>
+    extension<TSource>(IQueryable<TSource> source) where TSource : CouchDocument
+    {
         /// <summary>
         ///     Asynchronously creates a <see cref="CouchList{T}" /> from an <see cref="IQueryable{T}" /> by enumerating it
         ///     asynchronously.
@@ -1424,12 +1265,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to create a list from.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -1440,12 +1275,9 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> is <see langword="null" />.
         /// </exception>
-        public static Task<CouchList<TSource>> ToCouchListAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
-            where TSource: CouchDocument
+        public Task<CouchList<TSource>> ToCouchListAsync(CancellationToken cancellationToken = default)
         {
-            Check.NotNull(source, nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
             return source.AsCouchQueryable().ToCouchListAsync(cancellationToken);
         }
 
@@ -1457,12 +1289,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to create a list from.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -1473,11 +1299,8 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> is <see langword="null" />.
         /// </exception>
-        public static async Task<List<TSource>> ToListAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
-            where TSource : CouchDocument
-            => (await source.ToCouchListAsync(cancellationToken).ConfigureAwait(false)).ToList();
+        public async Task<List<TSource>> ToListAsync(CancellationToken cancellationToken = default) =>
+            (await source.ToCouchListAsync(cancellationToken).ConfigureAwait(false)).ToList();
 
         /// <summary>
         ///     Asynchronously creates an array from an <see cref="IQueryable{T}" /> by enumerating it asynchronously.
@@ -1486,12 +1309,6 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to create an array from.
-        /// </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
@@ -1502,16 +1319,22 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> is <see langword="null" />.
         /// </exception>
-        public static async Task<TSource[]> ToArrayAsync<TSource>(
-            this IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
-            where TSource : CouchDocument
-            => (await source.ToListAsync(cancellationToken).ConfigureAwait(false)).ToArray();
+        public async Task<TSource[]> ToArrayAsync(CancellationToken cancellationToken = default) =>
+            (await source.ToListAsync(cancellationToken).ConfigureAwait(false)).ToArray();
+    }
 
-        #endregion
+    #endregion
 
-        #region ToDictionary
+    #region ToDictionary
 
+    /// <param name="source">
+    ///     An <see cref="IQueryable{T}" /> to create a <see cref="Dictionary{TKey, TValue}" /> from.
+    /// </param>
+    /// <typeparam name="TSource">
+    ///     The type of the elements of <paramref name="source" />.
+    /// </typeparam>
+    extension<TSource>(IQueryable<TSource> source) where TSource : CouchDocument
+    {
         /// <summary>
         ///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
         ///     asynchronously
@@ -1521,15 +1344,9 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
         /// <typeparam name="TKey">
         ///     The type of the key returned by <paramref name="keySelector" /> .
         /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to create a <see cref="Dictionary{TKey, TValue}" /> from.
-        /// </param>
         /// <param name="keySelector"> A function to extract a key from each element. </param>
         /// <param name="cancellationToken">
         ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
@@ -1541,12 +1358,9 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="keySelector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<Dictionary<TKey, TSource>> ToDictionaryAsync<TSource, TKey>(
-             this IQueryable<TSource> source,
-             Func<TSource, TKey> keySelector,
-            CancellationToken cancellationToken = default)
-            where TSource : CouchDocument
-            => ToDictionaryAsync(source, keySelector, e => e, comparer: null, cancellationToken);
+        public Task<Dictionary<TKey, TSource>> ToDictionaryAsync<TKey>(Func<TSource, TKey> keySelector,
+            CancellationToken cancellationToken = default) where TKey : notnull =>
+            ToDictionaryAsync(source, keySelector, e => e, comparer: null, cancellationToken);
 
         /// <summary>
         ///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
@@ -1557,15 +1371,9 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
         /// <typeparam name="TKey">
         ///     The type of the key returned by <paramref name="keySelector" /> .
         /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to create a <see cref="Dictionary{TKey, TValue}" /> from.
-        /// </param>
         /// <param name="keySelector"> A function to extract a key from each element. </param>
         /// <param name="comparer">
         ///     An <see cref="IEqualityComparer{TKey}" /> to compare keys.
@@ -1580,13 +1388,10 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="keySelector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<Dictionary<TKey, TSource>> ToDictionaryAsync<TSource, TKey>(
-             this IQueryable<TSource> source,
-             Func<TSource, TKey> keySelector,
-             IEqualityComparer<TKey> comparer,
-            CancellationToken cancellationToken = default)
-            where TSource : CouchDocument
-            => ToDictionaryAsync(source, keySelector, e => e, comparer, cancellationToken);
+        public Task<Dictionary<TKey, TSource>> ToDictionaryAsync<TKey>(Func<TSource, TKey> keySelector,
+            IEqualityComparer<TKey> comparer,
+            CancellationToken cancellationToken = default) where TKey : notnull =>
+            ToDictionaryAsync(source, keySelector, e => e, comparer, cancellationToken);
 
         /// <summary>
         ///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
@@ -1597,18 +1402,12 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
         /// <typeparam name="TKey">
         ///     The type of the key returned by <paramref name="keySelector" /> .
         /// </typeparam>
         /// <typeparam name="TElement">
         ///     The type of the value returned by <paramref name="elementSelector" />.
         /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to create a <see cref="Dictionary{TKey, TValue}" /> from.
-        /// </param>
         /// <param name="keySelector"> A function to extract a key from each element. </param>
         /// <param name="elementSelector"> A transform function to produce a result element value from each element. </param>
         /// <param name="cancellationToken">
@@ -1622,13 +1421,10 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="keySelector"/> or <paramref name="elementSelector"/> is <see langword="null" />.
         /// </exception>
-        public static Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TSource, TKey, TElement>(
-             this IQueryable<TSource> source,
-             Func<TSource, TKey> keySelector,
-             Func<TSource, TElement> elementSelector,
-            CancellationToken cancellationToken = default)
-            where TSource : CouchDocument
-            => ToDictionaryAsync(source, keySelector, elementSelector, comparer: null, cancellationToken);
+        public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,
+            CancellationToken cancellationToken = default) where TKey : notnull =>
+            ToDictionaryAsync(source, keySelector, elementSelector, comparer: null, cancellationToken);
 
         /// <summary>
         ///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
@@ -1639,18 +1435,12 @@ namespace CouchDB.Driver.Extensions
         ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
         ///     that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
-        /// <typeparam name="TSource">
-        ///     The type of the elements of <paramref name="source" />.
-        /// </typeparam>
         /// <typeparam name="TKey">
         ///     The type of the key returned by <paramref name="keySelector" /> .
         /// </typeparam>
         /// <typeparam name="TElement">
         ///     The type of the value returned by <paramref name="elementSelector" />.
         /// </typeparam>
-        /// <param name="source">
-        ///     An <see cref="IQueryable{T}" /> to create a <see cref="Dictionary{TKey, TValue}" /> from.
-        /// </param>
         /// <param name="keySelector"> A function to extract a key from each element. </param>
         /// <param name="elementSelector"> A transform function to produce a result element value from each element. </param>
         /// <param name="comparer">
@@ -1667,17 +1457,14 @@ namespace CouchDB.Driver.Extensions
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="source"/> or <paramref name="keySelector"/> or <paramref name="elementSelector"/> is <see langword="null" />.
         /// </exception>
-        public static async Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TSource, TKey, TElement>(
-             this IQueryable<TSource> source,
-             Func<TSource, TKey> keySelector,
-             Func<TSource, TElement> elementSelector,
-             IEqualityComparer<TKey>? comparer,
-            CancellationToken cancellationToken = default)
-            where TSource : CouchDocument
+        public async Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,
+            IEqualityComparer<TKey>? comparer,
+            CancellationToken cancellationToken = default) where TKey : notnull
         {
-            Check.NotNull(source, nameof(source));
-            Check.NotNull(keySelector, nameof(keySelector));
-            Check.NotNull(elementSelector, nameof(elementSelector));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(keySelector);
+            ArgumentNullException.ThrowIfNull(elementSelector);
 
             CouchList<TSource> list = await source.ToCouchListAsync(cancellationToken).ConfigureAwait(false);
 
@@ -1689,71 +1476,72 @@ namespace CouchDB.Driver.Extensions
 
             return d;
         }
-
-        #endregion
-
-        #region Impl.
-
-        private static TResult ExecuteAsync<TSource, TResult>(
-            MethodInfo operatorMethodInfo,
-            IQueryable<TSource> source,
-            Expression? expression,
-            CancellationToken cancellationToken = default)
-        {
-            if (source.Provider is IAsyncQueryProvider provider)
-            {
-                if (operatorMethodInfo.IsGenericMethod)
-                {
-                    operatorMethodInfo
-                        = operatorMethodInfo.GetGenericArguments().Length == 2
-                            ? operatorMethodInfo.MakeGenericMethod(typeof(TSource), typeof(TResult).GetGenericArguments().Single())
-                            : operatorMethodInfo.MakeGenericMethod(typeof(TSource));
-                }
-
-                return provider.ExecuteAsync<TResult>(
-                    Expression.Call(
-                        instance: null,
-                        method: operatorMethodInfo,
-                        arguments: expression == null
-                            ? new[] { source.Expression }
-                            : new[] { source.Expression, expression }),
-                    cancellationToken);
-            }
-
-            throw new InvalidOperationException();
-        }
-
-        private static TResult ExecuteAsync<TSource, TResult>(
-            MethodInfo operatorMethodInfo,
-            IQueryable<TSource> source,
-            LambdaExpression expression,
-            CancellationToken cancellationToken = default)
-            => ExecuteAsync<TSource, TResult>(
-                operatorMethodInfo, source, Expression.Quote(expression), cancellationToken);
-
-        private static TResult ExecuteAsync<TSource, TResult>(
-            MethodInfo operatorMethodInfo,
-            IQueryable<TSource> source,
-            CancellationToken cancellationToken = default)
-            => ExecuteAsync<TSource, TResult>(
-                operatorMethodInfo, source, (Expression?)null, cancellationToken);
-
-        private static CouchQueryable<TSource> AsCouchQueryable<TSource>(this IQueryable<TSource> source)
-            where TSource : CouchDocument
-        {
-            if (source is CouchQueryable<TSource> couchQuery)
-            {
-                return couchQuery;
-            }
-
-            if (source is CouchDatabase<TSource> database)
-            {
-                return database.AsQueryable();
-            }
-
-            throw new NotSupportedException($"Operation not supported on type: {source.GetType().Name}.");
-        }
-
-        #endregion
     }
+
+    #endregion
+
+    #region Impl.
+
+    private static TResult ExecuteAsync<TSource, TResult>(
+        MethodInfo operatorMethodInfo,
+        IQueryable<TSource> source,
+        Expression? expression,
+        CancellationToken cancellationToken = default)
+    {
+        if (source.Provider is IAsyncQueryProvider provider)
+        {
+            if (operatorMethodInfo.IsGenericMethod)
+            {
+                operatorMethodInfo
+                    = operatorMethodInfo.GetGenericArguments().Length == 2
+                        ? operatorMethodInfo.MakeGenericMethod(typeof(TSource),
+                            typeof(TResult).GetGenericArguments().Single())
+                        : operatorMethodInfo.MakeGenericMethod(typeof(TSource));
+            }
+
+            return provider.ExecuteAsync<TResult>(
+                Expression.Call(
+                    instance: null,
+                    method: operatorMethodInfo,
+                    arguments: expression == null
+                        ? [source.Expression]
+                        : [source.Expression, expression]),
+                cancellationToken);
+        }
+
+        throw new InvalidOperationException();
+    }
+
+    private static TResult ExecuteAsync<TSource, TResult>(
+        MethodInfo operatorMethodInfo,
+        IQueryable<TSource> source,
+        LambdaExpression expression,
+        CancellationToken cancellationToken = default)
+        => ExecuteAsync<TSource, TResult>(
+            operatorMethodInfo, source, Expression.Quote(expression), cancellationToken);
+
+    private static TResult ExecuteAsync<TSource, TResult>(
+        MethodInfo operatorMethodInfo,
+        IQueryable<TSource> source,
+        CancellationToken cancellationToken = default)
+        => ExecuteAsync<TSource, TResult>(
+            operatorMethodInfo, source, (Expression?)null, cancellationToken);
+
+    private static CouchQueryable<TSource> AsCouchQueryable<TSource>(this IQueryable<TSource> source)
+        where TSource : CouchDocument
+    {
+        if (source is CouchQueryable<TSource> couchQuery)
+        {
+            return couchQuery;
+        }
+
+        if (source is CouchDatabase<TSource> database)
+        {
+            return database.AsQueryable();
+        }
+
+        throw new NotSupportedException($"Operation not supported on type: {source.GetType().Name}.");
+    }
+
+    #endregion
 }

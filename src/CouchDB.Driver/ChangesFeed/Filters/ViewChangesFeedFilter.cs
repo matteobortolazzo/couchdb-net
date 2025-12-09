@@ -1,12 +1,6 @@
-﻿namespace CouchDB.Driver.ChangesFeed.Filters
-{
-    internal class ViewChangesFeedFilter : ChangesFeedFilter
-    {
-        public string Value { get; }
+﻿namespace CouchDB.Driver.ChangesFeed.Filters;
 
-        public ViewChangesFeedFilter(string value)
-        {
-            Value = value;
-        }
-    }
+internal class ViewChangesFeedFilter(string value) : ChangesFeedFilter
+{
+    public string Value { get; } = value;
 }

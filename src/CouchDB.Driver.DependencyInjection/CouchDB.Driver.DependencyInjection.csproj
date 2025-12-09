@@ -8,11 +8,8 @@
         <PackageProjectUrl>https://github.com/matteobortolazzo/couchdb-net</PackageProjectUrl>
         <RepositoryUrl>https://github.com/matteobortolazzo/couchdb-net</RepositoryUrl>
         <PackageTags>couchdb,driver,nosql,netstandard,pouchdb,xamarin</PackageTags>
-        <ApplicationIcon/>
         <OutputType>Library</OutputType>
-        <StartupObject/>
         <NeutralLanguage>en</NeutralLanguage>
-        <LangVersion>8.0</LangVersion>
         <Nullable>enable</Nullable>
         <PackageIcon>icon.png</PackageIcon>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
@@ -30,7 +27,7 @@
 
     <ItemGroup>
         <PackageReference Include="CouchDB.NET" Version="3.3.*"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0"/>
     </ItemGroup>
 
 </Project>

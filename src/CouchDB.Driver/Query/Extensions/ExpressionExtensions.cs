@@ -1,20 +1,22 @@
 ﻿using System.Linq.Expressions;
 
-namespace CouchDB.Driver.Query.Extensions
+namespace CouchDB.Driver.Query.Extensions;
+
+internal static class ExpressionExtensions
 {
-    internal static class ExpressionExtensions
+    extension(Expression expression)
     {
-        public static bool IsTrue(this Expression expression)
+        public bool IsTrue()
         {
-            return expression is ConstantExpression { Value: bool b } && b;
+            return expression is ConstantExpression { Value: true };
         }
 
-        public static bool IsFalse(this Expression expression)
+        public bool IsFalse()
         {
-            return expression is ConstantExpression { Value: bool b } && !b;
+            return expression is ConstantExpression { Value: false };
         }
 
-        public static bool IsBoolean(this Expression expression)
+        public bool IsBoolean()
         {
             return expression is ConstantExpression { Value: bool };
         }

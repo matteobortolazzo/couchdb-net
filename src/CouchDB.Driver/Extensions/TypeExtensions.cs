@@ -1,52 +1,55 @@
 ﻿using Humanizer;
-using System.Text.Json.Serialization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Options;
 
-namespace CouchDB.Driver.Extensions
+namespace CouchDB.Driver.Extensions;
+
+internal static class TypeExtensions
 {
-    internal static class TypeExtensions
+    extension(Type type)
     {
-        public static string GetName(this Type t, CouchOptions options)
+        public string GetName(CouchOptions options)
         {
-            object[] jsonObjectAttributes = t.GetCustomAttributes(typeof(JsonObjectAttribute), true);
-            JsonObjectAttribute? jsonObject = jsonObjectAttributes.Length > 0
-                ? jsonObjectAttributes[0] as JsonObjectAttribute
+            var jsonObjectAttributes = type.GetCustomAttributes(typeof(DatabaseNameAttribute), true);
+            DatabaseNameAttribute? jsonObject = jsonObjectAttributes.Length > 0
+                ? jsonObjectAttributes[0] as DatabaseNameAttribute
                 : null;
 
             if (jsonObject != null)
             {
-                return jsonObject.Id!;
+                return jsonObject.Name;
             }
 
-            var typeName = t.Name;
+            var typeName = type.Name;
             if (options.PluralizeEntities)
             {
                 typeName = typeName.Pluralize();
             }
+
             return options.DocumentsCaseType.Convert(typeName);
         }
 
-        public static Type GetSequenceType(this Type type)
+        public Type GetSequenceType()
         {
             Type? sequenceType = TryGetSequenceType(type);
             if (sequenceType == null)
             {
-                throw new ArgumentException("Sequence type not found.", nameof(type));
+                throw new ArgumentException("Sequence type not found.");
             }
 
             return sequenceType;
         }
 
-        public static Type? TryGetSequenceType(this Type type)
+        public Type? TryGetSequenceType()
             => type.TryGetElementType(typeof(IEnumerable<>))
-                ?? type.TryGetElementType(typeof(IAsyncEnumerable<>));
+               ?? type.TryGetElementType(typeof(IAsyncEnumerable<>));
 
-        public static Type? TryGetElementType(this Type type, Type interfaceOrBaseType)
+        public Type? TryGetElementType(Type interfaceOrBaseType)
         {
             if (type.IsGenericTypeDefinition)
             {
@@ -72,7 +75,7 @@ namespace CouchDB.Driver.Extensions
             return singleImplementation?.GenericTypeArguments.FirstOrDefault();
         }
 
-        public static IEnumerable<Type> GetGenericTypeImplementations(this Type type, Type interfaceOrBaseType)
+        public IEnumerable<Type> GetGenericTypeImplementations(Type interfaceOrBaseType)
         {
             TypeInfo? typeInfo = type.GetTypeInfo();
             if (!typeInfo.IsGenericTypeDefinition)
@@ -97,21 +100,21 @@ namespace CouchDB.Driver.Extensions
             }
         }
 
-        public static bool IsEnumerable(this Type type)
+        public bool IsEnumerable()
         {
             return type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
         }
+    }
 
-        private static IEnumerable<Type> GetBaseTypes(this Type? type)
+    private static IEnumerable<Type> GetBaseTypes(this Type? type)
+    {
+        type = type?.BaseType;
+
+        while (type != null)
         {
-            type = type?.BaseType;
+            yield return type;
 
-            while (type != null)
-            {
-                yield return type;
-
-                type = type.BaseType;
-            }
+            type = type.BaseType;
         }
     }
 }

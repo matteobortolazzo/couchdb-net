@@ -1,20 +1,17 @@
-﻿#nullable disable
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CouchDB.Driver.Types;
 using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.ChangesFeed.Responses
+namespace CouchDB.Driver.ChangesFeed.Responses;
+
+public class ChangesFeedResponse<TSource> where TSource : CouchDocument
 {
-    public class ChangesFeedResponse<TSource> where TSource : CouchDocument
-    {
-        [JsonPropertyName("last_seq")]
-        public string LastSequence { get; set; }
+    [JsonPropertyName("last_seq")]
+    public required string LastSequence { get; init; }
 
-        [JsonPropertyName("pending")]
-        public int Pending { get; set; }
+    [JsonPropertyName("pending")]
+    public required int Pending { get; init; }
 
-        [JsonPropertyName("results")]
-        public IList<ChangesFeedResponseResult<TSource>> Results { get; internal set; }
-    }
+    [JsonPropertyName("results")]
+    public required IList<ChangesFeedResponseResult<TSource>> Results { get; set; }
 }
-#nullable restore

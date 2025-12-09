@@ -1,9 +1,8 @@
 ﻿using System.Threading;
 
-namespace CouchDB.Driver.Query
+namespace CouchDB.Driver.Query;
+
+internal interface IQuerySender
 {
-    internal interface IQuerySender
-    {
-        TResult Send<TResult>(string body, bool async, CancellationToken cancellationToken);
-    }
+    TResult Send<TResult>(string body, bool async, CancellationToken cancellationToken);
 }

@@ -1,36 +1,34 @@
-﻿#nullable disable
-using System;
+﻿using System;
 using System.Collections.Generic;
-using CouchDB.Driver.Types;
 using System.Text.Json.Serialization;
 
-namespace CouchDB.Driver.ChangesFeed.Responses
+namespace CouchDB.Driver.ChangesFeed.Responses;
+
+[Serializable]
+public class ChangesFeedResponseResult<TSource>
 {
-    public class ChangesFeedResponseResult<TSource> where TSource: CouchDocument
-    {
-        [JsonPropertyName("seq")]
-        public string Seq { get; set; }
+    [JsonPropertyName("seq")]
+    public required string Seq { get; init; }
 
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
+    [JsonPropertyName("id")]
+    public required string Id { get; init; }
 
-        [JsonPropertyName("deleted")]
-        public bool Deleted { get; set; }
+    [JsonPropertyName("deleted")]
+    public required bool Deleted { get; init; }
 
-        [JsonPropertyName("changes")]
-        public IList<ChangesFeedResponseResultChange> Changes { get; internal set; }
+    [JsonPropertyName("changes")]
+    public required IList<ChangesFeedResponseResultChange> Changes { get; init; }
 
-        [JsonPropertyName("roleIds")]
-        public IList<string> RoleIds { get; internal set; }
+    [JsonPropertyName("roleIds")]
+    public required IList<string> RoleIds { get; init; }
 
-        [JsonPropertyName("createdAt")]
-        public DateTime CreatedAt { get; set; }
+    [JsonPropertyName("createdAt")]
+    public required DateTime CreatedAt { get; init; }
 
-        [JsonPropertyName("createdBy")]
-        public string CreatedBy { get; set; }
+    [JsonPropertyName("createdBy")]
+    public required string CreatedBy { get; init; }
 
-        [JsonPropertyName("doc", NullValueHandling = NullValueHandling.Ignore)]
-        public TSource Document { get; set; }
-    }
+    [JsonPropertyName("doc")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public required TSource Document { get; set; }
 }
-#nullable restore

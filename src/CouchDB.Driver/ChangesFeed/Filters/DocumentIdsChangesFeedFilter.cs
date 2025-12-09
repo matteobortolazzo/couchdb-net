@@ -1,14 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace CouchDB.Driver.ChangesFeed.Filters
-{
-    internal class DocumentIdsChangesFeedFilter : ChangesFeedFilter
-    {
-        public IList<string> Value { get; }
+namespace CouchDB.Driver.ChangesFeed.Filters;
 
-        public DocumentIdsChangesFeedFilter(IList<string> value)
-        {
-            Value = value;
-        }
-    }
+internal class DocumentIdsChangesFeedFilter(IList<string> value) : ChangesFeedFilter
+{
+    public IList<string> Value { get; } = value;
 }

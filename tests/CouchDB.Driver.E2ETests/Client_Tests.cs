@@ -288,7 +288,7 @@ namespace CouchDB.Driver.E2E
                 await context.Rebels.Where(r => r.Age == 19).ToListAsync();
                 Assert.Fail("Expected exception not thrown");
             }
-            catch (CouchDBQueryWarningException e)
+            catch (CouchQueryWarningException e)
             {
                 Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
             }
@@ -305,7 +305,7 @@ namespace CouchDB.Driver.E2E
                 await crebels.QueryAsync(@"{""selector"":{""age"":""19""}}");
                 Assert.Fail("Expected exception not thrown");
             }
-            catch (CouchDBQueryWarningException e)
+            catch (CouchQueryWarningException e)
             {
                 Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
             }

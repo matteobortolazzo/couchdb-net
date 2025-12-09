@@ -2,27 +2,27 @@
 using System.Collections.Generic;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Options
+namespace CouchDB.Driver.Options;
+
+public class CouchDatabaseBuilder
 {
-    public class CouchDatabaseBuilder
+    internal readonly Dictionary<Type, CouchDocumentBuilder> DocumentBuilders;
+
+    internal CouchDatabaseBuilder()
     {
-        internal readonly Dictionary<Type, CouchDocumentBuilder> DocumentBuilders;
+        DocumentBuilders = new Dictionary<Type, CouchDocumentBuilder>();
+    }
 
-        internal CouchDatabaseBuilder()
+    public CouchDocumentBuilder<TSource> Document<TSource>()
+        where TSource : CouchDocument
+    {
+        Type documentType = typeof(TSource);
+        if (!DocumentBuilders.TryGetValue(documentType, out CouchDocumentBuilder? value))
         {
-            DocumentBuilders = new Dictionary<Type, CouchDocumentBuilder>();
+            value = new CouchDocumentBuilder<TSource>();
+            DocumentBuilders.Add(documentType, value);
         }
 
-        public CouchDocumentBuilder<TSource> Document<TSource>()
-            where TSource : CouchDocument
-        {
-            Type documentType = typeof(TSource);
-            if (!DocumentBuilders.ContainsKey(documentType))
-            {
-                DocumentBuilders.Add(documentType, new CouchDocumentBuilder<TSource>());
-            }
-
-            return (CouchDocumentBuilder<TSource>)DocumentBuilders[documentType];
-        }
+        return (CouchDocumentBuilder<TSource>)value;
     }
 }
