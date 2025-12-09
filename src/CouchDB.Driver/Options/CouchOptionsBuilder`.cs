@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace CouchDB.Driver.Options;
@@ -139,10 +140,10 @@ public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
     /// <summary>
     /// Sets how to handle null values during serialization.
     /// </summary>
-    /// <param name="nullValueHandling">The type of null value handling.</param>
+    /// <param name="jsonIgnoreCondition">The type of null value handling.</param>
     /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> SetJsonNullValueHandling(NullValueHandling nullValueHandling)
-        => (CouchOptionsBuilder<TContext>)base.SetJsonNullValueHandling(nullValueHandling);
+    public new virtual CouchOptionsBuilder<TContext> SetJsonIgnoreCondition(JsonIgnoreCondition jsonIgnoreCondition)
+        => (CouchOptionsBuilder<TContext>)base.SetJsonIgnoreCondition(jsonIgnoreCondition);
 
     /// <summary>
     /// Disables log out on client dispose. 
@@ -166,12 +167,4 @@ public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
     public new virtual CouchOptionsBuilder<TContext> ConfigureCertificateValidation(Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>
         serverCertificateCustomValidationCallback)
         => (CouchOptionsBuilder<TContext>)base.ConfigureCertificateValidation(serverCertificateCustomValidationCallback);
-
-    /// <summary>
-    /// Configure the Flurl client.
-    /// </summary>
-    /// <param name="flurlSettingsAction">An action representing to configure Flurl.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> ConfigureFlurlClient(Action<ClientFlurlHttpSettings> flurlSettingsAction)
-        => (CouchOptionsBuilder<TContext>)base.ConfigureFlurlClient(flurlSettingsAction);
 }

@@ -34,8 +34,6 @@ public abstract class CouchOptions
     internal Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>?
         ServerCertificateCustomValidationCallback { get; set; }
 
-    internal Action<ClientFlurlHttpSettings>? ClientFlurlHttpSettingsAction { get; set; }
-
     internal bool ThrowOnQueryWarning { get; set; }
 
     internal CouchOptions()

@@ -8,34 +8,34 @@ namespace CouchDB.Driver.DTOs;
 internal class AllDocsResult<T>
 {
     [JsonPropertyName("total_rows")]
-    public required int TotalRows { get; init; }
+    public int TotalRows { get; set; }
 
     [JsonPropertyName("offset")]
-    public required int Offset { get; init; }
+    public int Offset { get; set; }
 
     [JsonPropertyName("rows")]
-    public required IEnumerable<AllDocsRow<T>> Rows { get; init; }
+    public IEnumerable<AllDocsRow<T>> Rows { get; set; }
 }
 
 [Serializable]
 internal class AllDocsRow<T>
 {
     [JsonPropertyName("id")]
-    public required string Id { get; init; }
+    public string Id { get; set; }
 
     [JsonPropertyName("key")]
-    public required string Key { get; init; }
+    public string Key { get; set; }
 
     [JsonPropertyName("value")]
-    public required AllDocsValue Value { get; init; }
+    public AllDocsValue Value { get; set; }
 
     [JsonPropertyName("doc")]
-    public T? Doc { get; init; }
+    public T Doc { get; set; }
 }
 
 [Serializable]
 internal class AllDocsValue
 {
     [JsonPropertyName("rev")]
-    public required string Rev { get; init; }
+    public string Rev { get; set; }
 }

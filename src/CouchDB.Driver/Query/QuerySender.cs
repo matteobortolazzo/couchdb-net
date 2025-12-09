@@ -15,11 +15,11 @@ internal class QuerySender(IFlurlClient client, QueryContext queryContext) : IQu
 {
     private static readonly MethodInfo GenericToListMethod
         = typeof(QuerySender).GetRuntimeMethods()
-            .Single(m => (m.Name == nameof(ToList)) && m.IsGenericMethod);
+            .Single(m => m is { Name: nameof(ToList), IsGenericMethod: true });
 
     private static readonly MethodInfo GenericToListAsyncMethod
         = typeof(QuerySender).GetRuntimeMethods()
-            .Single(m => (m.Name == nameof(ToListAsync)) && m.IsGenericMethod);
+            .Single(m => m is { Name: nameof(ToListAsync), IsGenericMethod: true });
 
     public TResult Send<TResult>(string body, bool async, CancellationToken cancellationToken)
     {
@@ -35,7 +35,7 @@ internal class QuerySender(IFlurlClient client, QueryContext queryContext) : IQu
 
         return (TResult)toListMethodInfo
             .MakeGenericMethod(itemType)
-            .Invoke(this, new object[] { body, cancellationToken });
+            .Invoke(this, [body, cancellationToken])!;
     }
 
     private CouchList<TItem> ToList<TItem>(string body, CancellationToken cancellationToken)

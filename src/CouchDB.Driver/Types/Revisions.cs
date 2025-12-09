@@ -14,5 +14,5 @@ public class Revisions
     public IReadOnlyCollection<string> IDs { get; private set; }
 
     [JsonPropertyName("ids")]
-    private List<string> IdsOther { set { IDs = value?.AsReadOnly(); } }
+    private List<string> IdsOther { set { IDs = value.AsReadOnly(); } }
 }

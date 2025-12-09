@@ -1,5 +1,4 @@
-﻿using CouchDB.Driver.DTOs;
-using CouchDB.Driver.UnitTests._Helpers;
+﻿using CouchDB.Driver.UnitTests._Helpers;
 using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;
@@ -163,21 +162,21 @@ namespace CouchDB.Driver.UnitTests.Feed
         {
             httpTest.RespondWithJson(new ChangesFeedResponse<Rebel>
             {
-                Results = new[]
-                {
+                Results =
+                [
                     new ChangesFeedResponseResult<Rebel>
                     {
                         Id = "111",
                         Seq = "Seq111",
-                        Changes = new[]
-                        {
+                        Changes =
+                        [
                             new ChangesFeedResponseResultChange
                             {
                                 Rev = "111"
                             }
-                        }
+                        ]
                     }
-                }
+                ]
             });
         }
 

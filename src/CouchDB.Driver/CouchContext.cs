@@ -27,7 +27,7 @@ public abstract class CouchContext : IAsyncDisposable
 
     protected CouchContext(CouchOptions options)
     {
-        ArgumentNullException.ThrowIfNull(options, nameof(options));
+        ArgumentNullException.ThrowIfNull(options);
 
         var optionsBuilder = new CouchOptionsBuilder(options);
         var databaseBuilder = new CouchDatabaseBuilder();
@@ -60,7 +60,7 @@ public abstract class CouchContext : IAsyncDisposable
     private static void SetupDiscriminators(CouchDatabaseBuilder databaseBuilder)
     {
         // Get all options that share the database with another one
-        IEnumerable<KeyValuePair<Type, CouchDocumentBuilder>>? sharedDatabase = databaseBuilder.DocumentBuilders
+        IEnumerable<KeyValuePair<Type, CouchDocumentBuilder>> sharedDatabase = databaseBuilder.DocumentBuilders
             .Where(opt => opt.Value.Database != null)
             .GroupBy(v => v.Value.Database)
             .Where(g => g.Count() > 1)
@@ -78,11 +78,11 @@ public abstract class CouchContext : IAsyncDisposable
             Type documentType = dbProperty.PropertyType.GetGenericArguments()[0];
 
             var initDatabasesTask = (Task)InitDatabasesGenericMethod.MakeGenericMethod(documentType)
-                .Invoke(this, new object[] { dbProperty, options, databaseBuilder });
+                .Invoke(this, [dbProperty, options, databaseBuilder])!;
             initDatabasesTask.ConfigureAwait(false).GetAwaiter().GetResult();
 
             var applyDatabaseChangesTask = (Task)ApplyDatabaseChangesGenericMethod.MakeGenericMethod(documentType)
-                .Invoke(this, new object[] { dbProperty, options, databaseBuilder });
+                .Invoke(this, [dbProperty, options, databaseBuilder])!;
             applyDatabaseChangesTask.ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
@@ -124,7 +124,7 @@ public abstract class CouchContext : IAsyncDisposable
             return;
         }
 
-        var database = (CouchDatabase<TSource>)propertyInfo.GetValue(this);
+        var database = (CouchDatabase<TSource>)propertyInfo.GetValue(this)!;
         var documentBuilder = (CouchDocumentBuilder<TSource>)value;
 
         if (!documentBuilder.IndexDefinitions.Any())

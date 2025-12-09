@@ -8,5 +8,5 @@ namespace CouchDB.Driver.DTOs;
 internal class IndexDefinitionInfo
 {
     [JsonPropertyName("fields")]
-    public required Dictionary<string, string>[] Fields { get; init; }
+    public Dictionary<string, string>[] Fields { get; set; }
 }

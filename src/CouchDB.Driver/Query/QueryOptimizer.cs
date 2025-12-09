@@ -12,19 +12,14 @@ namespace CouchDB.Driver.Query;
 
 /// <summary>
 /// Convert expressions that are not natively supported in supported ones.
-/// It also convert Bool member to constants.
+/// It also converts Bool member to constants.
 /// </summary>
 internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
 {
     private static readonly MethodInfo WrapInDiscriminatorFilterGenericMethod
-        = typeof(MethodCallExpressionBuilder).GetMethod(nameof(MethodCallExpressionBuilder.WrapInDiscriminatorFilter));
+        = typeof(MethodCallExpressionBuilder).GetMethod(nameof(MethodCallExpressionBuilder.WrapInDiscriminatorFilter))!;
     private bool _isVisitingWhereMethodOrChild;
-    private readonly Queue<MethodCallExpression> _nextWhereCalls;
-
-    public QueryOptimizer()
-    {
-        _nextWhereCalls = new Queue<MethodCallExpression>();
-    }
+    private readonly Queue<MethodCallExpression> _nextWhereCalls = new();
 
     public Expression Optimize(Expression e, string? discriminator)
     {
@@ -32,9 +27,9 @@ internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
         {
             if (e.Type.IsGenericType)
             {
-                Type? sourceType = e.Type.GetGenericArguments()[0];
+                Type sourceType = e.Type.GetGenericArguments()[0];
                 MethodInfo wrapInWhere = WrapInDiscriminatorFilterGenericMethod.MakeGenericMethod(sourceType);
-                e = (Expression)wrapInWhere.Invoke(null, new object[] { e, discriminator });
+                e = (Expression)wrapInWhere.Invoke(null, [e, discriminator])!;
             }
             else
             {
@@ -43,7 +38,7 @@ internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
 
                 var rootMethodCallExpression = e as MethodCallExpression;
                 Expression source = rootMethodCallExpression!.Arguments[0];
-                var discriminatorWrap = (MethodCallExpression)wrapInWhere.Invoke(null, new object[] { source, discriminator });
+                var discriminatorWrap = (MethodCallExpression)wrapInWhere.Invoke(null, [source, discriminator])!;
                     
                 if (rootMethodCallExpression.Arguments.Count == 1)
                 {
@@ -56,7 +51,7 @@ internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
             }
         }
 
-        e = LocalExpressions.PartialEval(e);
+        e = LocalExpressions.PartialEval(e)!;
         return Visit(e);
     }
 

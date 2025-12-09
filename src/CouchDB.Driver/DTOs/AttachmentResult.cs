@@ -7,11 +7,11 @@ namespace CouchDB.Driver.DTOs;
 internal class AttachmentResult
 {
     [JsonPropertyName("id")]
-    public required string Id { get; init; }
+    public string Id { get; set; }
 
     [JsonPropertyName("ok")]
-    public required bool Ok { get; init; }
+    public bool Ok { get; set; }
 
     [JsonPropertyName("rev")]
-    public required string Rev { get; init; }
+    public string Rev { get; set; }
 }

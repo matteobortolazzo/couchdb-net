@@ -7,13 +7,13 @@ namespace CouchDB.Driver.DTOs;
 internal class DocumentSaveResponse
 {    
     [JsonPropertyName("ok")]
-    public required bool Ok { get; init; }
+    public bool Ok { get; set; }
     [JsonPropertyName("id")]
-    public required string Id { get; init; }
+    public string Id { get; set; }
     [JsonPropertyName("rev")]
-    public required string Rev { get; init; }
+    public string Rev { get; set; }
     [JsonPropertyName("error")]
-    public required string Error { get; init; }
+    public string Error { get; set; }
     [JsonPropertyName("reason")]
-    public required string Reason { get; init; }
+    public string Reason { get; set; }
 }

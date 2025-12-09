@@ -110,7 +110,7 @@ internal class QueryCompiler(
             .MakeGenericMethod(documentType, returnType);
 
         return (TResult)postProcessResultMethodInfo.Invoke(null,
-            new[] { couchQueryable, methodCallExpression, optimizedMethodCall });
+            [couchQueryable, methodCallExpression, optimizedMethodCall])!;
     }
 
     private static Type GetDocumentType(MethodCallExpression methodCall)
@@ -161,7 +161,7 @@ internal class QueryCompiler(
                 .GetEnumerableEquivalent(QueryableMethods.Select)
                 .MakeGenericMethod(documentType, selectorType);
             Delegate selector = originalMethodCall.GetSelectorDelegate();
-            result = selectMethodInfo.Invoke(null, new object[] { couchList, selector });
+            result = selectMethodInfo.Invoke(null, [couchList, selector])!;
         }
 
         // Get Enumerable equivalent of the last IQueryable method
@@ -174,7 +174,7 @@ internal class QueryCompiler(
         // Execute
         try
         {
-            return (TResult)enumerableMethodInfo.Invoke(null, new[] { result });
+            return (TResult)enumerableMethodInfo.Invoke(null, [result])!;
         }
         catch (TargetInvocationException ex)
         {

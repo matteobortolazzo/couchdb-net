@@ -9,5 +9,5 @@ namespace CouchDB.Driver.DTOs;
 internal class GetIndexesResult
 {
     [JsonPropertyName("indexes")]
-    public required List<IndexInfo> Indexes { get; init; }
+    public List<IndexInfo> Indexes { get; set; }
 }

@@ -2,6 +2,6 @@
 
 public class IndexOptions
 {
-    public string? DesignDocument { get; init; }
-    public bool? Partitioned { get; init; }
+    public string? DesignDocument { get; set; }
+    public bool? Partitioned { get; set; }
 }

@@ -7,5 +7,5 @@ namespace CouchDB.Driver.DTOs;
 internal class OperationResult
 {
     [JsonPropertyName("ok")]
-    public required bool Ok { get; init; }
+    public bool Ok { get; set; }
 }

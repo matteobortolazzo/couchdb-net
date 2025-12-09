@@ -1,9 +1,9 @@
 ﻿using CouchDB.Driver.UnitTests._Helpers;
 using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
-using System.Text.Json.Serialization;
 using System;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
@@ -123,7 +123,7 @@ namespace CouchDB.Driver.UnitTests.Feed
             await foreach (var change in _rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
             {
                 Assert.Equal(docId, change.Id);
-                tokenSource.Cancel();
+                await tokenSource.CancelAsync();
             }
 
             // Assert
@@ -232,17 +232,17 @@ namespace CouchDB.Driver.UnitTests.Feed
 
         private static string GetChangesFeedResponseResultJson(string docId)
         {
-            return JsonConvert.SerializeObject(new ChangesFeedResponseResult<Rebel>
+            return JsonSerializer.Serialize(new ChangesFeedResponseResult<Rebel>
             {
                 Seq = $"{Guid.NewGuid():N}",
                 Id = docId,
-                Changes = new[]
-                {
+                Changes =
+                [
                     new ChangesFeedResponseResultChange
                     {
                         Rev = $"{Guid.NewGuid():N}"
                     }
-                }
+                ]
             });
         }
     }

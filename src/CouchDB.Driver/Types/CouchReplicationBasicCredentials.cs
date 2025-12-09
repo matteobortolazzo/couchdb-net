@@ -1,6 +1,5 @@
 ﻿using System.Text.Json.Serialization;
 using System;
-using System.Runtime.Serialization;
 
 namespace CouchDB.Driver.Types;
 
@@ -16,11 +15,9 @@ public class CouchReplicationBasicCredentials
         Password = password;
     }
 
-    [DataMember]
     [JsonPropertyName("username")]
     public string Username { get; set; }
 
-    [DataMember]
     [JsonPropertyName("password")]
     public string Password { get; set; }
 }

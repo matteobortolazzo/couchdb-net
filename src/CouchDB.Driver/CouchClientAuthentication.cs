@@ -38,7 +38,7 @@ public partial class CouchClient
                 break;
             case AuthenticationType.Proxy:
                 httpCall.Request = httpCall.Request.WithHeader("X-Auth-CouchDB-UserName", _options.Username)
-                    .WithHeader("X-Auth-CouchDB-Roles", string.Join(",", _options.Roles));
+                    .WithHeader("X-Auth-CouchDB-Roles", string.Join(",", _options.Roles ?? []));
                 if (_options.Password != null)
                 {
                     httpCall.Request = httpCall.Request.WithHeader("X-Auth-CouchDB-Token", _options.Password);

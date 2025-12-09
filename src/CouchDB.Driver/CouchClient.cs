@@ -165,7 +165,7 @@ public partial class CouchClient : ICouchClient
 
         OperationResult result = await NewRequest()
             .AppendPathSegment(queryContext.EscapedDatabaseName)
-            .DeleteAsync(cancellationToken)
+            .DeleteAsync(cancellationToken: cancellationToken)
             .ReceiveJson<OperationResult>()
             .SendRequestAsync()
             .ConfigureAwait(false);
@@ -199,8 +199,8 @@ public partial class CouchClient : ICouchClient
         }
 
         return request
-            .AllowHttpStatus(HttpStatusCode.PreconditionFailed)
-            .PutAsync(null, cancellationToken)
+            .AllowHttpStatus((int)HttpStatusCode.PreconditionFailed)
+            .PutAsync(cancellationToken: cancellationToken)
             .SendRequestAsync();
     }
 
@@ -277,9 +277,9 @@ public partial class CouchClient : ICouchClient
     {
         QueryContext queryContext = NewQueryContext(database);
         IFlurlResponse? response = await NewRequest()
-            .AllowHttpStatus(HttpStatusCode.NotFound)
+            .AllowHttpStatus((int)HttpStatusCode.NotFound)
             .AppendPathSegment(queryContext.EscapedDatabaseName)
-            .HeadAsync(cancellationToken)
+            .HeadAsync(cancellationToken: cancellationToken)
             .ConfigureAwait(false);
         return response.IsSuccessful();
     }
@@ -292,7 +292,7 @@ public partial class CouchClient : ICouchClient
             StatusResult result = await NewRequest()
                 .AllowAnyHttpStatus()
                 .AppendPathSegment("/_up")
-                .GetJsonAsync<StatusResult>(cancellationToken)
+                .GetJsonAsync<StatusResult>(cancellationToken: cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
             return result?.Status == "ok";
@@ -308,7 +308,7 @@ public partial class CouchClient : ICouchClient
     {
         return await NewRequest()
             .AppendPathSegment("_all_dbs")
-            .GetJsonAsync<IEnumerable<string>>(cancellationToken)
+            .GetJsonAsync<IEnumerable<string>>(cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ConfigureAwait(false);
     }
@@ -318,7 +318,7 @@ public partial class CouchClient : ICouchClient
     {
         return await NewRequest()
             .AppendPathSegment("_active_tasks")
-            .GetJsonAsync<IEnumerable<CouchActiveTask>>(cancellationToken)
+            .GetJsonAsync<IEnumerable<CouchActiveTask>>(cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ConfigureAwait(false);
     }
@@ -330,12 +330,9 @@ public partial class CouchClient : ICouchClient
     public async Task<bool> ReplicateAsync(string source, string target, CouchReplication? replication = null,
         bool persistent = true, CancellationToken cancellationToken = default)
     {
-        var request = NewRequest();
+        IFlurlRequest request = NewRequest();
 
-        if (replication == null)
-        {
-            replication = new CouchReplication();
-        }
+        replication ??= new CouchReplication();
 
         if (replication.SourceCredentials == null)
         {
@@ -365,7 +362,7 @@ public partial class CouchClient : ICouchClient
 
         OperationResult result = await request
             .AppendPathSegments(persistent ? "_replicator" : "_replicate")
-            .PostJsonAsync(replication, cancellationToken)
+            .PostJsonAsync(replication, cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ReceiveJson<OperationResult>()
             .ConfigureAwait(false);
@@ -376,12 +373,9 @@ public partial class CouchClient : ICouchClient
     public async Task<bool> RemoveReplicationAsync(string source, string target, CouchReplication? replication = null,
         bool persistent = true, CancellationToken cancellationToken = default)
     {
-        var request = NewRequest();
+        IFlurlRequest request = NewRequest();
 
-        if (replication == null)
-        {
-            replication = new CouchReplication();
-        }
+        replication ??= new CouchReplication();
 
         if (replication.SourceCredentials == null)
         {
@@ -413,7 +407,7 @@ public partial class CouchClient : ICouchClient
 
         OperationResult result = await request
             .AppendPathSegments(persistent ? "_replicator" : "_replicate")
-            .PostJsonAsync(replication, cancellationToken)
+            .PostJsonAsync(replication, cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ReceiveJson<OperationResult>()
             .ConfigureAwait(false);
@@ -440,9 +434,9 @@ public partial class CouchClient : ICouchClient
 
     private void CheckDatabaseName(string database)
     {
-        ArgumentNullException.ThrowIfNull(database, nameof(database));
+        ArgumentNullException.ThrowIfNull(database);
 
-        if (!_systemDatabases.Contains(database) && !new Regex(@"^[a-z][a-z0-9_$()+/-]*$").IsMatch(database))
+        if (!_systemDatabases.Contains(database) && !DatabaseNamePattern().IsMatch(database))
         {
             throw new ArgumentException(
                 $"Name {database} contains invalid characters. Please visit: https://docs.couchdb.org/en/stable/api/database/common.html#put--db",
@@ -463,7 +457,7 @@ public partial class CouchClient : ICouchClient
     {
         if (disposing)
         {
-            if (_options.AuthenticationType == AuthenticationType.Cookie && _options.LogOutOnDispose)
+            if (_options is { AuthenticationType: AuthenticationType.Cookie, LogOutOnDispose: true })
             {
                 await LogoutAsync().ConfigureAwait(false);
             }
@@ -485,4 +479,7 @@ public partial class CouchClient : ICouchClient
         ArgumentNullException.ThrowIfNull(type);
         return type.GetName(_options);
     }
+
+    [GeneratedRegex(@"^[a-z][a-z0-9_$()+/-]*$")]
+    private static partial Regex DatabaseNamePattern();
 }

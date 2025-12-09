@@ -81,8 +81,8 @@ internal static class ChangesFeedFilterExtensions
             {
                 return await request
                     .SetQueryParam("filter", "_doc_ids")
-                    .PostJsonStreamAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value), cancellationToken,
-                        HttpCompletionOption.ResponseHeadersRead)
+                    .PostJsonStreamAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value),
+                        HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -94,7 +94,7 @@ internal static class ChangesFeedFilterExtensions
                 return await request
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
-                    .PostStringStreamAsync(jsonSelector, cancellationToken, HttpCompletionOption.ResponseHeadersRead)
+                    .PostStringStreamAsync(jsonSelector, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
             }
 

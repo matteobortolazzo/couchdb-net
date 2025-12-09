@@ -213,7 +213,7 @@ public class CouchOptionsBuilder
     /// </summary>
     /// <param name="jsonIgnoreCondition">The type of ignore handling.</param>
     /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder SetJsonNullValueHandling(JsonIgnoreCondition jsonIgnoreCondition)
+    public virtual CouchOptionsBuilder SetJsonIgnoreCondition(JsonIgnoreCondition jsonIgnoreCondition)
     {
         Options.JsonIgnoreCondition = jsonIgnoreCondition;
         return this;
@@ -249,17 +249,6 @@ public class CouchOptionsBuilder
     {
         ArgumentNullException.ThrowIfNull(serverCertificateCustomValidationCallback);
         Options.ServerCertificateCustomValidationCallback = serverCertificateCustomValidationCallback;
-        return this;
-    }
-
-    /// <summary>
-    /// Configure the Flurl client.
-    /// </summary>
-    /// <param name="flurlSettingsAction">An action representing to configure Flurl.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder ConfigureFlurlClient(Action<ClientFlurlHttpSettings> flurlSettingsAction)
-    {
-        Options.ClientFlurlHttpSettingsAction = flurlSettingsAction;
         return this;
     }
 }

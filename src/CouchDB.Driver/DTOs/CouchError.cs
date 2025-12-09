@@ -7,7 +7,7 @@ namespace CouchDB.Driver.DTOs;
 internal class CouchError
 {
     [JsonPropertyName("error")]
-    public string? Error { get; init; }
+    public string? Error { get; set; }
     [JsonPropertyName("reason")]
-    public string? Reason { get; init; }
+    public string? Reason { get; set; }
 }

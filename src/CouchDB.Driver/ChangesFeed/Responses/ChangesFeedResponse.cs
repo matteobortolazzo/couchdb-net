@@ -7,11 +7,11 @@ namespace CouchDB.Driver.ChangesFeed.Responses;
 public class ChangesFeedResponse<TSource> where TSource : CouchDocument
 {
     [JsonPropertyName("last_seq")]
-    public required string LastSequence { get; init; }
+    public string LastSequence { get; set; }
 
     [JsonPropertyName("pending")]
-    public required int Pending { get; init; }
+    public int Pending { get; set; }
 
     [JsonPropertyName("results")]
-    public required IList<ChangesFeedResponseResult<TSource>> Results { get; set; }
+    public IList<ChangesFeedResponseResult<TSource>> Results { get; set; }
 }

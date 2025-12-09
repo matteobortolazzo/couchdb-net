@@ -15,95 +15,110 @@ public class CouchViewOptions<TKey>
     /// Include conflicts information in response.
     /// Ignored if <see cref="IncludeDocs"/> isn't <c>True</c>. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("conflicts", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("conflicts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Conflicts { get; set; }
 
     /// <summary>
     /// Return the documents in descending order by key. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("descending", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("descending")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Descending { get; set; }
 
     /// <summary>
     /// Stop returning records when the specified key is reached.
     /// </summary>
-    [JsonPropertyName("endkey", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("endkey")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TKey? EndKey { get; set; }
 
     /// <summary>
     ///  Stop returning records when the specified document ID is reached.
     ///  Ignored if <see cref="EndKey"/> is not set.
     /// </summary>
-    [JsonPropertyName("endkey_docid", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("endkey_docid")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? EndKeyDocId { get; set; }
 
     /// <summary>
     ///  Group the results using the reduce function to a group or single row.
     ///  Implies reduce is <c>True</c> and the maximum <see cref="GroupLevel"/>. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("group", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("group")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Group { get; set; }
 
     /// <summary>
     /// Specify the group level to be used. Implies group is <c>True</c>.
     /// </summary>
-    [JsonPropertyName("group_level", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("group_level")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? GroupLevel { get; set; }
 
     /// <summary>
     ///  Include the associated document with each row. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("include_docs", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("include_docs")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? IncludeDocs { get; set; }
 
     /// <summary>
     /// Include the Base64-encoded content of attachments in the documents that are included if <see cref="IncludeDocs"/> is <c>True</c>.
     /// Ignored if <see cref="IncludeDocs"/> isn’t <c>True</c>. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("attachments", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("attachments")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Attachments { get; set; }
 
     /// <summary>
     /// Include encoding information in attachment stubs if <see cref="IncludeDocs"/> is <c>True</c> and the particular attachment is compressed.
     /// Ignored if <see cref="IncludeDocs"/> isn’t <c>True</c>. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("att_encoding_info", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("att_encoding_info")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? AttachEncodingInfo { get; set; }
 
     /// <summary>
     ///  Specifies whether the specified end key should be included in the result. Default is <c>True</c>.
     /// </summary>
-    [JsonPropertyName("inclusive_end", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("inclusive_end")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? InclusiveEnd { get; set; }
 
     /// <summary>
     /// Return only documents that match the specified key.
     /// </summary>
-    [JsonPropertyName("key", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("key")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TKey? Key { get; set; }
 
     /// <summary>
     /// Return only documents where the key matches one of the keys specified in the array.
     /// </summary>
-    [JsonPropertyName("keys", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("keys")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IList<TKey>? Keys { get; set; }
 
     /// <summary>
     /// Limit the number of the returned documents to the specified number.
     /// </summary>
-    [JsonPropertyName("limit", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("limit")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Limit { get; set; }
 
     /// <summary>
     /// Use the reduction function. Default is <c>True</c> when a reduce function is defined.
     /// </summary>
-    [JsonPropertyName("reduce", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("reduce")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Reduce { get; set; }
 
     /// <summary>
     /// Skip this number of records before starting to return the results. Default is <code>0</code>.
     /// </summary>
-    [JsonPropertyName("skip", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("skip")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Skip { get; set; }
 
     /// <summary>
@@ -112,7 +127,8 @@ public class CouchViewOptions<TKey>
     /// The <see cref="CouchViewResult{TKey, TRow}.TotalRows"/> and <see cref="CouchViewResult{TKey, TRow}.Offset"/> fields are not available when this is set to <c>False</c>.
     /// Default is <c>True</c>.
     /// </summary>
-    [JsonPropertyName("sorted", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("sorted")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Sorted { get; set; }
 
     /// <summary>
@@ -122,19 +138,22 @@ public class CouchViewOptions<TKey>
     [JsonIgnore]
     public StableStyle? Stable { get; set; }
 
-    [JsonPropertyName("stable", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("stable")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     internal string? StableString => Stable?.ToString();
 
     /// <summary>
     /// Return records starting with the specified key.
     /// </summary>
-    [JsonPropertyName("startkey", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("startkey")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TKey? StartKey { get; set; }
 
     /// <summary>
     /// Return records starting with the specified document ID. Ignored if <see cref="StartKey"/> is not set.
     /// </summary>
-    [JsonPropertyName("startkey_docid", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("startkey_docid")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? StartKeyDocId { get; set; }
 
     /// <summary>
@@ -144,13 +163,15 @@ public class CouchViewOptions<TKey>
     [JsonIgnore]
     public UpdateStyle? Update { get; set; }
 
-    [JsonPropertyName("update", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("update")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     internal string? UpdateString => Update?.ToString();
 
     /// <summary>
     /// Whether to include in the response an <see cref="UpdateSeq"/> value indicating the sequence id of the database the view reflects.
     /// Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("update_seq", NullValueHandling = NullValueHandling.Ignore)]
+    [JsonPropertyName("update_seq")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? UpdateSeq { get; set; }
 }
