@@ -7,10 +7,10 @@ namespace CouchDB.Driver.Types;
 public class CouchReplicationHost
 {
     [JsonPropertyName("url")]
-    public string? Url { get; internal set; }
+    public string? Url { get; internal init; }
 
     [JsonPropertyName("auth")]
-    public CouchReplicationAuth? Auth { get; internal set; }
+    public CouchReplicationAuth? Auth { get; internal init; }
 
 
 }

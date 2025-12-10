@@ -16,23 +16,23 @@ public sealed class CouchView<TKey, TValue, TDoc>
     /// The document ID.
     /// </summary>
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public required string Id { get; init; }
 
     /// <summary>
     /// The view key.
     /// </summary>
     [JsonPropertyName("key")]
-    public TKey Key { get; set; }
+    public required TKey Key { get; init; }
 
     /// <summary>
     /// The view key.
     /// </summary>
     [JsonPropertyName("value")]
-    public TValue Value { get; set; }
+    public required TValue Value { get; init; }
 
     /// <summary>
     /// The document.
     /// </summary>
     [JsonPropertyName("doc")]
-    public TDoc Document { get; set; }
+    public required TDoc Document { get; init; }
 }

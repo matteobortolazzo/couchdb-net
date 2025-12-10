@@ -14,13 +14,13 @@ public sealed class CouchAttachment
     internal string DocumentId { get; set; }
 
     [JsonIgnore]
-    internal string DocumentRev { get; set; }
+    internal string? DocumentRev { get; set; }
 
     [JsonIgnore]
     internal FileInfo? FileInfo { get; set; }
 
     [JsonIgnore]
-    internal bool Deleted { get; set; }
+    internal bool Deleted { get; init; }
 
     [JsonIgnore]
     public string Name { get; internal set; }
@@ -32,32 +32,32 @@ public sealed class CouchAttachment
     ///     Gets whether the attachment object contains stub info and no content. 
     /// </summary>
     [JsonPropertyName("stub")]
-    public bool Stub { get; set; }
+    public bool Stub { get; init; }
 
     /// <summary>
     ///     Gets the attachment MIME type.
     /// </summary>
     [JsonPropertyName("content_type")]
-    public string ContentType { get; set; }
+    public string ContentType { get; init; }
 
     /// <summary>
     ///     Gets the content hash digest. It starts with prefix which announce hash type (md5-) and continues with
     ///     Base64-encoded hash digest.
     /// </summary>
     [JsonPropertyName("digest")]
-    public string Digest { get; private set; }
+    public string Digest { get; private init; }
 
     /// <summary>
     ///     Gets the real attachment size in bytes. Not available if attachment content requested.
     /// </summary>
     [JsonPropertyName("length")]
-    public long? Length { get; private set; }
+    public long? Length { get; private init; }
 
     /// <summary>
     ///     Gets the revision number when attachment was added.
     /// </summary>
     [JsonPropertyName("revpos")]
-    public int? RevPos { get; private set; }
+    public int? RevPos { get; private init; }
 
     /// <summary>
     ///     Gets the compressed attachment size in bytes.
@@ -75,7 +75,7 @@ public sealed class CouchAttachment
     ///     </list>
     /// </remarks>
     [JsonPropertyName("encoded_length")]
-    public long? EncodedLength { get; private set; }
+    public long? EncodedLength { get; private init; }
 
     /// <summary>
     ///     Gets the Base64-encoded content. Only populated if queried for and <see cref="Stub"/> is false.
@@ -92,5 +92,5 @@ public sealed class CouchAttachment
     ///     </list>
     /// </remarks>
     [JsonPropertyName("data")]
-    public string Data { get; private set; }
+    public string Data { get; private init; }
 }

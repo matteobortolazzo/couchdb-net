@@ -32,10 +32,10 @@ public abstract class CouchContext : IAsyncDisposable
         var optionsBuilder = new CouchOptionsBuilder(options);
         var databaseBuilder = new CouchDatabaseBuilder();
 
-#pragma warning disable CA2214 // Do not call overridable methods in constructors
+        // ReSharper disable once VirtualMemberCallInConstructor
         OnConfiguring(optionsBuilder);
+        // ReSharper disable once VirtualMemberCallInConstructor
         OnDatabaseCreating(databaseBuilder);
-#pragma warning restore CA2214 // Do not call overridable methods in constructors
 
         Client = new CouchClient(options);
 

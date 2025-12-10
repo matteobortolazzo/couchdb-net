@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CouchDB.Driver.DTOs;
 using System.Text.Json.Serialization;
@@ -8,19 +9,20 @@ namespace CouchDB.Driver.Types;
 /// <summary>
 /// Represent info about the index.
 /// </summary>
+[Serializable]
 public class IndexInfo
 {
     /// <summary>
     /// ID of the design document the index belongs to.
     /// </summary>
     [JsonPropertyName("ddoc")]
-    public string DesignDocument { get; set; }
+    public required string DesignDocument { get; init; }
 
     /// <summary>
     /// The name of the index.
     /// </summary>
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>
     /// The fields used in the index
@@ -29,7 +31,7 @@ public class IndexInfo
     public Dictionary<string, IndexFieldDirection> Fields { get; } = new();
 
     [JsonPropertyName("def")]
-    internal IndexDefinitionInfo Definition 
+    internal IndexDefinitionInfo Definition
     {
         set
         {

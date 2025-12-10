@@ -21,7 +21,7 @@ namespace CouchDB.Driver;
 public partial class CouchClient : ICouchClient
 {
     public const string DefaultDatabaseSplitDiscriminator = "split_discriminator";
-    private DateTime? _cookieCreationDate;
+    private DateTimeOffset? _cookieCreationDate;
     private string? _cookieToken;
 
     private readonly IFlurlClient _flurlClient;

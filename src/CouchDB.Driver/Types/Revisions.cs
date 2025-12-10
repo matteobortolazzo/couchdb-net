@@ -8,10 +8,10 @@ namespace CouchDB.Driver.Types;
 public class Revisions
 {
     [JsonPropertyName("start")]
-    public int Start { get; internal set; }
+    public int Start { get; init; }
 
     [JsonIgnore]
-    public IReadOnlyCollection<string> IDs { get; private set; }
+    public IReadOnlyCollection<string> IDs { get; private set; } = null!;
 
     [JsonPropertyName("ids")]
     private List<string> IdsOther { set { IDs = value.AsReadOnly(); } }

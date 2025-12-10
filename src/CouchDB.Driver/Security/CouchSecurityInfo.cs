@@ -11,7 +11,7 @@ public sealed class CouchSecurityInfo
     /// They can read all types of documents from the DB, and they can write (and edit) documents to the DB except for design documents.
     /// </summary>
     [JsonPropertyName("members")]
-    public CouchSecurityInfoType Members { get; set; } = new();
+    public CouchSecurityInfoType Members { get; init; } = new();
 
     /// <summary>
     /// They have all the privileges of members plus the privileges: 
@@ -19,5 +19,5 @@ public sealed class CouchSecurityInfo
     /// They can not create a database nor delete a database.
     /// </summary>
     [JsonPropertyName("admins")]
-    public CouchSecurityInfoType Admins { get; set; } = new();
+    public CouchSecurityInfoType Admins { get; init; } = new();
 }

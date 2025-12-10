@@ -9,95 +9,94 @@ using System.Net.Mime;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace CouchDB.Driver.UnitTests
+namespace CouchDB.Driver.UnitTests;
+
+public class Attachments_Tests: IAsyncDisposable
 {
-    public class Attachments_Tests: IAsyncDisposable
+    private readonly ICouchClient _client;
+    private readonly ICouchDatabase<Rebel> _rebels;
+
+    public Attachments_Tests()
     {
-        private readonly ICouchClient _client;
-        private readonly ICouchDatabase<Rebel> _rebels;
+        _client = new CouchClient("http://localhost");
+        _rebels = _client.GetDatabase<Rebel>();
+    }
 
-        public Attachments_Tests()
-        {
-            _client = new CouchClient("http://localhost");
-            _rebels = _client.GetDatabase<Rebel>();
-        }
+    [Fact]
+    public void NewDocument_EmptyAttachmentsList()
+    {
+        var r = new Rebel { Name = "Luke" };
+        Assert.Empty(r.Attachments);
+    }
 
-        [Fact]
-        public void NewDocument_EmptyAttachmentsList()
-        {
-            var r = new Rebel { Name = "Luke" };
-            Assert.Empty(r.Attachments);
-        }
+    [Fact]
+    public void AddedAttachment_ShouldBeInList()
+    {
+        var r = new Rebel { Name = "Luke" };
+        var attachFile = Path.Combine("Assets", "luke.txt");
+        r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
+        Assert.NotEmpty(r.Attachments);
+    }
 
-        [Fact]
-        public void AddedAttachment_ShouldBeInList()
-        {
-            var r = new Rebel { Name = "Luke" };
-            var attachFile = Path.Combine("Assets", "luke.txt");
-            r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
-            Assert.NotEmpty(r.Attachments);
-        }
+    [Fact]
+    public void RemovedAttachment_ShouldBeNotInList()
+    {
+        var r = new Rebel { Name = "Luke" };
+        var attachFile = Path.Combine("Assets", "luke.txt");
+        r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
+        r.Attachments.Delete("luke.txt");
+        Assert.Empty(r.Attachments);
+    }
 
-        [Fact]
-        public void RemovedAttachment_ShouldBeNotInList()
+    [Fact]
+    public async Task DownloadAttachment()
+    {
+        using var httpTest = new HttpTest();
+        httpTest.RespondWithJson(new
         {
-            var r = new Rebel { Name = "Luke" };
-            var attachFile = Path.Combine("Assets", "luke.txt");
-            r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
-            r.Attachments.Delete("luke.txt");
-            Assert.Empty(r.Attachments);
-        }
-
-        [Fact]
-        public async Task DownloadAttachment()
-        {
-            using var httpTest = new HttpTest();
-            httpTest.RespondWithJson(new
+            Id = "1",
+            Ok = true,
+            Rev = "xxx",
+            Attachments = new Dictionary<string, object>
             {
-                Id = "1",
-                Ok = true,
-                Rev = "xxx",
-                Attachments = new Dictionary<string, object>
-                    {
-                        { "luke.txt", new { ContentType = "text/plain" } }
-                    }
-            });
+                { "luke.txt", new { ContentType = "text/plain" } }
+            }
+        });
 
-            httpTest.RespondWithJson(new
-            {
-                Id = "1",
-                Ok = true,
-                Rev = "xxx2",
-            });
-
-            var r = new Rebel { Id = "1", Name = "Luke" };
-            var attachFile = Path.Combine("Assets", "luke.txt");
-            r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
-
-            r = await _rebels.AddOrUpdateAsync(r);
-
-            Types.CouchAttachment lukeTxt = r.Attachments.First();
-            var newPath = await _rebels.DownloadAttachmentAsync(lukeTxt, "anyfolder");
-
-            httpTest
-                .ShouldHaveCalled("http://localhost/rebels/1")
-                .WithVerb(HttpMethod.Put);
-            httpTest
-                .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
-                .WithVerb(HttpMethod.Put)
-                .WithHeader("If-Match", "xxx");
-            httpTest
-                .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
-                .WithVerb(HttpMethod.Get)
-                .WithHeader("If-Match", "xxx2");
-
-            var newAttachFile = Path.Combine("anyfolder", "luke.txt");
-            Assert.Equal(newAttachFile, newPath);
-        }
-
-        public ValueTask DisposeAsync()
+        httpTest.RespondWithJson(new
         {
-            return _client.DisposeAsync();
-        }
+            Id = "1",
+            Ok = true,
+            Rev = "xxx2",
+        });
+
+        var r = new Rebel { Id = "1", Name = "Luke" };
+        var attachFile = Path.Combine("Assets", "luke.txt");
+        r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
+
+        r = await _rebels.AddOrUpdateAsync(r);
+
+        Types.CouchAttachment lukeTxt = r.Attachments.First();
+        var newPath = await _rebels.DownloadAttachmentAsync(lukeTxt, "anyfolder");
+
+        httpTest
+            .ShouldHaveCalled("http://localhost/rebels/1")
+            .WithVerb(HttpMethod.Put);
+        httpTest
+            .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
+            .WithVerb(HttpMethod.Put)
+            .WithHeader("If-Match", "xxx");
+        httpTest
+            .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
+            .WithVerb(HttpMethod.Get)
+            .WithHeader("If-Match", "xxx2");
+
+        var newAttachFile = Path.Combine("anyfolder", "luke.txt");
+        Assert.Equal(newAttachFile, newPath);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return _client.DisposeAsync();
     }
 }

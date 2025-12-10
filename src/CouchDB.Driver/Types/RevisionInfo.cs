@@ -7,8 +7,8 @@ namespace CouchDB.Driver.Types;
 public class RevisionInfo
 {
     [JsonPropertyName("rev")]
-    public string Rev { get; internal set; }
+    public required string Rev { get; init; }
     
     [JsonPropertyName("status")]
-    public string Status { get; internal set; }
+    public required string Status { get; init; }
 }

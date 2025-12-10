@@ -12,29 +12,29 @@ public abstract class CouchOptions
 {
     public abstract Type ContextType { get; }
 
-    internal Uri? Endpoint { get; set; }
-    internal bool CheckDatabaseExists { get; set; }
-    internal bool OverrideExistingIndexes { get; set; }
+    internal Uri? Endpoint { get; init; }
+    internal bool CheckDatabaseExists { get; init; }
+    internal bool OverrideExistingIndexes { get; init; }
 
-    internal AuthenticationType AuthenticationType { get; set; }
-    internal string? Username { get; set; }
-    internal string? Password { get; set; }
-    internal IReadOnlyCollection<string>? Roles { get; set; }
-    internal int CookiesDuration { get; set; }
-    internal Func<Task<string>>? JwtTokenGenerator { get; set; }
+    internal AuthenticationType AuthenticationType { get; init; }
+    internal string? Username { get; init; }
+    internal string? Password { get; init; }
+    internal IReadOnlyCollection<string>? Roles { get; init; }
+    internal int CookiesDuration { get; init; }
+    internal Func<Task<string>>? JwtTokenGenerator { get; init; }
 
-    internal bool PluralizeEntities { get; set; }
-    internal DocumentCaseType DocumentsCaseType { get; set; }
-    internal PropertyCaseType PropertiesCase { get; set; }
+    internal bool PluralizeEntities { get; init; }
+    internal DocumentCaseType DocumentsCaseType { get; init; }
+    internal PropertyCaseType PropertiesCase { get; init; }
 
-    internal string? DatabaseSplitDiscriminator { get; set; }
-    internal JsonIgnoreCondition? JsonIgnoreCondition { get; set; }
-    internal bool LogOutOnDispose { get; set; }
+    internal string? DatabaseSplitDiscriminator { get; init; }
+    internal JsonIgnoreCondition? JsonIgnoreCondition { get; init; }
+    internal bool LogOutOnDispose { get; init; }
 
     internal Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>?
-        ServerCertificateCustomValidationCallback { get; set; }
+        ServerCertificateCustomValidationCallback { get; init; }
 
-    internal bool ThrowOnQueryWarning { get; set; }
+    internal bool ThrowOnQueryWarning { get; init; }
 
     internal CouchOptions()
     {

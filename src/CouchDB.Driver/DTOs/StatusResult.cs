@@ -7,5 +7,5 @@ namespace CouchDB.Driver.DTOs;
 internal class StatusResult
 {
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    public required string Status { get; init; }
 }

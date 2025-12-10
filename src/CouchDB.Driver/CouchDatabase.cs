@@ -390,11 +390,13 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                 .ReceiveJson<AttachmentResult>()
                 .ConfigureAwait(false);
 
-            if (response.Ok)
+            if (!response.Ok)
             {
-                document.Rev = response.Rev;
-                attachment.FileInfo = null;
+                continue;
             }
+
+            document.Rev = response.Rev;
+            attachment.FileInfo = null;
         }
 
         foreach (CouchAttachment attachment in document.Attachments.GetDeletedAttachments())

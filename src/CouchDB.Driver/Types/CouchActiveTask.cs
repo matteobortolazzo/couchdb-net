@@ -1,5 +1,4 @@
-﻿#nullable disable
-using System;
+﻿using System;
 using CouchDB.Driver.Helpers;
 using System.Text.Json.Serialization;
 
@@ -15,62 +14,61 @@ public sealed class CouchActiveTask
     /// Processes changes.
     /// </summary>
     [JsonPropertyName("changes-done")]
-    public int ChangesDone { get; internal set; }
+    public int ChangesDone { get; internal init; }
 
     /// <summary>
     /// Source database.
     /// </summary>
     [JsonPropertyName("database")]
-    public string Database { get; internal set; }
+    public required string Database { get; init; }
 
     /// <summary>
     /// Process ID
     /// </summary>
     [JsonPropertyName("pid")]
-    public string PID { get; internal set; }
+    public required string PID { get; init; }
 
     /// <summary>
     /// Current percentage progress.
     /// </summary>
     [JsonPropertyName("progress")]
-    public int Progress { get; internal set; }
+    public int Progress { get; internal init; }
 
     /// <summary>
     /// Task start time.
     /// </summary>
     [JsonPropertyName("started_on")]
     [JsonConverter(typeof(MicrosecondEpochConverter))]
-    public DateTime StartedOn { get; internal set; }
+    public DateTimeOffset StartedOn { get; internal init; }
 
     /// <summary>
     /// Task status message.
     /// </summary>
     [JsonPropertyName("status")]
-    public string Status { get; internal set; }
+    public required string Status { get; init; }
 
     /// <summary>
     /// Task name.
     /// </summary>
     [JsonPropertyName("task")]
-    public string Task { get; internal set; }
+    public required string Task { get; init; }
 
     /// <summary>
     /// Total changes to process.
     /// </summary>
     [JsonPropertyName("total_changes-done")]
-    public int TotalChanges { get; internal set; }
+    public int TotalChanges { get; internal init; }
 
     /// <summary>
     /// Operation type.
     /// </summary>
     [JsonPropertyName("type")]
-    public string Type { get; internal set; }
+    public required string Type { get; init; }
 
     /// <summary>
     /// Last operation update.
     /// </summary>
     [JsonPropertyName("updated_on")]
     [JsonConverter(typeof(MicrosecondEpochConverter))]
-    public DateTime UpdatedOn { get; internal set; }
+    public DateTimeOffset UpdatedOn { get; internal init; }
 }
-#nullable restore

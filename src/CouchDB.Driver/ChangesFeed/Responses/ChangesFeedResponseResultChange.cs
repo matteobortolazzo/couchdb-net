@@ -1,9 +1,11 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.ChangesFeed.Responses;
 
+[Serializable]
 public class ChangesFeedResponseResultChange
 {
     [JsonPropertyName("rev")]
-    public string Rev { get; set; }
+    public required string Rev { get; init; }
 }

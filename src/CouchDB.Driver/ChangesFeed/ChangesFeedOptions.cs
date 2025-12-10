@@ -18,28 +18,28 @@ public class ChangesFeedOptions
     /// <remarks>
     /// Most commonly used in conjunction with since=now, to wait for the next change. Ignored with continuous feed.
     /// </remarks>
-    public bool LongPoll { get; set; }
+    public bool LongPoll { get; init; }
 
     /// <summary>
     /// Includes conflicts information in response. Ignored if <see cref="IncludeDocs"/> isn’t <c>True</c>.
     /// </summary>
     [JsonPropertyName("conflicts")]
     [DefaultValue(false)]
-    public bool Conflicts { get; set; }
+    public bool Conflicts { get; init; }
 
     /// <summary>
     /// Return the change results in descending sequence order (most recent change first).
     /// </summary>
     [JsonPropertyName("descending")]
     [DefaultValue(false)]
-    public bool Descending { get; set; }
+    public bool Descending { get; init; }
 
     /// <summary>
     /// Reference to a filter function from a design document that will filter whole stream emitting only filtered events.
     /// </summary>
     [JsonPropertyName("filter")]
     [DefaultValue(null)]
-    public string? Filter { get; set; }
+    public string? Filter { get; init; }
 
     /// <summary>
     /// Period in milliseconds after which an empty line is sent in the results.
@@ -50,28 +50,28 @@ public class ChangesFeedOptions
     /// </remarks>
     [JsonPropertyName("heartbeat")]
     [DefaultValue(60000)]
-    public int Heartbeat { get; set; } = 60000;
+    public int Heartbeat { get; init; } = 60000;
 
     /// <summary>
     /// Include the associated document with each result. If there are conflicts, only the winning revision is returned. 
     /// </summary>
     [JsonPropertyName("include_docs")]
     [DefaultValue(false)]
-    public bool IncludeDocs { get; set; }
+    public bool IncludeDocs { get; init; }
 
     /// <summary>
     /// Include the Base64-encoded content of attachments in the documents that are included if <see cref="IncludeDocs"/> is <c>True</c>.
     /// </summary>
     [JsonPropertyName("attachments")]
     [DefaultValue(false)]
-    public bool Attachments { get; set; }
+    public bool Attachments { get; init; }
 
     /// <summary>
     /// Include encoding information in attachment stubs if <see cref="IncludeDocs"/> is <c>True</c> and the particular attachment is compressed.
     /// </summary>
     [JsonPropertyName("att_encoding_info")]
     [DefaultValue(false)]
-    public bool AttachEncodingInfo { get; set; }
+    public bool AttachEncodingInfo { get; init; }
 
     /// <summary>
     /// Limit number of result rows to the specified value.
@@ -81,7 +81,7 @@ public class ChangesFeedOptions
     /// </remarks>
     [JsonPropertyName("limit")]
     [DefaultValue(null)]
-    public int? Limit { get; set; }
+    public int? Limit { get; init; }
 
     /// <summary>
     /// Start the results from the change immediately after the given update sequence. 
@@ -91,7 +91,7 @@ public class ChangesFeedOptions
     /// </remarks>
     [JsonPropertyName("since")]
     [DefaultValue("0")]
-    public string? Since { get; set; } = "0";
+    public string? Since { get; init; } = "0";
 
     /// <summary>
     /// Specifies how many revisions are returned in the changes array. 
@@ -101,7 +101,7 @@ public class ChangesFeedOptions
     /// </remarks>
     [JsonPropertyName("style")]
     [DefaultValue("main_only")]
-    public ChangesFeedStyle Style { get; set; } = ChangesFeedStyle.MainOnly;
+    public ChangesFeedStyle Style { get; init; } = ChangesFeedStyle.MainOnly;
 
     /// <summary>
     /// Maximum period in milliseconds to wait for a change before the response is sent, even if there are no results.
@@ -112,14 +112,14 @@ public class ChangesFeedOptions
     /// </remarks>
     [JsonPropertyName("timeout")]
     [DefaultValue(null)]
-    public int? Timeout { get; set; }
+    public int? Timeout { get; init; }
 
     /// <summary>
     /// Allows to use view functions as filters. Documents counted as "passed" for view filter in case if map function emits at least one record for them. 
     /// </summary>
     [JsonPropertyName("view")]
     [DefaultValue(null)]
-    public string? View { get; set; }
+    public string? View { get; init; }
 
     /// <summary>
     /// When fetching changes in a batch, setting the seq_interval parameter tells CouchDB to only calculate the update seq with every Nth result returned.
@@ -128,7 +128,7 @@ public class ChangesFeedOptions
     /// </summary>
     [JsonPropertyName("seq_interval")]
     [DefaultValue(null)]
-    public int? SeqInterval { get; set; }
+    public int? SeqInterval { get; init; }
 
     /// <summary>
     /// Custom query parameters to pass to design document filter functions.
@@ -138,5 +138,5 @@ public class ChangesFeedOptions
     /// Useful for passing partition keys or other custom filtering parameters to filter functions.
     /// </remarks>
     [JsonIgnore]
-    public Dictionary<string, string>? QueryParameters { get; set; }
+    public Dictionary<string, string>? QueryParameters { get; init; }
 }

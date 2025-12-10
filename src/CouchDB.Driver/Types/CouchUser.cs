@@ -27,13 +27,13 @@ public class CouchUser : CouchDocument
     }
 
     [JsonPropertyName("password")]
-    internal string Password { get; set; }
+    internal string Password { get; init; }
 
     /// <summary>
     /// User’s name aka login. Immutable e.g. you cannot rename an existing user - you have to create new one.
     /// </summary>
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string Name { get; init; }
 
     /// <summary>
     /// List of user roles. CouchDB doesn't provide any built-in roles, so you’re free to define your own depending on your needs. 
@@ -41,11 +41,11 @@ public class CouchUser : CouchDocument
     /// Also, only administrators may assign roles to users - by default all users have no roles
     /// </summary>
     [JsonPropertyName("roles")]
-    public List<string> Roles { get; set; }
+    public List<string> Roles { get; init; }
 
     /// <summary>
     /// Document type. Constantly has the value user.
     /// </summary>
     [JsonPropertyName("type")]
-    public string Type { get; set; }
+    public string Type { get; init; }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using CouchDB.Driver.Converters;
 using CouchDB.Driver.DatabaseApiMethodOptions;
 using System.Text.Json.Serialization;
@@ -12,18 +13,12 @@ namespace CouchDB.Driver.Types;
 [Serializable]
 public abstract class CouchDocument
 {
-    protected CouchDocument()
-    {
-        AttachmentsParsed = new Dictionary<string, CouchAttachment>();
-        Attachments = new CouchAttachmentsCollection();
-    }
-
     /// <summary>
     /// The document ID.
     /// </summary>
     [JsonPropertyName("_id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public virtual string Id { get; set; }
+    public virtual string? Id { get; set; }
 
     [JsonPropertyName("id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -34,7 +29,7 @@ public abstract class CouchDocument
     /// </summary>
     [JsonPropertyName("_rev")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string Rev { get; set; }
+    public string? Rev { get; set; }
 
     [JsonPropertyName("rev")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -56,7 +51,7 @@ public abstract class CouchDocument
     /// Available if requested with <see cref="FindOptions.Conflicts"/> set to <c>True</c>
     /// </summary>
     [JsonIgnore]
-    public IReadOnlyCollection<string> Conflicts { get; private set; }
+    public IReadOnlyCollection<string> Conflicts { get; private set; } = [];
 
     [JsonPropertyName("_conflicts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -67,7 +62,7 @@ public abstract class CouchDocument
     /// Available if requested with <see cref="FindOptions.DeleteConflicts"/> set to <c>True</c>
     /// </summary>
     [JsonIgnore]
-    public IReadOnlyCollection<string> DeletedConflicts { get; private set; }
+    public IReadOnlyCollection<string> DeletedConflicts { get; private set; } = [];
 
     [JsonPropertyName("_deleted_conflicts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -89,7 +84,7 @@ public abstract class CouchDocument
     /// Available if requested with <see cref="FindOptions.OpenRevisions"/>
     /// </summary>
     [JsonIgnore]
-    public IReadOnlyCollection<RevisionInfo> RevisionsInfo { get; private set; }
+    public IReadOnlyCollection<RevisionInfo> RevisionsInfo { get; private set; } = [];
 
     [JsonPropertyName("_revs_info")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -100,23 +95,22 @@ public abstract class CouchDocument
     /// Available if requested with <see cref="FindOptions.Revisions"/> set to <c>True</c>
     /// </summary>
     [JsonIgnore]
-    public Revisions Revisions { get; private set; }
+    public Revisions Revisions { get; private set; } = null!;
 
     [JsonPropertyName("_revisions")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private Revisions RevisionsOther { set { Revisions = value; } }
 
-
     /// <summary>
     /// Attachment’s stubs. Available if document has any attachments
     /// </summary>
     [JsonIgnore]
-    public CouchAttachmentsCollection Attachments { get; private set; }
+    public CouchAttachmentsCollection Attachments { get; private set; } = new();
 
     [JsonPropertyName("_attachments")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonConverter(typeof(AttachmentsParsedConverter))]
-    private Dictionary<string, CouchAttachment> AttachmentsParsed { get; set; }
+    private Dictionary<string, CouchAttachment> AttachmentsParsed { get; init; } = new();
 
     /// <summary>
     /// Used for database splitting

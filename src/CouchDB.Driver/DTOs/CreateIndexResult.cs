@@ -7,9 +7,9 @@ namespace CouchDB.Driver.DTOs;
 internal class CreateIndexResult
 {
     [JsonPropertyName("result")]
-    public string Result { get; set; }
+    public required string Result { get; init; }
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public required string Id { get; init; }
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public required string Name { get; init; }
 }

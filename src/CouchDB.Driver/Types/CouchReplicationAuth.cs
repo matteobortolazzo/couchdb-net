@@ -7,5 +7,5 @@ namespace CouchDB.Driver.Types;
 public class CouchReplicationAuth
 {
     [JsonPropertyName("basic")]
-    public CouchReplicationBasicCredentials? BasicCredentials { get; internal set; }
+    public CouchReplicationBasicCredentials? BasicCredentials { get; internal init; }
 }

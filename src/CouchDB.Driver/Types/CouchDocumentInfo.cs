@@ -10,19 +10,20 @@ namespace CouchDB.Driver.Types;
 public class CouchDocumentInfo
 {
     [JsonPropertyName("id")]
-    public string Id { get; private set; }
+    public required string Id { get; init; }
 
     [JsonPropertyName("key")]
-    public string Key { get; private set; }
+    public required string Key { get; init; }
 
     [JsonPropertyName("value")]
-    private CouchDocumentInfoValue Value { get; set; }
+    private CouchDocumentInfoValue Value { get; set; } = null!;
 
     public string Rev => Value.Rev;
 
+    [Serializable]
     private class CouchDocumentInfoValue
     {
         [JsonPropertyName("rev")]
-        public string Rev { get; set; }
+        public required string Rev { get; init; }
     }
 }

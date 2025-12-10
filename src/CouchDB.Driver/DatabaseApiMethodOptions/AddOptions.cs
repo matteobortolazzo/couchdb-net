@@ -10,5 +10,5 @@ public class AddOptions
     /// <summary>
     /// Stores document in batch mode. Check https://docs.couchdb.org/en/stable/api/database/common.html#api-doc-batch-writes
     /// </summary>
-    public bool Batch { get; set; }
+    public bool Batch { get; init; }
 }

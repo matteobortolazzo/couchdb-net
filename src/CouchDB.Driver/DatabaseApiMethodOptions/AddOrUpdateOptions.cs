@@ -9,10 +9,10 @@ public class AddOrUpdateOptions
     /// <summary>
     /// Stores document in batch mode. Check https://docs.couchdb.org/en/stable/api/database/common.html#api-doc-batch-writes
     /// </summary>
-    public bool Batch { get; set; }
+    public bool Batch { get; init; }
 
     /// <summary>
     /// Document’s revision if updating an existing document.
     /// </summary>
-    public string? Rev { get; set; }
+    public string? Rev { get; init; }
 }

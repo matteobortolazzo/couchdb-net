@@ -29,7 +29,7 @@ public partial class CouchClient
             case AuthenticationType.Cookie:
                 var isTokenExpired =
                     !_cookieCreationDate.HasValue ||
-                    _cookieCreationDate.Value.AddMinutes(_options.CookiesDuration) < DateTime.Now;
+                    _cookieCreationDate.Value.AddMinutes(_options.CookiesDuration) < DateTimeOffset.UtcNow;
                 if (isTokenExpired)
                 {
                     await LoginAsync().ConfigureAwait(false);
@@ -68,7 +68,7 @@ public partial class CouchClient
             })
             .ConfigureAwait(false);
 
-        _cookieCreationDate = DateTime.Now;
+        _cookieCreationDate = DateTimeOffset.UtcNow;
 
         FlurlCookie? dirtyToken = response.Cookies.FirstOrDefault(c => c.Name == "AuthSession");
         if (dirtyToken == null)
