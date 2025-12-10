@@ -179,7 +179,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     {
         foreach (CouchAttachment attachment in document.Attachments)
         {
-            attachment.DocumentId = document.Id;
+            attachment.DocumentId = document.Id!;
             attachment.DocumentRev = document.Rev;
             var path = $"{_queryContext.EscapedDatabaseName}/{document.Id}/{Uri.EscapeDataString(attachment.Name)}";
             attachment.Uri = new Uri(_queryContext.Endpoint, path);
@@ -276,7 +276,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         ArgumentNullException.ThrowIfNull(document);
 
         IFlurlRequest request = NewRequest()
-            .AppendPathSegment(Uri.EscapeDataString(document.Id));
+            .AppendPathSegment(Uri.EscapeDataString(document.Id!));
 
         if (batch)
         {
@@ -382,7 +382,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                 new FileStream(attachment.FileInfo.FullName, FileMode.Open));
 
             AttachmentResult response = await NewRequest()
-                .AppendPathSegment(Uri.EscapeDataString(document.Id))
+                .AppendPathSegment(Uri.EscapeDataString(document.Id!))
                 .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
                 .WithHeader("Content-Type", attachment.ContentType)
                 .WithHeader("If-Match", document.Rev)
@@ -402,7 +402,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         foreach (CouchAttachment attachment in document.Attachments.GetDeletedAttachments())
         {
             AttachmentResult response = await NewRequest()
-                .AppendPathSegment(Uri.EscapeDataString(document.Id))
+                .AppendPathSegment(Uri.EscapeDataString(document.Id!))
                 .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
                 .WithHeader("If-Match", document.Rev)
                 .DeleteAsync(cancellationToken: cancellationToken)

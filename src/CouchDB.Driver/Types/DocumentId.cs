@@ -1,5 +1,6 @@
 ﻿namespace CouchDB.Driver.Types;
 
+// TODO: Review if needed
 public class DocumentId(string id, string rev)
 {
     public DocumentId(CouchDocument document) : this(document.Id, document.Rev)

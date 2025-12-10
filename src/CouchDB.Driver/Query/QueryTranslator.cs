@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using CouchDB.Driver.Options;
 
@@ -11,11 +12,13 @@ internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
     private readonly StringBuilder _sb;
     private bool _isSelectorSet;
     private readonly Lock _sbLock = new();
+    private readonly JsonNamingPolicy _jsonNamePolicy;
 
     internal QueryTranslator(CouchOptions options)
     {
         _sb = new StringBuilder();
         _options = options;
+        _jsonNamePolicy = _options.JsonSerializerOptions?.PropertyNamingPolicy ?? JsonNamingPolicy.CamelCase;
     }
 
     public string Translate(Expression e)

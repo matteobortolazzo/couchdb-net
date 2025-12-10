@@ -1,11 +1,8 @@
-﻿using Humanizer;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using CouchDB.Driver.Helpers;
-using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.Extensions;
 
@@ -13,27 +10,6 @@ internal static class TypeExtensions
 {
     extension(Type type)
     {
-        public string GetName(CouchOptions options)
-        {
-            var jsonObjectAttributes = type.GetCustomAttributes(typeof(DatabaseNameAttribute), true);
-            DatabaseNameAttribute? jsonObject = jsonObjectAttributes.Length > 0
-                ? jsonObjectAttributes[0] as DatabaseNameAttribute
-                : null;
-
-            if (jsonObject != null)
-            {
-                return jsonObject.Name;
-            }
-
-            var typeName = type.Name;
-            if (options.PluralizeEntities)
-            {
-                typeName = typeName.Pluralize();
-            }
-
-            return options.DocumentsCaseType.Convert(typeName);
-        }
-
         public Type GetSequenceType()
         {
             Type? sequenceType = TryGetSequenceType(type);
@@ -78,25 +54,27 @@ internal static class TypeExtensions
         public IEnumerable<Type> GetGenericTypeImplementations(Type interfaceOrBaseType)
         {
             TypeInfo? typeInfo = type.GetTypeInfo();
-            if (!typeInfo.IsGenericTypeDefinition)
+            if (typeInfo.IsGenericTypeDefinition)
             {
-                IEnumerable<Type> baseTypes = interfaceOrBaseType.GetTypeInfo().IsInterface
-                    ? typeInfo.ImplementedInterfaces
-                    : type.GetBaseTypes();
-                foreach (Type? baseType in baseTypes)
-                {
-                    if (baseType.IsGenericType
-                        && baseType.GetGenericTypeDefinition() == interfaceOrBaseType)
-                    {
-                        yield return baseType;
-                    }
-                }
+                yield break;
+            }
 
-                if (type.IsGenericType
-                    && type.GetGenericTypeDefinition() == interfaceOrBaseType)
+            IEnumerable<Type> baseTypes = interfaceOrBaseType.GetTypeInfo().IsInterface
+                ? typeInfo.ImplementedInterfaces
+                : type.GetBaseTypes();
+            foreach (Type? baseType in baseTypes)
+            {
+                if (baseType.IsGenericType
+                    && baseType.GetGenericTypeDefinition() == interfaceOrBaseType)
                 {
-                    yield return type;
+                    yield return baseType;
                 }
+            }
+
+            if (type.IsGenericType
+                && type.GetGenericTypeDefinition() == interfaceOrBaseType)
+            {
+                yield return type;
             }
         }
 

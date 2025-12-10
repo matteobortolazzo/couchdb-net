@@ -69,7 +69,7 @@ public class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext)
     {
         ArgumentNullException.ThrowIfNull(document);
         return NewRequest()
-            .AppendPathSegments(Uri.EscapeDataString(GetLocalId(document.Id)))
+            .AppendPathSegments(Uri.EscapeDataString(GetLocalId(document.Id!)))
             .PutJsonAsync(document, cancellationToken: cancellationToken)
             .SendRequestAsync();
     }
@@ -80,7 +80,7 @@ public class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext)
     {
         ArgumentNullException.ThrowIfNull(document);
         return NewRequest()
-            .AppendPathSegments(Uri.EscapeDataString(GetLocalId(document.Id)))
+            .AppendPathSegments(Uri.EscapeDataString(GetLocalId(document.Id!)))
             .DeleteAsync(cancellationToken: cancellationToken)
             .SendRequestAsync();
     }

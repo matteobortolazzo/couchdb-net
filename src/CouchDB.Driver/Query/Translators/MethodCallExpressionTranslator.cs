@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Authentication;
+using System.Text.Json;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Shared;
 
@@ -444,7 +445,7 @@ internal partial class QueryTranslator
 
         foreach (PropertyInfo property in properties)
         {
-            var field = property.GetCouchPropertyName(_options.PropertiesCase);
+            var field = property.GetCouchPropertyName(_jsonNamePolicy);
             _sb.Append($"\"{field}\",");
         }
 

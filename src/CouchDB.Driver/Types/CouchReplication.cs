@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Text.Json.Serialization;
-using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Types;
 
 [Serializable]
-[DatabaseName("_replication")]
 public class CouchReplication : CouchDocument
 {
     [JsonPropertyName("source")]

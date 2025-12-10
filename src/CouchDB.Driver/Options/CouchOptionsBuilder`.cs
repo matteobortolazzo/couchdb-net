@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace CouchDB.Driver.Options;
@@ -105,29 +104,6 @@ public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
     /// <returns>Return the current instance to chain calls.</returns>
     public new virtual CouchOptionsBuilder<TContext> UseJwtAuthentication(Func<Task<string>> tokenGenerator)
         => (CouchOptionsBuilder<TContext>)base.UseJwtAuthentication(tokenGenerator);
-
-    /// <summary>
-    /// Disables documents pluralization in requests.
-    /// </summary>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> DisableDocumentPluralization()
-        => (CouchOptionsBuilder<TContext>)base.DisableDocumentPluralization();
-
-    /// <summary>
-    /// Sets the format case for documents. Default: underscore_case.
-    /// </summary>
-    /// <param name="type">The type of case format.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> SetDocumentCase(DocumentCaseType type)
-        => (CouchOptionsBuilder<TContext>)base.SetDocumentCase(type);
-
-    /// <summary>
-    /// Sets the format case for properties. Default: camelCase.
-    /// </summary>
-    /// <param name="type">The type of case format.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> SetPropertyCase(PropertyCaseType type)
-        => (CouchOptionsBuilder<TContext>)base.SetPropertyCase(type);
         
     /// <summary>
     /// Set the field to use to identify document types. Default: <c>split_discriminator</c>.
@@ -136,14 +112,6 @@ public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
     /// <returns>Return the current instance to chain calls.</returns>
     public new virtual CouchOptionsBuilder<TContext> WithDatabaseSplitDiscriminator(string databaseSplitDiscriminator)
         => (CouchOptionsBuilder<TContext>)base.WithDatabaseSplitDiscriminator(databaseSplitDiscriminator);
-
-    /// <summary>
-    /// Sets how to handle null values during serialization.
-    /// </summary>
-    /// <param name="jsonIgnoreCondition">The type of null value handling.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> SetJsonIgnoreCondition(JsonIgnoreCondition jsonIgnoreCondition)
-        => (CouchOptionsBuilder<TContext>)base.SetJsonIgnoreCondition(jsonIgnoreCondition);
 
     /// <summary>
     /// Disables log out on client dispose. 

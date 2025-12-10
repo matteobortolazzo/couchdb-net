@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace CouchDB.Driver.Options;
@@ -166,38 +165,6 @@ public class CouchOptionsBuilder
     }
 
     /// <summary>
-    /// Disables documents pluralization in requests.
-    /// </summary>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder DisableDocumentPluralization()
-    {
-        Options.PluralizeEntities = false;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the format case for documents. Default: underscore_case.
-    /// </summary>
-    /// <param name="type">The type of case format.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder SetDocumentCase(DocumentCaseType type)
-    {
-        Options.DocumentsCaseType = type;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the format case for properties. Default: camelCase.
-    /// </summary>
-    /// <param name="type">The type of case format.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder SetPropertyCase(PropertyCaseType type)
-    {
-        Options.PropertiesCase = type;
-        return this;
-    }
-
-    /// <summary>
     /// Set the field to use to identify document types. Default: <c>split_discriminator</c>.
     /// </summary>
     /// <param name="databaseSplitDiscriminator">The document field to use as discriminator.</param>
@@ -205,17 +172,6 @@ public class CouchOptionsBuilder
     public virtual CouchOptionsBuilder WithDatabaseSplitDiscriminator(string databaseSplitDiscriminator)
     {
         Options.DatabaseSplitDiscriminator = databaseSplitDiscriminator;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets how to handle null values during serialization.
-    /// </summary>
-    /// <param name="jsonIgnoreCondition">The type of ignore handling.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder SetJsonIgnoreCondition(JsonIgnoreCondition jsonIgnoreCondition)
-    {
-        Options.JsonIgnoreCondition = jsonIgnoreCondition;
         return this;
     }
 

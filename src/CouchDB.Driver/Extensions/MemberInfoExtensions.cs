@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
-using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.Extensions;
 
 internal static class MemberInfoExtensions
 {
-    public static string GetCouchPropertyName(this MemberInfo memberInfo, PropertyCaseType propertyCaseType)
+    public static string GetCouchPropertyName(this MemberInfo memberInfo, JsonNamingPolicy jsonNamingPolicy)
     {
         var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyNameAttribute), true);
         JsonPropertyNameAttribute? jsonProperty = jsonPropertyAttributes.Length > 0
@@ -18,8 +18,8 @@ internal static class MemberInfoExtensions
             : null;
 
         return jsonProperty != null
-            ? jsonProperty.Name!
-            : propertyCaseType.Convert(memberInfo.Name);
+            ? jsonProperty.Name
+            : jsonNamingPolicy.ConvertName(memberInfo.Name);
     }
 
     extension(List<MethodInfo> queryableMethods)

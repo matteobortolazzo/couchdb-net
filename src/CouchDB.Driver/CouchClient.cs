@@ -26,7 +26,7 @@ public partial class CouchClient : ICouchClient
 
     private readonly IFlurlClient _flurlClient;
     private readonly CouchOptions _options;
-    private readonly string[] _systemDatabases = { "_users", "_replicator", "_global_changes" };
+    private readonly string[] _systemDatabases = ["_users", "_replicator", "_global_changes"];
     public Uri Endpoint { get; }
 
     /// <summary>
@@ -206,66 +206,33 @@ public partial class CouchClient : ICouchClient
 
     #endregion
 
-    #region CRUD reflection
-
-    /// <inheritdoc />
-    public ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument
-    {
-        return GetDatabase<TSource>(GetClassName<TSource>());
-    }
-
-    /// <inheritdoc />
-    public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
-        bool? partitioned = null, string? discriminator = null,
-        CancellationToken cancellationToken = default) where TSource : CouchDocument
-    {
-        return CreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, partitioned, discriminator,
-            cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
-        bool? partitioned = null, string? discriminator = null,
-        CancellationToken cancellationToken = default) where TSource : CouchDocument
-    {
-        return GetOrCreateDatabaseAsync<TSource>(GetClassName<TSource>(), shards, replicas, partitioned, discriminator,
-            cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default)
-        where TSource : CouchDocument
-    {
-        return DeleteDatabaseAsync(GetClassName<TSource>(), cancellationToken);
-    }
-
-    #endregion
-
     #region Users
+
+    private const string UsersDatabaseName = "_users";
 
     /// <inheritdoc />
     public ICouchDatabase<CouchUser> GetUsersDatabase()
     {
-        return GetDatabase<CouchUser>();
+        return GetDatabase<CouchUser>(UsersDatabaseName);
     }
 
     /// <inheritdoc />
     public ICouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser
     {
-        return GetDatabase<TUser>(GetClassName<TUser>());
+        return GetDatabase<TUser>(UsersDatabaseName);
     }
 
     /// <inheritdoc />
     public Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
     {
-        return GetOrCreateDatabaseAsync<CouchUser>(null, null, null, null, cancellationToken);
+        return GetOrCreateDatabaseAsync<CouchUser>(UsersDatabaseName, null, null, null, null, cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(
         CancellationToken cancellationToken = default) where TUser : CouchUser
     {
-        return GetOrCreateDatabaseAsync<TUser>(null, null, null, null, cancellationToken);
+        return GetOrCreateDatabaseAsync<TUser>(UsersDatabaseName, null, null, null, null, cancellationToken);
     }
 
     #endregion
@@ -467,18 +434,6 @@ public partial class CouchClient : ICouchClient
     }
 
     #endregion
-
-    private string GetClassName<TSource>()
-    {
-        Type type = typeof(TSource);
-        return GetClassName(type);
-    }
-
-    public string GetClassName(Type type)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-        return type.GetName(_options);
-    }
 
     [GeneratedRegex(@"^[a-z][a-z0-9_$()+/-]*$")]
     private static partial Regex DatabaseNamePattern();

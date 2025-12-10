@@ -30,7 +30,7 @@ internal class AllDocsRow<T>
     public required AllDocsValue Value { get; init; }
 
     [JsonPropertyName("doc")]
-    public required T Doc { get; init; }
+    public T? Doc { get; init; }
 }
 
 [Serializable]

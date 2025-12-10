@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.Json;
 using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.Extensions;
@@ -10,7 +11,7 @@ internal static class ExpressionExtensions
 {
     public static string GetPropertyName(this MemberExpression m, CouchOptions options)
     {
-        PropertyCaseType caseType = options.PropertiesCase;
+        JsonNamingPolicy caseType = options.JsonSerializerOptions?.PropertyNamingPolicy ?? JsonNamingPolicy.CamelCase;
 
         var members = new List<string> { m.Member.GetCouchPropertyName(caseType) };
 
