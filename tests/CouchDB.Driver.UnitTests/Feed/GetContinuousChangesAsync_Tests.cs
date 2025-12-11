@@ -239,6 +239,7 @@ public class GetContinuousChangesAsync_Tests
             CreatedAt = DateTime.Now,
             CreatedBy = "",
             RoleIds = [],
+            Document = new Rebel(),
             Changes =
             [
                 new ChangesFeedResponseResultChange

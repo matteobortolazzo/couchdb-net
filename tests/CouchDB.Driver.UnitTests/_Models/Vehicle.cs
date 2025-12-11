@@ -1,7 +1,6 @@
-﻿namespace CouchDB.UnitTests.Models
+﻿namespace CouchDB.UnitTests.Models;
+
+public class Vehicle
 {
-    public class Vehicle
-    {
-        public bool CanFly { get; set; }
-    }
+    public bool CanFly { get; set; }
 }

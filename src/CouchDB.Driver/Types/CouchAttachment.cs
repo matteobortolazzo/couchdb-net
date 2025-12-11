@@ -11,22 +11,22 @@ namespace CouchDB.Driver.Types;
 public sealed class CouchAttachment
 {
     [JsonIgnore]
-    internal string DocumentId { get; set; }
+    internal string DocumentId { get; set; } = null!;
 
     [JsonIgnore]
-    internal string? DocumentRev { get; set; }
+    internal string DocumentRev { get; set; } = null!;
 
     [JsonIgnore]
     internal FileInfo? FileInfo { get; set; }
 
     [JsonIgnore]
-    internal bool Deleted { get; init; }
+    internal bool Deleted { get; set; }
 
     [JsonIgnore]
-    public string Name { get; internal set; }
+    public string Name { get; internal set; } = null!;
 
     [JsonIgnore]
-    public Uri Uri { get; internal set; }
+    public Uri Uri { get; internal set; } = null!;
 
     /// <summary>
     ///     Gets whether the attachment object contains stub info and no content. 
@@ -38,14 +38,14 @@ public sealed class CouchAttachment
     ///     Gets the attachment MIME type.
     /// </summary>
     [JsonPropertyName("content_type")]
-    public string ContentType { get; init; }
+    public string? ContentType { get; set; }
 
     /// <summary>
     ///     Gets the content hash digest. It starts with prefix which announce hash type (md5-) and continues with
     ///     Base64-encoded hash digest.
     /// </summary>
     [JsonPropertyName("digest")]
-    public string Digest { get; private init; }
+    public string? Digest { get; private init; }
 
     /// <summary>
     ///     Gets the real attachment size in bytes. Not available if attachment content requested.
@@ -92,5 +92,5 @@ public sealed class CouchAttachment
     ///     </list>
     /// </remarks>
     [JsonPropertyName("data")]
-    public string Data { get; private init; }
+    public string? Data { get; private init; }
 }

@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Options;
+using CouchDB.Driver.UnitTests._Models;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests;

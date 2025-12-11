@@ -1,6 +1,5 @@
-﻿namespace CouchDB.UnitTests.Models
+﻿namespace CouchDB.UnitTests.Models;
+
+public class NewRebel : Rebel
 {
-    public class NewRebel : Rebel
-    {
-    }
 }

@@ -1,7 +1,6 @@
-﻿namespace CouchDB.UnitTests.Models
+﻿namespace CouchDB.UnitTests.Models;
+
+public enum Species
 {
-    public enum Species
-    {
-        Human, Droid
-    }
+    Human, Droid
 }

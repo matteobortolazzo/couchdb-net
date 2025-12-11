@@ -87,19 +87,12 @@ public partial class CouchClient : ICouchClient
     private IFlurlClient GetConfiguredClient() =>
         new FlurlClient(Endpoint.AbsoluteUri).Configure(s =>
         {
-            s.JsonSerializer = new NewtonsoftJsonSerializer(new JsonSerializerSettings
-            {
-                ContractResolver =
-                    new CouchContractResolver(_options.PropertiesCase, _options.DatabaseSplitDiscriminator),
-                NullValueHandling = _options.NullValueHandling ?? NullValueHandling.Include
-            });
+            s.TypeInfoResolver = new CouchJsonTypeInfoResolver(_options.DatabaseSplitDiscriminator)
             s.BeforeCallAsync = OnBeforeCallAsync;
             if (_options.ServerCertificateCustomValidationCallback != null)
             {
                 s.HttpClientFactory = new CertClientFactory(_options.ServerCertificateCustomValidationCallback);
             }
-
-            _options.ClientFlurlHttpSettingsAction?.Invoke(s);
         });
 
     #region Operations
@@ -202,6 +195,41 @@ public partial class CouchClient : ICouchClient
             .AllowHttpStatus((int)HttpStatusCode.PreconditionFailed)
             .PutAsync(cancellationToken: cancellationToken)
             .SendRequestAsync();
+    }
+
+    #endregion
+
+    #region CRUD reflection
+
+    /// <inheritdoc />
+    public ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument
+    {
+        return GetDatabase<TSource>(TypeExtensions.GetDatabaseName<TSource>());
+    }
+
+    /// <inheritdoc />
+    public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+        bool? partitioned = null, string? discriminator = null,
+        CancellationToken cancellationToken = default) where TSource : CouchDocument
+    {
+        return CreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas, partitioned, discriminator,
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+        bool? partitioned = null, string? discriminator = null,
+        CancellationToken cancellationToken = default) where TSource : CouchDocument
+    {
+        return GetOrCreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas, partitioned, discriminator,
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default)
+        where TSource : CouchDocument
+    {
+        return DeleteDatabaseAsync(TypeExtensions.GetDatabaseName<TSource>(), cancellationToken);
     }
 
     #endregion

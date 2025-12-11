@@ -177,9 +177,12 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
     private void InitAttachments(TSource document)
     {
+        ArgumentNullException.ThrowIfNull(document.Id);
+        ArgumentNullException.ThrowIfNull(document.Rev);
+        
         foreach (CouchAttachment attachment in document.Attachments)
         {
-            attachment.DocumentId = document.Id!;
+            attachment.DocumentId = document.Id;
             attachment.DocumentRev = document.Rev;
             var path = $"{_queryContext.EscapedDatabaseName}/{document.Id}/{Uri.EscapeDataString(attachment.Name)}";
             attachment.Uri = new Uri(_queryContext.Endpoint, path);

@@ -63,6 +63,52 @@ public interface ICouchClient : IAsyncDisposable
     Task DeleteDatabaseAsync(string database, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
+    /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
+    /// </summary>
+    /// <typeparam name="TSource">The type of database documents.</typeparam>
+    /// <returns>The instance of the CouchDB database of the given type.</returns>
+    ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument;
+
+    /// <summary>
+    /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
+    /// If a database exists with the given name, it throws an exception.
+    /// </summary>
+    /// <typeparam name="TSource">The type of database documents.</typeparam>
+    /// <param name="shards">The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
+    /// <param name="replicas">The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
+    /// <param name="partitioned">Whether to create a partitioned database. Default is <c>False</c>.</param>
+    /// <param name="discriminator">Filters documents by the given discriminator.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
+    Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+        bool? partitioned = null, string? discriminator = null, CancellationToken cancellationToken = default)
+        where TSource : CouchDocument;
+
+    /// <summary>
+    /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
+    /// If no database exists with the given name, it creates it.
+    /// </summary>
+    /// <typeparam name="TSource">The type of database documents.</typeparam>
+    /// <param name="shards">Used when creating. The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
+    /// <param name="replicas">Used when creating. The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
+    /// <param name="partitioned">Whether to create a partitioned database. Default is <c>False</c>.</param>
+    /// <param name="discriminator">Filters documents by the given discriminator.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
+    Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
+        bool? partitioned = null, string? discriminator = null, CancellationToken cancellationToken = default)
+        where TSource : CouchDocument;
+
+    /// <summary>
+    /// Deletes the database with the name type <see cref="TSource"/>.
+    /// </summary>
+    /// <typeparam name="TSource">The type of database documents.</typeparam>
+    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource : CouchDocument;
+
+    /// <summary>
     /// Returns an instance of the users database.
     /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
     /// </summary>

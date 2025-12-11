@@ -1,13 +1,6 @@
-﻿using CouchDB.UnitTests.Models;
-using CouchDB.Driver.Views;
+﻿namespace CouchDB.Driver.UnitTests._Models;
 
-#nullable disable
-
-namespace CouchDB.Driver.UnitTests._Models
+public class RebelView
 {
-    public class RebelView
-    {
-        public int NumberOfBattles { get; set; }
-    }
+    public int NumberOfBattles { get; set; }
 }
-#nullable restore

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Types;
@@ -97,7 +98,7 @@ public abstract class CouchContext : IAsyncDisposable
         if (databaseBuilder.DocumentBuilders.TryGetValue(documentType, out CouchDocumentBuilder? builder))
         {
             var documentBuilder = (CouchDocumentBuilder<TSource>)builder;
-            var databaseName = documentBuilder.Database ?? Client.GetClassName(documentType);
+            var databaseName = documentBuilder.Database ?? documentType.GetDatabaseName();
             database = options.CheckDatabaseExists
                 ? await Client.GetOrCreateDatabaseAsync<TSource>(databaseName, documentBuilder.Shards,
                         documentBuilder.Replicas, documentBuilder.Partitioned, documentBuilder.Discriminator)
