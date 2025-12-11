@@ -10,15 +10,18 @@ namespace CouchDB.Driver;
 
 public partial class CouchClient
 {
+    // TODO: Use OnBeforeCallAsync from FlurlClientSettings when Flurl.Http 4.0 is released
     protected virtual async Task OnBeforeCallAsync(FlurlCall httpCall)
     {
         ArgumentNullException.ThrowIfNull(httpCall);
 
         // If session requests no authorization needed
-        if (httpCall.Request?.Url?.ToString()?.Contains("_session", StringComparison.InvariantCultureIgnoreCase) == true)
+        if (httpCall.Request?.Url?.ToString()?.Contains("_session", StringComparison.InvariantCultureIgnoreCase) ==
+            true)
         {
             return;
         }
+
         switch (_options.AuthenticationType)
         {
             case AuthenticationType.None:
@@ -34,6 +37,7 @@ public partial class CouchClient
                 {
                     await LoginAsync().ConfigureAwait(false);
                 }
+
                 httpCall.Request = httpCall.Request.WithCookie("AuthSession", _cookieToken);
                 break;
             case AuthenticationType.Proxy:
@@ -43,29 +47,29 @@ public partial class CouchClient
                 {
                     httpCall.Request = httpCall.Request.WithHeader("X-Auth-CouchDB-Token", _options.Password);
                 }
+
                 break;
             case AuthenticationType.Jwt:
                 if (_options.JwtTokenGenerator == null)
                 {
                     throw new InvalidOperationException("JWT generation cannot be null.");
                 }
+
                 var jwt = await _options.JwtTokenGenerator().ConfigureAwait(false);
                 httpCall.Request = httpCall.Request.WithHeader("Authorization", jwt);
                 break;
             default:
-                throw new NotSupportedException($"Authentication of type {_options.AuthenticationType} is not supported.");
+                throw new NotSupportedException(
+                    $"Authentication of type {_options.AuthenticationType} is not supported.");
         }
     }
 
     private async Task LoginAsync()
     {
-        IFlurlResponse response = await _flurlClient.Request(Endpoint)
+        IFlurlResponse response = await _flurlClient()
+            .Request(Endpoint)
             .AppendPathSegment("_session")
-            .PostJsonAsync(new
-            {
-                name = _options.Username,
-                password = _options.Password
-            })
+            .PostJsonAsync(new { name = _options.Username, password = _options.Password })
             .ConfigureAwait(false);
 
         _cookieCreationDate = DateTimeOffset.UtcNow;
@@ -81,7 +85,8 @@ public partial class CouchClient
 
     private async Task LogoutAsync()
     {
-        OperationResult result = await _flurlClient.Request(Endpoint)
+        OperationResult result = await _flurlClient()
+            .Request(Endpoint)
             .AppendPathSegment("_session")
             .DeleteAsync()
             .ReceiveJson<OperationResult>()

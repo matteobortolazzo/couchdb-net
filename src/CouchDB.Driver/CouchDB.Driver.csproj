@@ -27,7 +27,6 @@
 
     <ItemGroup>
         <PackageReference Include="Flurl.Http" Version="4.*"/>
-        <PackageReference Include="Humanizer.Core" Version="2.*"/>
     </ItemGroup>
 
     <ItemGroup>

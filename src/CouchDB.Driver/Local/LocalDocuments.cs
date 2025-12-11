@@ -11,7 +11,7 @@ using Flurl.Http;
 namespace CouchDB.Driver.Local;
 
 /// <inheritdoc />
-public class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext) : ILocalDocuments
+public class LocalDocuments(Func<IFlurlClient> flurlClient, QueryContext queryContext) : ILocalDocuments
 {
     /// <inheritdoc />
     public async Task<IList<CouchDocumentInfo>> GetAsync(LocalDocumentsOptions? options = null,
@@ -92,6 +92,8 @@ public class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext)
 
     private IFlurlRequest NewRequest()
     {
-        return flurlClient.Request(queryContext.Endpoint).AppendPathSegment(queryContext.EscapedDatabaseName);
+        return flurlClient()
+            .Request(queryContext.Endpoint)
+            .AppendPathSegment(queryContext.EscapedDatabaseName);
     }
 }

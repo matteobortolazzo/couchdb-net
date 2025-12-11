@@ -11,7 +11,7 @@ using Flurl.Http;
 
 namespace CouchDB.Driver.Query;
 
-internal class QuerySender(IFlurlClient client, QueryContext queryContext) : IQuerySender
+internal class QuerySender(Func<IFlurlClient> client, QueryContext queryContext) : IQuerySender
 {
     private static readonly MethodInfo GenericToListMethod
         = typeof(QuerySender).GetRuntimeMethods()
@@ -52,7 +52,7 @@ internal class QuerySender(IFlurlClient client, QueryContext queryContext) : IQu
 
     private async Task<FindResult<TItem>> SendAsync<TItem>(string body, CancellationToken cancellationToken)
     {
-        FindResult<TItem>? findResult = await client
+        FindResult<TItem>? findResult = await client()
             .Request(queryContext.Endpoint)
             .AppendPathSegments(queryContext.DatabaseName, "_find")
             .WithHeader("Content-Type", "application/json")

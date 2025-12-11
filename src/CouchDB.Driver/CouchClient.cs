@@ -9,9 +9,11 @@ using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using System.Net;
+using System.Text.Json;
 using System.Threading;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
+using Flurl.Http.Configuration;
 
 namespace CouchDB.Driver;
 
@@ -20,11 +22,13 @@ namespace CouchDB.Driver;
 /// </summary>
 public partial class CouchClient : ICouchClient
 {
+    private const string DefaultHttpClientName = "Default";
     public const string DefaultDatabaseSplitDiscriminator = "split_discriminator";
     private DateTimeOffset? _cookieCreationDate;
     private string? _cookieToken;
 
-    private readonly IFlurlClient _flurlClient;
+    private readonly Func<IFlurlClient> _flurlClient;
+    private readonly IFlurlClientCache _flurlClientCache;
     private readonly CouchOptions _options;
     private readonly string[] _systemDatabases = ["_users", "_replicator", "_global_changes"];
     public Uri Endpoint { get; }
@@ -45,12 +49,8 @@ public partial class CouchClient : ICouchClient
     /// <param name="endpoint">URI to the CouchDB endpoint.</param>
     /// <param name="couchSettingsFunc">A function to configure options.</param>
     public CouchClient(Uri endpoint, Action<CouchOptionsBuilder>? couchSettingsFunc = null)
+        : this(BuildOptions(couchSettingsFunc, endpoint))
     {
-        var optionsBuilder = new CouchOptionsBuilder();
-        couchSettingsFunc?.Invoke(optionsBuilder);
-        _options = optionsBuilder.Options;
-        Endpoint = endpoint;
-        _flurlClient = GetConfiguredClient();
     }
 
     /// <summary>
@@ -58,18 +58,8 @@ public partial class CouchClient : ICouchClient
     /// </summary>
     /// <param name="couchSettingsFunc">A function to configure options.</param>
     public CouchClient(Action<CouchOptionsBuilder>? couchSettingsFunc = null)
+        : this(BuildOptions(couchSettingsFunc))
     {
-        var optionsBuilder = new CouchOptionsBuilder();
-        couchSettingsFunc?.Invoke(optionsBuilder);
-
-        if (optionsBuilder.Options.Endpoint == null)
-        {
-            throw new InvalidOperationException("Database endpoint must be set.");
-        }
-
-        _options = optionsBuilder.Options;
-        Endpoint = _options.Endpoint;
-        _flurlClient = GetConfiguredClient();
     }
 
     internal CouchClient(CouchOptions options)
@@ -81,19 +71,47 @@ public partial class CouchClient : ICouchClient
 
         _options = options;
         Endpoint = _options.Endpoint;
-        _flurlClient = GetConfiguredClient();
+        _flurlClientCache = GetConfiguredClientCache();
+        _flurlClient = () => _flurlClientCache.Get(DefaultHttpClientName)
+            .WithSettings(s =>
+            {
+                _options.JsonSerializerOptions ??= new JsonSerializerOptions();
+                _options.JsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
+                
+                // TODO: Check type resolver
+                _options.JsonSerializerOptions.TypeInfoResolver =
+                    new CouchJsonTypeInfoResolver(_options.DatabaseSplitDiscriminator);
+                s.JsonSerializer = new DefaultJsonSerializer(_options.JsonSerializerOptions);
+                
+                // TODO: Check authorization
+                // s.HttpClientFactory = new CertClientFactory(_options.ServerCertificateCustomValidationCallback);
+            });
     }
 
-    private IFlurlClient GetConfiguredClient() =>
-        new FlurlClient(Endpoint.AbsoluteUri).Configure(s =>
+    private static CouchOptions BuildOptions(Action<CouchOptionsBuilder>? couchSettingsFunc, Uri? endpoint = null)
+    {
+        var optionsBuilder = new CouchOptionsBuilder();
+        couchSettingsFunc?.Invoke(optionsBuilder);
+
+        if (endpoint != null)
         {
-            s.TypeInfoResolver = new CouchJsonTypeInfoResolver(_options.DatabaseSplitDiscriminator)
-            s.BeforeCallAsync = OnBeforeCallAsync;
-            if (_options.ServerCertificateCustomValidationCallback != null)
-            {
-                s.HttpClientFactory = new CertClientFactory(_options.ServerCertificateCustomValidationCallback);
-            }
-        });
+            optionsBuilder.Options.Endpoint = endpoint;
+        }
+
+        if (optionsBuilder.Options.Endpoint == null)
+        {
+            throw new InvalidOperationException("Database endpoint must be set.");
+        }
+
+        return optionsBuilder.Options;
+    }
+
+    private FlurlClientCache GetConfiguredClientCache()
+    {
+        var cache = new FlurlClientCache();
+        cache.Add(DefaultHttpClientName, _options.Endpoint!.AbsolutePath);
+        return cache;
+    }
 
     #region Operations
 
@@ -212,7 +230,8 @@ public partial class CouchClient : ICouchClient
         bool? partitioned = null, string? discriminator = null,
         CancellationToken cancellationToken = default) where TSource : CouchDocument
     {
-        return CreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas, partitioned, discriminator,
+        return CreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas, partitioned,
+            discriminator,
             cancellationToken);
     }
 
@@ -221,7 +240,8 @@ public partial class CouchClient : ICouchClient
         bool? partitioned = null, string? discriminator = null,
         CancellationToken cancellationToken = default) where TSource : CouchDocument
     {
-        return GetOrCreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas, partitioned, discriminator,
+        return GetOrCreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas,
+            partitioned, discriminator,
             cancellationToken);
     }
 
@@ -418,7 +438,7 @@ public partial class CouchClient : ICouchClient
 
     private IFlurlRequest NewRequest()
     {
-        return _flurlClient.Request(Endpoint);
+        return _flurlClient().Request(Endpoint);
     }
 
     private QueryContext NewQueryContext(string database)
@@ -457,7 +477,7 @@ public partial class CouchClient : ICouchClient
                 await LogoutAsync().ConfigureAwait(false);
             }
 
-            _flurlClient.Dispose();
+            _flurlClientCache.Clear();
         }
     }
 
