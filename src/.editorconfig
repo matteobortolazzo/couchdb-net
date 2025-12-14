@@ -83,9 +83,6 @@ csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 # Null-checking preferences
 csharp_style_conditional_delegate_call = true:suggestion
 
-# Modifier preferences
-csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async
-
 # Code-block preferences
 csharp_prefer_braces = true:suggestion
 
@@ -104,7 +101,6 @@ csharp_new_line_before_catch = true
 csharp_new_line_before_else = true
 csharp_new_line_before_finally = true
 csharp_new_line_before_members_in_anonymous_types = true
-csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_open_brace = all
 csharp_new_line_between_query_expression_clauses = true
 
@@ -143,12 +139,6 @@ csharp_space_between_square_brackets = false
 # Wrapping preferences
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
-
-
-# CA1303: Do not pass literals as localized parameters
-dotnet_diagnostic.CA1303.severity = silent
-
-# CA1308: Normalize strings to uppercase
-dotnet_diagnostic.CA1308.severity = suggestion
+csharp_new_line_before_members_in_object_initializers = true
 
 place_attribute_on_same_line = false

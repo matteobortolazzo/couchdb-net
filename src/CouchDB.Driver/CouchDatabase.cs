@@ -39,7 +39,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 {
     private readonly Regex _feedChangeLineStartPattern;
     private readonly IAsyncQueryProvider _queryProvider;
-    private readonly Func<IFlurlClient> _flurlClient;
+    private readonly IFlurlClient _flurlClient;
     private readonly CouchOptions _options;
     private readonly QueryContext _queryContext;
     private readonly string? _discriminator;
@@ -53,7 +53,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     /// <inheritdoc />
     public ILocalDocuments LocalDocuments { get; }
 
-    internal CouchDatabase(Func<IFlurlClient> flurlClient, CouchOptions options, QueryContext queryContext,
+    internal CouchDatabase(IFlurlClient flurlClient, CouchOptions options, QueryContext queryContext,
         string? discriminator)
     {
         _feedChangeLineStartPattern = FeedChangeStartLinePattern();
@@ -179,7 +179,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     {
         ArgumentNullException.ThrowIfNull(document.Id);
         ArgumentNullException.ThrowIfNull(document.Rev);
-        
+
         foreach (CouchAttachment attachment in document.Attachments)
         {
             attachment.DocumentId = document.Id;
@@ -878,7 +878,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     /// <inheritdoc />
     public IFlurlRequest NewRequest()
     {
-        return _flurlClient()
+        return _flurlClient
             .Request(_queryContext.Endpoint)
             .AppendPathSegment(_queryContext.EscapedDatabaseName);
     }

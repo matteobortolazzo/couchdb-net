@@ -9,11 +9,15 @@ using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using System.Net;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
+using CouchDB.Driver.DelegatingHandlers;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using Flurl.Http.Configuration;
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
 
 namespace CouchDB.Driver;
 
@@ -22,13 +26,10 @@ namespace CouchDB.Driver;
 /// </summary>
 public partial class CouchClient : ICouchClient
 {
-    private const string DefaultHttpClientName = "Default";
     public const string DefaultDatabaseSplitDiscriminator = "split_discriminator";
-    private DateTimeOffset? _cookieCreationDate;
-    private string? _cookieToken;
 
-    private readonly Func<IFlurlClient> _flurlClient;
-    private readonly IFlurlClientCache _flurlClientCache;
+    private readonly IFlurlClient _flurlClient;
+    private readonly AuthenticationDelegatingHandler _authenticationHandler;
     private readonly CouchOptions _options;
     private readonly string[] _systemDatabases = ["_users", "_replicator", "_global_changes"];
     public Uri Endpoint { get; }
@@ -71,20 +72,31 @@ public partial class CouchClient : ICouchClient
 
         _options = options;
         Endpoint = _options.Endpoint;
-        _flurlClientCache = GetConfiguredClientCache();
-        _flurlClient = () => _flurlClientCache.Get(DefaultHttpClientName)
+
+        ResiliencePipeline<HttpResponseMessage> retryPipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
+            .AddRetry(new HttpRetryStrategyOptions { BackoffType = DelayBackoffType.Exponential, MaxRetryAttempts = 3 })
+            .Build();
+
+        var socketHandler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(15) };
+        var resilienceHandler = new ResilienceHandler(retryPipeline) { InnerHandler = socketHandler };
+        _authenticationHandler = new AuthenticationDelegatingHandler(_options.Authentication)
+        {
+            InnerHandler = resilienceHandler
+        };
+
+        var httpClient = new HttpClient(_authenticationHandler);
+        httpClient.BaseAddress = options.Endpoint;
+
+        _flurlClient = new FlurlClient(httpClient)
             .WithSettings(s =>
             {
                 _options.JsonSerializerOptions ??= new JsonSerializerOptions();
                 _options.JsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
-                
+
                 // TODO: Check type resolver
                 _options.JsonSerializerOptions.TypeInfoResolver =
                     new CouchJsonTypeInfoResolver(_options.DatabaseSplitDiscriminator);
                 s.JsonSerializer = new DefaultJsonSerializer(_options.JsonSerializerOptions);
-                
-                // TODO: Check authorization
-                // s.HttpClientFactory = new CertClientFactory(_options.ServerCertificateCustomValidationCallback);
             });
     }
 
@@ -98,19 +110,9 @@ public partial class CouchClient : ICouchClient
             optionsBuilder.Options.Endpoint = endpoint;
         }
 
-        if (optionsBuilder.Options.Endpoint == null)
-        {
-            throw new InvalidOperationException("Database endpoint must be set.");
-        }
-
-        return optionsBuilder.Options;
-    }
-
-    private FlurlClientCache GetConfiguredClientCache()
-    {
-        var cache = new FlurlClientCache();
-        cache.Add(DefaultHttpClientName, _options.Endpoint!.AbsolutePath);
-        return cache;
+        return optionsBuilder.Options.Endpoint == null
+            ? throw new InvalidOperationException("Database endpoint must be set.")
+            : optionsBuilder.Options;
     }
 
     #region Operations
@@ -438,7 +440,7 @@ public partial class CouchClient : ICouchClient
 
     private IFlurlRequest NewRequest()
     {
-        return _flurlClient().Request(Endpoint);
+        return _flurlClient.Request(Endpoint);
     }
 
     private QueryContext NewQueryContext(string database)
@@ -472,13 +474,30 @@ public partial class CouchClient : ICouchClient
     {
         if (disposing)
         {
-            if (_options is { AuthenticationType: AuthenticationType.Cookie, LogOutOnDispose: true })
+            if (_options is { Authentication: CookieCouchAuthentication, LogOutOnDispose: true })
             {
                 await LogoutAsync().ConfigureAwait(false);
             }
 
-            _flurlClientCache.Clear();
+            _flurlClient.Dispose();
         }
+    }
+
+    private async Task LogoutAsync(CancellationToken cancellationToken = default)
+    {
+        OperationResult? result = await _flurlClient
+            .Request(Endpoint)
+            .AppendPathSegment("_session")
+            .DeleteAsync(cancellationToken: cancellationToken)
+            .ReceiveJson<OperationResult>()
+            .ConfigureAwait(false);
+
+        if (!result.Ok)
+        {
+            throw new CouchDeleteException();
+        }
+
+        _authenticationHandler.ClearCookie();
     }
 
     #endregion

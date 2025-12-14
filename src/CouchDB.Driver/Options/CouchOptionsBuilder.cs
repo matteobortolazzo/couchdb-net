@@ -86,17 +86,10 @@ public class CouchOptionsBuilder
         ArgumentNullException.ThrowIfNull(username);
         ArgumentNullException.ThrowIfNull(password);
 
-        Options.AuthenticationType = AuthenticationType.Basic;
-        Options.Username = username;
-        Options.Password = password;
+        Options.Authentication = new BasicCouchAuthentication(username, password);
         return this;
     }
 
-    public virtual CouchOptionsBuilder ThrowOnQueryWarning()
-    {
-        Options.ThrowOnQueryWarning = true;
-        return this;
-    }
 
     /// <summary>
     /// Enables cookie authentication. 
@@ -116,10 +109,7 @@ public class CouchOptionsBuilder
             throw new ArgumentException("Cookie duration must be greater than zero.", nameof(cookieDuration));
         }
 
-        Options.AuthenticationType = AuthenticationType.Cookie;
-        Options.Username = username;
-        Options.Password = password;
-        Options.CookiesDuration = cookieDuration;
+        Options.Authentication = new CookieCouchAuthentication(username, password, cookieDuration);
         return this;
     }
 
@@ -135,10 +125,7 @@ public class CouchOptionsBuilder
         ArgumentNullException.ThrowIfNull(username);
         ArgumentNullException.ThrowIfNull(roles);
 
-        Options.AuthenticationType = AuthenticationType.Proxy;
-        Options.Username = username;
-        Options.Roles = roles;
-        Options.Password = token;
+        Options.Authentication = new ProxyCouchAuthentication(username,  roles, token);
         return this;
     }
 
@@ -159,8 +146,7 @@ public class CouchOptionsBuilder
     /// <returns>Return the current instance to chain calls.</returns>
     public virtual CouchOptionsBuilder UseJwtAuthentication(Func<Task<string>> tokenGenerator)
     {
-        Options.AuthenticationType = AuthenticationType.Jwt;
-        Options.JwtTokenGenerator = tokenGenerator;
+        Options.Authentication = new JwtCouchAuthentication(tokenGenerator);
         return this;
     }
 
@@ -184,27 +170,14 @@ public class CouchOptionsBuilder
         Options.LogOutOnDispose = false;
         return this;
     }
-
+    
     /// <summary>
-    /// Removes any SSL certificate validation.
+    /// Throw an exception if a query warning is returned from the server.
     /// </summary>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder IgnoreCertificateValidation()
+    /// <returns></returns>
+    public virtual CouchOptionsBuilder ThrowOnQueryWarning()
     {
-        Options.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets a custom SSL validation rule.
-    /// </summary>
-    /// <param name="serverCertificateCustomValidationCallback">SSL validation function</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder ConfigureCertificateValidation(Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>
-        serverCertificateCustomValidationCallback)
-    {
-        ArgumentNullException.ThrowIfNull(serverCertificateCustomValidationCallback);
-        Options.ServerCertificateCustomValidationCallback = serverCertificateCustomValidationCallback;
+        Options.ThrowOnQueryWarning = true;
         return this;
     }
 }

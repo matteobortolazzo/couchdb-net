@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace CouchDB.Driver.Options;
@@ -76,7 +73,8 @@ public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
     /// <param name="password">Server password.</param>
     /// <param name="cookieDuration">Cookie duration in minutes.</param>
     /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> UseCookieAuthentication(string username, string password, int cookieDuration = 10)
+    public new virtual CouchOptionsBuilder<TContext> UseCookieAuthentication(string username, string password,
+        int cookieDuration = 10)
         => (CouchOptionsBuilder<TContext>)base.UseCookieAuthentication(username, password, cookieDuration);
 
     /// <summary>
@@ -86,7 +84,8 @@ public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
     /// <param name="roles">Server roles.</param>
     /// <param name="token">Computed authentication token.</param>
     /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> UseProxyAuthentication(string username, IReadOnlyCollection<string> roles, string? token = null)
+    public new virtual CouchOptionsBuilder<TContext> UseProxyAuthentication(string username,
+        IReadOnlyCollection<string> roles, string? token = null)
         => (CouchOptionsBuilder<TContext>)base.UseProxyAuthentication(username, roles, token);
 
     /// <summary>
@@ -104,7 +103,7 @@ public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
     /// <returns>Return the current instance to chain calls.</returns>
     public new virtual CouchOptionsBuilder<TContext> UseJwtAuthentication(Func<Task<string>> tokenGenerator)
         => (CouchOptionsBuilder<TContext>)base.UseJwtAuthentication(tokenGenerator);
-        
+
     /// <summary>
     /// Set the field to use to identify document types. Default: <c>split_discriminator</c>.
     /// </summary>
@@ -121,18 +120,9 @@ public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
         => (CouchOptionsBuilder<TContext>)base.DisableLogOutOnDispose();
 
     /// <summary>
-    /// Removes any SSL certificate validation.
+    /// Throw an exception if a query warning is returned from the server.
     /// </summary>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> IgnoreCertificateValidation()
-        => (CouchOptionsBuilder<TContext>)base.IgnoreCertificateValidation();
-
-    /// <summary>
-    /// Sets a custom SSL validation rule.
-    /// </summary>
-    /// <param name="serverCertificateCustomValidationCallback">SSL validation function</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> ConfigureCertificateValidation(Func<HttpRequestMessage, X509Certificate2, X509Chain, SslPolicyErrors, bool>
-        serverCertificateCustomValidationCallback)
-        => (CouchOptionsBuilder<TContext>)base.ConfigureCertificateValidation(serverCertificateCustomValidationCallback);
+    /// <returns></returns>
+    public new virtual CouchOptionsBuilder<TContext> ThrowOnQueryWarning()
+        => (CouchOptionsBuilder<TContext>)base.ThrowOnQueryWarning();
 }
