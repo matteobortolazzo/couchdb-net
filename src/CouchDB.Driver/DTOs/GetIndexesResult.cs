@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using CouchDB.Driver.Types;
-using System.Text.Json.Serialization;
+﻿using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.DTOs;
 
 [Serializable]
-internal class GetIndexesResult
-{
-    [property:JsonPropertyName("indexes")]
-    public required List<IndexInfo> Indexes { get; init; }
-}
+internal sealed record GetIndexesResult(
+    [property: JsonPropertyName("indexes")]
+    List<IndexInfo> Indexes
+);

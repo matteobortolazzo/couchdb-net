@@ -1,10 +1,9 @@
-﻿using System;
-using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Types;
 using CouchDB.Driver.Views;
-using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.DTOs;
 
+// TODO: Review
 [Serializable]
 internal class CouchViewQueryResult<TKey, TValue, TDoc>
     where TDoc : CouchDocument

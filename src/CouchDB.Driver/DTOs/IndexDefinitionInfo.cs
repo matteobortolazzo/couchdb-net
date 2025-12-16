@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
-namespace CouchDB.Driver.DTOs;
+﻿namespace CouchDB.Driver.DTOs;
 
 [Serializable]
-internal class IndexDefinitionInfo
-{
-    [property:JsonPropertyName("fields")]
-    public required Dictionary<string, string>[] Fields { get; init; }
-}
+internal sealed record IndexDefinitionInfo(
+    [property: JsonPropertyName("fields")]
+    Dictionary<string, string>[] Fields);

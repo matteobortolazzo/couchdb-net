@@ -1,6 +1,4 @@
-﻿using System;
-using CouchDB.Driver.Types;
-using System.Text.Json.Serialization;
+﻿using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.DTOs;
 

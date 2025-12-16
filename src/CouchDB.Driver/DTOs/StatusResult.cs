@@ -1,8 +1,7 @@
 ﻿namespace CouchDB.Driver.DTOs;
 
 [Serializable]
-internal class StatusResult
-{
-    [property:JsonPropertyName("status")]
-    public required string Status { get; init; }
-}
+internal sealed record StatusResult(
+    [property: JsonPropertyName("status")]
+    string Status
+);

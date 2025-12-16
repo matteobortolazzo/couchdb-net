@@ -17,7 +17,7 @@ internal static class RequestsHelper
         catch (FlurlHttpException ex)
         {
             CouchError couchError =
-                await ex.GetResponseJsonAsync<CouchError>().ConfigureAwait(false) ?? new CouchError();
+                await ex.GetResponseJsonAsync<CouchError>().ConfigureAwait(false) ?? new CouchError(null, null);
 
             throw (HttpStatusCode?)ex.StatusCode switch
             {

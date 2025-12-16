@@ -1,41 +1,29 @@
-using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
 namespace CouchDB.Driver.DTOs;
 
 [Serializable]
-internal class AllDocsResult<T>
-{
-    [property:JsonPropertyName("total_rows")]
-    public int TotalRows { get; init; }
-
-    [property:JsonPropertyName("offset")]
-    public int Offset { get; init; }
-
-    [property:JsonPropertyName("rows")]
-    public required IEnumerable<AllDocsRow<T>> Rows { get; init; }
-}
+internal sealed record AllDocsResult<T>(
+    [property: JsonPropertyName("total_rows")]
+    int TotalRows,
+    [property: JsonPropertyName("offset")]
+    int Offset,
+    [property: JsonPropertyName("rows")]
+    AllDocsRow<T>[] Rows
+);
 
 [Serializable]
-internal class AllDocsRow<T>
-{
-    [property:JsonPropertyName("id")]
-    public required string Id { get; init; }
-
-    [property:JsonPropertyName("key")]
-    public required string Key { get; init; }
-
-    [property:JsonPropertyName("value")]
-    public required AllDocsValue Value { get; init; }
-
-    [property:JsonPropertyName("doc")]
-    public T? Doc { get; init; }
-}
+internal sealed record AllDocsRow<T>(
+    [property: JsonPropertyName("id")]
+    string Id,
+    [property: JsonPropertyName("key")]
+    string Key,
+    [property: JsonPropertyName("value")]
+    AllDocsValue Value,
+    [property: JsonPropertyName("doc")]
+    T? Doc
+);
 
 [Serializable]
-internal class AllDocsValue
-{
-    [property:JsonPropertyName("rev")]
-    public required string Rev { get; init; }
-}
+internal sealed record AllDocsValue(
+    [property: JsonPropertyName("rev")]
+    string Rev
+);
