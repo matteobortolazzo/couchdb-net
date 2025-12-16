@@ -13,29 +13,29 @@ public sealed class CouchPartitionInfo
     /// The name of the database.
     /// </summary>
     [JsonPropertyName("db_name")]
-    public string DbName { get; internal set; } = string.Empty;
+    public string DbName { get; set; } = string.Empty;
 
     /// <summary>
     /// A count of the documents in the specified partition.
     /// </summary>
     [JsonPropertyName("doc_count")]
-    public int DocCount { get; internal set; }
+    public int DocCount { get; set; }
 
     /// <summary>
     /// Number of deleted documents in the partition.
     /// </summary>
     [JsonPropertyName("doc_del_count")]
-    public int DocDelCount { get; internal set; }
+    public int DocDelCount { get; set; }
 
     /// <summary>
     /// The partition key.
     /// </summary>
     [JsonPropertyName("partition")]
-    public string Partition { get; internal set; } = string.Empty;
+    public string Partition { get; set; } = string.Empty;
 
     /// <summary>
     /// Size information for the partition.
     /// </summary>
     [JsonPropertyName("sizes")]
-    public Sizes Sizes { get; internal set; } = new Sizes();
+    public Sizes Sizes { get; set; } = new Sizes();
 }

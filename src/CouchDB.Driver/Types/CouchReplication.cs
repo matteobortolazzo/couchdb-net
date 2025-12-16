@@ -7,12 +7,12 @@ namespace CouchDB.Driver.Types;
 public class CouchReplication : CouchDocument
 {
     [JsonPropertyName("source")]
-    public object? Source { get; internal set; }
+    public object? Source { get; set; }
 
     public CouchReplicationBasicCredentials? SourceCredentials { get; init; }
 
     [JsonPropertyName("target")]
-    public object? Target { get; internal set; }
+    public object? Target { get; set; }
 
     public CouchReplicationBasicCredentials? TargetCredentials { get; init; }
 
@@ -23,7 +23,7 @@ public class CouchReplication : CouchDocument
     public object? Selector { get; init; }
 
     [JsonPropertyName("cancel")]
-    public bool Cancel { get; internal set; }
+    public bool Cancel { get; set; }
         
     [JsonPropertyName("create_target")]
     public bool CreateTarget{ get; init; }

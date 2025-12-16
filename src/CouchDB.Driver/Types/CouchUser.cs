@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using CouchDB.Driver.Attributes;
 
 namespace CouchDB.Driver.Types;
 
@@ -8,6 +9,7 @@ namespace CouchDB.Driver.Types;
 /// Represents a CouchDB user.
 /// </summary>
 [Serializable]
+[DatabaseName("_users")]
 public class CouchUser : CouchDocument
 {
     internal const string Prefix = "org.couchdb.user:";
@@ -25,7 +27,7 @@ public class CouchUser : CouchDocument
     }
 
     [JsonPropertyName("password")]
-    internal string? Password { get; set; }
+    public string Password { get; set; }
 
     /// <summary>
     /// User’s name aka login. Immutable e.g. you cannot rename an existing user - you have to create new one.

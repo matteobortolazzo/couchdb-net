@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using CouchDB.Driver.Converters;
 using CouchDB.Driver.DatabaseApiMethodOptions;
 using System.Text.Json.Serialization;
@@ -20,6 +19,7 @@ public abstract class CouchDocument
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string? Id { get; set; }
 
+    [JsonInclude]
     [JsonPropertyName("id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private string IdOther { set => Id = value; }
@@ -31,6 +31,7 @@ public abstract class CouchDocument
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Rev { get; set; }
 
+    [JsonInclude]
     [JsonPropertyName("rev")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private string RevOther { set => Rev = value; }
@@ -42,8 +43,9 @@ public abstract class CouchDocument
     [JsonIgnore]
     public bool Deleted { get; private set; }
 
+    [JsonInclude]
     [JsonPropertyName("_deleted")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     private bool DeletedOther { set => Deleted = value; }
 
     /// <summary>
@@ -53,6 +55,7 @@ public abstract class CouchDocument
     [JsonIgnore]
     public IReadOnlyCollection<string> Conflicts { get; private set; } = [];
 
+    [JsonInclude]
     [JsonPropertyName("_conflicts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private List<string> ConflictsOther { set { Conflicts = value.AsReadOnly(); } }
@@ -64,6 +67,7 @@ public abstract class CouchDocument
     [JsonIgnore]
     public IReadOnlyCollection<string> DeletedConflicts { get; private set; } = [];
 
+    [JsonInclude]
     [JsonPropertyName("_deleted_conflicts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private List<string> DeletedConflictsOther { set { DeletedConflicts = value.AsReadOnly(); } }
@@ -75,8 +79,9 @@ public abstract class CouchDocument
     [JsonIgnore]
     public int LocalSequence { get; private set; }
 
+    [JsonInclude]
     [JsonPropertyName("_localSeq")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     private int LocalSequenceOther { set { LocalSequence = value; } }
 
     /// <summary>
@@ -86,6 +91,7 @@ public abstract class CouchDocument
     [JsonIgnore]
     public IReadOnlyCollection<RevisionInfo> RevisionsInfo { get; private set; } = [];
 
+    [JsonInclude]
     [JsonPropertyName("_revs_info")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private List<RevisionInfo> RevisionsInfoOther { set { RevisionsInfo = value.AsReadOnly(); } }
@@ -97,6 +103,7 @@ public abstract class CouchDocument
     [JsonIgnore]
     public Revisions Revisions { get; private set; } = null!;
 
+    [JsonInclude]
     [JsonPropertyName("_revisions")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private Revisions RevisionsOther { set { Revisions = value; } }
@@ -105,26 +112,19 @@ public abstract class CouchDocument
     /// Attachment’s stubs. Available if document has any attachments
     /// </summary>
     [JsonIgnore]
-    public CouchAttachmentsCollection Attachments { get; private set; } = new();
+    public CouchAttachmentsCollection Attachments { get; set; } = new();
 
+    [JsonInclude]
     [JsonPropertyName("_attachments")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonConverter(typeof(AttachmentsParsedConverter))]
-    private Dictionary<string, CouchAttachment> AttachmentsParsed { get; init; } = new();
+    internal Dictionary<string, CouchAttachment> AttachmentsParsed { get; set; } = new();
 
     /// <summary>
     /// Used for database splitting
     /// </summary>
+    [JsonInclude]
     [JsonPropertyName(CouchClient.DefaultDatabaseSplitDiscriminator)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     internal string? SplitDiscriminator { get; set; }
-
-    [OnDeserialized]
-    internal void OnDeserializedMethod(StreamingContext context)
-    {
-        if (AttachmentsParsed is { Count: > 0 })
-        {
-            Attachments = new CouchAttachmentsCollection(AttachmentsParsed);
-        }
-    }
 }

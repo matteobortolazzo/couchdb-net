@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading;
@@ -14,60 +14,41 @@ using Xunit;
 namespace CouchDB.Driver.E2ETests;
 
 [Trait("Category", "Integration")]
-public class ClientTests : IAsyncLifetime
+public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 {
-    private ICouchClient _client;
-    private ICouchDatabase<Rebel> _rebels;
-
-    public async Task InitializeAsync()
-    {
-        _client = new CouchClient("http://localhost:5984", c =>
-            c.UseBasicAuthentication("admin", "admin"));
-        // ensure the _users database exists to prevent couchdb from
-        // generating tons of errors in the logs
-        await _client.GetOrCreateUsersDatabaseAsync();
-        _rebels = await _client.GetOrCreateDatabaseAsync<Rebel>();
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _client.DeleteDatabaseAsync<Rebel>();
-        await _client.DisposeAsync();
-    }
-
     [Fact]
     public async Task ChangesFeed()
     {
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_1", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_2", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_3", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_4", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_5", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_6", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_7", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_8", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_9", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_10", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_13", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_14", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_15", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_16", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_17", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_18", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_19", Age = 19 });
-        _ = await _rebels.AddAsync(new Rebel { Name = "Luke_20", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_1", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_2", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_3", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_4", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_5", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_6", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_7", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_8", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_9", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_10", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_13", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_14", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_15", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_16", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_17", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_18", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_19", Age = 19 });
+        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_20", Age = 19 });
 
         var lineCount = 0;
         var tokenSource = new CancellationTokenSource();
-        await foreach (var l in _rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
+        await foreach (var l in fixture.Rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
         {
             lineCount++;
             if (lineCount == 20)
             {
-                _ = await _rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
-                _ = await _rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
+                _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
+                _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
             }
 
             if (lineCount == 22)
@@ -80,18 +61,18 @@ public class ClientTests : IAsyncLifetime
     [Fact]
     public async Task Crud()
     {
-        Rebel luke = await _rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
+        Rebel luke = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
         Assert.Equal("Luke", luke.Name);
 
         luke.Surname = "Skywalker";
-        luke = await _rebels.AddOrUpdateAsync(luke);
+        luke = await fixture.Rebels.AddOrUpdateAsync(luke);
         Assert.Equal("Skywalker", luke.Surname);
 
-        luke = await _rebels.FindAsync(luke.Id);
+        luke = await fixture.Rebels.FindAsync(luke.Id);
         Assert.Equal(19, luke.Age);
 
-        await _rebels.RemoveAsync(luke);
-        luke = await _rebels.FindAsync(luke.Id);
+        await fixture.Rebels.RemoveAsync(luke);
+        luke = await fixture.Rebels.FindAsync(luke.Id);
         Assert.Null(luke);
     }
 
@@ -133,7 +114,7 @@ public class ClientTests : IAsyncLifetime
     public async Task Crud_SpecialCharacters()
     {
         const string databaseName = "rebel0_$()+/-";
-        var rebels = await _client.GetOrCreateDatabaseAsync<Rebel>(databaseName);
+        var rebels = await fixture.Client.GetOrCreateDatabaseAsync<Rebel>(databaseName);
 
         Rebel luke = await rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
         Assert.Equal("Luke", luke.Name);
@@ -149,28 +130,9 @@ public class ClientTests : IAsyncLifetime
         luke = await rebels.FindAsync(luke.Id);
         Assert.Null(luke);
 
-        await _client.DeleteDatabaseAsync(databaseName);
+        await fixture.Client.DeleteDatabaseAsync(databaseName);
     }
 
-    [Fact]
-    public async Task Users()
-    {
-        var users = await _client.GetOrCreateUsersDatabaseAsync();
-
-        CouchUser luke = await users.AddAsync(new CouchUser(name: "luke", password: "lasersword"));
-        Assert.Equal("luke", luke.Name);
-
-        luke = await users.FindAsync(luke.Id);
-        Assert.Equal("luke", luke.Name);
-
-        luke = await users.ChangeUserPassword(luke, "r2d2");
-
-        await users.RemoveAsync(luke);
-        luke = await users.FindAsync(luke.Id);
-        Assert.Null(luke);
-
-        await _client.DeleteDatabaseAsync<CouchUser>();
-    }
 
     [Fact]
     public async Task Attachment()
@@ -181,7 +143,7 @@ public class ClientTests : IAsyncLifetime
         // Create
         var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
         luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
-        luke = await _rebels.AddAsync(luke);
+        luke = await fixture.Rebels.AddAsync(luke);
 
         Assert.Equal("Luke", luke.Name);
         Assert.NotEmpty(luke.Attachments);
@@ -192,13 +154,14 @@ public class ClientTests : IAsyncLifetime
 
         // Download
         var downloadDir = Path.Combine(runningPath, "Assets");
-        var downloadFilePath = await _rebels.DownloadAttachmentAsync(attachment, downloadDir, "luke-downloaded.txt");
+        var downloadFilePath =
+            await fixture.Rebels.DownloadAttachmentAsync(attachment, downloadDir, "luke-downloaded.txt");
 
         Assert.True(File.Exists(downloadFilePath));
         File.Delete(downloadFilePath);
 
         // Find
-        luke = await _rebels.FindAsync(luke.Id);
+        luke = await fixture.Rebels.FindAsync(luke.Id);
         Assert.Equal(19, luke.Age);
         attachment = luke.Attachments.First();
         Assert.NotNull(attachment);
@@ -208,7 +171,7 @@ public class ClientTests : IAsyncLifetime
 
         // Update
         luke.Surname = "Skywalker";
-        luke = await _rebels.AddOrUpdateAsync(luke);
+        luke = await fixture.Rebels.AddOrUpdateAsync(luke);
         Assert.Equal("Skywalker", luke.Surname);
     }
 
@@ -224,7 +187,7 @@ public class ClientTests : IAsyncLifetime
         // Create
         var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
         luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
-        luke = await _rebels.AddAsync(luke);
+        luke = await fixture.Rebels.AddAsync(luke);
 
         Assert.Equal("Luke", luke.Name);
         Assert.NotEmpty(luke.Attachments);
@@ -234,7 +197,7 @@ public class ClientTests : IAsyncLifetime
         Assert.NotNull(attachment.Uri);
 
         // Download
-        var responseStream = await _rebels.DownloadAttachmentAsStreamAsync(attachment);
+        var responseStream = await fixture.Rebels.DownloadAttachmentAsStreamAsync(attachment);
         var memStream = new MemoryStream();
         responseStream.CopyTo(memStream);
         var fileFromDb = memStream.ToArray();
@@ -246,7 +209,7 @@ public class ClientTests : IAsyncLifetime
     [Fact]
     public async Task LocalDocuments()
     {
-        var local = _rebels.LocalDocuments;
+        var local = fixture.Rebels.LocalDocuments;
 
         var docId = "传";
         var settings = new RebelSettings
@@ -310,6 +273,7 @@ public class ClientTests : IAsyncLifetime
         }
     }
 
+    [Fact]
     public async Task ExecutionStats()
     {
         await using var context = new MyDeathStarContext();
@@ -319,6 +283,7 @@ public class ClientTests : IAsyncLifetime
             .IncludeExecutionStats()
             .ToCouchListAsync();
 
+        Assert.NotNull(rebels.ExecutionStats);
         Assert.True(rebels.ExecutionStats.ExecutionTimeMs > 0);
     }
 }

@@ -96,6 +96,8 @@ public partial class CouchClient : ICouchClient
                 // TODO: Check type resolver
                 _options.JsonSerializerOptions.TypeInfoResolver =
                     new CouchJsonTypeInfoResolver(_options.DatabaseSplitDiscriminator);
+
+                _options.JsonSerializerOptions.Converters.Add(new CouchDocumentConverter());
                 s.JsonSerializer = new DefaultJsonSerializer(_options.JsonSerializerOptions);
             });
     }
@@ -290,6 +292,10 @@ public partial class CouchClient : ICouchClient
     #region Utils
 
     /// <inheritdoc />
+    public Task<bool> ExistsAsync<TSource>(CancellationToken cancellationToken = default) =>
+        ExistsAsync(TypeExtensions.GetDatabaseName<TSource>(), cancellationToken);
+
+    /// <inheritdoc />
     public async Task<bool> ExistsAsync(string database, CancellationToken cancellationToken = default)
     {
         QueryContext queryContext = NewQueryContext(database);
@@ -321,21 +327,22 @@ public partial class CouchClient : ICouchClient
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<string>> GetDatabasesNamesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<string>> GetDatabasesNamesAsync(CancellationToken cancellationToken = default)
     {
         return await NewRequest()
             .AppendPathSegment("_all_dbs")
-            .GetJsonAsync<IEnumerable<string>>(cancellationToken: cancellationToken)
+            .GetJsonAsync<string[]>(cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<CouchActiveTask>> GetActiveTasksAsync(
+        CancellationToken cancellationToken = default)
     {
         return await NewRequest()
             .AppendPathSegment("_active_tasks")
-            .GetJsonAsync<IEnumerable<CouchActiveTask>>(cancellationToken: cancellationToken)
+            .GetJsonAsync<CouchActiveTask[]>(cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ConfigureAwait(false);
     }

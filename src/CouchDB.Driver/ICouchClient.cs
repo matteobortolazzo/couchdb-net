@@ -145,6 +145,14 @@ public interface ICouchClient : IAsyncDisposable
     /// <summary>
     /// Check if database exists.
     /// </summary>
+    /// <typeparam name="TSource">The type of database documents.</typeparam>
+    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+    /// <returns>Return True if the database exists, False otherwise.</returns>
+    Task<bool> ExistsAsync<TSource>(CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Check if database exists.
+    /// </summary>
     /// <param name="database">The database name.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>Return True if the database exists, False otherwise.</returns>
@@ -162,14 +170,14 @@ public interface ICouchClient : IAsyncDisposable
     /// </summary>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the sequence of databases names.</returns>
-    Task<IEnumerable<string>> GetDatabasesNamesAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<string>> GetDatabasesNamesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns all active tasks in the server.
     /// </summary>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the sequence of all active tasks.</returns>
-    Task<IEnumerable<CouchActiveTask>> GetActiveTasksAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<CouchActiveTask>> GetActiveTasksAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Configures a database replication operation.

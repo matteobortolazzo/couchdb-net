@@ -15,8 +15,8 @@ internal class FindResult<T>
     public required string Bookmark { get; init; }
 
     [JsonPropertyName("execution_stats")]
-    public required ExecutionStats ExecutionStats { get; init; }
+    public ExecutionStats? ExecutionStats { get; init; }
 
     [JsonPropertyName("warning")]
-    public required string Warning { get; init; }
+    public string? Warning { get; init; }
 }

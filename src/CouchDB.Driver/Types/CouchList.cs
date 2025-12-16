@@ -10,7 +10,7 @@ namespace CouchDB.Driver.Types;
 public class CouchList<TSource>(
     IReadOnlyList<TSource> source,
     string bookmark,
-    ExecutionStats executionStats)
+    ExecutionStats? executionStats)
     : IReadOnlyList<TSource>
 {
     /// <summary>
@@ -21,7 +21,7 @@ public class CouchList<TSource>(
     /// <summary>
     /// Execution statistics.
     /// </summary>
-    public ExecutionStats ExecutionStats { get; } = executionStats;
+    public ExecutionStats? ExecutionStats { get; } = executionStats;
 
     public int Count => source.Count;
     public bool IsReadOnly => true;

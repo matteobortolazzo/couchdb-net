@@ -453,7 +453,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
 
         response.Results = response.Results
-            .Where(result => result.Document.SplitDiscriminator == _discriminator)
+            .Where(result => result.Document?.SplitDiscriminator == _discriminator)
             .ToArray();
         return response;
     }
@@ -499,7 +499,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                     ChangesFeedResponseResult<TSource>? result =
                         JsonSerializer.Deserialize<ChangesFeedResponseResult<TSource>>(substring);
                     if (string.IsNullOrWhiteSpace(_discriminator) ||
-                        result?.Document.SplitDiscriminator == _discriminator)
+                        result?.Document?.SplitDiscriminator == _discriminator)
                     {
                         lastSequence = result!.Seq;
                         yield return result;

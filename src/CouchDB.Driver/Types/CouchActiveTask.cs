@@ -45,13 +45,13 @@ public sealed class CouchActiveTask
     /// Task status message.
     /// </summary>
     [JsonPropertyName("status")]
-    public required string Status { get; init; }
+    public string? Status { get; init; }
 
     /// <summary>
     /// Task name.
     /// </summary>
     [JsonPropertyName("task")]
-    public required string Task { get; init; }
+    public string? Task { get; init; }
 
     /// <summary>
     /// Total changes to process.

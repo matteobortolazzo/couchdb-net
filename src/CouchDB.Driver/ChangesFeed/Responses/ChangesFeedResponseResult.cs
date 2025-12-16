@@ -30,5 +30,5 @@ public class ChangesFeedResponseResult<TSource>
 
     [JsonPropertyName("doc")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public required TSource Document { get; init; }
+    public TSource? Document { get; init; }
 }

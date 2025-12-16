@@ -30,9 +30,9 @@ internal class AttachmentsParsedConverter : JsonConverter<Dictionary<string, Cou
         return typeToConvert == typeof(Dictionary<string, CouchAttachment>);
     }
 
-    public override Dictionary<string, CouchAttachment> Read(ref Utf8JsonReader reader, Type typeToConvert,
+    public override Dictionary<string, CouchAttachment>? Read(ref Utf8JsonReader reader, Type typeToConvert,
         JsonSerializerOptions options)
     {
-        throw new NotImplementedException();
+        return JsonSerializer.Deserialize<Dictionary<string, CouchAttachment>>(ref reader, options);
     }
 }

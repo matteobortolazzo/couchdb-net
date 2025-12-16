@@ -23,10 +23,10 @@ public sealed class CouchAttachment
     internal bool Deleted { get; set; }
 
     [JsonIgnore]
-    public string Name { get; internal set; } = null!;
+    public string Name { get; set; } = null!;
 
     [JsonIgnore]
-    public Uri Uri { get; internal set; } = null!;
+    public Uri Uri { get; set; } = null!;
 
     /// <summary>
     ///     Gets whether the attachment object contains stub info and no content. 
@@ -45,19 +45,19 @@ public sealed class CouchAttachment
     ///     Base64-encoded hash digest.
     /// </summary>
     [JsonPropertyName("digest")]
-    public string? Digest { get; private init; }
+    public string? Digest { get; init; }
 
     /// <summary>
     ///     Gets the real attachment size in bytes. Not available if attachment content requested.
     /// </summary>
     [JsonPropertyName("length")]
-    public long? Length { get; private init; }
+    public long? Length { get; init; }
 
     /// <summary>
     ///     Gets the revision number when attachment was added.
     /// </summary>
     [JsonPropertyName("revpos")]
-    public int? RevPos { get; private init; }
+    public int? RevPos { get; init; }
 
     /// <summary>
     ///     Gets the compressed attachment size in bytes.
@@ -75,7 +75,7 @@ public sealed class CouchAttachment
     ///     </list>
     /// </remarks>
     [JsonPropertyName("encoded_length")]
-    public long? EncodedLength { get; private init; }
+    public long? EncodedLength { get; init; }
 
     /// <summary>
     ///     Gets the Base64-encoded content. Only populated if queried for and <see cref="Stub"/> is false.
@@ -92,5 +92,5 @@ public sealed class CouchAttachment
     ///     </list>
     /// </remarks>
     [JsonPropertyName("data")]
-    public string? Data { get; private init; }
+    public string? Data { get; init; }
 }
