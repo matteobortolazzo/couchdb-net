@@ -357,22 +357,6 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .ConfigureAwait(false);
     }
 
-    /// <inheritdoc />
-    public async Task EnsureFullCommitAsync(CancellationToken cancellationToken = default)
-    {
-        OperationResult result = await NewRequest()
-            .AppendPathSegment("_ensure_full_commit")
-            .PostAsync(cancellationToken: cancellationToken)
-            .ReceiveJson<OperationResult>()
-            .SendRequestAsync()
-            .ConfigureAwait(false);
-
-        if (!result.Ok)
-        {
-            throw new CouchException("Something wrong happened while ensuring full commits.");
-        }
-    }
-
     private async Task UpdateAttachments(TSource document, CancellationToken cancellationToken = default)
     {
         foreach (CouchAttachment attachment in document.Attachments.GetAddedAttachments())
@@ -518,7 +502,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Index
 
     /// <inheritdoc />
-    public async Task<List<IndexInfo>> GetIndexesAsync(CancellationToken cancellationToken = default)
+    public async Task<IList<IndexInfo>> GetIndexesAsync(CancellationToken cancellationToken = default)
     {
         GetIndexesResult response = await NewRequest()
             .AppendPathSegment("_index")

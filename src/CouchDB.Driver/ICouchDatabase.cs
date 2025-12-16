@@ -194,16 +194,6 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
         IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Since CouchDB v3, it is deprecated (a no-op).
-    /// 
-    /// Commits any recent changes to the specified database to disk. You should call this if you want to ensure that recent changes have been flushed.
-    /// This function is likely not required, assuming you have the recommended configuration setting of delayed_commits=false, which requires CouchDB to ensure changes are written to disk before a 200 or similar result is returned.
-    /// </summary>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    Task EnsureFullCommitAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Returns a sorted list of changes made to documents in the database.
     /// </summary>
     /// <remarks>
@@ -235,7 +225,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// </summary>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A Task that represents the asynchronous operation. The task result contains the list of indexes.</returns>
-    Task<List<IndexInfo>> GetIndexesAsync(CancellationToken cancellationToken = default);
+    Task<IList<IndexInfo>> GetIndexesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates an index for the current database with the given configuration.

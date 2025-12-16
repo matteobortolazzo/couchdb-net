@@ -133,7 +133,7 @@ public abstract class CouchContext : IAsyncDisposable
             return;
         }
 
-        List<IndexInfo> indexes = await database.GetIndexesAsync().ConfigureAwait(false);
+        IList<IndexInfo> indexes = await database.GetIndexesAsync().ConfigureAwait(false);
 
         foreach (IndexSetupDefinition<TSource> indexSetup in documentBuilder.IndexDefinitions)
         {
@@ -212,6 +212,7 @@ public abstract class CouchContext : IAsyncDisposable
         GetType()
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p.PropertyType.IsGenericType &&
-                        p.PropertyType.GetGenericTypeDefinition() == typeof(CouchDatabase<>))
+                        (p.PropertyType.GetGenericTypeDefinition() == typeof(CouchDatabase<>) ||
+                         p.PropertyType.GetGenericTypeDefinition() == typeof(ICouchDatabase<>)))
             .ToArray();
 }

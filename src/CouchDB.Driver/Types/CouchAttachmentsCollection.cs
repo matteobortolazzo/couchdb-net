@@ -6,9 +6,10 @@ using System.Linq;
 
 namespace CouchDB.Driver.Types;
 
-public sealed class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
+public sealed class CouchAttachmentsCollection : IReadOnlyList<CouchAttachment>
 {
     private readonly Dictionary<string, CouchAttachment> _attachments;
+    private List<CouchAttachment>? _cachedList;
 
     internal CouchAttachmentsCollection()
     {
@@ -43,12 +44,14 @@ public sealed class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
         attachment.Name = attachmentName;
         attachment.FileInfo = info;
         attachment.ContentType = contentType;
+        _cachedList = null;
     }
 
     public void Delete(string attachmentName)
     {
         CouchAttachment attachment = _attachments[attachmentName];
         attachment.Deleted = true;
+        _cachedList = null;
     }
 
     public CouchAttachment this[string key]
@@ -56,12 +59,28 @@ public sealed class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
         get => _attachments[key];
     }
 
+    public CouchAttachment this[int index]
+    {
+        get
+        {
+            _cachedList ??= _attachments.Values.Where(at => !at.Deleted).ToList();
+            return _cachedList[index];
+        }
+    }
+
+    public int Count
+    {
+        get
+        {
+            _cachedList ??= _attachments.Values.Where(at => !at.Deleted).ToList();
+            return _cachedList.Count;
+        }
+    }
+
     public IEnumerator<CouchAttachment> GetEnumerator()
     {
-        return _attachments
-            .Select(kv => kv.Value)
-            .Where(at => !at.Deleted)
-            .GetEnumerator();
+        _cachedList ??= _attachments.Values.Where(at => !at.Deleted).ToList();
+        return _cachedList.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -71,9 +90,7 @@ public sealed class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
 
     internal CouchAttachment[] GetAddedAttachments()
     {
-        return _attachments
-            .Select(kv => kv.Value)
-            .ToArray();
+        return _attachments.Values.ToArray();
     }
 
     internal CouchAttachment[] GetDeletedAttachments()
@@ -87,6 +104,7 @@ public sealed class CouchAttachmentsCollection : IEnumerable<CouchAttachment>
     internal void RemoveAttachment(CouchAttachment attachment)
     {
         _ = _attachments.Remove(attachment.Name);
+        _cachedList = null;
     }
 
     private static FileInfo GetFileInfo(string path)

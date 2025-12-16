@@ -5,7 +5,7 @@ namespace CouchDB.Driver.E2ETests
 {
     public class MyDeathStarContext : CouchContext
     {
-        public CouchDatabase<Rebel> Rebels { get; set; }
+        public ICouchDatabase<Rebel> Rebels { get; set; }
 
         protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
         {
@@ -29,7 +29,7 @@ namespace CouchDB.Driver.E2ETests
     /// </summary>
     public class MyDeathStarContext2 : CouchContext
     {
-        public CouchDatabase<Rebel> Rebels { get; set; }
+        public ICouchDatabase<Rebel> Rebels { get; set; }
 
         protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
         {
@@ -51,7 +51,7 @@ namespace CouchDB.Driver.E2ETests
 
     public class MyDeathStarContextWithQueryWarning : CouchContext
     {
-        public CouchDatabase<Rebel> Rebels { get; set; }
+        public ICouchDatabase<Rebel> Rebels { get; set; }
 
         protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
         {

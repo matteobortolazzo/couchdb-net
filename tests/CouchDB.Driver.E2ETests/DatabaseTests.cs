@@ -8,7 +8,6 @@ using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Query.Extensions;
-using CouchDB.Driver.Types;
 using Xunit;
 
 namespace CouchDB.Driver.E2ETests;
@@ -147,7 +146,10 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         luke = await rebels.AddOrUpdateAsync(luke);
         Assert.Equal("Skywalker", luke.Surname);
 
-        luke = await rebels.FindAsync(luke.Id);
+        var result = await rebels.FindAsync(luke.Id);
+        Assert.NotNull(result);
+        
+        luke = result;
         Assert.Equal(19, luke.Age);
 
         await rebels.DeleteAsync(luke);
@@ -172,7 +174,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         Assert.Equal("Luke", luke.Name);
         Assert.NotEmpty(luke.Attachments);
 
-        CouchAttachment attachment = luke.Attachments.First();
+        var attachment = luke.Attachments[0];
         Assert.NotNull(attachment);
         Assert.NotNull(attachment.Uri);
 
@@ -185,9 +187,12 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         File.Delete(downloadFilePath);
 
         // Find
-        luke = await fixture.Rebels.FindAsync(luke.Id);
+        var result = await fixture.Rebels.FindAsync(luke.Id);
+        Assert.NotNull(result);
+
+        luke = result;
         Assert.Equal(19, luke.Age);
-        attachment = luke.Attachments.First();
+        attachment = luke.Attachments[0];
         Assert.NotNull(attachment);
         Assert.NotNull(attachment.Uri);
         Assert.NotNull(attachment.Digest);
@@ -206,7 +211,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         var runningPath = Directory.GetCurrentDirectory();
 
         var fileOnDiskPath = Path.Combine(runningPath, "Assets", "luke.txt");
-        var fileOnDisk = File.ReadAllBytes(fileOnDiskPath);
+        var fileOnDisk = await File.ReadAllBytesAsync(fileOnDiskPath);
 
         // Create
         var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
@@ -216,18 +221,34 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         Assert.Equal("Luke", luke.Name);
         Assert.NotEmpty(luke.Attachments);
 
-        CouchAttachment attachment = luke.Attachments.First();
+        var attachment = luke.Attachments.First();
         Assert.NotNull(attachment);
         Assert.NotNull(attachment.Uri);
 
         // Download
         var responseStream = await fixture.Rebels.DownloadAttachmentAsStreamAsync(attachment);
         var memStream = new MemoryStream();
-        responseStream.CopyTo(memStream);
+        await responseStream.CopyToAsync(memStream);
         var fileFromDb = memStream.ToArray();
         var areEqual = fileOnDisk.SequenceEqual(fileFromDb);
 
         Assert.True(areEqual);
+    }
+
+    [Fact]
+    public async Task GetInfo()
+    {
+        var result = await fixture.Rebels.GetInfoAsync();
+
+        Assert.NotNull(result);
+    }
+    
+    [Fact]
+    public async Task GetRevisionLimit()
+    {
+        var result = await fixture.Rebels.GetRevisionLimitAsync();
+
+        Assert.True(result > 0);
     }
 
     [Fact]
@@ -295,6 +316,23 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         {
             Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
         }
+    }
+
+    [Fact]
+    public async Task Index()
+    {
+        await using var context = new MyDeathStarContext();
+
+        var indexId = await context.Rebels.CreateIndexAsync("AgeIndex", i => i
+            .IndexBy(rebel => rebel.Age));
+        Assert.NotNull(indexId);
+
+        var indexes = await context.Rebels.GetIndexesAsync();
+        Assert.NotEmpty(indexes);
+        var ageIndex = indexes.FirstOrDefault(i => i.Name == "AgeIndex");
+
+        Assert.NotNull(ageIndex);
+        await context.Rebels.DeleteIndexAsync(ageIndex);
     }
 
     [Fact]
