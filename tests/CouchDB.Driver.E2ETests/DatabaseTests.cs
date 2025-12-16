@@ -67,7 +67,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         Assert.Equal("Luke", luke.Name);
 
         luke.Surname = "Skywalker";
-        luke = await fixture.Rebels.AddOrUpdateAsync(luke);
+        luke = await fixture.Rebels.UpsertAsync(luke);
         Assert.Equal("Skywalker", luke.Surname);
 
         luke = await fixture.Rebels.FindAsync(luke.Id);
@@ -143,7 +143,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         Assert.Equal("Luke", luke.Name);
 
         luke.Surname = "Skywalker";
-        luke = await rebels.AddOrUpdateAsync(luke);
+        luke = await rebels.UpsertAsync(luke);
         Assert.Equal("Skywalker", luke.Surname);
 
         var result = await rebels.FindAsync(luke.Id);
@@ -200,7 +200,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 
         // Update
         luke.Surname = "Skywalker";
-        luke = await fixture.Rebels.AddOrUpdateAsync(luke);
+        luke = await fixture.Rebels.UpsertAsync(luke);
         Assert.Equal("Skywalker", luke.Surname);
     }
 

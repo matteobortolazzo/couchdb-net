@@ -206,7 +206,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
         if (!string.IsNullOrEmpty(document.Id))
         {
-            return await AddOrUpdateAsync(document, new AddOrUpdateOptions { Batch = options.Batch }, cancellationToken)
+            return await UpsertAsync(document, new AddOrUpdateOptions { Batch = options.Batch }, cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -232,12 +232,12 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     /// <inheritdoc />
-    public Task<TSource> AddOrUpdateAsync(TSource document, bool batch = false,
+    public Task<TSource> UpsertAsync(TSource document, bool batch = false,
         CancellationToken cancellationToken = default)
-        => AddOrUpdateAsync(document, new AddOrUpdateOptions { Batch = batch }, cancellationToken);
+        => UpsertAsync(document, new AddOrUpdateOptions { Batch = batch }, cancellationToken);
 
     /// <inheritdoc />
-    public async Task<TSource> AddOrUpdateAsync(TSource document, AddOrUpdateOptions options,
+    public async Task<TSource> UpsertAsync(TSource document, AddOrUpdateOptions options,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);

@@ -2,8 +2,7 @@
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
-using System;
-using System.Collections.Generic;
+
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;

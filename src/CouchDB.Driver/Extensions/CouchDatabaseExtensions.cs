@@ -25,6 +25,6 @@ public static class CouchDatabaseExtensions
         ArgumentNullException.ThrowIfNull(password);
 
         user.Password = password;
-        return database.AddOrUpdateAsync(user, false, cancellationToken);
+        return database.UpsertAsync(user, false, cancellationToken);
     }
 }

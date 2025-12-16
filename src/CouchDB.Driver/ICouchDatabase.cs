@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.IO;
 
 using System.Threading;
@@ -93,7 +92,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="batch">Stores document in batch mode.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-    Task<TSource> AddOrUpdateAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
+    Task<TSource> UpsertAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates or updates the document with the given ID.
@@ -102,7 +101,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for PUT /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-    Task<TSource> AddOrUpdateAsync(TSource document, AddOrUpdateOptions options,
+    Task<TSource> UpsertAsync(TSource document, AddOrUpdateOptions options,
         CancellationToken cancellationToken = default);
 
     /// <summary>

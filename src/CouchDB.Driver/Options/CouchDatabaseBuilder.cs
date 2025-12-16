@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Options;

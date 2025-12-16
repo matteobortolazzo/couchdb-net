@@ -1,7 +1,6 @@
 ﻿using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Types;
-using System;
-using System.Collections.Generic;
+
 
 namespace CouchDB.Driver.Options;
 
