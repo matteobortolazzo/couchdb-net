@@ -364,11 +364,8 @@ public partial class CouchClient : ICouchClient
         }
         else
         {
-            replication.Source = new CouchReplicationHost()
-            {
-                Url = source,
-                Auth = new CouchReplicationAuth() { BasicCredentials = replication.SourceCredentials, }
-            };
+            replication.Source = new CouchReplicationHost(source,
+                new CouchReplicationAuth(replication.SourceCredentials));
         }
 
         if (replication.TargetCredentials == null)
@@ -377,11 +374,8 @@ public partial class CouchClient : ICouchClient
         }
         else
         {
-            replication.Target = new CouchReplicationHost()
-            {
-                Url = target,
-                Auth = new CouchReplicationAuth() { BasicCredentials = replication.TargetCredentials, }
-            };
+            replication.Target = new CouchReplicationHost(target,
+                new CouchReplicationAuth(replication.TargetCredentials));
         }
 
         OperationResult result = await request
@@ -407,11 +401,8 @@ public partial class CouchClient : ICouchClient
         }
         else
         {
-            replication.Source = new CouchReplicationHost()
-            {
-                Url = source,
-                Auth = new CouchReplicationAuth() { BasicCredentials = replication.SourceCredentials, }
-            };
+            replication.Source = new CouchReplicationHost(source,
+                new CouchReplicationAuth(replication.SourceCredentials));
         }
 
         if (replication.TargetCredentials == null)
@@ -420,11 +411,8 @@ public partial class CouchClient : ICouchClient
         }
         else
         {
-            replication.Target = new CouchReplicationHost()
-            {
-                Url = target,
-                Auth = new CouchReplicationAuth() { BasicCredentials = replication.TargetCredentials, }
-            };
+            replication.Target = new CouchReplicationHost(target,
+                new CouchReplicationAuth(replication.TargetCredentials));
         }
 
         replication.Cancel = true;

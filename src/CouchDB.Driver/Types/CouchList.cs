@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-
-namespace CouchDB.Driver.Types;
+﻿namespace CouchDB.Driver.Types;
 
 /// <summary>
 /// Represents a Couch query response.

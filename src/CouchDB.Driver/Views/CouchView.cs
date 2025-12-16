@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text.Json.Serialization;
-
-namespace CouchDB.Driver.Views;
+﻿namespace CouchDB.Driver.Views;
 
 /// <summary>
 /// Base class for a view.
@@ -15,24 +12,24 @@ public sealed class CouchView<TKey, TValue, TDoc>
     /// <summary>
     /// The document ID.
     /// </summary>
-    [JsonPropertyName("id")]
+    [property:JsonPropertyName("id")]
     public required string Id { get; init; }
 
     /// <summary>
     /// The view key.
     /// </summary>
-    [JsonPropertyName("key")]
+    [property:JsonPropertyName("key")]
     public required TKey Key { get; init; }
 
     /// <summary>
     /// The view key.
     /// </summary>
-    [JsonPropertyName("value")]
+    [property:JsonPropertyName("value")]
     public required TValue Value { get; init; }
 
     /// <summary>
     /// The document.
     /// </summary>
-    [JsonPropertyName("doc")]
+    [property:JsonPropertyName("doc")]
     public required TDoc Document { get; init; }
 }

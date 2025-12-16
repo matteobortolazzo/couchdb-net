@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using CouchDB.Driver.Converters;
+﻿using CouchDB.Driver.Converters;
 using CouchDB.Driver.DatabaseApiMethodOptions;
-using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Types;
 
@@ -15,24 +12,24 @@ public abstract class CouchDocument
     /// <summary>
     /// The document ID.
     /// </summary>
-    [JsonPropertyName("_id")]
+    [property:JsonPropertyName("_id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public virtual string? Id { get; set; }
 
     [JsonInclude]
-    [JsonPropertyName("id")]
+    [property:JsonPropertyName("id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private string IdOther { set => Id = value; }
 
     /// <summary>
     /// The current document revision ID.
     /// </summary>
-    [JsonPropertyName("_rev")]
+    [property:JsonPropertyName("_rev")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Rev { get; set; }
 
     [JsonInclude]
-    [JsonPropertyName("rev")]
+    [property:JsonPropertyName("rev")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private string RevOther { set => Rev = value; }
 
@@ -44,7 +41,7 @@ public abstract class CouchDocument
     public bool Deleted { get; private set; }
 
     [JsonInclude]
-    [JsonPropertyName("_deleted")]
+    [property:JsonPropertyName("_deleted")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     private bool DeletedOther { set => Deleted = value; }
 
@@ -56,7 +53,7 @@ public abstract class CouchDocument
     public IReadOnlyCollection<string> Conflicts { get; private set; } = [];
 
     [JsonInclude]
-    [JsonPropertyName("_conflicts")]
+    [property:JsonPropertyName("_conflicts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private List<string> ConflictsOther { set { Conflicts = value.AsReadOnly(); } }
 
@@ -68,7 +65,7 @@ public abstract class CouchDocument
     public IReadOnlyCollection<string> DeletedConflicts { get; private set; } = [];
 
     [JsonInclude]
-    [JsonPropertyName("_deleted_conflicts")]
+    [property:JsonPropertyName("_deleted_conflicts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private List<string> DeletedConflictsOther { set { DeletedConflicts = value.AsReadOnly(); } }
 
@@ -80,7 +77,7 @@ public abstract class CouchDocument
     public int LocalSequence { get; private set; }
 
     [JsonInclude]
-    [JsonPropertyName("_localSeq")]
+    [property:JsonPropertyName("_localSeq")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     private int LocalSequenceOther { set { LocalSequence = value; } }
 
@@ -92,7 +89,7 @@ public abstract class CouchDocument
     public IReadOnlyCollection<RevisionInfo> RevisionsInfo { get; private set; } = [];
 
     [JsonInclude]
-    [JsonPropertyName("_revs_info")]
+    [property:JsonPropertyName("_revs_info")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private List<RevisionInfo> RevisionsInfoOther { set { RevisionsInfo = value.AsReadOnly(); } }
 
@@ -104,7 +101,7 @@ public abstract class CouchDocument
     public Revisions Revisions { get; private set; } = null!;
 
     [JsonInclude]
-    [JsonPropertyName("_revisions")]
+    [property:JsonPropertyName("_revisions")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private Revisions RevisionsOther { set { Revisions = value; } }
 
@@ -115,7 +112,7 @@ public abstract class CouchDocument
     public CouchAttachmentsCollection Attachments { get; set; } = new();
 
     [JsonInclude]
-    [JsonPropertyName("_attachments")]
+    [property:JsonPropertyName("_attachments")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonConverter(typeof(AttachmentsParsedConverter))]
     internal Dictionary<string, CouchAttachment> AttachmentsParsed { get; set; } = new();
@@ -124,7 +121,7 @@ public abstract class CouchDocument
     /// Used for database splitting
     /// </summary>
     [JsonInclude]
-    [JsonPropertyName(CouchClient.DefaultDatabaseSplitDiscriminator)]
+    [property:JsonPropertyName(CouchClient.DefaultDatabaseSplitDiscriminator)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     internal string? SplitDiscriminator { get; set; }
 }

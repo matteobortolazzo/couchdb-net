@@ -7,28 +7,28 @@ namespace CouchDB.Driver.ChangesFeed.Responses;
 [Serializable]
 public class ChangesFeedResponseResult<TSource>
 {
-    [JsonPropertyName("seq")]
+    [property:JsonPropertyName("seq")]
     public required string Seq { get; init; }
 
-    [JsonPropertyName("id")]
+    [property:JsonPropertyName("id")]
     public required string Id { get; init; }
 
-    [JsonPropertyName("deleted")]
+    [property:JsonPropertyName("deleted")]
     public bool Deleted { get; init; }
 
-    [JsonPropertyName("changes")]
+    [property:JsonPropertyName("changes")]
     public required IList<ChangesFeedResponseResultChange> Changes { get; init; }
 
-    [JsonPropertyName("roleIds")]
+    [property:JsonPropertyName("roleIds")]
     public IList<string>? RoleIds { get; init; }
 
-    [JsonPropertyName("createdAt")]
+    [property:JsonPropertyName("createdAt")]
     public DateTimeOffset? CreatedAt { get; init; }
 
-    [JsonPropertyName("createdBy")]
+    [property:JsonPropertyName("createdBy")]
     public string? CreatedBy { get; init; }
 
-    [JsonPropertyName("doc")]
+    [property:JsonPropertyName("doc")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TSource? Document { get; init; }
 }

@@ -1,11 +1,7 @@
 ﻿using CouchDB.Driver.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Authentication;
-using System.Text.Json;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Shared;
 

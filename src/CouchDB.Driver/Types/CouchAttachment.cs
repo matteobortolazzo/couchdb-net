@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text.Json.Serialization;
+﻿using System.IO;
 
 namespace CouchDB.Driver.Types;
 
@@ -31,32 +29,32 @@ public sealed class CouchAttachment
     /// <summary>
     ///     Gets whether the attachment object contains stub info and no content. 
     /// </summary>
-    [JsonPropertyName("stub")]
+    [property:JsonPropertyName("stub")]
     public bool Stub { get; init; }
 
     /// <summary>
     ///     Gets the attachment MIME type.
     /// </summary>
-    [JsonPropertyName("content_type")]
+    [property:JsonPropertyName("content_type")]
     public string? ContentType { get; set; }
 
     /// <summary>
     ///     Gets the content hash digest. It starts with prefix which announce hash type (md5-) and continues with
     ///     Base64-encoded hash digest.
     /// </summary>
-    [JsonPropertyName("digest")]
+    [property:JsonPropertyName("digest")]
     public string? Digest { get; init; }
 
     /// <summary>
     ///     Gets the real attachment size in bytes. Not available if attachment content requested.
     /// </summary>
-    [JsonPropertyName("length")]
+    [property:JsonPropertyName("length")]
     public long? Length { get; init; }
 
     /// <summary>
     ///     Gets the revision number when attachment was added.
     /// </summary>
-    [JsonPropertyName("revpos")]
+    [property:JsonPropertyName("revpos")]
     public int? RevPos { get; init; }
 
     /// <summary>
@@ -74,7 +72,7 @@ public sealed class CouchAttachment
     ///         </item>
     ///     </list>
     /// </remarks>
-    [JsonPropertyName("encoded_length")]
+    [property:JsonPropertyName("encoded_length")]
     public long? EncodedLength { get; init; }
 
     /// <summary>
@@ -91,6 +89,6 @@ public sealed class CouchAttachment
     ///         </item>
     ///     </list>
     /// </remarks>
-    [JsonPropertyName("data")]
+    [property:JsonPropertyName("data")]
     public string? Data { get; init; }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace CouchDB.Driver.Query.Extensions;
+﻿namespace CouchDB.Driver.Query.Extensions;
 
 public static class EnumerableQueryExtensions
 {

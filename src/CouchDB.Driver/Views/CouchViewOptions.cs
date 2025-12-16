@@ -15,21 +15,21 @@ public class CouchViewOptions<TKey>
     /// Include conflicts information in response.
     /// Ignored if <see cref="IncludeDocs"/> isn't <c>True</c>. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("conflicts")]
+    [property:JsonPropertyName("conflicts")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Conflicts { get; init; }
 
     /// <summary>
     /// Return the documents in descending order by key. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("descending")]
+    [property:JsonPropertyName("descending")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Descending { get; init; }
 
     /// <summary>
     /// Stop returning records when the specified key is reached.
     /// </summary>
-    [JsonPropertyName("endkey")]
+    [property:JsonPropertyName("endkey")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TKey? EndKey { get; init; }
 
@@ -37,7 +37,7 @@ public class CouchViewOptions<TKey>
     ///  Stop returning records when the specified document ID is reached.
     ///  Ignored if <see cref="EndKey"/> is not set.
     /// </summary>
-    [JsonPropertyName("endkey_docid")]
+    [property:JsonPropertyName("endkey_docid")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? EndKeyDocId { get; init; }
 
@@ -45,21 +45,21 @@ public class CouchViewOptions<TKey>
     ///  Group the results using the reduce function to a group or single row.
     ///  Implies reduce is <c>True</c> and the maximum <see cref="GroupLevel"/>. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("group")]
+    [property:JsonPropertyName("group")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Group { get; init; }
 
     /// <summary>
     /// Specify the group level to be used. Implies group is <c>True</c>.
     /// </summary>
-    [JsonPropertyName("group_level")]
+    [property:JsonPropertyName("group_level")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? GroupLevel { get; init; }
 
     /// <summary>
     ///  Include the associated document with each row. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("include_docs")]
+    [property:JsonPropertyName("include_docs")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? IncludeDocs { get; init; }
 
@@ -67,7 +67,7 @@ public class CouchViewOptions<TKey>
     /// Include the Base64-encoded content of attachments in the documents that are included if <see cref="IncludeDocs"/> is <c>True</c>.
     /// Ignored if <see cref="IncludeDocs"/> isn’t <c>True</c>. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("attachments")]
+    [property:JsonPropertyName("attachments")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Attachments { get; init; }
 
@@ -75,49 +75,49 @@ public class CouchViewOptions<TKey>
     /// Include encoding information in attachment stubs if <see cref="IncludeDocs"/> is <c>True</c> and the particular attachment is compressed.
     /// Ignored if <see cref="IncludeDocs"/> isn’t <c>True</c>. Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("att_encoding_info")]
+    [property:JsonPropertyName("att_encoding_info")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? AttachEncodingInfo { get; init; }
 
     /// <summary>
     ///  Specifies whether the specified end key should be included in the result. Default is <c>True</c>.
     /// </summary>
-    [JsonPropertyName("inclusive_end")]
+    [property:JsonPropertyName("inclusive_end")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? InclusiveEnd { get; init; }
 
     /// <summary>
     /// Return only documents that match the specified key.
     /// </summary>
-    [JsonPropertyName("key")]
+    [property:JsonPropertyName("key")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TKey? Key { get; init; }
 
     /// <summary>
     /// Return only documents where the key matches one of the keys specified in the array.
     /// </summary>
-    [JsonPropertyName("keys")]
+    [property:JsonPropertyName("keys")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IList<TKey>? Keys { get; init; }
 
     /// <summary>
     /// Limit the number of the returned documents to the specified number.
     /// </summary>
-    [JsonPropertyName("limit")]
+    [property:JsonPropertyName("limit")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Limit { get; init; }
 
     /// <summary>
     /// Use the reduction function. Default is <c>True</c> when a reduce function is defined.
     /// </summary>
-    [JsonPropertyName("reduce")]
+    [property:JsonPropertyName("reduce")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Reduce { get; init; }
 
     /// <summary>
     /// Skip this number of records before starting to return the results. Default is <code>0</code>.
     /// </summary>
-    [JsonPropertyName("skip")]
+    [property:JsonPropertyName("skip")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Skip { get; init; }
 
@@ -127,7 +127,7 @@ public class CouchViewOptions<TKey>
     /// The <see cref="CouchViewResult{TKey, TRow}.TotalRows"/> and <see cref="CouchViewResult{TKey, TRow}.Offset"/> fields are not available when this is set to <c>False</c>.
     /// Default is <c>True</c>.
     /// </summary>
-    [JsonPropertyName("sorted")]
+    [property:JsonPropertyName("sorted")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? Sorted { get; init; }
 
@@ -138,21 +138,21 @@ public class CouchViewOptions<TKey>
     [JsonIgnore]
     public StableStyle? Stable { get; init; }
 
-    [JsonPropertyName("stable")]
+    [property:JsonPropertyName("stable")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     internal string? StableString => Stable?.ToString();
 
     /// <summary>
     /// Return records starting with the specified key.
     /// </summary>
-    [JsonPropertyName("startkey")]
+    [property:JsonPropertyName("startkey")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TKey? StartKey { get; init; }
 
     /// <summary>
     /// Return records starting with the specified document ID. Ignored if <see cref="StartKey"/> is not set.
     /// </summary>
-    [JsonPropertyName("startkey_docid")]
+    [property:JsonPropertyName("startkey_docid")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? StartKeyDocId { get; init; }
 
@@ -163,7 +163,7 @@ public class CouchViewOptions<TKey>
     [JsonIgnore]
     public UpdateStyle? Update { get; init; }
 
-    [JsonPropertyName("update")]
+    [property:JsonPropertyName("update")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     internal string? UpdateString => Update?.ToString();
 
@@ -171,7 +171,7 @@ public class CouchViewOptions<TKey>
     /// Whether to include in the response an <see cref="UpdateSeq"/> value indicating the sequence id of the database the view reflects.
     /// Default is <c>False</c>.
     /// </summary>
-    [JsonPropertyName("update_seq")]
+    [property:JsonPropertyName("update_seq")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? UpdateSeq { get; init; }
 }

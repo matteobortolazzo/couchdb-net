@@ -11,12 +11,12 @@ public sealed class CouchSecurityInfoType
     /// <summary>
     /// List of CouchDB users' names.
     /// </summary>
-    [JsonPropertyName("names")]
+    [property:JsonPropertyName("names")]
     public List<string> Names { get; } = [];
 
     /// <summary>
     /// List of users roles.
     /// </summary>
-    [JsonPropertyName("roles")]
+    [property:JsonPropertyName("roles")]
     public List<string> Roles { get; } = [];
 }

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+﻿
 using System.Reflection;
 using CouchDB.Driver.Query.Extensions;
 

@@ -1,15 +1,12 @@
-﻿using System;
-using System.Text.Json.Serialization;
-
-namespace CouchDB.Driver.DTOs;
+﻿namespace CouchDB.Driver.DTOs;
 
 [Serializable]
 internal class CreateIndexResult
 {
-    [JsonPropertyName("result")]
+    [property:JsonPropertyName("result")]
     public required string Result { get; init; }
-    [JsonPropertyName("id")]
+    [property:JsonPropertyName("id")]
     public required string Id { get; init; }
-    [JsonPropertyName("name")]
+    [property:JsonPropertyName("name")]
     public required string Name { get; init; }
 }

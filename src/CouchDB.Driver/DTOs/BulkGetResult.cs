@@ -8,6 +8,6 @@ namespace CouchDB.Driver.DTOs;
 [Serializable]
 internal class BulkGetResult<TSource> where TSource : CouchDocument
 {
-    [JsonPropertyName("results")]
+    [property:JsonPropertyName("results")]
     public required List<BulkGetResultDoc<TSource>> Results { get; init; }
 }

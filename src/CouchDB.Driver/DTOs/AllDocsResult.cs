@@ -7,35 +7,35 @@ namespace CouchDB.Driver.DTOs;
 [Serializable]
 internal class AllDocsResult<T>
 {
-    [JsonPropertyName("total_rows")]
+    [property:JsonPropertyName("total_rows")]
     public int TotalRows { get; init; }
 
-    [JsonPropertyName("offset")]
+    [property:JsonPropertyName("offset")]
     public int Offset { get; init; }
 
-    [JsonPropertyName("rows")]
+    [property:JsonPropertyName("rows")]
     public required IEnumerable<AllDocsRow<T>> Rows { get; init; }
 }
 
 [Serializable]
 internal class AllDocsRow<T>
 {
-    [JsonPropertyName("id")]
+    [property:JsonPropertyName("id")]
     public required string Id { get; init; }
 
-    [JsonPropertyName("key")]
+    [property:JsonPropertyName("key")]
     public required string Key { get; init; }
 
-    [JsonPropertyName("value")]
+    [property:JsonPropertyName("value")]
     public required AllDocsValue Value { get; init; }
 
-    [JsonPropertyName("doc")]
+    [property:JsonPropertyName("doc")]
     public T? Doc { get; init; }
 }
 
 [Serializable]
 internal class AllDocsValue
 {
-    [JsonPropertyName("rev")]
+    [property:JsonPropertyName("rev")]
     public required string Rev { get; init; }
 }

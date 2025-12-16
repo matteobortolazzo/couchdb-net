@@ -1,19 +1,16 @@
-﻿using System;
-using System.Text.Json.Serialization;
-
-namespace CouchDB.Driver.DTOs;
+﻿namespace CouchDB.Driver.DTOs;
 
 [Serializable]
 internal class DocumentSaveResponse
 {    
-    [JsonPropertyName("ok")]
+    [property:JsonPropertyName("ok")]
     public bool Ok { get; init; }
-    [JsonPropertyName("id")]
+    [property:JsonPropertyName("id")]
     public string? Id { get; init; }
-    [JsonPropertyName("rev")]
+    [property:JsonPropertyName("rev")]
     public string? Rev { get; init; }
-    [JsonPropertyName("error")]
+    [property:JsonPropertyName("error")]
     public string? Error { get; init; }
-    [JsonPropertyName("reason")]
+    [property:JsonPropertyName("reason")]
     public string? Reason { get; init; }
 }

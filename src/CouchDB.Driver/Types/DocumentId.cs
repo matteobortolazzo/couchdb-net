@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CouchDB.Driver.Types;
+﻿namespace CouchDB.Driver.Types;
 
 public class DocumentId(string id, string rev)
 {

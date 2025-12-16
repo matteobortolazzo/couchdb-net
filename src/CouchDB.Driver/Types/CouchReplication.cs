@@ -1,30 +1,28 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿namespace CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Types;
-
+// TODO: Review
 [Serializable]
 public class CouchReplication : CouchDocument
 {
-    [JsonPropertyName("source")]
+    [property:JsonPropertyName("source")]
     public object? Source { get; set; }
 
     public CouchReplicationBasicCredentials? SourceCredentials { get; init; }
 
-    [JsonPropertyName("target")]
+    [property:JsonPropertyName("target")]
     public object? Target { get; set; }
 
     public CouchReplicationBasicCredentials? TargetCredentials { get; init; }
 
-    [JsonPropertyName("continuous")]
+    [property:JsonPropertyName("continuous")]
     public bool Continuous { get; init; }
 
-    [JsonPropertyName("selector")]
+    [property:JsonPropertyName("selector")]
     public object? Selector { get; init; }
 
-    [JsonPropertyName("cancel")]
+    [property:JsonPropertyName("cancel")]
     public bool Cancel { get; set; }
         
-    [JsonPropertyName("create_target")]
+    [property:JsonPropertyName("create_target")]
     public bool CreateTarget{ get; init; }
 }

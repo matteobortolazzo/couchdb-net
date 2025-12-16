@@ -1,35 +1,20 @@
-﻿using System;
-using System.Text.Json.Serialization;
-
-namespace CouchDB.Driver.Types;
+﻿namespace CouchDB.Driver.Types;
 
 /// <summary>
-/// Represents cluster information.
+/// Represents cluster configuration.
 /// </summary>
+/// <param name="Replicas">The number of copies of every document.</param>
+/// <param name="Shards">The number of range partitions.</param>
+/// <param name="ReadQuorum">The number of consistent copies of a document that need to be read before a successful reply.</param>
+/// <param name="WriteQuorum">The number of copies of a document that need to be written before a successful reply.</param>
 [Serializable]
-public sealed class Cluster
-{
-    /// <summary>
-    /// The number of copies of every document.
-    /// </summary>
-    [JsonPropertyName("n")]
-    public int Replicas { get; internal init; }
-
-    /// <summary>
-    /// The number of range partitions.
-    /// </summary>
-    [JsonPropertyName("q")]
-    public int Shards { get; internal init; }
-
-    /// <summary>
-    /// The number of consistent copies of a document that need to be read before a successful reply.
-    /// </summary>
-    [JsonPropertyName("r")]
-    public int ReadQuorum { get; internal init; }
-
-    /// <summary>
-    /// The number of copies of a document that need to be written before a successful reply.
-    /// </summary>
-    [JsonPropertyName("w")]
-    public int WriteQuorum { get; internal init; }        
-}
+public sealed record Cluster(
+    [property: JsonPropertyName("n")]
+    int Replicas,
+    [property: JsonPropertyName("q")]
+    int Shards,
+    [property: JsonPropertyName("r")]
+    int ReadQuorum,
+    [property: JsonPropertyName("w")]
+    int WriteQuorum
+);

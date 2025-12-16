@@ -8,12 +8,12 @@ namespace CouchDB.Driver.ChangesFeed.Responses;
 [Serializable]
 public class ChangesFeedResponse<TSource> where TSource : CouchDocument
 {
-    [JsonPropertyName("last_seq")]
+    [property:JsonPropertyName("last_seq")]
     public required string LastSequence { get; init; }
 
-    [JsonPropertyName("pending")]
+    [property:JsonPropertyName("pending")]
     public int Pending { get; init; }
 
-    [JsonPropertyName("results")]
+    [property:JsonPropertyName("results")]
     public required IList<ChangesFeedResponseResult<TSource>> Results { get; set; }
 }

@@ -12,6 +12,6 @@ internal class CouchViewQueryResult<TKey, TValue, TDoc>
     /// <summary>
     /// The results in the same order as the queries.
     /// </summary>
-    [JsonPropertyName("results")]
+    [property:JsonPropertyName("results")]
     public required CouchViewList<TKey, TValue, TDoc>[] Results { get; init; }
 }

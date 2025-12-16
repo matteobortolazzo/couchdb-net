@@ -1,74 +1,42 @@
-﻿using System;
-using CouchDB.Driver.Helpers;
-using System.Text.Json.Serialization;
+﻿using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Types;
 
 /// <summary>
-/// Represents an active task.
+/// Represents an active task
 /// </summary>
+/// <param name="ChangesDone">Processes changes.</param>
+/// <param name="Database">Source database.</param>
+/// <param name="PID">Process ID</param>
+/// <param name="Progress">Current percentage progress.</param>
+/// <param name="StartedOn">Task start time.</param>
+/// <param name="Status">Task status message.</param>
+/// <param name="Task">Task name.</param>
+/// <param name="TotalChanges">Total changes to process.</param>
+/// <param name="Type">Operation type.</param>
+/// <param name="UpdatedOn">Last operation update.</param>
 [Serializable]
-public sealed class CouchActiveTask
-{
-    /// <summary>
-    /// Processes changes.
-    /// </summary>
-    [JsonPropertyName("changes-done")]
-    public int ChangesDone { get; internal init; }
-
-    /// <summary>
-    /// Source database.
-    /// </summary>
-    [JsonPropertyName("database")]
-    public required string Database { get; init; }
-
-    /// <summary>
-    /// Process ID
-    /// </summary>
-    [JsonPropertyName("pid")]
-    public required string PID { get; init; }
-
-    /// <summary>
-    /// Current percentage progress.
-    /// </summary>
-    [JsonPropertyName("progress")]
-    public int Progress { get; internal init; }
-
-    /// <summary>
-    /// Task start time.
-    /// </summary>
-    [JsonPropertyName("started_on")]
-    [JsonConverter(typeof(MicrosecondEpochConverter))]
-    public DateTimeOffset StartedOn { get; internal init; }
-
-    /// <summary>
-    /// Task status message.
-    /// </summary>
-    [JsonPropertyName("status")]
-    public string? Status { get; init; }
-
-    /// <summary>
-    /// Task name.
-    /// </summary>
-    [JsonPropertyName("task")]
-    public string? Task { get; init; }
-
-    /// <summary>
-    /// Total changes to process.
-    /// </summary>
-    [JsonPropertyName("total_changes-done")]
-    public int TotalChanges { get; internal init; }
-
-    /// <summary>
-    /// Operation type.
-    /// </summary>
-    [JsonPropertyName("type")]
-    public required string Type { get; init; }
-
-    /// <summary>
-    /// Last operation update.
-    /// </summary>
-    [JsonPropertyName("updated_on")]
-    [JsonConverter(typeof(MicrosecondEpochConverter))]
-    public DateTimeOffset UpdatedOn { get; internal init; }
-}
+public sealed record CouchActiveTask(
+    [property: JsonPropertyName("changes-done")]
+    int ChangesDone,
+    [property: JsonPropertyName("database")]
+    string Database,
+    [property: JsonPropertyName("pid")]
+    string PID,
+    [property: JsonPropertyName("progress")]
+    int Progress,
+    [property: JsonPropertyName("started_on")]
+    [property: JsonConverter(typeof(MicrosecondEpochConverter))]
+    DateTimeOffset StartedOn,
+    [property: JsonPropertyName("status")]
+    string? Status,
+    [property: JsonPropertyName("task")]
+    string? Task,
+    [property: JsonPropertyName("total_changes-done")]
+    int TotalChanges,
+    [property: JsonPropertyName("type")]
+    string Type,
+    [property: JsonPropertyName("updated_on")]
+    [property: JsonConverter(typeof(MicrosecondEpochConverter))]
+    DateTimeOffset UpdatedOn
+);

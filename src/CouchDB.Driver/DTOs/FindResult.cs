@@ -8,15 +8,15 @@ namespace CouchDB.Driver.DTOs;
 [Serializable]
 internal class FindResult<T>
 {
-    [JsonPropertyName("docs")]
+    [property:JsonPropertyName("docs")]
     public required IEnumerable<T> Docs { get; init; }
 
-    [JsonPropertyName("bookmark")]
+    [property:JsonPropertyName("bookmark")]
     public required string Bookmark { get; init; }
 
-    [JsonPropertyName("execution_stats")]
+    [property:JsonPropertyName("execution_stats")]
     public ExecutionStats? ExecutionStats { get; init; }
 
-    [JsonPropertyName("warning")]
+    [property:JsonPropertyName("warning")]
     public string? Warning { get; init; }
 }

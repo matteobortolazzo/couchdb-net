@@ -18,18 +18,18 @@ public class CouchViewList<TKey, TValue, TDoc>
     /// <summary>
     /// Number of documents in the database/view.
     /// </summary>
-    [JsonPropertyName("total_rows")]
+    [property:JsonPropertyName("total_rows")]
     public int TotalRows { get; init; }
 
     /// <summary>
     /// Offset where the document list started.
     /// </summary>
-    [JsonPropertyName("offset")]
+    [property:JsonPropertyName("offset")]
     public int Offset { get; init; }
 
     /// <summary>
     /// Array of view row objects. This result contains the document ID, value and the documents.
     /// </summary>
-    [JsonPropertyName("rows")]
+    [property:JsonPropertyName("rows")]
     public required List<CouchView<TKey, TValue, TDoc>> Rows { get; init; }
 }

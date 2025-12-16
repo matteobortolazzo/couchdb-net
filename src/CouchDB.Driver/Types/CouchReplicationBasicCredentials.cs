@@ -1,23 +1,10 @@
-﻿using System.Text.Json.Serialization;
-using System;
+﻿namespace CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Types;
-
+// TODO Review
 [Serializable]
-public class CouchReplicationBasicCredentials
-{
-    public CouchReplicationBasicCredentials(string username, string password)
-    {
-        ArgumentNullException.ThrowIfNull(username);
-        ArgumentNullException.ThrowIfNull(password);
-
-        Username = username;
-        Password = password;
-    }
-
-    [JsonPropertyName("username")]
-    public string Username { get; init; }
-
-    [JsonPropertyName("password")]
-    public string Password { get; init; }
-}
+public sealed record CouchReplicationBasicCredentials(
+    [property: JsonPropertyName("username")]
+    string Username,
+    [property: JsonPropertyName("password")]
+    string Password
+);

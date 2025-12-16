@@ -1,14 +1,9 @@
-using System;
-using System.Text.Json.Serialization;
-
 namespace CouchDB.Driver.Types;
 
+// TODO: Add docs
 [Serializable]
-public class RevisionInfo
-{
-    [JsonPropertyName("rev")]
-    public required string Rev { get; init; }
-    
-    [JsonPropertyName("status")]
-    public required string Status { get; init; }
-}
+public sealed record RevisionInfo(
+    [property: JsonPropertyName("rev")]
+    string Rev,
+    [property: JsonPropertyName("status")]
+    string Status);
