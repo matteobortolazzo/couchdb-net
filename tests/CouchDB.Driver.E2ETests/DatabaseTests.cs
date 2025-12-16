@@ -42,18 +42,21 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 
         var lineCount = 0;
         var tokenSource = new CancellationTokenSource();
-        await foreach (var l in fixture.Rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
+        await foreach (var unused in fixture.Rebels
+                           .GetContinuousChangesAsync(null, null, tokenSource.Token))
         {
             lineCount++;
             if (lineCount == 20)
             {
-                _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
-                _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
+                _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 },
+                    cancellationToken: tokenSource.Token);
+                _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 },
+                    cancellationToken: tokenSource.Token);
             }
 
             if (lineCount == 22)
             {
-                tokenSource.Cancel();
+                await tokenSource.CancelAsync();
             }
         }
     }
@@ -71,9 +74,30 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         luke = await fixture.Rebels.FindAsync(luke.Id);
         Assert.Equal(19, luke.Age);
 
-        await fixture.Rebels.RemoveAsync(luke);
+        await fixture.Rebels.DeleteAsync(luke);
         luke = await fixture.Rebels.FindAsync(luke.Id);
         Assert.Null(luke);
+    }
+
+    [Fact]
+    public async Task Crud_Range()
+    {
+        var luke = new Rebel { Name = "Luke", Age = 19 };
+        var results = await fixture.Rebels.AddOrUpdateRangeAsync([luke]);
+        luke = results[0];
+        Assert.Equal("Luke", luke.Name);
+
+        luke.Surname = "Skywalker";
+        results = await fixture.Rebels.AddOrUpdateRangeAsync([luke]);
+        luke = results[0];
+        Assert.Equal("Luke", luke.Name);
+
+        results = await fixture.Rebels.FindManyAsync([luke.Id]);
+        Assert.NotEmpty(results);
+
+        await fixture.Rebels.DeleteRangeAsync([luke]);
+        results = await fixture.Rebels.FindManyAsync([luke.Id]);
+        Assert.Empty(results);
     }
 
     [Fact]
@@ -126,7 +150,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         luke = await rebels.FindAsync(luke.Id);
         Assert.Equal(19, luke.Age);
 
-        await rebels.RemoveAsync(luke);
+        await rebels.DeleteAsync(luke);
         luke = await rebels.FindAsync(luke.Id);
         Assert.Null(luke);
 

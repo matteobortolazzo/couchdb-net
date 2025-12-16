@@ -22,7 +22,7 @@ public class ClientTests(TestFixture fixture) : IClassFixture<TestFixture>
 
         luke = await users.ChangeUserPassword(luke, "r2d2");
 
-        await users.RemoveAsync(luke);
+        await users.DeleteAsync(luke);
         luke = await users.FindAsync(luke.Id);
         Assert.Null(luke);
 

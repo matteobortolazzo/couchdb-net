@@ -275,7 +275,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             var r = new Rebel { Name = "Luke", Id = "1", Rev = "1" };
-            await _rebels.RemoveAsync(r);
+            await _rebels.DeleteAsync(r);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1?rev=1")
                 .WithVerb(HttpMethod.Delete);

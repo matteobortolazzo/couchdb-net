@@ -124,6 +124,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
     /// <inheritdoc />
     public async Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds,
+        bool includeDeleted = false,
         CancellationToken cancellationToken = default)
     {
         BulkGetResult<TSource> bulkGetResult = await NewRequest()
@@ -136,7 +137,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         var documents = bulkGetResult.Results
             .SelectMany(r => r.Docs)
             .Select(d => d.Item)
-            .Where(i => i != null)
+            .Where(i => i != null && (includeDeleted || !i.Deleted))
             .Cast<TSource>()
             .ToList();
 
@@ -274,7 +275,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     /// <inheritdoc />
-    public async Task RemoveAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
 
@@ -300,7 +301,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents,
+    public async Task<IList<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(documents);
@@ -328,18 +329,18 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                 .ConfigureAwait(false);
         }
 
-        return documents;
+        return documents.ToList();
     }
 
     /// <inheritdoc />
-    public Task DeleteRangeAsync(IEnumerable<TSource> documents, CancellationToken cancellationToken = default)
+    public Task DeleteRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default)
     {
         DocumentId[] docIds = documents.Select(doc => (DocumentId)doc).ToArray();
         return DeleteRangeAsync(docIds, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task DeleteRangeAsync(IEnumerable<DocumentId> documentIds,
+    public async Task DeleteRangeAsync(IList<DocumentId> documentIds,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(documentIds);

@@ -61,9 +61,11 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// Finds all documents with given IDs.
     /// </summary>
     /// <param name="docIds">The collection of documents IDs.</param>
+    /// <param name="includeDeleted"></param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/> that contains elements from the database.</retuns>
     Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds,
+        bool includeDeleted = false,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -110,7 +112,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="batch">Stores document in batch mode.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task RemoveAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
+    Task DeleteAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates or updates a sequence of documents based on their IDs.
@@ -118,7 +120,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="documents">Documents to create or update</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the elements created or updated.</returns>
-    Task<IEnumerable<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents,
+    Task<IList<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -127,7 +129,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="documents">The documents to delete.</param>
     /// <param name="cancellationToken"> <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteRangeAsync(IEnumerable<TSource> documents, CancellationToken cancellationToken = default);
+    Task DeleteRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Delete multiple documents based on their ID and revision.
@@ -135,7 +137,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="documentIds">Documents to delete</param>
     /// <param name="cancellationToken"> <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteRangeAsync(IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken = default);
+    Task DeleteRangeAsync(IList<DocumentId> documentIds, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes the specified view function from the specified design document.
