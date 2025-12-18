@@ -1,8 +1,4 @@
-﻿
-using CouchDB.Driver.Types;
-using System.Text.Json.Serialization;
-
-namespace CouchDB.Driver.Local;
+﻿namespace CouchDB.Driver.Local;
 
 [Serializable]
 internal class LocalDocumentsResult

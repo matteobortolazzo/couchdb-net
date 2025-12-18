@@ -87,7 +87,7 @@ public abstract class CouchContext : IAsyncDisposable
 
     private async Task InitDatabaseAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options,
         CouchDatabaseBuilder databaseBuilder)
-        where TSource : CouchDocument
+        where TSource: class
     {
         ICouchDatabase<TSource> database;
         Type documentType = typeof(TSource);
@@ -114,7 +114,7 @@ public abstract class CouchContext : IAsyncDisposable
 
     private async Task ApplyDatabaseChangesAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options,
         CouchDatabaseBuilder databaseBuilder)
-        where TSource : CouchDocument
+        where TSource: class
     {
         Type documentType = typeof(TSource);
         if (!databaseBuilder.DocumentBuilders.TryGetValue(documentType, out CouchDocumentBuilder? value))
@@ -144,7 +144,7 @@ public abstract class CouchContext : IAsyncDisposable
         IEnumerable<IndexInfo> indexes,
         IndexSetupDefinition<TSource> indexSetup,
         CouchDatabase<TSource> database)
-        where TSource : CouchDocument
+        where TSource: class
     {
         IndexInfo? currentIndex = TryFindIndex(
             indexes,

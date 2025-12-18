@@ -3,7 +3,6 @@ using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Security;
-using CouchDB.Driver.Types;
 using Flurl.Http;
 using System.IO;
 using System.Linq.Expressions;
@@ -24,6 +23,7 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using CouchDB.Driver.Views;
 using CouchDB.Driver.DatabaseApiMethodOptions;
+using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver;
 
@@ -32,7 +32,7 @@ namespace CouchDB.Driver;
 /// </summary>
 /// <typeparam name="TSource">The type of database documents.</typeparam>
 public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
-    where TSource : CouchDocument
+    where TSource : class
 {
     private readonly Regex _feedChangeLineStartPattern;
     private readonly IAsyncQueryProvider _queryProvider;

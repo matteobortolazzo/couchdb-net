@@ -1,6 +1,5 @@
 ﻿using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
-using CouchDB.Driver.Types;
 using Flurl.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,6 +12,7 @@ using System.Threading;
 using CouchDB.Driver.DelegatingHandlers;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
+using CouchDB.Driver.Types;
 using Flurl.Http.Configuration;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
@@ -124,7 +124,7 @@ public partial class CouchClient : ICouchClient
 
     /// <inheritdoc />
     public ICouchDatabase<TSource> GetDatabase<TSource>(string database, string? discriminator = null)
-        where TSource : CouchDocument
+        where TSource: class
     {
         CheckDatabaseName(database);
         var queryContext = new QueryContext(Endpoint, database, _options.ThrowOnQueryWarning);
@@ -135,7 +135,7 @@ public partial class CouchClient : ICouchClient
     public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database,
         int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
         CancellationToken cancellationToken = default)
-        where TSource : CouchDocument
+        where TSource: class
     {
         QueryContext queryContext = NewQueryContext(database);
         IFlurlResponse response =
@@ -159,7 +159,7 @@ public partial class CouchClient : ICouchClient
     public async Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
         int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
         CancellationToken cancellationToken = default)
-        where TSource : CouchDocument
+        where TSource: class
     {
         QueryContext queryContext = NewQueryContext(database);
         IFlurlResponse response =
@@ -225,7 +225,7 @@ public partial class CouchClient : ICouchClient
     #region CRUD reflection
 
     /// <inheritdoc />
-    public ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument
+    public ICouchDatabase<TSource> GetDatabase<TSource>() where TSource: class
     {
         return GetDatabase<TSource>(TypeExtensions.GetDatabaseName<TSource>());
     }
@@ -233,7 +233,7 @@ public partial class CouchClient : ICouchClient
     /// <inheritdoc />
     public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
         bool? partitioned = null, string? discriminator = null,
-        CancellationToken cancellationToken = default) where TSource : CouchDocument
+        CancellationToken cancellationToken = default) where TSource: class
     {
         return CreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas, partitioned,
             discriminator,
@@ -243,7 +243,7 @@ public partial class CouchClient : ICouchClient
     /// <inheritdoc />
     public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
         bool? partitioned = null, string? discriminator = null,
-        CancellationToken cancellationToken = default) where TSource : CouchDocument
+        CancellationToken cancellationToken = default) where TSource: class
     {
         return GetOrCreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas,
             partitioned, discriminator,
@@ -252,7 +252,7 @@ public partial class CouchClient : ICouchClient
 
     /// <inheritdoc />
     public Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default)
-        where TSource : CouchDocument
+        where TSource: class
     {
         return DeleteDatabaseAsync(TypeExtensions.GetDatabaseName<TSource>(), cancellationToken);
     }

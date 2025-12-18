@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Shared;
-using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Query;
 

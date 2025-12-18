@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq.Expressions;
-using CouchDB.Driver.Types;
+﻿using System.Linq.Expressions;
 
 namespace CouchDB.Driver.Indexes;
 
@@ -9,7 +7,7 @@ namespace CouchDB.Driver.Indexes;
 /// </summary>
 /// <typeparam name="TSource">The type of the document.</typeparam>
 public interface IOrderedIndexBuilder<TSource> : IIndexBuilderBase<TSource>
-    where TSource : CouchDocument
+    where TSource: class
 {
     /// <summary>
     /// Adds a field for the index sort in ascending order.

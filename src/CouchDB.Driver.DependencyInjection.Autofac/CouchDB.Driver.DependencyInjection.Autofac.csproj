@@ -26,8 +26,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CouchDB.NET" Version="3.3.*" />
 		<PackageReference Include="Autofac" Version="9.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\CouchDB.Driver\CouchDB.Driver.csproj" />
 	</ItemGroup>
 
 </Project>

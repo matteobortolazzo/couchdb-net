@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-
-using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Query.Extensions;
 

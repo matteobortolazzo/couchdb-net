@@ -8,7 +8,7 @@ namespace CouchDB.Driver.Indexes;
 
 internal class IndexBuilder<TSource>(CouchOptions options, IAsyncQueryProvider queryProvider) : IIndexBuilder<TSource>,
     IOrderedIndexBuilder<TSource>, IOrderedDescendingIndexBuilder<TSource>
-    where TSource : CouchDocument
+    where TSource: class
 {
     private bool _ascending = true;
     private readonly List<string> _fields = [];

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Indexes;

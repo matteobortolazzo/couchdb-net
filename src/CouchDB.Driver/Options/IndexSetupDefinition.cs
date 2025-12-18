@@ -1,6 +1,5 @@
 ﻿using System;
 using CouchDB.Driver.Indexes;
-using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Options;
 
@@ -8,7 +7,7 @@ internal class IndexSetupDefinition<TSource>(
     string name,
     Action<IIndexBuilder<TSource>> indexBuilderAction,
     IndexOptions? options)
-    where TSource : CouchDocument
+    where TSource: class
 {
     public string Name { get; } = name;
     public Action<IIndexBuilder<TSource>> IndexBuilderAction { get; } = indexBuilderAction;

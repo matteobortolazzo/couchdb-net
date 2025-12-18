@@ -1252,10 +1252,10 @@ public static class QueryableAsyncExtensions
     /// <typeparam name="TSource">
     ///     The type of the elements of <paramref name="source" />.
     /// </typeparam>
-    extension<TSource>(IQueryable<TSource> source) where TSource : CouchDocument
+    extension<TSource>(IQueryable<TSource> source) where TSource: class
     {
         /// <summary>
-        ///     Asynchronously creates a <see cref="CouchList{T}" /> from an <see cref="IQueryable{T}" /> by enumerating it
+        ///     Asynchronously creates a <see cref="CouchList{TSource}" /> from an <see cref="IQueryable{T}" /> by enumerating it
         ///     asynchronously.
         /// </summary>
         /// <remarks>
@@ -1330,7 +1330,7 @@ public static class QueryableAsyncExtensions
     /// <typeparam name="TSource">
     ///     The type of the elements of <paramref name="source" />.
     /// </typeparam>
-    extension<TSource>(IQueryable<TSource> source) where TSource : CouchDocument
+    extension<TSource>(IQueryable<TSource> source) where TSource: class
     {
         /// <summary>
         ///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
@@ -1525,7 +1525,7 @@ public static class QueryableAsyncExtensions
             operatorMethodInfo, source, (Expression?)null, cancellationToken);
 
     private static CouchQueryable<TSource> AsCouchQueryable<TSource>(this IQueryable<TSource> source)
-        where TSource : CouchDocument
+        where TSource: class
     {
         if (source is CouchQueryable<TSource> couchQuery)
         {

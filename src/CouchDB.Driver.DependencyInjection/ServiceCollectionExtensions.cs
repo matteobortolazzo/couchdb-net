@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(optionBuilderAction);
 
         var builder = new CouchOptionsBuilder<TContext>();
-        optionBuilderAction?.Invoke(builder);
+        optionBuilderAction.Invoke(builder);
         return services
             .AddSingleton(builder.Options)
             .AddSingleton<TContext>();

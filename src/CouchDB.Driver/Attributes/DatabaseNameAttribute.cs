@@ -1,5 +1,3 @@
-using System;
-
 namespace CouchDB.Driver.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]

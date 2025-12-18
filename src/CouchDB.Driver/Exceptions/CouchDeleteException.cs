@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CouchDB.Driver.Exceptions;
+﻿namespace CouchDB.Driver.Exceptions;
 
 public class CouchDeleteException : CouchException
 {

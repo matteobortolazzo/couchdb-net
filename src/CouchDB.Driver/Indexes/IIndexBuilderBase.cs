@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq.Expressions;
-using CouchDB.Driver.Types;
+﻿using System.Linq.Expressions;
 
 namespace CouchDB.Driver.Indexes;
 
@@ -9,7 +7,7 @@ namespace CouchDB.Driver.Indexes;
 /// </summary>
 /// <typeparam name="TSource">The type of the document.</typeparam>
 public interface IIndexBuilderBase<TSource>
-    where TSource : CouchDocument
+    where TSource: class
 {
     /// <summary>
     /// Creates a partial index which excludes documents based on the predicate at index time.

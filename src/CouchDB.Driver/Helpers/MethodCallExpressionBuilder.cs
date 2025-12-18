@@ -1,9 +1,6 @@
-﻿using System;
-
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Helpers;
 
@@ -135,7 +132,7 @@ internal static class MethodCallExpressionBuilder
     }
 
     public static MethodCallExpression WrapInDiscriminatorFilter<TSource>(this Expression node, string discriminator)
-        where TSource : CouchDocument
+        where TSource: class
     {
         ArgumentNullException.ThrowIfNull(node);
 

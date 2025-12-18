@@ -2,10 +2,10 @@ namespace CouchDB.Driver.Types;
 
 public abstract class BulkOperation
 {
-    public static BulkOperation Add<TSource>(TSource document) where TSource : CouchDocument
+    public static BulkOperation Add<TSource>(TSource document) where TSource: class
         => new AddOperation(document);
 
-    public static BulkOperation Update<TSource>(TSource document, string id, string rev) where TSource : CouchDocument
+    public static BulkOperation Update<TSource>(TSource document, string id, string rev) where TSource: class
         => new UpdateOperation(id, rev, document);
 
     public static BulkOperation Delete(string id, string rev)

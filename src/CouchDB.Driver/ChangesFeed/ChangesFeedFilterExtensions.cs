@@ -8,7 +8,6 @@ using CouchDB.Driver.ChangesFeed.Filters;
 using CouchDB.Driver.ChangesFeed.Responses;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Query;
-using CouchDB.Driver.Types;
 using Flurl.Http;
 
 namespace CouchDB.Driver.ChangesFeed;
@@ -19,7 +18,7 @@ internal static class ChangesFeedFilterExtensions
     {
         public async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider, ChangesFeedFilter filter,
             CancellationToken cancellationToken)
-            where TSource : CouchDocument
+            where TSource: class
         {
             if (filter is DocumentIdsChangesFeedFilter documentIdsFilter)
             {
@@ -74,7 +73,7 @@ internal static class ChangesFeedFilterExtensions
         }
 
         public async Task<Stream> QueryContinuousWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider, ChangesFeedFilter filter, CancellationToken cancellationToken)
-            where TSource : CouchDocument
+            where TSource: class
         {
             if (filter is DocumentIdsChangesFeedFilter documentIdsFilter)
             {

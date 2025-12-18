@@ -1,5 +1,4 @@
 ﻿
-using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Options;
 
@@ -13,7 +12,7 @@ public class CouchDatabaseBuilder
     }
 
     public CouchDocumentBuilder<TSource> Document<TSource>()
-        where TSource : CouchDocument
+        where TSource: class
     {
         Type documentType = typeof(TSource);
         if (!DocumentBuilders.TryGetValue(documentType, out CouchDocumentBuilder? value))

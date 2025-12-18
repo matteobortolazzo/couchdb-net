@@ -1,6 +1,4 @@
 ﻿using CouchDB.Driver.DTOs;
-using System;
-
 namespace CouchDB.Driver.Exceptions;
 
 /// <summary>

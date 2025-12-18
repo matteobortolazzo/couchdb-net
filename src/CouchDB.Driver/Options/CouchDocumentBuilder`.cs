@@ -1,11 +1,10 @@
 ﻿using CouchDB.Driver.Indexes;
-using CouchDB.Driver.Types;
 
 
 namespace CouchDB.Driver.Options;
 
 public class CouchDocumentBuilder<TSource> : CouchDocumentBuilder
-    where TSource : CouchDocument
+    where TSource: class
 {
     internal List<IndexSetupDefinition<TSource>> IndexDefinitions { get; }
 

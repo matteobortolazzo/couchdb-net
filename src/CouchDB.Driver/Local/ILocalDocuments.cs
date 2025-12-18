@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Types;
 
@@ -44,7 +43,7 @@ public interface ILocalDocuments
     ///     The task result contains the document content.
     /// </returns>
     Task<TSource> GetAsync<TSource>(string id, CancellationToken cancellationToken = default)
-        where TSource: CouchDocument;
+        where TSource: class;
 
     /// <summary>
     /// Stores the specified local document. 
@@ -57,7 +56,7 @@ public interface ILocalDocuments
     ///     A task that represents the asynchronous operation.
     /// </returns>
     Task CreateOrUpdateAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
-        where TSource : CouchDocument;
+        where TSource: class;
 
     /// <summary>
     /// Deletes the specified local document. 
@@ -70,5 +69,5 @@ public interface ILocalDocuments
     ///     A task that represents the asynchronous operation.
     /// </returns>
     Task DeleteAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
-        where TSource : CouchDocument;
+        where TSource: class;
 }

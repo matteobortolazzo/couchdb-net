@@ -37,7 +37,7 @@ public class FindDocumentRequestOptions
     public bool Latest { get; init; }
         
     /// <summary>
-    /// Includes last update sequence for the document. Default is <<c>False</c>
+    /// Includes last update sequence for the document. Default is <c>False</c>
     /// </summary>
     public bool LocalSequence { get; init; }
 

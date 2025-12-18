@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using CouchDB.Driver.DatabaseApiMethodOptions;
 using CouchDB.Driver.E2ETests.Models;
 using CouchDB.Driver.Types;
 using Xunit;

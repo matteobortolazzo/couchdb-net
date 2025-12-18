@@ -1,11 +1,9 @@
-﻿using System;
-using System.Linq.Expressions;
-using CouchDB.Driver.Types;
+﻿using System.Linq.Expressions;
 
 namespace CouchDB.Driver.ChangesFeed.Filters;
 
 internal class SelectorChangesFeedFilter<TSource>(Expression<Func<TSource, bool>> value) : ChangesFeedFilter
-    where TSource : CouchDocument
+    where TSource: class
 {
     public Expression<Func<TSource, bool>> Value { get; } = value;
 }

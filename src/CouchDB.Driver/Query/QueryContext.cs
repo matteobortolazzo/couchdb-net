@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CouchDB.Driver.Query;
+﻿namespace CouchDB.Driver.Query;
 
 public class QueryContext(Uri endpoint, string databaseName, bool throwOnQueryWarning)
 {

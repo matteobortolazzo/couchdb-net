@@ -1,4 +1,3 @@
-using CouchDB.Driver.Types;
 using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
 using System.Collections.Generic;

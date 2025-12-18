@@ -1,8 +1,5 @@
-﻿using System;
-
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
-using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Query.Extensions;
 
@@ -172,7 +169,7 @@ public static class QueryableQueryExtensions
         /// <typeparam name="TResult">Type of output list.</typeparam>
         /// <return>An <see cref="IQueryable{TResult}"/> that contains the request specific fields when requesting elements from the sequence.</return>
         public IQueryable<TResult> Convert<TResult>()
-            where TResult : CouchDocument
+            where TResult : class
         {
             ArgumentNullException.ThrowIfNull(source);
 

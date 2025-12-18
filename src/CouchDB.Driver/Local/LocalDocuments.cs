@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Query;
-using CouchDB.Driver.Types;
 using Flurl.Http;
 
 namespace CouchDB.Driver.Local;
@@ -52,7 +51,7 @@ public class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext)
 
     /// <inheritdoc />
     public Task<TSource> GetAsync<TSource>(string id, CancellationToken cancellationToken = default)
-        where TSource : CouchDocument
+        where TSource: class
     {
         ArgumentNullException.ThrowIfNull(id);
         return NewRequest()
@@ -63,7 +62,7 @@ public class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext)
 
     /// <inheritdoc />
     public Task CreateOrUpdateAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
-        where TSource : CouchDocument
+        where TSource: class
     {
         ArgumentNullException.ThrowIfNull(document);
         return NewRequest()
@@ -74,7 +73,7 @@ public class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext)
 
     /// <inheritdoc />
     public Task DeleteAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
-        where TSource : CouchDocument
+        where TSource: class
     {
         ArgumentNullException.ThrowIfNull(document);
         return NewRequest()

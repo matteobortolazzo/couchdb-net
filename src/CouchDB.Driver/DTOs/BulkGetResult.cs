@@ -1,9 +1,8 @@
-﻿using CouchDB.Driver.Types;
-
+﻿
 namespace CouchDB.Driver.DTOs;
 
 [Serializable]
-internal class BulkGetResult<TSource> where TSource : CouchDocument
+internal class BulkGetResult<TSource> where TSource: class
 {
     [property:JsonPropertyName("results")]
     public required List<BulkGetResultDoc<TSource>> Results { get; init; }

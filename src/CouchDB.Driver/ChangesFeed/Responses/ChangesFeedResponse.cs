@@ -1,11 +1,7 @@
-﻿
-using CouchDB.Driver.Types;
-using System.Text.Json.Serialization;
-
-namespace CouchDB.Driver.ChangesFeed.Responses;
+﻿namespace CouchDB.Driver.ChangesFeed.Responses;
 
 [Serializable]
-public class ChangesFeedResponse<TSource> where TSource : CouchDocument
+public class ChangesFeedResponse<TSource> where TSource : class
 {
     [property:JsonPropertyName("last_seq")]
     public required string LastSequence { get; init; }

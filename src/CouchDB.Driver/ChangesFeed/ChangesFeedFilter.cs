@@ -1,7 +1,6 @@
 ﻿
 using System.Linq.Expressions;
 using CouchDB.Driver.ChangesFeed.Filters;
-using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.ChangesFeed;
 
@@ -27,7 +26,7 @@ public class ChangesFeedFilter
     /// <typeparam name="TSource">The type of database documents.</typeparam>
     /// <param name="selector">The function used to filter.</param>
     /// <returns></returns>
-    public static ChangesFeedFilter Selector<TSource>(Expression<Func<TSource, bool>> selector) where TSource : CouchDocument
+    public static ChangesFeedFilter Selector<TSource>(Expression<Func<TSource, bool>> selector) where TSource: class
         => new SelectorChangesFeedFilter<TSource>(selector);
 
     /// <summary>

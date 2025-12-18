@@ -1,6 +1,6 @@
-﻿using Autofac;
+﻿using System;
+using Autofac;
 using CouchDB.Driver.Options;
-using System;
 
 namespace CouchDB.Driver.DependencyInjection.Autofac;
 

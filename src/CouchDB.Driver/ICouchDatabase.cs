@@ -6,7 +6,6 @@ using CouchDB.Driver.ChangesFeed.Responses;
 using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.DatabaseApiMethodOptions;
-using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
 using CouchDB.Driver.Views;
@@ -19,7 +18,7 @@ namespace CouchDB.Driver;
 /// </summary>
 /// <typeparam name="TSource">The type of the document.</typeparam>
 public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
-    where TSource : CouchDocument
+    where TSource : class
 {
     /// <summary>
     /// Finds the document with the given ID. If no document is found, then null is returned.

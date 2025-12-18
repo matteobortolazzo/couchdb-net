@@ -1,8 +1,4 @@
-﻿
-using CouchDB.Driver.Types;
-using System.Text.Json.Serialization;
-
-namespace CouchDB.Driver.Views;
+﻿namespace CouchDB.Driver.Views;
 
 /// <summary>
 /// Result of a view query.
@@ -12,7 +8,7 @@ namespace CouchDB.Driver.Views;
 /// <typeparam name="TDoc">The type of the document.</typeparam>
 [Serializable]
 public class CouchViewList<TKey, TValue, TDoc>
-    where TDoc : CouchDocument
+    where TDoc : class
 {
     /// <summary>
     /// Number of documents in the database/view.

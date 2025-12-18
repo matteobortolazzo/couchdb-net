@@ -1,5 +1,3 @@
-using System;
-
 namespace CouchDB.Driver.Example.Models
 {
     public class ErrorViewModel

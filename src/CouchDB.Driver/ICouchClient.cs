@@ -15,7 +15,7 @@ public interface ICouchClient : IAsyncDisposable
     /// <param name="discriminator">Filters documents by the given discriminator.</param>
     /// <returns>An instance of the CouchDB database with given name.</returns>
     ICouchDatabase<TSource> GetDatabase<TSource>(string database, string? discriminator = null)
-        where TSource : CouchDocument;
+        where TSource: class;
 
     /// <summary>
     /// Returns an instance of the CouchDB database with the given name.
@@ -33,7 +33,7 @@ public interface ICouchClient : IAsyncDisposable
     Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database,
         int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
         CancellationToken cancellationToken = default)
-        where TSource : CouchDocument;
+        where TSource: class;
 
     /// <summary>
     /// Returns an instance of the CouchDB database with the given name.
@@ -51,7 +51,7 @@ public interface ICouchClient : IAsyncDisposable
     Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
         int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
         CancellationToken cancellationToken = default)
-        where TSource : CouchDocument;
+        where TSource: class;
 
     /// <summary>
     /// Deletes the database with the given name from the server.
@@ -67,7 +67,7 @@ public interface ICouchClient : IAsyncDisposable
     /// </summary>
     /// <typeparam name="TSource">The type of database documents.</typeparam>
     /// <returns>The instance of the CouchDB database of the given type.</returns>
-    ICouchDatabase<TSource> GetDatabase<TSource>() where TSource : CouchDocument;
+    ICouchDatabase<TSource> GetDatabase<TSource>() where TSource: class;
 
     /// <summary>
     /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
@@ -82,7 +82,7 @@ public interface ICouchClient : IAsyncDisposable
     /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
     Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
         bool? partitioned = null, string? discriminator = null, CancellationToken cancellationToken = default)
-        where TSource : CouchDocument;
+        where TSource: class;
 
     /// <summary>
     /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
@@ -97,7 +97,7 @@ public interface ICouchClient : IAsyncDisposable
     /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
     Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
         bool? partitioned = null, string? discriminator = null, CancellationToken cancellationToken = default)
-        where TSource : CouchDocument;
+        where TSource: class;
 
     /// <summary>
     /// Deletes the database with the name type <see cref="TSource"/>.
@@ -105,7 +105,7 @@ public interface ICouchClient : IAsyncDisposable
     /// <typeparam name="TSource">The type of database documents.</typeparam>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource : CouchDocument;
+    Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource: class;
 
     /// <summary>
     /// Returns an instance of the users database.

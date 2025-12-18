@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CouchDB.Driver.Options;
+﻿namespace CouchDB.Driver.Options;
 
 public class CouchOptions<TContext> : CouchOptions
     where TContext : CouchContext

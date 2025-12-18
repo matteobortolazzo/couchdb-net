@@ -1,9 +1,9 @@
-﻿using CouchDB.Driver.Types;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Authentication;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Shared;
+using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Query;
 

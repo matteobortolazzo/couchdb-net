@@ -1,5 +1,4 @@
 ﻿using CouchDB.Driver.Exceptions;
-using CouchDB.Driver.Types;
 using CouchDB.UnitTests.Models;
 using Flurl.Http.Testing;
 using System;

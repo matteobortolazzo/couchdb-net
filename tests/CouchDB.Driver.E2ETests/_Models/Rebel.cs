@@ -11,8 +11,8 @@ public class Rebel : CouchDocument
     [JsonPropertyName("_id")]
     public string Id { get; set; }
     
-    [property: JsonPropertyName("_rev")]
-    public string Rev { get; set; } = null!;
+    [JsonPropertyName("_rev")]
+    public string Rev { get; set; }
     
     public string Name { get; set; }
     public string Surname { get; set; }

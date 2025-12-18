@@ -1,5 +1,4 @@
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Types;
 using CouchDB.UnitTests.Models;
 using System;
 using System.Linq;
