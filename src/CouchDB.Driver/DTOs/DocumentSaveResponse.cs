@@ -5,7 +5,7 @@ internal sealed record DocumentSaveResponse(
     [property: JsonPropertyName("ok")]
     bool Ok,
     [property: JsonPropertyName("id")]
-    string? Id,
+    string Id,
     [property: JsonPropertyName("rev")]
     string? Rev,
     [property: JsonPropertyName("error")]

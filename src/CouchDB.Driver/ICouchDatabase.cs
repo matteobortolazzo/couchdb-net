@@ -1,6 +1,4 @@
-﻿
-using System.IO;
-
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
@@ -8,6 +6,7 @@ using CouchDB.Driver.ChangesFeed.Responses;
 using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.DatabaseApiMethodOptions;
+using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
 using CouchDB.Driver.Views;
@@ -26,19 +25,11 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// Finds the document with the given ID. If no document is found, then null is returned.
     /// </summary>
     /// <param name="docId">The document ID.</param>
-    /// <param name="withConflicts">Set if conflicts array should be included.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null.</returns>
-    Task<TSource?> FindAsync(string docId, bool withConflicts = false, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Finds the document with the given ID. If no document is found, then null is returned.
-    /// </summary>
-    /// <param name="docId">The document ID.</param>
     /// <param name="options">Set of options available for GET /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null</returns>
-    Task<TSource?> FindAsync(string docId, FindOptions options, CancellationToken cancellationToken = default);
+    Task<TSource?> FindAsync(string docId, FindDocumentRequestOptions? options = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Finds all documents matching the MangoQuery.
@@ -71,72 +62,43 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// Creates a new document and returns it.
     /// </summary>
     /// <param name="document">The document to create.</param>
-    /// <param name="batch">Stores document in batch mode.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-    Task<TSource> AddAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Creates a new document and returns it.
-    /// </summary>
-    /// <param name="document">The document to create.</param>
     /// <param name="options">Set of options available for both PUT /{db}/{docid} and POST /{db}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-    Task<TSource> AddAsync(TSource document, AddOptions options, CancellationToken cancellationToken = default);
+    Task<DocumentRequestResponse> AddAsync(TSource document, DocumentRequestOptions? options = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Creates or updates the document with the given ID.
+    /// Updates the document with the given ID.
     /// </summary>
-    /// <param name="document">The document to create or update</param>
-    /// <param name="batch">Stores document in batch mode.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-    Task<TSource> UpsertAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Creates or updates the document with the given ID.
-    /// </summary>
-    /// <param name="document">The document to create or update</param>
+    /// <param name="document">The document to update</param>
+    /// <param name="id">Document ID</param>
+    /// <param name="rev">Document revision</param>
     /// <param name="options">Set of options available for PUT /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-    Task<TSource> UpsertAsync(TSource document, AddOrUpdateOptions options,
+    Task<DocumentRequestResponse> ReplaceAsync(TSource document, string id, string rev, DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes the document with the given ID.
     /// </summary>
-    /// <param name="document">The document to delete.</param>
-    /// <param name="batch">Stores document in batch mode.</param>
+    /// <param name="id">Document ID</param>
+    /// <param name="rev">Document revision</param>
+    /// <param name="options">Set of options available for DELETE /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Creates or updates a sequence of documents based on their IDs.
-    /// </summary>
-    /// <param name="documents">Documents to create or update</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the elements created or updated.</returns>
-    Task<IList<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents,
+    Task DeleteAsync(string id, string rev, DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Delete multiple documents based on their ID and revision.
+    /// Creates, updates or delete a sequence of documents.
     /// </summary>
-    /// <param name="documents">The documents to delete.</param>
-    /// <param name="cancellationToken"> <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
+    /// <param name="operations">List of operations to perform</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Delete multiple documents based on their ID and revision.
-    /// </summary>
-    /// <param name="documentIds">Documents to delete</param>
-    /// <param name="cancellationToken"> <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteRangeAsync(IList<DocumentId> documentIds, CancellationToken cancellationToken = default);
+    Task<DocumentBulkRequestResponse[]> BulkAsync(IList<BulkOperation> operations,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Executes the specified view function from the specified design document.

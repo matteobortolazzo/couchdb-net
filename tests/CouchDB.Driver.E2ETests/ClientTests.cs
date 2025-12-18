@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
+using CouchDB.Driver.DatabaseApiMethodOptions;
 using CouchDB.Driver.E2ETests.Models;
-using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Types;
 using Xunit;
 
@@ -14,15 +14,16 @@ public class ClientTests(TestFixture fixture) : IClassFixture<TestFixture>
     {
         var users = await fixture.Client.GetOrCreateUsersDatabaseAsync();
 
-        var luke = await users.AddAsync(new CouchUser(name: "luke", password: "lasersword"));
+        var response = await users.AddAsync(new CouchUser(name: "luke", password: "lasersword"));
+
+        var luke = await users.FindAsync(response.Id);
+        Assert.NotNull(luke);
         Assert.Equal("luke", luke.Name);
 
-        luke = await users.FindAsync(luke.Id);
-        Assert.Equal("luke", luke.Name);
+        luke.Password = "r2d2";
+        response = await users.ReplaceAsync(luke, luke.Id, luke.Rev);
 
-        luke = await users.ChangeUserPassword(luke, "r2d2");
-
-        await users.DeleteAsync(luke);
+        await users.DeleteAsync(luke.Id, response.Rev);
         luke = await users.FindAsync(luke.Id);
         Assert.Null(luke);
 

@@ -5,11 +5,7 @@ using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
 using Flurl.Http;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
@@ -24,6 +20,7 @@ using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using CouchDB.Driver.Views;
 using CouchDB.Driver.DatabaseApiMethodOptions;
@@ -40,9 +37,11 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     private readonly Regex _feedChangeLineStartPattern;
     private readonly IAsyncQueryProvider _queryProvider;
     private readonly IFlurlClient _flurlClient;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly CouchOptions _options;
     private readonly QueryContext _queryContext;
     private readonly string? _discriminator;
+    private const string IfMatchHeader = "If-Match";
 
     /// <inheritdoc />
     public string Database => _queryContext.DatabaseName;
@@ -53,11 +52,13 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     /// <inheritdoc />
     public ILocalDocuments LocalDocuments { get; }
 
-    internal CouchDatabase(IFlurlClient flurlClient, CouchOptions options, QueryContext queryContext,
+    internal CouchDatabase(IFlurlClient flurlClient, JsonSerializerOptions jsonSerializerOptions, CouchOptions options,
+        QueryContext queryContext,
         string? discriminator)
     {
         _feedChangeLineStartPattern = FeedChangeStartLinePattern();
         _flurlClient = flurlClient;
+        _jsonSerializerOptions = jsonSerializerOptions;
         _options = options;
         _queryContext = queryContext;
         _discriminator = discriminator;
@@ -75,12 +76,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Find
 
     /// <inheritdoc />
-    public Task<TSource?> FindAsync(string docId, bool withConflicts = false,
-        CancellationToken cancellationToken = default)
-        => FindAsync(docId, new FindOptions { Conflicts = withConflicts }, cancellationToken);
-
-    /// <inheritdoc />
-    public async Task<TSource?> FindAsync(string docId, FindOptions options,
+    public async Task<TSource?> FindAsync(string docId, FindDocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         IFlurlRequest request = NewRequest()
@@ -137,7 +133,8 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         var documents = bulkGetResult.Results
             .SelectMany(r => r.Docs)
             .Select(d => d.Item)
-            .Where(i => i != null && (includeDeleted || !i.Deleted))
+            // .Where(i => i != null && (includeDeleted || !i.Deleted)) TODO: Review
+            .Where(i => i != null)
             .Cast<TSource>()
             .ToList();
 
@@ -178,16 +175,21 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
     private void InitAttachments(TSource document)
     {
-        ArgumentNullException.ThrowIfNull(document.Id);
+        return;
+        // TODO: Real value
+        /*
+        string id = "asdasda";
+        ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(document.Rev);
 
         foreach (CouchAttachment attachment in document.Attachments)
         {
-            attachment.DocumentId = document.Id;
+            attachment.DocumentId = id;
             attachment.DocumentRev = document.Rev;
-            var path = $"{_queryContext.EscapedDatabaseName}/{document.Id}/{Uri.EscapeDataString(attachment.Name)}";
+            var path = $"{_queryContext.EscapedDatabaseName}/{id}/{Uri.EscapeDataString(attachment.Name)}";
             attachment.Uri = new Uri(_queryContext.Endpoint, path);
         }
+        */
     }
 
     #endregion
@@ -195,24 +197,14 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Writing
 
     /// <inheritdoc />
-    public Task<TSource> AddAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
-        => AddAsync(document, new AddOptions { Batch = batch }, cancellationToken);
-
-    /// <inheritdoc />
-    public async Task<TSource> AddAsync(TSource document, AddOptions options,
+    public async Task<DocumentRequestResponse> AddAsync(TSource document, DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
 
-        if (!string.IsNullOrEmpty(document.Id))
-        {
-            return await UpsertAsync(document, new AddOrUpdateOptions { Batch = options.Batch }, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
         IFlurlRequest request = NewRequest();
 
-        if (options.Batch)
+        if (options?.Batch == true)
         {
             request = request.SetQueryParam("batch", "ok");
         }
@@ -223,72 +215,67 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .ReceiveJson<DocumentSaveResponse>()
             .SendRequestAsync()
             .ConfigureAwait(false);
-        document.ProcessSaveResponse(response);
 
-        await UpdateAttachments(document, cancellationToken)
+        if (!response.Ok)
+        {
+            throw new CouchException(response.Error, null, response.Reason);
+        }
+
+        await UpdateAttachments(document, response.Id, response.Rev!, cancellationToken)
             .ConfigureAwait(false);
-
-        return document;
+        return new DocumentRequestResponse(response.Id, response.Rev!);
     }
 
     /// <inheritdoc />
-    public Task<TSource> UpsertAsync(TSource document, bool batch = false,
-        CancellationToken cancellationToken = default)
-        => UpsertAsync(document, new AddOrUpdateOptions { Batch = batch }, cancellationToken);
-
-    /// <inheritdoc />
-    public async Task<TSource> UpsertAsync(TSource document, AddOrUpdateOptions options,
+    public async Task<DocumentRequestResponse> ReplaceAsync(TSource document, string id, string rev,
+        DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(document);
 
-        if (string.IsNullOrEmpty(document.Id))
-        {
-            throw new InvalidOperationException("Cannot add or update a document without an ID.");
-        }
-
         IFlurlRequest request = NewRequest()
-            .AppendPathSegment(Uri.EscapeDataString(document.Id));
+            .AppendPathSegment(Uri.EscapeDataString(id));
 
-        if (options.Batch)
+        if (options?.Batch == true)
         {
             request = request.SetQueryParam("batch", "ok");
         }
 
-        if (options.Rev != null)
-        {
-            request = request.SetQueryParam("rev", options.Rev);
-        }
-
         document.SplitDiscriminator = _discriminator;
         DocumentSaveResponse response = await request
+            .WithHeader(IfMatchHeader, rev)
             .PutJsonAsync(document, cancellationToken: cancellationToken)
             .ReceiveJson<DocumentSaveResponse>()
             .SendRequestAsync()
             .ConfigureAwait(false);
-        document.ProcessSaveResponse(response);
 
-        await UpdateAttachments(document, cancellationToken)
+        if (!response.Ok)
+        {
+            throw new CouchException(response.Error, null, response.Reason);
+        }
+
+        await UpdateAttachments(document, id, rev, cancellationToken)
             .ConfigureAwait(false);
-
-        return document;
+        return new DocumentRequestResponse(response.Id, response.Rev!);
     }
 
     /// <inheritdoc />
-    public async Task DeleteAsync(TSource document, bool batch = false, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(string id, string rev, DocumentRequestOptions? options = null,
+        CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(id);
 
         IFlurlRequest request = NewRequest()
-            .AppendPathSegment(Uri.EscapeDataString(document.Id!));
+            .AppendPathSegment(Uri.EscapeDataString(id));
 
-        if (batch)
+        if (options?.Batch == true)
         {
             request = request.SetQueryParam("batch", "ok");
         }
 
         OperationResult result = await request
-            .SetQueryParam("rev", document.Rev)
+            .WithHeader(IfMatchHeader, rev)
             .DeleteAsync(cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ReceiveJson<OperationResult>()
@@ -300,64 +287,75 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
     }
 
-    /// <inheritdoc />
-    public async Task<IList<TSource>> AddOrUpdateRangeAsync(IList<TSource> documents,
+    public async Task<DocumentBulkRequestResponse[]> BulkAsync(IList<BulkOperation> operations,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(documents);
+        ArgumentNullException.ThrowIfNull(operations);
 
+        // TODO: Test split
+        /*
         foreach (TSource document in documents)
         {
             document.SplitDiscriminator = _discriminator;
         }
+        */
 
-        DocumentSaveResponse[] response = await NewRequest()
-            .AppendPathSegment("_bulk_docs")
-            .PostJsonAsync(new { docs = documents }, cancellationToken: cancellationToken)
-            .ReceiveJson<DocumentSaveResponse[]>()
-            .SendRequestAsync()
-            .ConfigureAwait(false);
+        List<JsonNode> docs = [];
 
-        IEnumerable<(TSource Document, DocumentSaveResponse SaveResponse)> zipped =
-            documents.Zip(response, (doc, saveResponse) => (Document: doc, SaveResponse: saveResponse));
-
-        foreach ((TSource document, DocumentSaveResponse saveResponse) in zipped)
+        foreach (BulkOperation operation in operations)
         {
-            document.ProcessSaveResponse(saveResponse);
+            switch (operation)
+            {
+                case AddOperation add:
+                    {
+                        var el = (JsonSerializer.SerializeToNode(add.Document, _jsonSerializerOptions)! as JsonObject)!;
+                        if (el.ContainsKey("_id") && el["_id"] == null)
+                        {
+                            el.Remove("_id");
+                        }
 
-            await UpdateAttachments(document, cancellationToken)
-                .ConfigureAwait(false);
+                        docs.Add(el);
+                        break;
+                    }
+                case UpdateOperation update:
+                    {
+                        JsonNode el = JsonSerializer.SerializeToNode(update.Document, _jsonSerializerOptions)!;
+                        el["_id"] = update.Id;
+                        el["_rev"] = update.Rev;
+                        docs.Add(el);
+                        break;
+                    }
+                case DeleteOperation delete:
+                    {
+                        var deleteNode = new JsonObject
+                        {
+                            ["_id"] = delete.Id, ["_rev"] = delete.Rev, ["_deleted"] = true
+                        };
+                        docs.Add(deleteNode);
+                        break;
+                    }
+            }
         }
 
-        return documents.ToList();
-    }
-
-    /// <inheritdoc />
-    public Task DeleteRangeAsync(IList<TSource> documents, CancellationToken cancellationToken = default)
-    {
-        DocumentId[] docIds = documents.Select(doc => (DocumentId)doc).ToArray();
-        return DeleteRangeAsync(docIds, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task DeleteRangeAsync(IList<DocumentId> documentIds,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(documentIds);
-
-        var documents = documentIds
-            .Select(docId => new { _id = docId.Id, _rev = docId.Rev, _deleted = true })
-            .ToArray();
-
-        await NewRequest()
+        DocumentSaveResponse[] responses = await NewRequest()
             .AppendPathSegment("_bulk_docs")
-            .PostJsonAsync(new { docs = documents }, cancellationToken: cancellationToken)
+            .PostJsonAsync(new { docs }, cancellationToken: cancellationToken)
             .ReceiveJson<DocumentSaveResponse[]>()
             .SendRequestAsync()
             .ConfigureAwait(false);
+
+        return responses
+            .Select(response => new DocumentBulkRequestResponse(
+                response.Ok,
+                response.Id,
+                response.Rev,
+                response.Error,
+                response.Reason))
+            .ToArray();
     }
 
-    private async Task UpdateAttachments(TSource document, CancellationToken cancellationToken = default)
+    private async Task UpdateAttachments(TSource document, string id, string rev,
+        CancellationToken cancellationToken = default)
     {
         foreach (CouchAttachment attachment in document.Attachments.GetAddedAttachments())
         {
@@ -370,10 +368,10 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                 new FileStream(attachment.FileInfo.FullName, FileMode.Open));
 
             AttachmentResult response = await NewRequest()
-                .AppendPathSegment(Uri.EscapeDataString(document.Id!))
+                .AppendPathSegment(Uri.EscapeDataString(id))
                 .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
                 .WithHeader("Content-Type", attachment.ContentType)
-                .WithHeader("If-Match", document.Rev)
+                .WithHeader("If-Match", rev)
                 .PutAsync(stream, cancellationToken: cancellationToken)
                 .ReceiveJson<AttachmentResult>()
                 .ConfigureAwait(false);
@@ -383,23 +381,23 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                 continue;
             }
 
-            document.Rev = response.Rev;
+            // document.Rev = response.Rev;
             attachment.FileInfo = null;
         }
 
         foreach (CouchAttachment attachment in document.Attachments.GetDeletedAttachments())
         {
             AttachmentResult response = await NewRequest()
-                .AppendPathSegment(Uri.EscapeDataString(document.Id!))
+                .AppendPathSegment(Uri.EscapeDataString(id))
                 .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
-                .WithHeader("If-Match", document.Rev)
+                .WithHeader("If-Match", rev)
                 .DeleteAsync(cancellationToken: cancellationToken)
                 .ReceiveJson<AttachmentResult>()
                 .ConfigureAwait(false);
 
             if (response.Ok)
             {
-                document.Rev = response.Rev;
+                // document.Rev = response.Rev;
                 document.Attachments.RemoveAttachment(attachment);
             }
         }
@@ -902,8 +900,14 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         return request;
     }
 
-    private static IFlurlRequest SetFindOptions(IFlurlRequest request, FindOptions options)
+    private static IFlurlRequest SetFindOptions(IFlurlRequest request,
+        FindDocumentRequestOptions? options)
     {
+        if (options == null)
+        {
+            return request;
+        }
+
         if (options.Attachments)
         {
             request = request.SetQueryParam("attachments", "true");

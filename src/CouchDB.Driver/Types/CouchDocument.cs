@@ -10,44 +10,8 @@ namespace CouchDB.Driver.Types;
 public abstract class CouchDocument
 {
     /// <summary>
-    /// The document ID.
-    /// </summary>
-    [property:JsonPropertyName("_id")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public virtual string? Id { get; set; }
-
-    [JsonInclude]
-    [property:JsonPropertyName("id")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    private string IdOther { set => Id = value; }
-
-    /// <summary>
-    /// The current document revision ID.
-    /// </summary>
-    [property:JsonPropertyName("_rev")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Rev { get; set; }
-
-    [JsonInclude]
-    [property:JsonPropertyName("rev")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    private string RevOther { set => Rev = value; }
-
-    /// <summary>
-    /// Deletion flag.
-    /// Available if document was removed.
-    /// </summary>
-    [JsonIgnore]
-    public bool Deleted { get; private set; }
-
-    [JsonInclude]
-    [property:JsonPropertyName("_deleted")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    private bool DeletedOther { set => Deleted = value; }
-
-    /// <summary>
     /// List of conflicted revisions.
-    /// Available if requested with <see cref="FindOptions.Conflicts"/> set to <c>True</c>
+    /// Available if requested with <see cref="FindDocumentRequestOptions.Conflicts"/> set to <c>True</c>
     /// </summary>
     [JsonIgnore]
     public IReadOnlyCollection<string> Conflicts { get; private set; } = [];
@@ -59,7 +23,7 @@ public abstract class CouchDocument
 
     /// <summary>
     /// List of deleted conflicted revisions.
-    /// Available if requested with <see cref="FindOptions.DeleteConflicts"/> set to <c>True</c>
+    /// Available if requested with <see cref="FindDocumentRequestOptions.DeleteConflicts"/> set to <c>True</c>
     /// </summary>
     [JsonIgnore]
     public IReadOnlyCollection<string> DeletedConflicts { get; private set; } = [];
@@ -71,7 +35,7 @@ public abstract class CouchDocument
 
     /// <summary>
     /// Document’s update sequence in current database.
-    /// Available if requested with <see cref="FindOptions.LocalSequence"/> set to <c>True</c>
+    /// Available if requested with <see cref="FindDocumentRequestOptions.LocalSequence"/> set to <c>True</c>
     /// </summary>
     [JsonIgnore]
     public int LocalSequence { get; private set; }
@@ -83,7 +47,7 @@ public abstract class CouchDocument
 
     /// <summary>
     /// List of objects with information about local revisions and their status.
-    /// Available if requested with <see cref="FindOptions.OpenRevisions"/>
+    /// Available if requested with <see cref="FindDocumentRequestOptions.OpenRevisions"/>
     /// </summary>
     [JsonIgnore]
     public IReadOnlyCollection<RevisionInfo> RevisionsInfo { get; private set; } = [];
@@ -95,7 +59,7 @@ public abstract class CouchDocument
 
     /// <summary>
     /// List of local revision tokens without.
-    /// Available if requested with <see cref="FindOptions.Revisions"/> set to <c>True</c>
+    /// Available if requested with <see cref="FindDocumentRequestOptions.Revisions"/> set to <c>True</c>
     /// </summary>
     [JsonIgnore]
     public Revisions Revisions { get; private set; } = null!;

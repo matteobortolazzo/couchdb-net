@@ -1,5 +1,4 @@
-﻿
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
@@ -63,23 +62,23 @@ public class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext)
     }
 
     /// <inheritdoc />
-    public Task CreateOrUpdateAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
+    public Task CreateOrUpdateAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
         where TSource : CouchDocument
     {
         ArgumentNullException.ThrowIfNull(document);
         return NewRequest()
-            .AppendPathSegments(Uri.EscapeDataString(GetLocalId(document.Id!)))
+            .AppendPathSegments(Uri.EscapeDataString(GetLocalId(id)))
             .PutJsonAsync(document, cancellationToken: cancellationToken)
             .SendRequestAsync();
     }
 
     /// <inheritdoc />
-    public Task DeleteAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
+    public Task DeleteAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
         where TSource : CouchDocument
     {
         ArgumentNullException.ThrowIfNull(document);
         return NewRequest()
-            .AppendPathSegments(Uri.EscapeDataString(GetLocalId(document.Id!)))
+            .AppendPathSegments(Uri.EscapeDataString(GetLocalId(id)))
             .DeleteAsync(cancellationToken: cancellationToken)
             .SendRequestAsync();
     }

@@ -2,7 +2,6 @@
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 using Flurl.Http;
-
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
@@ -27,6 +26,7 @@ public partial class CouchClient : ICouchClient
 {
     public const string DefaultDatabaseSplitDiscriminator = "split_discriminator";
 
+    private JsonSerializerOptions _jsonSerializerOptions = null!;
     private readonly IFlurlClient _flurlClient;
     private readonly AuthenticationDelegatingHandler _authenticationHandler;
     private readonly CouchOptions _options;
@@ -97,7 +97,9 @@ public partial class CouchClient : ICouchClient
                     new CouchJsonTypeInfoResolver(_options.DatabaseSplitDiscriminator);
 
                 _options.JsonSerializerOptions.Converters.Add(new CouchDocumentConverter());
-                s.JsonSerializer = new DefaultJsonSerializer(_options.JsonSerializerOptions);
+                _jsonSerializerOptions = _options.JsonSerializerOptions;
+                s.JsonSerializer = new DefaultJsonSerializer(_jsonSerializerOptions);
+                
             });
     }
 
@@ -126,7 +128,7 @@ public partial class CouchClient : ICouchClient
     {
         CheckDatabaseName(database);
         var queryContext = new QueryContext(Endpoint, database, _options.ThrowOnQueryWarning);
-        return new CouchDatabase<TSource>(_flurlClient, _options, queryContext, discriminator);
+        return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext, discriminator);
     }
 
     /// <inheritdoc />
@@ -142,7 +144,7 @@ public partial class CouchClient : ICouchClient
 
         if (response.IsSuccessful())
         {
-            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext, discriminator);
+            return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext, discriminator);
         }
 
         if (response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
@@ -166,7 +168,7 @@ public partial class CouchClient : ICouchClient
 
         if (response.IsSuccessful() || response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
         {
-            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext, discriminator);
+            return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext, discriminator);
         }
 
         throw new CouchException($"Something wrong happened while creating database {database}.");

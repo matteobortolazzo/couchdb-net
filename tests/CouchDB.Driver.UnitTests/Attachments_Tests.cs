@@ -74,7 +74,7 @@ public class Attachments_Tests: IAsyncDisposable
         var attachFile = Path.Combine("Assets", "luke.txt");
         r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
 
-        r = await _rebels.UpsertAsync(r);
+        r = await _rebels.ReplaceAsync(r);
 
         Types.CouchAttachment lukeTxt = r.Attachments.First();
         var newPath = await _rebels.DownloadAttachmentAsync(lukeTxt, "anyfolder");

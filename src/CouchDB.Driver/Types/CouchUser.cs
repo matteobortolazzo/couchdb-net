@@ -22,6 +22,12 @@ public class CouchUser : CouchDocument
         Roles = roles ?? [];
         Type = type;
     }
+    
+    [property:JsonPropertyName("_id")]
+    public string Id { get; set; }
+
+    [property: JsonPropertyName("_rev")]
+    public string Rev { get; set; } = null!;
 
     [property:JsonPropertyName("password")]
     public string Password { get; set; }

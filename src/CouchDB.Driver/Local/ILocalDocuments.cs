@@ -51,11 +51,12 @@ public interface ILocalDocuments
     /// </summary>
     /// <typeparam name="TSource">The type of the document.</typeparam>
     /// <param name="document">The document to create or update.</param>
+    /// <param name="id">Document ID</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>
     ///     A task that represents the asynchronous operation.
     /// </returns>
-    Task CreateOrUpdateAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
+    Task CreateOrUpdateAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
         where TSource : CouchDocument;
 
     /// <summary>
@@ -63,10 +64,11 @@ public interface ILocalDocuments
     /// </summary>
     /// <typeparam name="TSource">The type of the document.</typeparam>
     /// <param name="document">The document to delete.</param>
+    /// <param name="id">Document ID</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>
     ///     A task that represents the asynchronous operation.
     /// </returns>
-    Task DeleteAsync<TSource>(TSource document, CancellationToken cancellationToken = default)
+    Task DeleteAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
         where TSource : CouchDocument;
 }

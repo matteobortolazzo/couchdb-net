@@ -8,6 +8,7 @@ using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Query.Extensions;
+using CouchDB.Driver.Types;
 using Xunit;
 
 namespace CouchDB.Driver.E2ETests;
@@ -63,18 +64,19 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     [Fact]
     public async Task Crud()
     {
-        Rebel luke = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
-        Assert.Equal("Luke", luke.Name);
+        var luke = new Rebel { Name = "Luke", Age = 19 };
+        var response = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
 
         luke.Surname = "Skywalker";
-        luke = await fixture.Rebels.UpsertAsync(luke);
+        response = await fixture.Rebels.ReplaceAsync(luke, response.Id, response.Rev);
         Assert.Equal("Skywalker", luke.Surname);
 
-        luke = await fixture.Rebels.FindAsync(luke.Id);
+        luke = await fixture.Rebels.FindAsync(response.Id);
+        Assert.NotNull(luke);
         Assert.Equal(19, luke.Age);
 
-        await fixture.Rebels.DeleteAsync(luke);
-        luke = await fixture.Rebels.FindAsync(luke.Id);
+        await fixture.Rebels.DeleteAsync(response.Id, response.Rev);
+        luke = await fixture.Rebels.FindAsync(response.Id!);
         Assert.Null(luke);
     }
 
@@ -82,29 +84,44 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     public async Task Crud_Range()
     {
         var luke = new Rebel { Name = "Luke", Age = 19 };
-        var results = await fixture.Rebels.AddOrUpdateRangeAsync([luke]);
-        luke = results[0];
-        Assert.Equal("Luke", luke.Name);
+
+        BulkOperation[] op =
+        [
+            BulkOperation.Add(luke)
+        ];
+
+        var results = await fixture.Rebels.BulkAsync(op);
+        var lukeResult = results[0];
+        var rebels = await fixture.Rebels.FindManyAsync([lukeResult.Id]);
+        Assert.NotEmpty(results);
+        luke = rebels[0];
 
         luke.Surname = "Skywalker";
-        results = await fixture.Rebels.AddOrUpdateRangeAsync([luke]);
-        luke = results[0];
-        Assert.Equal("Luke", luke.Name);
+        op =
+        [
+            BulkOperation.Update(luke, luke.Id, luke.Rev!)
+        ];
+        results = await fixture.Rebels.BulkAsync(op);
 
-        results = await fixture.Rebels.FindManyAsync([luke.Id]);
+        rebels = await fixture.Rebels.FindManyAsync([luke.Id]);
         Assert.NotEmpty(results);
+        luke = rebels[0];
+        Assert.Equal("Skywalker", luke.Surname);
 
-        await fixture.Rebels.DeleteRangeAsync([luke]);
-        results = await fixture.Rebels.FindManyAsync([luke.Id]);
-        Assert.Empty(results);
+        op =
+        [
+            BulkOperation.Delete(luke.Id, luke.Rev!)
+        ];
+        await fixture.Rebels.BulkAsync(op);
+        rebels = await fixture.Rebels.FindManyAsync([luke.Id]);
+        Assert.Empty(rebels);
     }
 
     [Fact]
     public async Task Crud_Context()
     {
         await using var context = new MyDeathStarContext();
-        var luke = await context.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
-        Assert.Equal("Luke", luke.Name);
+        await context.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
         var result = await context.Rebels.ToListAsync();
         Assert.NotEmpty(result);
     }
@@ -139,20 +156,20 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         const string databaseName = "rebel0_$()+/-";
         var rebels = await fixture.Client.GetOrCreateDatabaseAsync<Rebel>(databaseName);
 
-        Rebel luke = await rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
-        Assert.Equal("Luke", luke.Name);
+        var luke = new Rebel { Name = "Luke", Age = 19 };
+        var response = await rebels.AddAsync(luke);
 
         luke.Surname = "Skywalker";
-        luke = await rebels.UpsertAsync(luke);
+        response = await rebels.ReplaceAsync(luke, response.Id, response.Rev);
         Assert.Equal("Skywalker", luke.Surname);
 
         var result = await rebels.FindAsync(luke.Id);
         Assert.NotNull(result);
-        
+
         luke = result;
         Assert.Equal(19, luke.Age);
 
-        await rebels.DeleteAsync(luke);
+        await rebels.DeleteAsync(luke.Id, response.Rev);
         luke = await rebels.FindAsync(luke.Id);
         Assert.Null(luke);
 
@@ -169,7 +186,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         // Create
         var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
         luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
-        luke = await fixture.Rebels.AddAsync(luke);
+        await fixture.Rebels.AddAsync(luke);
 
         Assert.Equal("Luke", luke.Name);
         Assert.NotEmpty(luke.Attachments);
@@ -197,11 +214,6 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         Assert.NotNull(attachment.Uri);
         Assert.NotNull(attachment.Digest);
         Assert.NotNull(attachment.Length);
-
-        // Update
-        luke.Surname = "Skywalker";
-        luke = await fixture.Rebels.UpsertAsync(luke);
-        Assert.Equal("Skywalker", luke.Surname);
     }
 
     [Fact]
@@ -216,12 +228,12 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         // Create
         var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
         luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
-        luke = await fixture.Rebels.AddAsync(luke);
+        await fixture.Rebels.AddAsync(luke);
 
         Assert.Equal("Luke", luke.Name);
         Assert.NotEmpty(luke.Attachments);
 
-        var attachment = luke.Attachments.First();
+        var attachment = luke.Attachments[0];
         Assert.NotNull(attachment);
         Assert.NotNull(attachment.Uri);
 
@@ -242,7 +254,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 
         Assert.NotNull(result);
     }
-    
+
     [Fact]
     public async Task GetRevisionLimit()
     {
@@ -262,13 +274,13 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
             Id = docId,
             IsActive = true
         };
-        await local.CreateOrUpdateAsync(settings);
+        await local.CreateOrUpdateAsync(settings, settings.Id);
 
         settings = await local.GetAsync<RebelSettings>(docId);
         Assert.True(settings.IsActive);
 
         settings.IsActive = false;
-        await local.CreateOrUpdateAsync(settings);
+        await local.CreateOrUpdateAsync(settings, settings.Id);
         settings = await local.GetAsync<RebelSettings>(docId);
         Assert.False(settings.IsActive);
 
