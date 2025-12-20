@@ -1,7 +1,4 @@
-﻿
-using System.Text.Json.Serialization;
-
-namespace CouchDB.Driver.ChangesFeed.Responses;
+﻿namespace CouchDB.Driver.ChangesFeed.Responses;
 
 [Serializable]
 public class ChangesFeedResponseResult<TSource>

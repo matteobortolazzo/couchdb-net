@@ -1,4 +1,4 @@
-﻿namespace CouchDB.Driver.DatabaseApiMethodOptions;
+﻿namespace CouchDB.Driver.Types;
 
 /// <summary>
 /// Options for document requests.

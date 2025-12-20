@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -16,29 +17,15 @@ namespace CouchDB.Driver.E2ETests;
 [Trait("Category", "Integration")]
 public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 {
+    private static Rebel NewRebel(string name) => new(Guid.NewGuid().ToString(), name, "", 19, []);
+
     [Fact]
     public async Task ChangesFeed()
     {
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_1", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_2", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_3", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_4", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_5", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_6", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_7", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_8", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_9", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_10", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_13", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_14", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_15", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_16", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_17", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_18", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_19", Age = 19 });
-        _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_20", Age = 19 });
+        for (var i = 1; i <= 20; i++)
+        {
+            _ = await fixture.Rebels.AddAsync(NewRebel($"Luke_{i}"));
+        }
 
         var lineCount = 0;
         var tokenSource = new CancellationTokenSource();
@@ -46,17 +33,15 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
                            .GetContinuousChangesAsync(null, null, tokenSource.Token))
         {
             lineCount++;
-            if (lineCount == 20)
+            switch (lineCount)
             {
-                _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_11", Age = 19 },
-                    cancellationToken: tokenSource.Token);
-                _ = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke_12", Age = 19 },
-                    cancellationToken: tokenSource.Token);
-            }
-
-            if (lineCount == 22)
-            {
-                await tokenSource.CancelAsync();
+                case 20:
+                    _ = await fixture.Rebels.AddAsync(NewRebel("Luke_21"), cancellationToken: tokenSource.Token);
+                    _ = await fixture.Rebels.AddAsync(NewRebel("Luke_22"), cancellationToken: tokenSource.Token);
+                    break;
+                case 22:
+                    await tokenSource.CancelAsync();
+                    break;
             }
         }
     }
@@ -64,26 +49,27 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     [Fact]
     public async Task Crud()
     {
-        var luke = new Rebel { Name = "Luke", Age = 19 };
-        var response = await fixture.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
+        var luke = NewRebel("Luke_CRUD");
+        var addResponse = await fixture.Rebels.AddAsync(luke);
 
-        luke.Surname = "Skywalker";
-        response = await fixture.Rebels.ReplaceAsync(luke, response.Id, response.Rev);
+        luke = luke with { Surname = "Skywalker" };
+        addResponse = await fixture.Rebels.ReplaceAsync(luke, luke.Id, addResponse.Rev);
+
+        var findResponse = await fixture.Rebels.FindAsync(luke.Id);
+        Assert.NotNull(findResponse);
+
+        luke = findResponse.Document;
         Assert.Equal("Skywalker", luke.Surname);
 
-        luke = await fixture.Rebels.FindAsync(response.Id);
-        Assert.NotNull(luke);
-        Assert.Equal(19, luke.Age);
-
-        await fixture.Rebels.DeleteAsync(response.Id, response.Rev);
-        luke = await fixture.Rebels.FindAsync(response.Id!);
-        Assert.Null(luke);
+        await fixture.Rebels.DeleteAsync(luke.Id, addResponse.Rev);
+        findResponse = await fixture.Rebels.FindAsync(addResponse.Id!);
+        Assert.Null(findResponse);
     }
 
     [Fact]
     public async Task Crud_Range()
     {
-        var luke = new Rebel { Name = "Luke", Age = 19 };
+        var luke = NewRebel("Luke_Range_CRUD");
 
         BulkOperation[] op =
         [
@@ -96,7 +82,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         Assert.NotEmpty(results);
         luke = rebels[0];
 
-        luke.Surname = "Skywalker";
+        luke = luke with { Surname = "Skywalker" };
         op =
         [
             BulkOperation.Update(luke, luke.Id, luke.Rev!)
@@ -121,7 +107,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     public async Task Crud_Context()
     {
         await using var context = new MyDeathStarContext();
-        await context.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19 });
+        await context.Rebels.AddAsync(NewRebel("Luke_Context"));
         var result = await context.Rebels.ToListAsync();
         Assert.NotEmpty(result);
     }
@@ -138,9 +124,9 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 
         Assert.Equal(2, indexes.Count);
 
-        await context.Rebels.AddAsync(new Rebel { Name = "Han", Age = 30, Surname = "Solo" });
-        await context.Rebels.AddAsync(new Rebel { Name = "Leia", Age = 19, Surname = "Skywalker" });
-        await context.Rebels.AddAsync(new Rebel { Name = "Luke", Age = 19, Surname = "Skywalker" });
+        await context.Rebels.AddAsync(new Rebel(Guid.NewGuid().ToString(), "Han", "Solo", 30, []));
+        await context.Rebels.AddAsync(new Rebel(Guid.NewGuid().ToString(), "Leia", "Skywalker", 19, []));
+        await context.Rebels.AddAsync(new Rebel(Guid.NewGuid().ToString(), "Luke", "Skywalker", 19, []));
 
         var rebels = await context.Rebels
             .OrderBy(r => r.Surname)
@@ -156,22 +142,21 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         const string databaseName = "rebel0_$()+/-";
         var rebels = await fixture.Client.GetOrCreateDatabaseAsync<Rebel>(databaseName);
 
-        var luke = new Rebel { Name = "Luke", Age = 19 };
-        var response = await rebels.AddAsync(luke);
+        var luke = NewRebel("Luke_SpecialChars");
+        var writeResponse = await rebels.AddAsync(luke);
 
-        luke.Surname = "Skywalker";
-        response = await rebels.ReplaceAsync(luke, response.Id, response.Rev);
+        luke = luke with { Surname = "Skywalker" };
+        await rebels.ReplaceAsync(luke, luke.Id, writeResponse.Rev);
+
+        var findResponse = await rebels.FindAsync(luke.Id);
+        Assert.NotNull(findResponse);
+
+        luke = findResponse.Document;
         Assert.Equal("Skywalker", luke.Surname);
 
-        var result = await rebels.FindAsync(luke.Id);
-        Assert.NotNull(result);
-
-        luke = result;
-        Assert.Equal(19, luke.Age);
-
-        await rebels.DeleteAsync(luke.Id, response.Rev);
-        luke = await rebels.FindAsync(luke.Id);
-        Assert.Null(luke);
+        await rebels.DeleteAsync(luke.Id, findResponse.Rev);
+        findResponse = await rebels.FindAsync(luke.Id);
+        Assert.Null(findResponse);
 
         await fixture.Client.DeleteDatabaseAsync(databaseName);
     }
@@ -180,7 +165,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     [Fact]
     public async Task Attachment()
     {
-        var luke = new Rebel { Name = "Luke", Age = 19 };
+        var luke = new Rebel(Guid.NewGuid().ToString(), "Luke_20", "", 19, []))
         var runningPath = Directory.GetCurrentDirectory();
 
         // Create
@@ -219,7 +204,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     [Fact]
     public async Task AttachmentAsStream()
     {
-        var luke = new Rebel { Name = "Luke", Age = 19 };
+        var luke = new Rebel(Guid.NewGuid().ToString(), "Luke_20", "", 19, []))
         var runningPath = Directory.GetCurrentDirectory();
 
         var fileOnDiskPath = Path.Combine(runningPath, "Assets", "luke.txt");
@@ -242,7 +227,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         var memStream = new MemoryStream();
         await responseStream.CopyToAsync(memStream);
         var fileFromDb = memStream.ToArray();
-        var areEqual = fileOnDisk.SequenceEqual(fileFromDb);
+        var areEqual = Enumerable.SequenceEqual(fileOnDisk, fileFromDb);
 
         Assert.True(areEqual);
     }

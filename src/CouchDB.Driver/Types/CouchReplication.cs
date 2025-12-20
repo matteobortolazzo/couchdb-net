@@ -2,7 +2,7 @@
 
 // TODO: Review
 [Serializable]
-public class CouchReplication : CouchDocument
+public record CouchReplication 
 {
     [property:JsonPropertyName("source")]
     public object? Source { get; set; }

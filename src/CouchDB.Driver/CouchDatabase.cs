@@ -18,11 +18,11 @@ using CouchDB.Driver.Local;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using CouchDB.Driver.Views;
-using CouchDB.Driver.DatabaseApiMethodOptions;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver;
@@ -76,7 +76,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Find
 
     /// <inheritdoc />
-    public async Task<TSource?> FindAsync(string docId, FindDocumentRequestOptions? options = null,
+    public async Task<FindResponse<TSource>?> FindAsync(string docId, FindDocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         IFlurlRequest request = NewRequest()
@@ -88,19 +88,13 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .GetAsync(cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
-        TSource? document = null;
         if (response is not { StatusCode: (int)HttpStatusCode.OK })
         {
-            return document;
+            return null;
         }
 
-        document = await response.GetJsonAsync<TSource>().ConfigureAwait(false);
-        if (document != null)
-        {
-            InitAttachments(document);
-        }
-
-        return document;
+        var json = await response.GetStringAsync().ConfigureAwait(false);
+        return JsonSerializer.Deserialize<FindResponse<TSource>>(json, _jsonSerializerOptions);
     }
 
     /// <inheritdoc />
@@ -209,9 +203,10 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             request = request.SetQueryParam("batch", "ok");
         }
 
-        document.SplitDiscriminator = _discriminator;
+        JsonObject jsonObject = GetTransformedJsonObject(document);
+        var jsonContent = JsonContent.Create(jsonObject, options: _jsonSerializerOptions);
         DocumentSaveResponse response = await request
-            .PostJsonAsync(document, cancellationToken: cancellationToken)
+            .PostJsonAsync(jsonContent, cancellationToken: cancellationToken)
             .ReceiveJson<DocumentSaveResponse>()
             .SendRequestAsync()
             .ConfigureAwait(false);
@@ -242,10 +237,11 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             request = request.SetQueryParam("batch", "ok");
         }
 
-        document.SplitDiscriminator = _discriminator;
+        JsonObject jsonObject = GetTransformedJsonObject(document);
+        var jsonContent = JsonContent.Create(jsonObject, options: _jsonSerializerOptions);
         DocumentSaveResponse response = await request
             .WithHeader(IfMatchHeader, rev)
-            .PutJsonAsync(document, cancellationToken: cancellationToken)
+            .PutJsonAsync(jsonContent, cancellationToken: cancellationToken)
             .ReceiveJson<DocumentSaveResponse>()
             .SendRequestAsync()
             .ConfigureAwait(false);
@@ -292,14 +288,6 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     {
         ArgumentNullException.ThrowIfNull(operations);
 
-        // TODO: Test split
-        /*
-        foreach (TSource document in documents)
-        {
-            document.SplitDiscriminator = _discriminator;
-        }
-        */
-
         List<JsonNode> docs = [];
 
         foreach (BulkOperation operation in operations)
@@ -308,21 +296,16 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             {
                 case AddOperation add:
                     {
-                        var el = (JsonSerializer.SerializeToNode(add.Document, _jsonSerializerOptions)! as JsonObject)!;
-                        if (el.ContainsKey("_id") && el["_id"] == null)
-                        {
-                            el.Remove("_id");
-                        }
-
-                        docs.Add(el);
+                        JsonObject addNode = GetTransformedJsonObject((TSource)add.Document);
+                        docs.Add(addNode);
                         break;
                     }
                 case UpdateOperation update:
                     {
-                        JsonNode el = JsonSerializer.SerializeToNode(update.Document, _jsonSerializerOptions)!;
-                        el["_id"] = update.Id;
-                        el["_rev"] = update.Rev;
-                        docs.Add(el);
+                        JsonObject updateNode = GetTransformedJsonObject((TSource)update.Document);
+                        updateNode["_id"] = update.Id;
+                        updateNode["_rev"] = update.Rev;
+                        docs.Add(updateNode);
                         break;
                     }
                 case DeleteOperation delete:
@@ -352,6 +335,30 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                 response.Error,
                 response.Reason))
             .ToArray();
+    }
+
+    private JsonObject GetTransformedJsonObject(TSource document)
+    {
+        var jsonObject = (JsonSerializer.SerializeToNode(document, _jsonSerializerOptions) as JsonObject)!;
+
+        // Set discriminator if needed
+        if (!string.IsNullOrWhiteSpace(_discriminator))
+        {
+            jsonObject[CouchClient.DefaultDatabaseSplitDiscriminator] = _discriminator;
+        }
+
+        // Remove rev
+        jsonObject.Remove("rev");
+
+        // Transform id to _id for writes
+        var currentId = jsonObject["id"]?.GetValue<string>();
+        if (currentId != null)
+        {
+            jsonObject["_id"] = currentId;
+            jsonObject.Remove("id");
+        }
+
+        return jsonObject;
     }
 
     private async Task UpdateAttachments(TSource document, string id, string rev,
@@ -424,21 +431,28 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
         request = ApplyChangesFeedOptions(request, options);
 
-        ChangesFeedResponse<TSource>? response = filter == null
-            ? await request.GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
+        ChangesFeedResponse<JsonObject>? response = filter == null
+            ? await request.GetJsonAsync<ChangesFeedResponse<JsonObject>>(cancellationToken: cancellationToken)
                 .ConfigureAwait(false)
-            : await request.QueryWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
+            : await request.QueryWithFilterAsync<JsonObject>(_queryProvider, filter, cancellationToken)
                 .ConfigureAwait(false);
 
-        if (string.IsNullOrWhiteSpace(_discriminator))
+        if (!string.IsNullOrWhiteSpace(_discriminator))
         {
-            return response;
+            response.Results = response.Results
+                .Where(result => result.Document![CouchClient.DefaultDatabaseSplitDiscriminator]!.GetValue<string>() ==
+                                 _discriminator)
+                .ToArray();
         }
 
-        response.Results = response.Results
-            .Where(result => result.Document?.SplitDiscriminator == _discriminator)
-            .ToArray();
-        return response;
+        var convertedResults = response.Results
+            .Select(result => result.Document.Deserialize<TSource>())
+            .ToList();
+
+        return new ChangesFeedResponse<TSource>
+        {
+            LastSequence = response.LastSequence, Pending = response.Pending, Results = convertedResults
+        };
     }
 
     /// <inheritdoc />

@@ -367,7 +367,7 @@ The driver fully support attachments, you can list, create, delete and download 
 
 ```csharp
 // Get a document
-var luke = new Rebel { Name = "Luke", Age = 19 };
+var luke = new Rebel(Guid.NewGuid().ToString(), "Luke_20", "", 19, []))
 
 // Add in memory
 var pathToDocument = @".\luke.txt"

@@ -9,8 +9,8 @@ internal partial class QueryTranslator
     protected override Expression VisitMember(MemberExpression m)
     {
         // Override database split if needed
-        if (m.Member.DeclaringType == typeof(CouchDocument) &&
-            m.Member.Name == nameof(CouchDocument.SplitDiscriminator) &&
+        if (m.Member.DeclaringType == typeof(FindResponse<>) &&
+            m.Member.Name == nameof(FindResponse<>.SplitDiscriminator) &&
             !string.IsNullOrWhiteSpace(_options.DatabaseSplitDiscriminator))
         {
             _sb.Append($"\"{_options.DatabaseSplitDiscriminator}\"");

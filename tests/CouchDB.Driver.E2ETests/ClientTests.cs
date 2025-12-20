@@ -13,18 +13,20 @@ public class ClientTests(TestFixture fixture) : IClassFixture<TestFixture>
     {
         var users = await fixture.Client.GetOrCreateUsersDatabaseAsync();
 
-        var response = await users.AddAsync(new CouchUser(name: "luke", password: "lasersword"));
+        var response = await users.AddAsync(new CouchUser("luke", "lasersword"));
 
-        var luke = await users.FindAsync(response.Id);
-        Assert.NotNull(luke);
+        var findResponse = await users.FindAsync(response.Id);
+        Assert.NotNull(findResponse);
+
+        var luke = findResponse.Document;
         Assert.Equal("luke", luke.Name);
 
-        luke.Password = "r2d2";
-        response = await users.ReplaceAsync(luke, luke.Id, luke.Rev);
+        luke = luke with { Password = "r2d2" };
+        response = await users.ReplaceAsync(luke, luke.Id, findResponse.Rev);
 
         await users.DeleteAsync(luke.Id, response.Rev);
-        luke = await users.FindAsync(luke.Id);
-        Assert.Null(luke);
+        findResponse = await users.FindAsync(luke.Id);
+        Assert.Null(findResponse);
 
         await fixture.Client.DeleteDatabaseAsync<CouchUser>();
     }

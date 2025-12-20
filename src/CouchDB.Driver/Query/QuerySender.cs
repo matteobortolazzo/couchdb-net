@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Helpers;
+using CouchDB.Driver.Types;
 using Flurl.Http;
 
 namespace CouchDB.Driver.Query;

@@ -96,7 +96,7 @@ public partial class CouchClient : ICouchClient
                 _options.JsonSerializerOptions.TypeInfoResolver =
                     new CouchJsonTypeInfoResolver(_options.DatabaseSplitDiscriminator);
 
-                _options.JsonSerializerOptions.Converters.Add(new CouchDocumentConverter());
+                _options.JsonSerializerOptions.Converters.Add(new FindResponseConverterFactory());
                 _jsonSerializerOptions = _options.JsonSerializerOptions;
                 s.JsonSerializer = new DefaultJsonSerializer(_jsonSerializerOptions);
                 

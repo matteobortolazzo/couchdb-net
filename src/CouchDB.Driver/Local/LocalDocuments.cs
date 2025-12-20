@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Query;
+using CouchDB.Driver.Types;
 using Flurl.Http;
 
 namespace CouchDB.Driver.Local;

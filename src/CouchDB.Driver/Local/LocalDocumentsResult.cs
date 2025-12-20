@@ -1,4 +1,6 @@
-﻿namespace CouchDB.Driver.Local;
+﻿using CouchDB.Driver.Types;
+
+namespace CouchDB.Driver.Local;
 
 [Serializable]
 internal class LocalDocumentsResult

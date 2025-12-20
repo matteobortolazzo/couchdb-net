@@ -5,7 +5,6 @@ using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
 using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
-using CouchDB.Driver.DatabaseApiMethodOptions;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
 using CouchDB.Driver.Views;
@@ -27,7 +26,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for GET /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null</returns>
-    Task<TSource?> FindAsync(string docId, FindDocumentRequestOptions? options = null,
+    Task<FindResponse<TSource>?> FindAsync(string docId, FindDocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

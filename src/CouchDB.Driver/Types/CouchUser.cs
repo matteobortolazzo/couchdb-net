@@ -4,51 +4,25 @@ namespace CouchDB.Driver.Types;
 
 /// <summary>
 /// Represents a CouchDB user.
+/// <param name="Name">User’s name aka login. Immutable e.g. you cannot rename an existing user - you have to create new one.</param>
+/// <param name="Password">User’s name aka login. Immutable e.g. you cannot rename an existing user - you have to create new one.</param>
+/// <param name="Roles">
+/// List of user roles. CouchDB doesn't provide any built-in roles, so you’re free to define your own depending on your needs. 
+/// However, you cannot set system roles like _admin there. 
+/// Also, only administrators may assign roles to users - by default all users have no roles
+/// </param>
+/// <param name="Type">Document type. Constantly has the value user.</param>
 /// </summary>
 [Serializable]
 [DatabaseName("_users")]
-public class CouchUser : CouchDocument
+public record CouchUser(
+    string Name,
+    string Password,
+    IList<string>? Roles = null,
+    string Type = "user")
 {
     internal const string Prefix = "org.couchdb.user:";
 
-    public CouchUser(string name, string password, List<string>? roles = null, string type = "user")
-    {
-        ArgumentNullException.ThrowIfNull(name);
-        ArgumentNullException.ThrowIfNull(type);
-
-        Id = Prefix + name;
-        Name = name;
-        Password = password;
-        Roles = roles ?? [];
-        Type = type;
-    }
-    
-    [property:JsonPropertyName("_id")]
-    public string Id { get; set; }
-
-    [property: JsonPropertyName("_rev")]
-    public string Rev { get; set; } = null!;
-
-    [property:JsonPropertyName("password")]
-    public string Password { get; set; }
-
-    /// <summary>
-    /// User’s name aka login. Immutable e.g. you cannot rename an existing user - you have to create new one.
-    /// </summary>
-    [property:JsonPropertyName("name")]
-    public string Name { get; init; }
-
-    /// <summary>
-    /// List of user roles. CouchDB doesn't provide any built-in roles, so you’re free to define your own depending on your needs. 
-    /// However, you cannot set system roles like _admin there. 
-    /// Also, only administrators may assign roles to users - by default all users have no roles
-    /// </summary>
-    [property:JsonPropertyName("roles")]
-    public List<string> Roles { get; init; }
-
-    /// <summary>
-    /// Document type. Constantly has the value user.
-    /// </summary>
-    [property:JsonPropertyName("type")]
-    public string Type { get; init; }
+    [property: JsonPropertyName("id")]
+    public string Id => Prefix + Name;
 }
