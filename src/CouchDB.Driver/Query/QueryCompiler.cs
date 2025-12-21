@@ -30,8 +30,8 @@ internal class QueryCompiler(
 
     public string ToString(Expression query)
     {
-        Expression optimizedQuery = queryOptimizer.Optimize(query, discriminator);
-        return queryTranslator.Translate(optimizedQuery);
+        Expression optimizedQuery = queryOptimizer.Optimize(query);
+        return queryTranslator.Translate(optimizedQuery, discriminator);
     }
 
     public TResult Execute<TResult>(Expression query)
@@ -69,22 +69,22 @@ internal class QueryCompiler(
     private TResult SendRequestWithoutFilter<TResult>(Expression query, bool async,
         CancellationToken cancellationToken)
     {
-        Expression optimizedQuery = queryOptimizer.Optimize(query, discriminator);
-        var body = queryTranslator.Translate(optimizedQuery);
+        Expression optimizedQuery = queryOptimizer.Optimize(query);
+        var body = queryTranslator.Translate(optimizedQuery, discriminator);
         return requestSender.Send<TResult>(body, async, cancellationToken);
     }
 
     private TResult SendRequestWithFilter<TResult>(MethodCallExpression methodCallExpression, Expression query,
         bool async, CancellationToken cancellationToken)
     {
-        Expression optimizedQuery = queryOptimizer.Optimize(query, discriminator);
+        Expression optimizedQuery = queryOptimizer.Optimize(query);
 
         if (optimizedQuery is not MethodCallExpression optimizedMethodCall)
         {
             throw new ArgumentException($"Expression of type {optimizedQuery.GetType().Name} is not valid.");
         }
 
-        var body = queryTranslator.Translate(optimizedQuery);
+        var body = queryTranslator.Translate(optimizedQuery, discriminator);
 
         // If no operation must be done on the list return
         if (!methodCallExpression.Method.IsSupportedByComposition())

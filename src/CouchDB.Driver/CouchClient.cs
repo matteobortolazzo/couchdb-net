@@ -24,7 +24,7 @@ namespace CouchDB.Driver;
 /// </summary>
 public partial class CouchClient : ICouchClient
 {
-    public const string DefaultDatabaseSplitDiscriminator = "split_discriminator";
+    private const string DefaultDatabaseSplitDiscriminator = "split_discriminator";
 
     private JsonSerializerOptions _jsonSerializerOptions = null!;
     private readonly IFlurlClient _flurlClient;
@@ -68,6 +68,8 @@ public partial class CouchClient : ICouchClient
         {
             throw new InvalidOperationException("Database endpoint must be set.");
         }
+
+        options.DatabaseSplitDiscriminator ??= DefaultDatabaseSplitDiscriminator;
 
         _options = options;
         Endpoint = _options.Endpoint;

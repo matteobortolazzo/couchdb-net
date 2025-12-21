@@ -14,6 +14,8 @@ using Xunit;
 
 namespace CouchDB.Driver.E2ETests;
 
+// TODO: Split DB tests
+
 [Trait("Category", "Integration")]
 public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 {

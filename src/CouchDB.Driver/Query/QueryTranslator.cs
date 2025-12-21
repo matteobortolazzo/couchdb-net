@@ -21,7 +21,7 @@ internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
         _jsonNamePolicy = _options.JsonSerializerOptions?.PropertyNamingPolicy ?? JsonNamingPolicy.CamelCase;
     }
 
-    public string Translate(Expression e)
+    public string Translate(Expression e, string? discriminator)
     {
         lock (_sbLock)
         {
@@ -40,10 +40,23 @@ internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
                     _sb.Append(',');
                 }
 
-                _sb.Append("\"selector\":{}");
+                if (discriminator != null)
+                {
+                    _sb.Append($"\"selector\":{{\"{_options.DatabaseSplitDiscriminator}\":\"{discriminator}\"}}");
+                }
+                else
+                {
+                    _sb.Append("\"selector\":{}");
+                }
             }
             else
             {
+                // Selector exists, add discriminator to it
+                if (discriminator != null)
+                {
+                    _sb.Append($",\"{_options.DatabaseSplitDiscriminator}\":\"{discriminator}\"");
+                }
+
                 _sb.Length--;
             }
 

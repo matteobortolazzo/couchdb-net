@@ -131,16 +131,5 @@ internal static class MethodCallExpressionBuilder
         }
     }
 
-    public static MethodCallExpression WrapInDiscriminatorFilter<TSource>(this Expression node, string discriminator)
-        where TSource: class
-    {
-        ArgumentNullException.ThrowIfNull(node);
-
-        Expression<Func<TSource, bool>> filter = (d) => d.SplitDiscriminator == discriminator;
-
-        return Expression.Call(typeof(Queryable), nameof(Queryable.Where),
-            [typeof(TSource)], node, filter);
-    }
-
     #endregion
 }

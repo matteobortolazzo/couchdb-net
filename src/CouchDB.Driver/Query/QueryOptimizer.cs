@@ -13,41 +13,11 @@ namespace CouchDB.Driver.Query;
 /// </summary>
 internal class QueryOptimizer : ExpressionVisitor, IQueryOptimizer
 {
-    private static readonly MethodInfo WrapInDiscriminatorFilterGenericMethod
-        = typeof(MethodCallExpressionBuilder).GetMethod(nameof(MethodCallExpressionBuilder.WrapInDiscriminatorFilter))!;
     private bool _isVisitingWhereMethodOrChild;
     private readonly Queue<MethodCallExpression> _nextWhereCalls = new();
 
-    public Expression Optimize(Expression e, string? discriminator)
+    public Expression Optimize(Expression e)
     {
-        if (discriminator is not null)
-        {
-            if (e.Type.IsGenericType)
-            {
-                Type sourceType = e.Type.GetGenericArguments()[0];
-                MethodInfo wrapInWhere = WrapInDiscriminatorFilterGenericMethod.MakeGenericMethod(sourceType);
-                e = (Expression)wrapInWhere.Invoke(null, [e, discriminator])!;
-            }
-            else
-            {
-                Type sourceType = e.Type;
-                MethodInfo wrapInWhere = WrapInDiscriminatorFilterGenericMethod.MakeGenericMethod(sourceType);
-
-                var rootMethodCallExpression = e as MethodCallExpression;
-                Expression source = rootMethodCallExpression!.Arguments[0];
-                var discriminatorWrap = (MethodCallExpression)wrapInWhere.Invoke(null, [source, discriminator])!;
-                    
-                if (rootMethodCallExpression.Arguments.Count == 1)
-                {
-                    e = Expression.Call(rootMethodCallExpression.Method, discriminatorWrap);
-                }
-                else
-                {
-                    e = Expression.Call(rootMethodCallExpression.Method, discriminatorWrap, rootMethodCallExpression.Arguments[1]);
-                }
-            }
-        }
-
         e = LocalExpressions.PartialEval(e)!;
         return Visit(e);
     }
