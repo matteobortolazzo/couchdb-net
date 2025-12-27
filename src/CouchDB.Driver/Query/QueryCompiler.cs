@@ -12,8 +12,7 @@ namespace CouchDB.Driver.Query;
 internal class QueryCompiler(
     IQueryOptimizer queryOptimizer,
     IQueryTranslator queryTranslator,
-    IQuerySender requestSender,
-    string? discriminator)
+    IQuerySender requestSender)
     : IQueryCompiler
 {
     private static readonly MethodInfo RequestSendMethod
@@ -31,7 +30,7 @@ internal class QueryCompiler(
     public string ToString(Expression query)
     {
         Expression optimizedQuery = queryOptimizer.Optimize(query);
-        return queryTranslator.Translate(optimizedQuery, discriminator);
+        return queryTranslator.Translate(optimizedQuery);
     }
 
     public TResult Execute<TResult>(Expression query)
@@ -70,7 +69,7 @@ internal class QueryCompiler(
         CancellationToken cancellationToken)
     {
         Expression optimizedQuery = queryOptimizer.Optimize(query);
-        var body = queryTranslator.Translate(optimizedQuery, discriminator);
+        var body = queryTranslator.Translate(optimizedQuery);
         return requestSender.Send<TResult>(body, async, cancellationToken);
     }
 
@@ -84,7 +83,7 @@ internal class QueryCompiler(
             throw new ArgumentException($"Expression of type {optimizedQuery.GetType().Name} is not valid.");
         }
 
-        var body = queryTranslator.Translate(optimizedQuery, discriminator);
+        var body = queryTranslator.Translate(optimizedQuery);
 
         // If no operation must be done on the list return
         if (!methodCallExpression.Method.IsSupportedByComposition())

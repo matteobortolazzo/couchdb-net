@@ -1,5 +1,4 @@
-﻿
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace CouchDB.Driver.Options;
 
@@ -102,14 +101,6 @@ public class CouchOptionsBuilder<TContext> : CouchOptionsBuilder
     /// <returns>Return the current instance to chain calls.</returns>
     public new virtual CouchOptionsBuilder<TContext> UseJwtAuthentication(Func<Task<string>> tokenGenerator)
         => (CouchOptionsBuilder<TContext>)base.UseJwtAuthentication(tokenGenerator);
-
-    /// <summary>
-    /// Set the field to use to identify document types. Default: <c>split_discriminator</c>.
-    /// </summary>
-    /// <param name="databaseSplitDiscriminator">The document field to use as discriminator.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public new virtual CouchOptionsBuilder<TContext> WithDatabaseSplitDiscriminator(string databaseSplitDiscriminator)
-        => (CouchOptionsBuilder<TContext>)base.WithDatabaseSplitDiscriminator(databaseSplitDiscriminator);
 
     /// <summary>
     /// Disables log out on client dispose. 

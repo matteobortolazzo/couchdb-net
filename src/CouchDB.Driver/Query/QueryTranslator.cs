@@ -8,20 +8,18 @@ namespace CouchDB.Driver.Query;
 
 internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
 {
-    private readonly CouchOptions _options;
     private readonly StringBuilder _sb;
     private bool _isSelectorSet;
     private readonly Lock _sbLock = new();
-    private readonly JsonNamingPolicy _jsonNamePolicy;
+    private readonly JsonNamingPolicy? _jsonNamePolicy;
 
     internal QueryTranslator(CouchOptions options)
     {
         _sb = new StringBuilder();
-        _options = options;
-        _jsonNamePolicy = _options.JsonSerializerOptions?.PropertyNamingPolicy ?? JsonNamingPolicy.CamelCase;
+        _jsonNamePolicy = options.JsonSerializerOptions?.PropertyNamingPolicy;
     }
 
-    public string Translate(Expression e, string? discriminator)
+    public string Translate(Expression e)
     {
         lock (_sbLock)
         {
@@ -40,23 +38,10 @@ internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
                     _sb.Append(',');
                 }
 
-                if (discriminator != null)
-                {
-                    _sb.Append($"\"selector\":{{\"{_options.DatabaseSplitDiscriminator}\":\"{discriminator}\"}}");
-                }
-                else
-                {
-                    _sb.Append("\"selector\":{}");
-                }
+                _sb.Append("\"selector\":{}");
             }
             else
             {
-                // Selector exists, add discriminator to it
-                if (discriminator != null)
-                {
-                    _sb.Append($",\"{_options.DatabaseSplitDiscriminator}\":\"{discriminator}\"");
-                }
-
                 _sb.Length--;
             }
 

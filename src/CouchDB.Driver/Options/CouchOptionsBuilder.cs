@@ -1,8 +1,4 @@
-﻿
-using System.Net.Http;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace CouchDB.Driver.Options;
 
@@ -98,7 +94,8 @@ public class CouchOptionsBuilder
     /// <param name="password">Server password.</param>
     /// <param name="cookieDuration">Cookie duration in minutes.</param>
     /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder UseCookieAuthentication(string username, string password, int cookieDuration = 10)
+    public virtual CouchOptionsBuilder UseCookieAuthentication(string username, string password,
+        int cookieDuration = 10)
     {
         ArgumentNullException.ThrowIfNull(username);
         ArgumentNullException.ThrowIfNull(password);
@@ -119,12 +116,13 @@ public class CouchOptionsBuilder
     /// <param name="roles">Server roles.</param>
     /// <param name="token">Computed authentication token.</param>
     /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder UseProxyAuthentication(string username, IReadOnlyCollection<string> roles, string? token = null)
+    public virtual CouchOptionsBuilder UseProxyAuthentication(string username, IReadOnlyCollection<string> roles,
+        string? token = null)
     {
         ArgumentNullException.ThrowIfNull(username);
         ArgumentNullException.ThrowIfNull(roles);
 
-        Options.Authentication = new ProxyCouchAuthentication(username,  roles, token);
+        Options.Authentication = new ProxyCouchAuthentication(username, roles, token);
         return this;
     }
 
@@ -150,17 +148,6 @@ public class CouchOptionsBuilder
     }
 
     /// <summary>
-    /// Set the field to use to identify document types. Default: <c>split_discriminator</c>.
-    /// </summary>
-    /// <param name="databaseSplitDiscriminator">The document field to use as discriminator.</param>
-    /// <returns>Return the current instance to chain calls.</returns>
-    public virtual CouchOptionsBuilder WithDatabaseSplitDiscriminator(string databaseSplitDiscriminator)
-    {
-        Options.DatabaseSplitDiscriminator = databaseSplitDiscriminator;
-        return this;
-    }
-
-    /// <summary>
     /// Disables log out on client dispose. 
     /// </summary>
     /// <returns>Return the current instance to chain calls.</returns>
@@ -169,7 +156,7 @@ public class CouchOptionsBuilder
         Options.LogOutOnDispose = false;
         return this;
     }
-    
+
     /// <summary>
     /// Throw an exception if a query warning is returned from the server.
     /// </summary>

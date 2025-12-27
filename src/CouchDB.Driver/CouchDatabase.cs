@@ -40,7 +40,6 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly CouchOptions _options;
     private readonly QueryContext _queryContext;
-    private readonly string? _discriminator;
     private const string IfMatchHeader = "If-Match";
 
     /// <inheritdoc />
@@ -52,21 +51,19 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     /// <inheritdoc />
     public ILocalDocuments LocalDocuments { get; }
 
-    internal CouchDatabase(IFlurlClient flurlClient, JsonSerializerOptions jsonSerializerOptions, CouchOptions options,
-        QueryContext queryContext,
-        string? discriminator)
+    internal CouchDatabase(IFlurlClient flurlClient,
+        JsonSerializerOptions jsonSerializerOptions, CouchOptions options, QueryContext queryContext)
     {
         _feedChangeLineStartPattern = FeedChangeStartLinePattern();
         _flurlClient = flurlClient;
         _jsonSerializerOptions = jsonSerializerOptions;
         _options = options;
         _queryContext = queryContext;
-        _discriminator = discriminator;
 
         var queryOptimizer = new QueryOptimizer();
         var queryTranslator = new QueryTranslator(options);
         var querySender = new QuerySender(flurlClient, queryContext);
-        var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender, _discriminator);
+        var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender);
         _queryProvider = new CouchQueryProvider(queryCompiler);
 
         Security = new CouchSecurity(NewRequest);
@@ -117,17 +114,17 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         bool includeDeleted = false,
         CancellationToken cancellationToken = default)
     {
-        BulkGetResult<TSource> bulkGetResult = await NewRequest()
+        BulkGetResult<FindResponse<TSource>> bulkGetResult = await NewRequest()
             .AppendPathSegment("_bulk_get")
             .PostJsonAsync(new { docs = docIds.Select(id => new { id }) }, cancellationToken: cancellationToken)
-            .ReceiveJson<BulkGetResult<TSource>>()
+            .ReceiveJson<BulkGetResult<FindResponse<TSource>>>()
             .SendRequestAsync()
             .ConfigureAwait(false);
 
         var documents = bulkGetResult.Results
             .SelectMany(r => r.Docs)
             .Select(d => d.Item)
-            // .Where(i => i != null && (includeDeleted || !i.Deleted)) TODO: Review
+            .Where(i => i != null && (includeDeleted || !i.Deleted))
             .Where(i => i != null)
             .Cast<TSource>()
             .ToList();
@@ -341,12 +338,6 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     {
         var jsonObject = (JsonSerializer.SerializeToNode(document, _jsonSerializerOptions) as JsonObject)!;
 
-        // Set discriminator if needed
-        if (!string.IsNullOrWhiteSpace(_discriminator))
-        {
-            jsonObject[CouchClient.DefaultDatabaseSplitDiscriminator] = _discriminator;
-        }
-
         // Remove rev
         jsonObject.Remove("rev");
 
@@ -430,29 +421,12 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
 
         request = ApplyChangesFeedOptions(request, options);
-
-        ChangesFeedResponse<JsonObject>? response = filter == null
-            ? await request.GetJsonAsync<ChangesFeedResponse<JsonObject>>(cancellationToken: cancellationToken)
+        return filter == null
+            ? await request
+                .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
                 .ConfigureAwait(false)
-            : await request.QueryWithFilterAsync<JsonObject>(_queryProvider, filter, cancellationToken)
+            : await request.QueryWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                 .ConfigureAwait(false);
-
-        if (!string.IsNullOrWhiteSpace(_discriminator))
-        {
-            response.Results = response.Results
-                .Where(result => result.Document![CouchClient.DefaultDatabaseSplitDiscriminator]!.GetValue<string>() ==
-                                 _discriminator)
-                .ToArray();
-        }
-
-        var convertedResults = response.Results
-            .Select(result => result.Document.Deserialize<TSource>())
-            .ToList();
-
-        return new ChangesFeedResponse<TSource>
-        {
-            LastSequence = response.LastSequence, Pending = response.Pending, Results = convertedResults
-        };
     }
 
     /// <inheritdoc />
@@ -495,12 +469,8 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                     var substring = line.Substring(startIndex, lineLength);
                     ChangesFeedResponseResult<TSource>? result =
                         JsonSerializer.Deserialize<ChangesFeedResponseResult<TSource>>(substring);
-                    if (string.IsNullOrWhiteSpace(_discriminator) ||
-                        result?.Document?.SplitDiscriminator == _discriminator)
-                    {
-                        lastSequence = result!.Seq;
-                        yield return result;
-                    }
+                    lastSequence = result!.Seq;
+                    yield return result;
                 }
             }
 
@@ -888,7 +858,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     internal IndexBuilder<TSource> NewIndexBuilder(
         Action<IIndexBuilder<TSource>> indexBuilderAction)
     {
-        var builder = new IndexBuilder<TSource>(_options, _queryProvider);
+        var builder = new IndexBuilder<TSource>(_jsonSerializerOptions.PropertyNamingPolicy, _queryProvider);
         indexBuilderAction(builder);
         return builder;
     }

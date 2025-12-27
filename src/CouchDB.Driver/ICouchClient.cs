@@ -1,5 +1,4 @@
-﻿
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Types;
 
@@ -12,10 +11,9 @@ public interface ICouchClient : IAsyncDisposable
     /// </summary>
     /// <typeparam name="TSource">The type of database documents.</typeparam>
     /// <param name="database">The database name.</param>
-    /// <param name="discriminator">Filters documents by the given discriminator.</param>
     /// <returns>An instance of the CouchDB database with given name.</returns>
-    ICouchDatabase<TSource> GetDatabase<TSource>(string database, string? discriminator = null)
-        where TSource: class;
+    ICouchDatabase<TSource> GetDatabase<TSource>(string database)
+        where TSource : class;
 
     /// <summary>
     /// Returns an instance of the CouchDB database with the given name.
@@ -27,13 +25,12 @@ public interface ICouchClient : IAsyncDisposable
     /// <param name="shards">The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
     /// <param name="replicas">The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
     /// <param name="partitioned">Whether to create a partitioned database. Default is <c>False</c>.</param>
-    /// <param name="discriminator">Filters documents by the given discriminator.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
     Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database,
-        int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
+        int? shards = null, int? replicas = null, bool? partitioned = null,
         CancellationToken cancellationToken = default)
-        where TSource: class;
+        where TSource : class;
 
     /// <summary>
     /// Returns an instance of the CouchDB database with the given name.
@@ -45,13 +42,12 @@ public interface ICouchClient : IAsyncDisposable
     /// <param name="shards">Used when creating. The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
     /// <param name="replicas">Used when creating. The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
     /// <param name="partitioned">Whether to create a partitioned database. Default is <c>False</c>.</param>
-    /// <param name="discriminator">Filters documents by the given discriminator.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
     Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
-        int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
+        int? shards = null, int? replicas = null, bool? partitioned = null,
         CancellationToken cancellationToken = default)
-        where TSource: class;
+        where TSource : class;
 
     /// <summary>
     /// Deletes the database with the given name from the server.
@@ -67,7 +63,8 @@ public interface ICouchClient : IAsyncDisposable
     /// </summary>
     /// <typeparam name="TSource">The type of database documents.</typeparam>
     /// <returns>The instance of the CouchDB database of the given type.</returns>
-    ICouchDatabase<TSource> GetDatabase<TSource>() where TSource: class;
+    ICouchDatabase<TSource> GetDatabase<TSource>()
+        where TSource : class;
 
     /// <summary>
     /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
@@ -77,12 +74,11 @@ public interface ICouchClient : IAsyncDisposable
     /// <param name="shards">The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
     /// <param name="replicas">The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
     /// <param name="partitioned">Whether to create a partitioned database. Default is <c>False</c>.</param>
-    /// <param name="discriminator">Filters documents by the given discriminator.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
     Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
-        bool? partitioned = null, string? discriminator = null, CancellationToken cancellationToken = default)
-        where TSource: class;
+        bool? partitioned = null, CancellationToken cancellationToken = default)
+        where TSource : class;
 
     /// <summary>
     /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
@@ -92,12 +88,11 @@ public interface ICouchClient : IAsyncDisposable
     /// <param name="shards">Used when creating. The number of range partitions. Default is 8, unless overridden in the cluster config.</param>
     /// <param name="replicas">Used when creating. The number of copies of the database in the cluster. The default is 3, unless overridden in the cluster config.</param>
     /// <param name="partitioned">Whether to create a partitioned database. Default is <c>False</c>.</param>
-    /// <param name="discriminator">Filters documents by the given discriminator.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
     Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
-        bool? partitioned = null, string? discriminator = null, CancellationToken cancellationToken = default)
-        where TSource: class;
+        bool? partitioned = null, CancellationToken cancellationToken = default)
+        where TSource : class;
 
     /// <summary>
     /// Deletes the database with the name type <see cref="TSource"/>.
@@ -105,7 +100,7 @@ public interface ICouchClient : IAsyncDisposable
     /// <typeparam name="TSource">The type of database documents.</typeparam>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource: class;
+    Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource : class;
 
     /// <summary>
     /// Returns an instance of the users database.
@@ -148,7 +143,7 @@ public interface ICouchClient : IAsyncDisposable
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>Return True if the database exists, False otherwise.</returns>
     Task<bool> ExistsAsync<TSource>(CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Check if database exists.
     /// </summary>

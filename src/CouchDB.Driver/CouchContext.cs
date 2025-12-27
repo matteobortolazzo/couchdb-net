@@ -37,7 +37,6 @@ public abstract class CouchContext : IAsyncDisposable
 
         Client = new CouchClient(options);
 
-        SetupDiscriminators(databaseBuilder);
         InitializeDatabases(options, databaseBuilder);
     }
 
@@ -52,20 +51,6 @@ public abstract class CouchContext : IAsyncDisposable
         if (disposing)
         {
             await Client.DisposeAsync().ConfigureAwait(false);
-        }
-    }
-
-    private static void SetupDiscriminators(CouchDatabaseBuilder databaseBuilder)
-    {
-        // Get all options that share the database with another one
-        IEnumerable<KeyValuePair<Type, CouchDocumentBuilder>> sharedDatabase = databaseBuilder.DocumentBuilders
-            .Where(opt => opt.Value.Database != null)
-            .GroupBy(v => v.Value.Database)
-            .Where(g => g.Count() > 1)
-            .SelectMany(g => g);
-        foreach (KeyValuePair<Type, CouchDocumentBuilder> option in sharedDatabase)
-        {
-            option.Value.Discriminator = option.Key.Name;
         }
     }
 
@@ -87,7 +72,7 @@ public abstract class CouchContext : IAsyncDisposable
 
     private async Task InitDatabaseAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options,
         CouchDatabaseBuilder databaseBuilder)
-        where TSource: class
+        where TSource : class
     {
         ICouchDatabase<TSource> database;
         Type documentType = typeof(TSource);
@@ -98,9 +83,9 @@ public abstract class CouchContext : IAsyncDisposable
             var databaseName = documentBuilder.Database ?? documentType.GetDatabaseName();
             database = options.CheckDatabaseExists
                 ? await Client.GetOrCreateDatabaseAsync<TSource>(databaseName, documentBuilder.Shards,
-                        documentBuilder.Replicas, documentBuilder.Partitioned, documentBuilder.Discriminator)
+                        documentBuilder.Replicas, documentBuilder.Partitioned)
                     .ConfigureAwait(false)
-                : Client.GetDatabase<TSource>(databaseName, documentBuilder.Discriminator);
+                : Client.GetDatabase<TSource>(databaseName);
         }
         else
         {
@@ -114,7 +99,7 @@ public abstract class CouchContext : IAsyncDisposable
 
     private async Task ApplyDatabaseChangesAsync<TSource>(PropertyInfo propertyInfo, CouchOptions options,
         CouchDatabaseBuilder databaseBuilder)
-        where TSource: class
+        where TSource : class
     {
         Type documentType = typeof(TSource);
         if (!databaseBuilder.DocumentBuilders.TryGetValue(documentType, out CouchDocumentBuilder? value))
@@ -144,7 +129,7 @@ public abstract class CouchContext : IAsyncDisposable
         IEnumerable<IndexInfo> indexes,
         IndexSetupDefinition<TSource> indexSetup,
         CouchDatabase<TSource> database)
-        where TSource: class
+        where TSource : class
     {
         IndexInfo? currentIndex = TryFindIndex(
             indexes,

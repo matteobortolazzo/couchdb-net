@@ -1,22 +1,29 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace CouchDB.Driver.Extensions;
 
 internal static class MemberInfoExtensions
 {
-    public static string GetCouchPropertyName(this MemberInfo memberInfo, JsonNamingPolicy jsonNamingPolicy)
+    public static string GetCouchPropertyName(this MemberInfo memberInfo, JsonNamingPolicy? jsonNamingPolicy)
     {
         var jsonPropertyAttributes = memberInfo.GetCustomAttributes(typeof(JsonPropertyNameAttribute), true);
         JsonPropertyNameAttribute? jsonProperty = jsonPropertyAttributes.Length > 0
             ? jsonPropertyAttributes[0] as JsonPropertyNameAttribute
             : null;
 
-        return jsonProperty != null
-            ? jsonProperty.Name
-            : jsonNamingPolicy.ConvertName(memberInfo.Name);
+        if (jsonProperty != null)
+        {
+            return jsonProperty.Name;
+        }
+
+        if (jsonNamingPolicy != null)
+        {
+            return jsonNamingPolicy.ConvertName(memberInfo.Name);
+        }
+
+        return memberInfo.Name;
     }
 
     extension(List<MethodInfo> queryableMethods)

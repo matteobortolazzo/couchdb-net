@@ -24,8 +24,6 @@ namespace CouchDB.Driver;
 /// </summary>
 public partial class CouchClient : ICouchClient
 {
-    private const string DefaultDatabaseSplitDiscriminator = "split_discriminator";
-
     private JsonSerializerOptions _jsonSerializerOptions = null!;
     private readonly IFlurlClient _flurlClient;
     private readonly AuthenticationDelegatingHandler _authenticationHandler;
@@ -69,8 +67,6 @@ public partial class CouchClient : ICouchClient
             throw new InvalidOperationException("Database endpoint must be set.");
         }
 
-        options.DatabaseSplitDiscriminator ??= DefaultDatabaseSplitDiscriminator;
-
         _options = options;
         Endpoint = _options.Endpoint;
 
@@ -93,15 +89,9 @@ public partial class CouchClient : ICouchClient
             {
                 _options.JsonSerializerOptions ??= new JsonSerializerOptions();
                 _options.JsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
-
-                // TODO: Check type resolver
-                _options.JsonSerializerOptions.TypeInfoResolver =
-                    new CouchJsonTypeInfoResolver(_options.DatabaseSplitDiscriminator);
-
                 _options.JsonSerializerOptions.Converters.Add(new FindResponseConverterFactory());
                 _jsonSerializerOptions = _options.JsonSerializerOptions;
                 s.JsonSerializer = new DefaultJsonSerializer(_jsonSerializerOptions);
-                
             });
     }
 
@@ -125,19 +115,19 @@ public partial class CouchClient : ICouchClient
     #region CRUD
 
     /// <inheritdoc />
-    public ICouchDatabase<TSource> GetDatabase<TSource>(string database, string? discriminator = null)
-        where TSource: class
+    public ICouchDatabase<TSource> GetDatabase<TSource>(string database)
+        where TSource : class
     {
         CheckDatabaseName(database);
         var queryContext = new QueryContext(Endpoint, database, _options.ThrowOnQueryWarning);
-        return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext, discriminator);
+        return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext);
     }
 
     /// <inheritdoc />
     public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database,
-        int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
+        int? shards = null, int? replicas = null, bool? partitioned = null,
         CancellationToken cancellationToken = default)
-        where TSource: class
+        where TSource : class
     {
         QueryContext queryContext = NewQueryContext(database);
         IFlurlResponse response =
@@ -146,7 +136,7 @@ public partial class CouchClient : ICouchClient
 
         if (response.IsSuccessful())
         {
-            return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext, discriminator);
+            return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext);
         }
 
         if (response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
@@ -159,9 +149,9 @@ public partial class CouchClient : ICouchClient
 
     /// <inheritdoc />
     public async Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
-        int? shards = null, int? replicas = null, bool? partitioned = null, string? discriminator = null,
+        int? shards = null, int? replicas = null, bool? partitioned = null,
         CancellationToken cancellationToken = default)
-        where TSource: class
+        where TSource : class
     {
         QueryContext queryContext = NewQueryContext(database);
         IFlurlResponse response =
@@ -170,7 +160,7 @@ public partial class CouchClient : ICouchClient
 
         if (response.IsSuccessful() || response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
         {
-            return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext, discriminator);
+            return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext);
         }
 
         throw new CouchException($"Something wrong happened while creating database {database}.");
@@ -227,34 +217,31 @@ public partial class CouchClient : ICouchClient
     #region CRUD reflection
 
     /// <inheritdoc />
-    public ICouchDatabase<TSource> GetDatabase<TSource>() where TSource: class
+    public ICouchDatabase<TSource> GetDatabase<TSource>()
+        where TSource : class
     {
         return GetDatabase<TSource>(TypeExtensions.GetDatabaseName<TSource>());
     }
 
     /// <inheritdoc />
     public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
-        bool? partitioned = null, string? discriminator = null,
-        CancellationToken cancellationToken = default) where TSource: class
+        bool? partitioned = null, CancellationToken cancellationToken = default) where TSource : class
     {
         return CreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas, partitioned,
-            discriminator,
             cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
-        bool? partitioned = null, string? discriminator = null,
-        CancellationToken cancellationToken = default) where TSource: class
+        bool? partitioned = null, CancellationToken cancellationToken = default) where TSource : class
     {
         return GetOrCreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas,
-            partitioned, discriminator,
-            cancellationToken);
+            partitioned, cancellationToken);
     }
 
     /// <inheritdoc />
     public Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default)
-        where TSource: class
+        where TSource : class
     {
         return DeleteDatabaseAsync(TypeExtensions.GetDatabaseName<TSource>(), cancellationToken);
     }
@@ -280,14 +267,14 @@ public partial class CouchClient : ICouchClient
     /// <inheritdoc />
     public Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
     {
-        return GetOrCreateDatabaseAsync<CouchUser>(UsersDatabaseName, null, null, null, null, cancellationToken);
+        return GetOrCreateDatabaseAsync<CouchUser>(UsersDatabaseName, null, null, null, cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(
         CancellationToken cancellationToken = default) where TUser : CouchUser
     {
-        return GetOrCreateDatabaseAsync<TUser>(UsersDatabaseName, null, null, null, null, cancellationToken);
+        return GetOrCreateDatabaseAsync<TUser>(UsersDatabaseName, null, null, null, cancellationToken);
     }
 
     #endregion

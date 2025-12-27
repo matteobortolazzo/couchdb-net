@@ -1,14 +1,15 @@
 ﻿using System.Linq.Expressions;
+using System.Text.Json;
 using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Indexes;
 
-internal class IndexBuilder<TSource>(CouchOptions options, IAsyncQueryProvider queryProvider) : IIndexBuilder<TSource>,
-    IOrderedIndexBuilder<TSource>, IOrderedDescendingIndexBuilder<TSource>
-    where TSource: class
+internal class IndexBuilder<TSource>(JsonNamingPolicy? jsonNamePolicy, IAsyncQueryProvider queryProvider)
+    : IIndexBuilder<TSource>,
+        IOrderedIndexBuilder<TSource>, IOrderedDescendingIndexBuilder<TSource>
+    where TSource : class
 {
     private bool _ascending = true;
     private readonly List<string> _fields = [];
@@ -20,7 +21,8 @@ internal class IndexBuilder<TSource>(CouchOptions options, IAsyncQueryProvider q
         return this;
     }
 
-    public IOrderedDescendingIndexBuilder<TSource> IndexByDescending<TSelector>(Expression<Func<TSource, TSelector>> selector)
+    public IOrderedDescendingIndexBuilder<TSource> IndexByDescending<TSelector>(
+        Expression<Func<TSource, TSelector>> selector)
     {
         _ascending = false;
         AddField(selector);
@@ -32,11 +34,12 @@ internal class IndexBuilder<TSource>(CouchOptions options, IAsyncQueryProvider q
         return IndexBy(selector);
     }
 
-    public IOrderedDescendingIndexBuilder<TSource> ThenByDescending<TSelector>(Expression<Func<TSource, TSelector>> selector)
+    public IOrderedDescendingIndexBuilder<TSource> ThenByDescending<TSelector>(
+        Expression<Func<TSource, TSelector>> selector)
     {
         return IndexByDescending(selector);
     }
-        
+
     public void Where(Expression<Func<TSource, bool>> predicate)
     {
         MethodCallExpression whereExpression = predicate.WrapInWhereExpression();
@@ -49,7 +52,7 @@ internal class IndexBuilder<TSource>(CouchOptions options, IAsyncQueryProvider q
     private void AddField<TSelector>(Expression<Func<TSource, TSelector>> selector)
     {
         var memberExpression = selector.ToMemberExpression();
-        _fields.Add(memberExpression.GetPropertyName(options));
+        _fields.Add(memberExpression.GetPropertyName(jsonNamePolicy));
     }
 
     public IndexDefinition Build()

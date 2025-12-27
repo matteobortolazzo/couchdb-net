@@ -1,16 +1,13 @@
 ﻿using System.Linq.Expressions;
 using System.Text.Json;
-using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.Extensions;
 
 internal static class ExpressionExtensions
 {
-    public static string GetPropertyName(this MemberExpression m, CouchOptions options)
+    public static string GetPropertyName(this MemberExpression m, JsonNamingPolicy? jsonNamingPolicy)
     {
-        JsonNamingPolicy caseType = options.JsonSerializerOptions?.PropertyNamingPolicy ?? JsonNamingPolicy.CamelCase;
-
-        var members = new List<string> { m.Member.GetCouchPropertyName(caseType) };
+        var members = new List<string> { m.Member.GetCouchPropertyName(jsonNamingPolicy) };
 
         Expression? currentExpression = m.Expression;
 
@@ -21,7 +18,7 @@ internal static class ExpressionExtensions
 
         while (currentExpression is MemberExpression cm)
         {
-            members.Add(cm.Member.GetCouchPropertyName(caseType));
+            members.Add(cm.Member.GetCouchPropertyName(jsonNamingPolicy));
             currentExpression = cm.Expression;
         }
 
@@ -51,6 +48,7 @@ internal static class ExpressionExtensions
             {
                 expression = ((UnaryExpression)expression).Operand;
             }
+
             return expression;
         }
 

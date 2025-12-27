@@ -22,19 +22,19 @@
 /// List of local revision tokens without.
 /// Available if requested with <see cref="FindDocumentRequestOptions.Revisions"/> set to <c>True</c>
 /// </param>
+/// <param name="Revisions">
+/// Marks whether the document has been deleted.
+/// </param>
 /// </summary>
 public record FindResponse<TSource>(
     TSource Document,
-    [property: JsonPropertyName("_rev")]
     string Rev,
-    [property: JsonPropertyName("_conflicts")]
     string[]? Conflicts,
-    [property: JsonPropertyName("_deleted_conflicts")]
     string[]? DeletedConflicts,
-    [property: JsonPropertyName("_localSeq")]
     int? LocalSequence,
-    [property: JsonPropertyName("_revs_info")]
     RevisionInfo[]? RevisionsInfo,
-    [property: JsonPropertyName("_revisions")]
-    Revisions? Revisions
-) where TSource : class;
+    Revisions? Revisions,
+    bool Deleted) where TSource : class
+{
+    public static implicit operator TSource(FindResponse<TSource> response) => response.Document;
+}

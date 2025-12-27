@@ -1,4 +1,5 @@
-﻿namespace CouchDB.Driver.Options;
+﻿
+namespace CouchDB.Driver.Options;
 
 public abstract class CouchDocumentBuilder
 {
@@ -6,5 +7,4 @@ public abstract class CouchDocumentBuilder
     internal int? Shards { get; set; }
     internal int? Replicas { get; set; }
     internal bool Partitioned { get; set; }
-    internal string? Discriminator { get; set; }
 }

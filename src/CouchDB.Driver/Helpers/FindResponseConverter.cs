@@ -52,6 +52,7 @@ public class FindResponseConverter<TSource>(JsonSerializerOptions options) : Jso
         Revisions? revisions = root.TryGetProperty("_revisions", out JsonElement r)
             ? r.Deserialize<Revisions>(options)
             : null;
+        var deleted = root.TryGetProperty("deleted", out JsonElement d) && d.Deserialize<bool>(options);
         TSource? document = root.Deserialize<TSource>(options);
 
         return new FindResponse<TSource>(
@@ -61,7 +62,8 @@ public class FindResponseConverter<TSource>(JsonSerializerOptions options) : Jso
             deletedConflicts,
             localSeq,
             revsInfo,
-            revisions
+            revisions,
+            deleted
         );
     }
 

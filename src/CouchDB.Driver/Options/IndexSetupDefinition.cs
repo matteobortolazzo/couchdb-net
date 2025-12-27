@@ -1,5 +1,4 @@
-﻿using System;
-using CouchDB.Driver.Indexes;
+﻿using CouchDB.Driver.Indexes;
 
 namespace CouchDB.Driver.Options;
 
