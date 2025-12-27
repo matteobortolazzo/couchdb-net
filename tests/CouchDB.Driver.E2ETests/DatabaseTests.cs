@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.E2ETests.Models;
@@ -96,7 +95,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 
         op =
         [
-            BulkOperation.Delete(luke.Id, luke.Rev!)
+            BulkOperation.Delete(luke.Id, luke.Rev)
         ];
         await fixture.Rebels.ExecuteBulkItemOperationsAsync(op);
         rebels = await fixture.Rebels.ReadItemsAsync([luke.Id]);
@@ -106,20 +105,15 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     [Fact]
     public async Task Crud_Index_Context()
     {
-        // Create index
-        await using var context = new MyDeathStarContext();
-        // Override index
-        await using var newContext = new MyDeathStarContext2();
-
-        var indexes = await context.Rebels.GetIndexesAsync();
+        var indexes = await fixture.Rebels.GetIndexesAsync();
 
         Assert.Equal(2, indexes.Count);
 
-        await context.Rebels.AddAsync(new Rebel(Guid.NewGuid().ToString(), "Han", "Solo", 30, []));
-        await context.Rebels.AddAsync(new Rebel(Guid.NewGuid().ToString(), "Leia", "Skywalker", 19, []));
-        await context.Rebels.AddAsync(new Rebel(Guid.NewGuid().ToString(), "Luke", "Skywalker", 19, []));
+        await fixture.Rebels.CreateItemAsync(new Rebel(Guid.NewGuid().ToString(), "Han", "Solo", 30, []));
+        await fixture.Rebels.CreateItemAsync(new Rebel(Guid.NewGuid().ToString(), "Leia", "Skywalker", 19, []));
+        await fixture.Rebels.CreateItemAsync(new Rebel(Guid.NewGuid().ToString(), "Luke", "Skywalker", 19, []));
 
-        var rebels = await context.Rebels
+        var rebels = await fixture.Rebels
             .OrderBy(r => r.Surname)
             .ThenBy(r => r.Name)
             .ToListAsync();
@@ -156,46 +150,46 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     [Fact]
     public async Task Attachment()
     {
-        var luke = new Rebel(Guid.NewGuid().ToString(), "Luke_20", "", 19, []))
+        var luke = new Rebel(Guid.NewGuid().ToString(), "Luke_20", "", 19, []);
         var runningPath = Directory.GetCurrentDirectory();
 
         // Create
         var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
-        luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
-        await fixture.Rebels.CreateItemAsync(luke);
-
-        Assert.Equal("Luke", luke.Name);
-        Assert.NotEmpty(luke.Attachments);
-
-        var attachment = luke.Attachments[0];
-        Assert.NotNull(attachment);
-        Assert.NotNull(attachment.Uri);
+        var createResponse = await fixture.Rebels.CreateItemAsync(luke, new CreateItemRequestOptions
+        {
+            Attachments =
+            [
+                new CreateItemAttachment(attachFilePath)
+            ]
+        });
 
         // Download
         var downloadDir = Path.Combine(runningPath, "Assets");
         var downloadFilePath =
-            await fixture.Rebels.DownloadAttachmentAsync(attachment, downloadDir, "luke-downloaded.txt");
+            await fixture.Rebels.DownloadAttachmentAsync("luke.txt", createResponse.Id, createResponse.Rev,
+                downloadDir, "luke-downloaded.txt");
 
         Assert.True(File.Exists(downloadFilePath));
         File.Delete(downloadFilePath);
 
         // Find
-        var result = await fixture.Rebels.ReadItemAsync(luke.Id);
-        Assert.NotNull(result);
+        var readResult = await fixture.Rebels.ReadItemAsync(luke.Id);
+        Assert.NotNull(readResult);
 
-        luke = result;
+        luke = readResult;
         Assert.Equal(19, luke.Age);
-        attachment = luke.Attachments[0];
+
+        Assert.NotNull(readResult.Attachments);
+        var attachment = readResult.Attachments[0];
         Assert.NotNull(attachment);
-        Assert.NotNull(attachment.Uri);
         Assert.NotNull(attachment.Digest);
-        Assert.NotNull(attachment.Length);
+        Assert.True(attachment.Length > 0);
     }
 
     [Fact]
     public async Task AttachmentAsStream()
     {
-        var luke = new Rebel(Guid.NewGuid().ToString(), "Luke_20", "", 19, []))
+        var luke = new Rebel(Guid.NewGuid().ToString(), "Luke_20", "", 19, []);
         var runningPath = Directory.GetCurrentDirectory();
 
         var fileOnDiskPath = Path.Combine(runningPath, "Assets", "luke.txt");
@@ -203,18 +197,17 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 
         // Create
         var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
-        luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
-        await fixture.Rebels.CreateItemAsync(luke);
-
-        Assert.Equal("Luke", luke.Name);
-        Assert.NotEmpty(luke.Attachments);
-
-        var attachment = luke.Attachments[0];
-        Assert.NotNull(attachment);
-        Assert.NotNull(attachment.Uri);
+        var createResponse = await fixture.Rebels.CreateItemAsync(luke, new CreateItemRequestOptions
+        {
+            Attachments =
+            [
+                new CreateItemAttachment(attachFilePath)
+            ]
+        });
 
         // Download
-        var responseStream = await fixture.Rebels.DownloadAttachmentAsStreamAsync(attachment);
+        var responseStream =
+            await fixture.Rebels.DownloadAttachmentAsStreamAsync("luke.txt", createResponse.Id, createResponse.Rev);
         var memStream = new MemoryStream();
         await responseStream.CopyToAsync(memStream);
         var fileFromDb = memStream.ToArray();

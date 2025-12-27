@@ -57,10 +57,18 @@ public class FindResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSo
         Revisions? revisions = root.TryGetProperty("_revisions", out JsonElement revisionsElement)
             ? revisionsElement.Deserialize<Revisions>(jsonSerializerOptions)
             : null;
-        ReadOnlyDictionary<string, CouchAttachment>? attachments =
+        ReadOnlyDictionary<string, ReadItemAttachment>? attachments =
             root.TryGetProperty("_attachments", out JsonElement attachmentElement)
-                ? attachmentElement.Deserialize<ReadOnlyDictionary<string, CouchAttachment>>(jsonSerializerOptions)
+                ? attachmentElement.Deserialize<ReadOnlyDictionary<string, ReadItemAttachment>>(jsonSerializerOptions)
                 : null;
+        if (attachments != null)
+        {
+            foreach ((var name, ReadItemAttachment value) in attachments)
+            {
+                value.Name = name;
+            }
+        }
+        
         var deleted = root.TryGetProperty("deleted", out JsonElement deletedElement) &&
                       deletedElement.Deserialize<bool>(jsonSerializerOptions);
         TSource? document = root.Deserialize<TSource>(jsonSerializerOptions);
@@ -73,7 +81,7 @@ public class FindResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSo
             localSeq,
             revsInfo,
             revisions,
-            attachments,
+            attachments?.Values.ToArray(),
             deleted);
     }
 

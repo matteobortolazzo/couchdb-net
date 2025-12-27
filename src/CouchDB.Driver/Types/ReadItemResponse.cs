@@ -6,7 +6,7 @@ namespace CouchDB.Driver.Types;
 /// Represents a CouchDB document.
 /// <param name="Conflicts">
 /// The number of copies of every document.
-/// Available if requested with <see creGetItemOptionsons.Conflicts"/> set to <c>True</c>
+/// Available if requested with <see cref="ReadItemOptions.Conflicts"/> set to <c>True</c>
 /// </param>
 /// <param name="DeletedConflicts">
 /// List of deleted conflicted revisions.
@@ -40,7 +40,7 @@ public record ReadItemResponse<TSource>(
     int? LocalSequence,
     RevisionInfo[]? RevisionsInfo,
     Revisions? Revisions,
-    ReadOnlyDictionary<string, CouchAttachment>? Attachments,
+    ReadItemAttachment[]? Attachments,
     bool Deleted) where TSource : class
 {
     public static implicit operator TSource(ReadItemResponse<TSource> response) => response.Document;

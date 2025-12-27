@@ -160,7 +160,8 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Writing
 
     /// <inheritdoc />
-    public async Task<WriteItemResponse> CreateItemAsync(TSource document, ItemRequestOptions? options = null,
+    public async Task<WriteItemResponse> CreateItemAsync(TSource document,
+        CreateItemRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
@@ -173,6 +174,22 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
 
         JsonObject jsonObject = GetTransformedJsonObject(document);
+        if (options?.Attachments != null)
+        {
+            var requestAttachments = new Dictionary<string, CreateAttachmentRequest>();
+            foreach (CreateItemAttachment attachment in options.Attachments)
+            {
+                var contentType = attachment.ContentType ??
+                                  ExtensionsHelper.GetContentTypeFromExtension(attachment.FilePath);
+                var fileName = attachment.Name ?? Path.GetFileName(attachment.FilePath);
+                var fileBytes = await File.ReadAllBytesAsync(attachment.FilePath, cancellationToken);
+                var base64Content = Convert.ToBase64String(fileBytes);
+                requestAttachments[fileName] = new CreateAttachmentRequest(contentType, base64Content);
+            }
+
+            jsonObject["_attachments"] = JsonSerializer.SerializeToNode(requestAttachments, _jsonSerializerOptions);
+        }
+
         var jsonContent = JsonContent.Create(jsonObject, options: _jsonSerializerOptions);
         return await request
             .PostJsonAsync(jsonContent, cancellationToken: cancellationToken)

@@ -84,11 +84,11 @@ namespace CouchDB.Driver.UnitTests
             });
 
             await using var context = new MyDeathStarContext();
-            await context.Rebels.CreateItemAsync(new Rebel
+            await fixture.Rebels.CreateItemAsync(new Rebel
             {
                 Name = "Luke"
             });
-            var result = await context.Rebels.ToListAsync();
+            var result = await fixture.Rebels.ToListAsync();
             Assert.NotEmpty(result);
             Assert.Equal("Luke", result[0].Name);
         }
@@ -185,7 +185,7 @@ namespace CouchDB.Driver.UnitTests
         public async Task Context_Query_MultiThread()
         {
             var context = new MyDeathStarContext();
-            var tasks = new int[1000].Select(_ => Task.Run(() => context.Rebels.Take(int.MaxValue).ToString()));
+            var tasks = new int[1000].Select(_ => Task.Run(() => fixture.Rebels.Take(int.MaxValue).ToString()));
             var results = await Task.WhenAll(tasks);
             
             Assert.All(results, query => Assert.Equal(@"{""limit"":2147483647,""selector"":{}}", query));

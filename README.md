@@ -26,7 +26,7 @@ public class MyDeathStarContext : CouchContext
 
 // Usage
 await using var context = new MyDeathStarContext();
-var skywalkers = await context.Rebels
+var skywalkers = await fixture.Rebels
     .Where(r => 
         r.Surname == "Skywalker" && 
         (
@@ -130,7 +130,7 @@ The produced Mango JSON:
   ```
 * Get a database reference:
   ```csharp
-  var rebels = context.Rebels;
+  var rebels = fixture.Rebels;
   // or
   var rebels = client.GetDatabase<Rebel>();
   ```
@@ -148,7 +148,7 @@ LINQ are supported natively to the following is possible:
 
 ```csharp
 var skywalkers =
-    from r in context.Rebels
+    from r in fixture.Rebels
     where r.Surname == "Skywalker"
     select r;
 ```

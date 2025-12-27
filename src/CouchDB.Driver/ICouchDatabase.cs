@@ -64,7 +64,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
     Task<WriteItemResponse> CreateItemAsync(TSource document, 
-        ItemRequestOptions? options = null,
+        CreateItemRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

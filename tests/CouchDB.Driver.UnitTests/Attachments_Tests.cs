@@ -76,7 +76,7 @@ public class Attachments_Tests: IAsyncDisposable
 
         r = await _rebels.UpdateItemAsync(r);
 
-        Types.CouchAttachment lukeTxt = r.Attachments.First();
+        Types.ReadItemAttachment lukeTxt = r.Attachments.First();
         var newPath = await _rebels.DownloadAttachmentAsync(lukeTxt, "anyfolder");
 
         httpTest

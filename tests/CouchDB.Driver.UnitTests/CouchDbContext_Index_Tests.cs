@@ -54,7 +54,7 @@ namespace CouchDB.Driver.UnitTests
             });
 
             await using var context = new MyDeathStarContext();
-            var result = await context.Rebels.ToListAsync();
+            var result = await fixture.Rebels.ToListAsync();
             Assert.NotEmpty(result);
             Assert.Equal("Luke", result[0].Name);
         }
@@ -90,7 +90,7 @@ namespace CouchDB.Driver.UnitTests
             });
 
             await using var context = new MyDeathStarContext();
-            var result = await context.Rebels.ToListAsync();
+            var result = await fixture.Rebels.ToListAsync();
             Assert.NotEmpty(result);
             Assert.Equal("Luke", result[0].Name);
         }
@@ -136,7 +136,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             });
             await using var context = new MyDeathStarContext();
-            var result = await context.Rebels.ToListAsync();
+            var result = await fixture.Rebels.ToListAsync();
             Assert.NotEmpty(result);
             Assert.Equal("Luke", result[0].Name);
         }

@@ -45,7 +45,7 @@
 /// </list>
 /// </param>
 [Serializable]
-public sealed record CouchAttachment(
+public sealed record ReadItemAttachment(
     [property: JsonPropertyName("stub")]
     bool Stub,
     [property: JsonPropertyName("content_type")]
@@ -62,4 +62,7 @@ public sealed record CouchAttachment(
     long? EncodedLength,
     [property: JsonPropertyName("data")]
     string? Data
-);
+)
+{
+    public string Name { get; internal set; } = null!;
+}
