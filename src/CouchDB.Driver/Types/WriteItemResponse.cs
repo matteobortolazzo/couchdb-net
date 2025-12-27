@@ -6,8 +6,10 @@ namespace CouchDB.Driver.Types;
 /// <param name="Id">Document ID</param>
 /// <param name="Rev">Document revision</param>
 [Serializable]
-public sealed record DocumentRequestResponse(
+public sealed record WriteItemResponse(
+    [property: JsonPropertyName("id")]
     string Id,
+    [property: JsonPropertyName("rev")]
     string Rev
 );
 
@@ -19,10 +21,15 @@ public sealed record DocumentRequestResponse(
 /// <param name="Error">Error type</param>
 /// <param name="Reason">Error reason</param>
 [Serializable]
-public sealed record DocumentBulkRequestResponse(
+public sealed record BulkWriteItemResponse(
+    [property: JsonPropertyName("ok")]
     bool Ok,
+    [property: JsonPropertyName("id")]
     string Id,
+    [property: JsonPropertyName("rev")]
     string? Rev,
+    [property: JsonPropertyName("error")]
     string? Error,
+    [property: JsonPropertyName("reason")]
     string? Reason
 );

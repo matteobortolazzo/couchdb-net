@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Text.Json;
 using CouchDB.Driver.Types;
 
@@ -12,10 +13,10 @@ public class FindResponseConverterFactory : JsonConverterFactory
             return false;
         }
 
-        return typeToConvert.GetGenericTypeDefinition() == typeof(FindResponse<>);
+        return typeToConvert.GetGenericTypeDefinition() == typeof(ReadItemResponse<>);
     }
 
-    public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+    public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
         Type sourceType = typeToConvert.GetGenericArguments()[0];
 
@@ -25,11 +26,11 @@ public class FindResponseConverterFactory : JsonConverterFactory
     }
 }
 
-public class FindResponseConverter<TSource>(JsonSerializerOptions options) : JsonConverter<FindResponse<TSource>>
+public class FindResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSource>>
     where TSource : class
 {
-    public override FindResponse<TSource>? Read(ref Utf8JsonReader reader, Type typeToConvert,
-        JsonSerializerOptions options1)
+    public override ReadItemResponse<TSource> Read(ref Utf8JsonReader reader,
+        Type typeToConvert, JsonSerializerOptions jsonSerializerOptions)
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
@@ -41,21 +42,30 @@ public class FindResponseConverter<TSource>(JsonSerializerOptions options) : Jso
 
         // Extract metadata
         var rev = root.GetProperty("_rev").GetString();
-        var conflicts = root.TryGetProperty("_conflicts", out JsonElement c) ? c.Deserialize<string[]>(options) : null;
-        var deletedConflicts = root.TryGetProperty("_deleted_conflicts", out JsonElement dc)
-            ? dc.Deserialize<string[]>(options)
+        var conflicts = root.TryGetProperty("_conflicts", out JsonElement conflictsElement)
+            ? conflictsElement.Deserialize<string[]>(jsonSerializerOptions)
             : null;
-        var localSeq = root.TryGetProperty("_local_seq", out JsonElement ls) ? ls.GetInt32() : (int?)null;
-        RevisionInfo[]? revsInfo = root.TryGetProperty("_revs_info", out JsonElement ri)
-            ? ri.Deserialize<RevisionInfo[]>(options)
+        var deletedConflicts = root.TryGetProperty("_deleted_conflicts", out JsonElement deletedConflictsElement)
+            ? deletedConflictsElement.Deserialize<string[]>(jsonSerializerOptions)
             : null;
-        Revisions? revisions = root.TryGetProperty("_revisions", out JsonElement r)
-            ? r.Deserialize<Revisions>(options)
+        var localSeq = root.TryGetProperty("_local_seq", out JsonElement localSeqElement)
+            ? localSeqElement.GetInt32()
+            : (int?)null;
+        RevisionInfo[]? revsInfo = root.TryGetProperty("_revs_info", out JsonElement revisionInfoElement)
+            ? revisionInfoElement.Deserialize<RevisionInfo[]>(jsonSerializerOptions)
             : null;
-        var deleted = root.TryGetProperty("deleted", out JsonElement d) && d.Deserialize<bool>(options);
-        TSource? document = root.Deserialize<TSource>(options);
+        Revisions? revisions = root.TryGetProperty("_revisions", out JsonElement revisionsElement)
+            ? revisionsElement.Deserialize<Revisions>(jsonSerializerOptions)
+            : null;
+        ReadOnlyDictionary<string, CouchAttachment>? attachments =
+            root.TryGetProperty("_attachments", out JsonElement attachmentElement)
+                ? attachmentElement.Deserialize<ReadOnlyDictionary<string, CouchAttachment>>(jsonSerializerOptions)
+                : null;
+        var deleted = root.TryGetProperty("deleted", out JsonElement deletedElement) &&
+                      deletedElement.Deserialize<bool>(jsonSerializerOptions);
+        TSource? document = root.Deserialize<TSource>(jsonSerializerOptions);
 
-        return new FindResponse<TSource>(
+        return new ReadItemResponse<TSource>(
             document!,
             rev!,
             conflicts,
@@ -63,11 +73,11 @@ public class FindResponseConverter<TSource>(JsonSerializerOptions options) : Jso
             localSeq,
             revsInfo,
             revisions,
-            deleted
-        );
+            attachments,
+            deleted);
     }
 
-    public override void Write(Utf8JsonWriter writer, FindResponse<TSource> value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, ReadItemResponse<TSource> value, JsonSerializerOptions jsonSerializerOptions)
     {
         throw new NotImplementedException("Writing FindResponse is not supported");
     }

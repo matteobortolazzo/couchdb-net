@@ -436,7 +436,7 @@ internal partial class QueryTranslator
         Type returnType = m.Method.GetGenericArguments()[1];
         PropertyInfo[] properties = returnType
             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-            .Where(p => p.DeclaringType != typeof(FindResponse<>))
+            .Where(p => p.DeclaringType != typeof(ReadItemResponse<>))
             .ToArray();
 
         foreach (PropertyInfo property in properties)

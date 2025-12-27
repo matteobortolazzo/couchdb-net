@@ -3,7 +3,7 @@
 /// <summary>
 /// Options for document requests.
 /// </summary>
-public class DocumentRequestOptions
+public class ItemRequestOptions
 {
     /// <summary>
     /// Stores document in batch mode. Check https://docs.couchdb.org/en/stable/api/database/common.html#api-doc-batch-writes

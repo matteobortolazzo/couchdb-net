@@ -83,7 +83,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             });
 
-            var newR = await _rebels.ReadItemAsync("1", new FindDocumentRequestOptions { Revision = "1-xxx" });
+            var newR = await _rebels.ReadItemAsync("1", new ReadItemOptions { Revision = "1-xxx" });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1*")
                 .WithQueryParam("rev", "1-xxx")
@@ -102,7 +102,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             });
 
-            var newR = await _rebels.ReadItemAsync("1", new FindDocumentRequestOptions { Conflicts = true });
+            var newR = await _rebels.ReadItemAsync("1", new ReadItemOptions { Conflicts = true });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1*")
                 .WithQueryParam("conflicts", "true")
@@ -202,7 +202,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "2-xxx" });
 
             var r = new Rebel { Name = "Luke", Id = "1" };
-            var newR = await _rebels.UpdateItemAsync(r, new DocumentRequestOptions { Rev = "1-xxx" });
+            var newR = await _rebels.UpdateItemAsync(r, new ItemRequestOptions { Rev = "1-xxx" });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithQueryParam("rev", "1-xxx")
@@ -216,7 +216,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "2-xxx" });
 
             var r = new Rebel { Name = "Luke", Id = "1" };
-            var newR = await _rebels.UpdateItemAsync(r, new DocumentRequestOptions { Batch = true });
+            var newR = await _rebels.UpdateItemAsync(r, new ItemRequestOptions { Batch = true });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithQueryParam("batch", "ok")

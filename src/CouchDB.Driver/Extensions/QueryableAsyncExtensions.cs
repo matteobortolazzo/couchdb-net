@@ -13,29 +13,29 @@ public static class QueryableAsyncExtensions
     #region Any/All
 
     /// <param name="source">
-    ///     An <see cref="IQueryable{T}" /> to check for being empty.
+    /// An <see cref="IQueryable{T}" /> to check for being empty.
     /// </param>
     /// <typeparam name="TSource">
-    ///     The type of the elements of <paramref name="source" />.
+    /// The type of the elements of <paramref name="source" />.
     /// </typeparam>
     extension<TSource>(IQueryable<TSource> source)
     {
         /// <summary>
-        ///     Asynchronously determines whether a sequence contains any elements.
+        /// Asynchronously determines whether a sequence contains any elements.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains <see langword="true" /> if the source sequence contains any elements; otherwise, <see langword="false" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains <see langword="true" /> if the source sequence contains any elements; otherwise, <see langword="false" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> is <see langword="null" />.
+        /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
         public Task<bool> AnyAsync(CancellationToken cancellationToken = default)
         {
@@ -45,23 +45,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously determines whether any element of a sequence satisfies a condition.
+        /// Asynchronously determines whether any element of a sequence satisfies a condition.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains <see langword="true" /> if any elements in the source sequence pass the test in the specified
-        ///     predicate; otherwise, <see langword="false" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains <see langword="true" /> if any elements in the source sequence pass the test in the specified
+        /// predicate; otherwise, <see langword="false" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
         public Task<bool> AnyAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
@@ -74,23 +74,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously determines whether all the elements of a sequence satisfy a condition.
+        /// Asynchronously determines whether all the elements of a sequence satisfy a condition.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains <see langword="true" /> if every element of the source sequence passes the test in the specified
-        ///     predicate; otherwise, <see langword="false" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains <see langword="true" /> if every element of the source sequence passes the test in the specified
+        /// predicate; otherwise, <see langword="false" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
         public Task<bool> AllAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
@@ -107,32 +107,32 @@ public static class QueryableAsyncExtensions
     #region First/FirstOrDefault
 
     /// <param name="source">
-    ///     An <see cref="IQueryable{T}" /> to return the first element of.
+    /// An <see cref="IQueryable{T}" /> to return the first element of.
     /// </param>
     /// <typeparam name="TSource">
-    ///     The type of the elements of <paramref name="source" />.
+    /// The type of the elements of <paramref name="source" />.
     /// </typeparam>
     extension<TSource>(IQueryable<TSource> source)
     {
         /// <summary>
-        ///     Asynchronously returns the first element of a sequence.
+        /// Asynchronously returns the first element of a sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the first element in <paramref name="source" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the first element in <paramref name="source" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name = "source"/> is <see langword="null" />.
+        /// <paramref name = "source"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <paramref name = "source"/> contains no elements.
+        /// <paramref name = "source"/> contains no elements.
         /// </exception>
         public Task<TSource> FirstAsync(CancellationToken cancellationToken = default)
         {
@@ -143,34 +143,34 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously returns the first element of a sequence that satisfies a specified condition.
+        /// Asynchronously returns the first element of a sequence that satisfies a specified condition.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the first element in <paramref name="source" /> that passes the test in
-        ///     <paramref name="predicate" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the first element in <paramref name="source" /> that passes the test in
+        /// <paramref name="predicate" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <para>
-        ///         No element satisfies the condition in <paramref name = "predicate" />
-        ///     </para>
-        ///     <para>
-        ///         -or -
-        ///     </para>
-        ///     <para>
-        ///         <paramref name="source"/> contains no elements.
-        ///     </para>
+        /// <para>
+        ///     No element satisfies the condition in <paramref name = "predicate" />
+        /// </para>
+        /// <para>
+        ///     -or -
+        /// </para>
+        /// <para>
+        ///     <paramref name="source"/> contains no elements.
+        /// </para>
         /// </exception>
         public Task<TSource> FirstAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
@@ -183,22 +183,22 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously returns the first element of a sequence, or a default value if the sequence contains no elements.
+        /// Asynchronously returns the first element of a sequence, or a default value if the sequence contains no elements.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains <see langword="default" /> ( <typeparamref name="TSource" /> ) if
-        ///     <paramref name="source" /> is empty; otherwise, the first element in <paramref name="source" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains <see langword="default" /> ( <typeparamref name="TSource" /> ) if
+        /// <paramref name="source" /> is empty; otherwise, the first element in <paramref name="source" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> is <see langword="null" />.
+        /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
         public Task<TSource> FirstOrDefaultAsync(CancellationToken cancellationToken = default)
         {
@@ -209,25 +209,25 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously returns the first element of a sequence that satisfies a specified condition
-        ///     or a default value if no such element is found.
+        /// Asynchronously returns the first element of a sequence that satisfies a specified condition
+        /// or a default value if no such element is found.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains <see langword="default" /> ( <typeparamref name="TSource" /> ) if <paramref name="source" />
-        ///     is empty or if no element passes the test specified by <paramref name="predicate" /> ; otherwise, the first
-        ///     element in <paramref name="source" /> that passes the test specified by <paramref name="predicate" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains <see langword="default" /> ( <typeparamref name="TSource" /> ) if <paramref name="source" />
+        /// is empty or if no element passes the test specified by <paramref name="predicate" /> ; otherwise, the first
+        /// element in <paramref name="source" /> that passes the test specified by <paramref name="predicate" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name = "source"/> or <paramref name="predicate"/> is <see langword="null" />.
+        /// <paramref name = "source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
         public Task<TSource> FirstOrDefaultAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
@@ -245,32 +245,32 @@ public static class QueryableAsyncExtensions
     #region Last/LastOrDefault
 
     /// <param name="source">
-    ///     An <see cref="IQueryable{T}" /> to return the last element of.
+    /// An <see cref="IQueryable{T}" /> to return the last element of.
     /// </param>
     /// <typeparam name="TSource">
-    ///     The type of the elements of <paramref name="source" />.
+    /// The type of the elements of <paramref name="source" />.
     /// </typeparam>
     extension<TSource>(IQueryable<TSource> source)
     {
         /// <summary>
-        ///     Asynchronously returns the last element of a sequence.
+        /// Asynchronously returns the last element of a sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the last element in <paramref name="source" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the last element in <paramref name="source" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> is <see langword="null" />.
+        /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <paramref name="source"/> contains no elements.
+        /// <paramref name="source"/> contains no elements.
         /// </exception>
         public Task<TSource> LastAsync(CancellationToken cancellationToken = default)
         {
@@ -281,34 +281,34 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously returns the last element of a sequence that satisfies a specified condition.
+        /// Asynchronously returns the last element of a sequence that satisfies a specified condition.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the last element in <paramref name="source" /> that passes the test in
-        ///     <paramref name="predicate" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the last element in <paramref name="source" /> that passes the test in
+        /// <paramref name="predicate" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name = "source"/> or <paramref name="predicate"/> is <see langword="null" />.
+        /// <paramref name = "source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <para>
-        ///         No element satisfies the condition in <paramref name="predicate"/>.
-        ///     </para>
-        ///     <para>
-        ///         -or-
-        ///     </para>
-        ///     <para>
-        ///         <paramref name="source"/> contains no elements.
-        ///     </para>
+        /// <para>
+        ///     No element satisfies the condition in <paramref name="predicate"/>.
+        /// </para>
+        /// <para>
+        ///     -or-
+        /// </para>
+        /// <para>
+        ///     <paramref name="source"/> contains no elements.
+        /// </para>
         /// </exception>
         public Task<TSource> LastAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
@@ -321,22 +321,22 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously returns the last element of a sequence, or a default value if the sequence contains no elements.
+        /// Asynchronously returns the last element of a sequence, or a default value if the sequence contains no elements.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains <see langword="default" /> ( <typeparamref name="TSource" /> ) if
-        ///     <paramref name="source" /> is empty; otherwise, the last element in <paramref name="source" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains <see langword="default" /> ( <typeparamref name="TSource" /> ) if
+        /// <paramref name="source" /> is empty; otherwise, the last element in <paramref name="source" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> is <see langword="null" />.
+        /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
         public Task<TSource> LastOrDefaultAsync(CancellationToken cancellationToken = default)
         {
@@ -347,25 +347,25 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously returns the last element of a sequence that satisfies a specified condition
-        ///     or a default value if no such element is found.
+        /// Asynchronously returns the last element of a sequence that satisfies a specified condition
+        /// or a default value if no such element is found.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="predicate"> A function to test each element for a condition. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains <see langword="default" /> ( <typeparamref name="TSource" /> ) if <paramref name="source" />
-        ///     is empty or if no element passes the test specified by <paramref name="predicate" /> ; otherwise, the last
-        ///     element in <paramref name="source" /> that passes the test specified by <paramref name="predicate" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains <see langword="default" /> ( <typeparamref name="TSource" /> ) if <paramref name="source" />
+        /// is empty or if no element passes the test specified by <paramref name="predicate" /> ; otherwise, the last
+        /// element in <paramref name="source" /> that passes the test specified by <paramref name="predicate" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
         public Task<TSource> LastOrDefaultAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
@@ -383,41 +383,41 @@ public static class QueryableAsyncExtensions
     #region Single/SingleOrDefault
 
     /// <param name="source">
-    ///     An <see cref="IQueryable{T}" /> to return the single element of.
+    /// An <see cref="IQueryable{T}" /> to return the single element of.
     /// </param>
     /// <typeparam name="TSource">
-    ///     The type of the elements of <paramref name="source" />.
+    /// The type of the elements of <paramref name="source" />.
     /// </typeparam>
     extension<TSource>(IQueryable<TSource> source)
     {
         /// <summary>
-        ///     Asynchronously returns the only element of a sequence, and throws an exception
-        ///     if there is not exactly one element in the sequence.
+        /// Asynchronously returns the only element of a sequence, and throws an exception
+        /// if there is not exactly one element in the sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the single element of the input sequence.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the single element of the input sequence.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> is <see langword="null" />.
+        /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <para>
-        ///         <paramref name="source"/> contains more than one elements.
-        ///     </para>
-        ///     <para>
-        ///         -or-
-        ///     </para>
-        ///     <para>
-        ///         <paramref name="source"/> contains no elements.
-        ///     </para>
+        /// <para>
+        ///     <paramref name="source"/> contains more than one elements.
+        /// </para>
+        /// <para>
+        ///     -or-
+        /// </para>
+        /// <para>
+        ///     <paramref name="source"/> contains no elements.
+        /// </para>
         /// </exception>
         public Task<TSource> SingleAsync(CancellationToken cancellationToken = default)
         {
@@ -428,41 +428,41 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously returns the only element of a sequence that satisfies a specified condition,
-        ///     and throws an exception if more than one such element exists.
+        /// Asynchronously returns the only element of a sequence that satisfies a specified condition,
+        /// and throws an exception if more than one such element exists.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="predicate"> A function to test an element for a condition. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the single element of the input sequence that satisfies the condition in
-        ///     <paramref name="predicate" />.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the single element of the input sequence that satisfies the condition in
+        /// <paramref name="predicate" />.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <para>
-        ///         No element satisfies the condition in <paramref name = "predicate" />.
-        ///     </para>
-        ///     <para>
-        ///         -or-
-        ///     </para>
-        ///     <para>
-        ///         More than one element satisfies the condition in <paramref name = "predicate" />.
-        ///     </para>
-        ///     <para>
-        ///         -or-
-        ///     </para>
-        ///     <para>
-        ///         <paramref name="source"/> contains no elements.
-        ///     </para>
+        /// <para>
+        ///     No element satisfies the condition in <paramref name = "predicate" />.
+        /// </para>
+        /// <para>
+        ///     -or-
+        /// </para>
+        /// <para>
+        ///     More than one element satisfies the condition in <paramref name = "predicate" />.
+        /// </para>
+        /// <para>
+        ///     -or-
+        /// </para>
+        /// <para>
+        ///     <paramref name="source"/> contains no elements.
+        /// </para>
         /// </exception>
         public Task<TSource> SingleAsync(Expression<Func<TSource, bool>> predicate,
             CancellationToken cancellationToken = default)
@@ -475,27 +475,27 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously returns the only element of a sequence, or a default value if the sequence is empty;
-        ///     this method throws an exception if there is more than one element in the sequence.
+        /// Asynchronously returns the only element of a sequence, or a default value if the sequence is empty;
+        /// this method throws an exception if there is more than one element in the sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the single element of the input sequence, or <see langword="default" /> (
-        ///     <typeparamref name="TSource" />)
-        ///     if the sequence contains no elements.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the single element of the input sequence, or <see langword="default" /> (
+        /// <typeparamref name="TSource" />)
+        /// if the sequence contains no elements.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> is <see langword="null" />.
+        /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <paramref name="source"/> contains more than one element.
+        /// <paramref name="source"/> contains more than one element.
         /// </exception>
         public Task<TSource> SingleOrDefaultAsync(CancellationToken cancellationToken = default)
         {
@@ -506,25 +506,25 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously returns the only element of a sequence that satisfies a specified condition or
-        ///     a default value if no such element exists; this method throws an exception if more than one element
-        ///     satisfies the condition.
+        /// Asynchronously returns the only element of a sequence that satisfies a specified condition or
+        /// a default value if no such element exists; this method throws an exception if more than one element
+        /// satisfies the condition.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="predicate"> A function to test an element for a condition. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the single element of the input sequence that satisfies the condition in
-        ///     <paramref name="predicate" />, or <see langword="default" /> ( <typeparamref name="TSource" /> ) if no such element is found.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the single element of the input sequence that satisfies the condition in
+        /// <paramref name="predicate" />, or <see langword="default" /> ( <typeparamref name="TSource" /> ) if no such element is found.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="predicate"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
         ///    More than one element satisfies the condition in <paramref name="predicate"/>.
@@ -545,31 +545,31 @@ public static class QueryableAsyncExtensions
     #region Min
 
     /// <summary>
-    ///     Asynchronously invokes a projection function on each element of a sequence and returns the minimum resulting value.
+    /// Asynchronously invokes a projection function on each element of a sequence and returns the minimum resulting value.
     /// </summary>
     /// <remarks>
-    ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-    ///     that any asynchronous operations have completed before calling another method on this context.
+    /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+    /// that any asynchronous operations have completed before calling another method on this context.
     /// </remarks>
     /// <typeparam name="TSource">
-    ///     The type of the elements of <paramref name="source" />.
+    /// The type of the elements of <paramref name="source" />.
     /// </typeparam>
     /// <typeparam name="TResult">
-    ///     The type of the value returned by the function represented by <paramref name="selector" /> .
+    /// The type of the value returned by the function represented by <paramref name="selector" /> .
     /// </typeparam>
     /// <param name="source">
-    ///     An <see cref="IQueryable{T}" /> that contains the elements to determine the minimum of.
+    /// An <see cref="IQueryable{T}" /> that contains the elements to determine the minimum of.
     /// </param>
     /// <param name="selector"> A projection function to apply to each element. </param>
     /// <param name="cancellationToken">
-    ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+    /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
     /// </param>
     /// <returns>
-    ///     A task that represents the asynchronous operation.
-    ///     The task result contains the minimum value in the sequence.
+    /// A task that represents the asynchronous operation.
+    /// The task result contains the minimum value in the sequence.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+    /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
     /// </exception>
     public static Task<TResult> MinAsync<TSource, TResult>(
         this IQueryable<TSource> source,
@@ -588,31 +588,31 @@ public static class QueryableAsyncExtensions
     #region Max
 
     /// <summary>
-    ///     Asynchronously invokes a projection function on each element of a sequence and returns the maximum resulting value.
+    /// Asynchronously invokes a projection function on each element of a sequence and returns the maximum resulting value.
     /// </summary>
     /// <remarks>
-    ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-    ///     that any asynchronous operations have completed before calling another method on this context.
+    /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+    /// that any asynchronous operations have completed before calling another method on this context.
     /// </remarks>
     /// <typeparam name="TSource">
-    ///     The type of the elements of <paramref name="source" />.
+    /// The type of the elements of <paramref name="source" />.
     /// </typeparam>
     /// <typeparam name="TResult">
-    ///     The type of the value returned by the function represented by <paramref name="selector" /> .
+    /// The type of the value returned by the function represented by <paramref name="selector" /> .
     /// </typeparam>
     /// <param name="source">
-    ///     An <see cref="IQueryable{T}" /> that contains the elements to determine the maximum of.
+    /// An <see cref="IQueryable{T}" /> that contains the elements to determine the maximum of.
     /// </param>
     /// <param name="selector"> A projection function to apply to each element. </param>
     /// <param name="cancellationToken">
-    ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+    /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
     /// </param>
     /// <returns>
-    ///     A task that represents the asynchronous operation.
-    ///     The task result contains the maximum value in the sequence.
+    /// A task that represents the asynchronous operation.
+    /// The task result contains the maximum value in the sequence.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+    /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
     /// </exception>
     public static Task<TResult> MaxAsync<TSource, TResult>(
         this IQueryable<TSource> source,
@@ -631,28 +631,28 @@ public static class QueryableAsyncExtensions
     #region Sum
 
     /// <param name="source">
-    ///     A sequence of values of type <typeparamref name="TSource" />.
+    /// A sequence of values of type <typeparamref name="TSource" />.
     /// </param>
     extension<TSource>(IQueryable<TSource> source)
     {
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<decimal> SumAsync(Expression<Func<TSource, decimal>> selector,
             CancellationToken cancellationToken = default)
@@ -665,23 +665,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<decimal?> SumAsync(Expression<Func<TSource, decimal?>> selector,
             CancellationToken cancellationToken = default)
@@ -694,23 +694,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<int> SumAsync(Expression<Func<TSource, int>> selector,
             CancellationToken cancellationToken = default)
@@ -723,23 +723,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<int?> SumAsync(Expression<Func<TSource, int?>> selector,
             CancellationToken cancellationToken = default)
@@ -752,23 +752,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<long> SumAsync(Expression<Func<TSource, long>> selector,
             CancellationToken cancellationToken = default)
@@ -781,23 +781,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<long?> SumAsync(Expression<Func<TSource, long?>> selector,
             CancellationToken cancellationToken = default)
@@ -810,23 +810,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<double> SumAsync(Expression<Func<TSource, double>> selector,
             CancellationToken cancellationToken = default)
@@ -839,23 +839,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<double?> SumAsync(Expression<Func<TSource, double?>> selector,
             CancellationToken cancellationToken = default)
@@ -868,23 +868,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<float> SumAsync(Expression<Func<TSource, float>> selector,
             CancellationToken cancellationToken = default)
@@ -897,23 +897,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
-        ///     each element of the input sequence.
+        /// Asynchronously computes the sum of the sequence of values that is obtained by invoking a projection function on
+        /// each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the sum of the projected values..
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the sum of the projected values..
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<float?> SumAsync(Expression<Func<TSource, float?>> selector,
             CancellationToken cancellationToken = default)
@@ -932,31 +932,31 @@ public static class QueryableAsyncExtensions
 
     /// <param name="source"> A sequence of values of type <typeparamref name="TSource" />. </param>
     /// <typeparam name="TSource">
-    ///     The type of the elements of <paramref name="source" /> .
+    /// The type of the elements of <paramref name="source" /> .
     /// </typeparam>
     extension<TSource>(IQueryable<TSource> source)
     {
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <paramref name="source"/> contains no elements.
+        /// <paramref name="source"/> contains no elements.
         /// </exception>
         public Task<decimal> AverageAsync(Expression<Func<TSource, decimal>> selector,
             CancellationToken cancellationToken = default)
@@ -969,23 +969,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<decimal?> AverageAsync(Expression<Func<TSource, decimal?>> selector,
             CancellationToken cancellationToken = default)
@@ -998,26 +998,26 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <paramref name="source"/> contains no elements.
+        /// <paramref name="source"/> contains no elements.
         /// </exception>
         public Task<double> AverageAsync(Expression<Func<TSource, int>> selector,
             CancellationToken cancellationToken = default)
@@ -1030,23 +1030,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<double?> AverageAsync(Expression<Func<TSource, int?>> selector,
             CancellationToken cancellationToken = default)
@@ -1059,26 +1059,26 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <paramref name="source"/> contains no elements.
+        /// <paramref name="source"/> contains no elements.
         /// </exception>
         public Task<double> AverageAsync(Expression<Func<TSource, long>> selector,
             CancellationToken cancellationToken = default)
@@ -1091,23 +1091,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<double?> AverageAsync(Expression<Func<TSource, long?>> selector,
             CancellationToken cancellationToken = default)
@@ -1120,26 +1120,26 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <paramref name="source"/> contains no elements.
+        /// <paramref name="source"/> contains no elements.
         /// </exception>
         public Task<double> AverageAsync(Expression<Func<TSource, double>> selector,
             CancellationToken cancellationToken = default)
@@ -1152,23 +1152,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<double?> AverageAsync(Expression<Func<TSource, double?>> selector,
             CancellationToken cancellationToken = default)
@@ -1181,26 +1181,26 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         /// <exception cref="InvalidOperationException">
-        ///     <paramref name="source"/> contains no elements.
+        /// <paramref name="source"/> contains no elements.
         /// </exception>
         public Task<float> AverageAsync(Expression<Func<TSource, float>> selector,
             CancellationToken cancellationToken = default)
@@ -1213,23 +1213,23 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously computes the average of a sequence of values that is obtained
-        ///     by invoking a projection function on each element of the input sequence.
+        /// Asynchronously computes the average of a sequence of values that is obtained
+        /// by invoking a projection function on each element of the input sequence.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="selector"> A projection function to apply to each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains the average of the projected values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains the average of the projected values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.
         /// </exception>
         public Task<float?> AverageAsync(Expression<Func<TSource, float?>> selector,
             CancellationToken cancellationToken = default)
@@ -1247,30 +1247,30 @@ public static class QueryableAsyncExtensions
     #region ToList/Array
 
     /// <param name="source">
-    ///     An <see cref="IQueryable{T}" /> to create a list from.
+    /// An <see cref="IQueryable{T}" /> to create a list from.
     /// </param>
     /// <typeparam name="TSource">
-    ///     The type of the elements of <paramref name="source" />.
+    /// The type of the elements of <paramref name="source" />.
     /// </typeparam>
     extension<TSource>(IQueryable<TSource> source) where TSource: class
     {
         /// <summary>
-        ///     Asynchronously creates a <see cref="CouchList{TSource}" /> from an <see cref="IQueryable{T}" /> by enumerating it
-        ///     asynchronously.
+        /// Asynchronously creates a <see cref="CouchList{TSource}" /> from an <see cref="IQueryable{T}" /> by enumerating it
+        /// asynchronously.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains a <see cref="CouchList{T}" /> that contains elements from the input sequence.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains a <see cref="CouchList{T}" /> that contains elements from the input sequence.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> is <see langword="null" />.
+        /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
         public Task<CouchList<TSource>> ToCouchListAsync(CancellationToken cancellationToken = default)
         {
@@ -1279,42 +1279,42 @@ public static class QueryableAsyncExtensions
         }
 
         /// <summary>
-        ///     Asynchronously creates a <see cref="List{T}" /> from an <see cref="IQueryable{T}" /> by enumerating it
-        ///     asynchronously.
+        /// Asynchronously creates a <see cref="List{T}" /> from an <see cref="IQueryable{T}" /> by enumerating it
+        /// asynchronously.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains a <see cref="List{T}" /> that contains elements from the input sequence.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains a <see cref="List{T}" /> that contains elements from the input sequence.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> is <see langword="null" />.
+        /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
         public async Task<List<TSource>> ToListAsync(CancellationToken cancellationToken = default) =>
             (await source.ToCouchListAsync(cancellationToken).ConfigureAwait(false)).ToList();
 
         /// <summary>
-        ///     Asynchronously creates an array from an <see cref="IQueryable{T}" /> by enumerating it asynchronously.
+        /// Asynchronously creates an array from an <see cref="IQueryable{T}" /> by enumerating it asynchronously.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains an array that contains elements from the input sequence.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains an array that contains elements from the input sequence.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> is <see langword="null" />.
+        /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
         public async Task<TSource[]> ToArrayAsync(CancellationToken cancellationToken = default) =>
             (await source.ToListAsync(cancellationToken).ConfigureAwait(false)).ToArray();
@@ -1325,65 +1325,65 @@ public static class QueryableAsyncExtensions
     #region ToDictionary
 
     /// <param name="source">
-    ///     An <see cref="IQueryable{T}" /> to create a <see cref="Dictionary{TKey, TValue}" /> from.
+    /// An <see cref="IQueryable{T}" /> to create a <see cref="Dictionary{TKey, TValue}" /> from.
     /// </param>
     /// <typeparam name="TSource">
-    ///     The type of the elements of <paramref name="source" />.
+    /// The type of the elements of <paramref name="source" />.
     /// </typeparam>
     extension<TSource>(IQueryable<TSource> source) where TSource: class
     {
         /// <summary>
-        ///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
-        ///     asynchronously
-        ///     according to a specified key selector function.
+        /// Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
+        /// asynchronously
+        /// according to a specified key selector function.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <typeparam name="TKey">
-        ///     The type of the key returned by <paramref name="keySelector" /> .
+        /// The type of the key returned by <paramref name="keySelector" /> .
         /// </typeparam>
         /// <param name="keySelector"> A function to extract a key from each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains a <see cref="Dictionary{TKey, TSource}" /> that contains selected keys and values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains a <see cref="Dictionary{TKey, TSource}" /> that contains selected keys and values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="keySelector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="keySelector"/> is <see langword="null" />.
         /// </exception>
         public Task<Dictionary<TKey, TSource>> ToDictionaryAsync<TKey>(Func<TSource, TKey> keySelector,
             CancellationToken cancellationToken = default) where TKey : notnull =>
             ToDictionaryAsync(source, keySelector, e => e, comparer: null, cancellationToken);
 
         /// <summary>
-        ///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
-        ///     asynchronously
-        ///     according to a specified key selector function and a comparer.
+        /// Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
+        /// asynchronously
+        /// according to a specified key selector function and a comparer.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <typeparam name="TKey">
-        ///     The type of the key returned by <paramref name="keySelector" /> .
+        /// The type of the key returned by <paramref name="keySelector" /> .
         /// </typeparam>
         /// <param name="keySelector"> A function to extract a key from each element. </param>
         /// <param name="comparer">
-        ///     An <see cref="IEqualityComparer{TKey}" /> to compare keys.
+        /// An <see cref="IEqualityComparer{TKey}" /> to compare keys.
         /// </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains a <see cref="Dictionary{TKey, TSource}" /> that contains selected keys and values.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains a <see cref="Dictionary{TKey, TSource}" /> that contains selected keys and values.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="keySelector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="keySelector"/> is <see langword="null" />.
         /// </exception>
         public Task<Dictionary<TKey, TSource>> ToDictionaryAsync<TKey>(Func<TSource, TKey> keySelector,
             IEqualityComparer<TKey> comparer,
@@ -1391,32 +1391,32 @@ public static class QueryableAsyncExtensions
             ToDictionaryAsync(source, keySelector, e => e, comparer, cancellationToken);
 
         /// <summary>
-        ///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
-        ///     asynchronously
-        ///     according to a specified key selector and an element selector function.
+        /// Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
+        /// asynchronously
+        /// according to a specified key selector and an element selector function.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <typeparam name="TKey">
-        ///     The type of the key returned by <paramref name="keySelector" /> .
+        /// The type of the key returned by <paramref name="keySelector" /> .
         /// </typeparam>
         /// <typeparam name="TElement">
-        ///     The type of the value returned by <paramref name="elementSelector" />.
+        /// The type of the value returned by <paramref name="elementSelector" />.
         /// </typeparam>
         /// <param name="keySelector"> A function to extract a key from each element. </param>
         /// <param name="elementSelector"> A transform function to produce a result element value from each element. </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains a <see cref="Dictionary{TKey, TElement}" /> that contains values of type
-        ///     <typeparamref name="TElement" /> selected from the input sequence.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains a <see cref="Dictionary{TKey, TElement}" /> that contains values of type
+        /// <typeparamref name="TElement" /> selected from the input sequence.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="keySelector"/> or <paramref name="elementSelector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="keySelector"/> or <paramref name="elementSelector"/> is <see langword="null" />.
         /// </exception>
         public Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<TSource, TKey> keySelector,
             Func<TSource, TElement> elementSelector,
@@ -1424,35 +1424,35 @@ public static class QueryableAsyncExtensions
             ToDictionaryAsync(source, keySelector, elementSelector, comparer: null, cancellationToken);
 
         /// <summary>
-        ///     Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
-        ///     asynchronously
-        ///     according to a specified key selector function, a comparer, and an element selector function.
+        /// Creates a <see cref="Dictionary{TKey, TValue}" /> from an <see cref="IQueryable{T}" /> by enumerating it
+        /// asynchronously
+        /// according to a specified key selector function, a comparer, and an element selector function.
         /// </summary>
         /// <remarks>
-        ///     Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        ///     that any asynchronous operations have completed before calling another method on this context.
+        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
+        /// that any asynchronous operations have completed before calling another method on this context.
         /// </remarks>
         /// <typeparam name="TKey">
-        ///     The type of the key returned by <paramref name="keySelector" /> .
+        /// The type of the key returned by <paramref name="keySelector" /> .
         /// </typeparam>
         /// <typeparam name="TElement">
-        ///     The type of the value returned by <paramref name="elementSelector" />.
+        /// The type of the value returned by <paramref name="elementSelector" />.
         /// </typeparam>
         /// <param name="keySelector"> A function to extract a key from each element. </param>
         /// <param name="elementSelector"> A transform function to produce a result element value from each element. </param>
         /// <param name="comparer">
-        ///     An <see cref="IEqualityComparer{TKey}" /> to compare keys.
+        /// An <see cref="IEqualityComparer{TKey}" /> to compare keys.
         /// </param>
         /// <param name="cancellationToken">
-        ///     A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
+        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
         /// </param>
         /// <returns>
-        ///     A task that represents the asynchronous operation.
-        ///     The task result contains a <see cref="Dictionary{TKey, TElement}" /> that contains values of type
-        ///     <typeparamref name="TElement" /> selected from the input sequence.
+        /// A task that represents the asynchronous operation.
+        /// The task result contains a <see cref="Dictionary{TKey, TElement}" /> that contains values of type
+        /// <typeparamref name="TElement" /> selected from the input sequence.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///     <paramref name="source"/> or <paramref name="keySelector"/> or <paramref name="elementSelector"/> is <see langword="null" />.
+        /// <paramref name="source"/> or <paramref name="keySelector"/> or <paramref name="elementSelector"/> is <see langword="null" />.
         /// </exception>
         public async Task<Dictionary<TKey, TElement>> ToDictionaryAsync<TKey, TElement>(Func<TSource, TKey> keySelector,
             Func<TSource, TElement> elementSelector,

@@ -76,7 +76,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
             BulkOperation.Add(luke)
         ];
 
-        var results = await fixture.Rebels.ExecuteBulkOperationsAsync(op);
+        var results = await fixture.Rebels.ExecuteBulkItemOperationsAsync(op);
         var lukeResult = results[0];
         var rebels = await fixture.Rebels.ReadItemsAsync([lukeResult.Id]);
         Assert.NotEmpty(results);
@@ -87,7 +87,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         [
             BulkOperation.Update(luke, luke.Id, luke.Rev)
         ];
-        results = await fixture.Rebels.ExecuteBulkOperationsAsync(op);
+        results = await fixture.Rebels.ExecuteBulkItemOperationsAsync(op);
 
         rebels = await fixture.Rebels.ReadItemsAsync([luke.Id]);
         Assert.NotEmpty(results);
@@ -98,7 +98,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         [
             BulkOperation.Delete(luke.Id, luke.Rev!)
         ];
-        await fixture.Rebels.ExecuteBulkOperationsAsync(op);
+        await fixture.Rebels.ExecuteBulkItemOperationsAsync(op);
         rebels = await fixture.Rebels.ReadItemsAsync([luke.Id]);
         Assert.Empty(rebels);
     }

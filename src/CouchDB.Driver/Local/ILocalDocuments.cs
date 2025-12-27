@@ -15,8 +15,8 @@ public interface ILocalDocuments
     /// <param name="options">Options to apply to the query.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>
-    ///     A task that represents the asynchronous operation.
-    ///     The task result contains basic info about the documents.
+    /// A task that represents the asynchronous operation.
+    /// The task result contains basic info about the documents.
     /// </returns>
     Task<IList<CouchDocumentInfo>> GetAsync(LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
 
@@ -27,8 +27,8 @@ public interface ILocalDocuments
     /// <param name="options">Options to apply to the query.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>
-    ///     A task that represents the asynchronous operation.
-    ///     The task result contains basic info about the documents.
+    /// A task that represents the asynchronous operation.
+    /// The task result contains basic info about the documents.
     /// </returns>
     Task<IList<CouchDocumentInfo>> GetAsync(IReadOnlyCollection<string> keys, LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
 
@@ -39,8 +39,8 @@ public interface ILocalDocuments
     /// <param name="id">The ID of the document.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>
-    ///     A task that represents the asynchronous operation.
-    ///     The task result contains the document content.
+    /// A task that represents the asynchronous operation.
+    /// The task result contains the document content.
     /// </returns>
     Task<TSource> GetAsync<TSource>(string id, CancellationToken cancellationToken = default)
         where TSource: class;
@@ -53,7 +53,7 @@ public interface ILocalDocuments
     /// <param name="id">Document ID</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>
-    ///     A task that represents the asynchronous operation.
+    /// A task that represents the asynchronous operation.
     /// </returns>
     Task CreateOrUpdateAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
         where TSource: class;
@@ -66,7 +66,7 @@ public interface ILocalDocuments
     /// <param name="id">Document ID</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>
-    ///     A task that represents the asynchronous operation.
+    /// A task that represents the asynchronous operation.
     /// </returns>
     Task DeleteAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
         where TSource: class;

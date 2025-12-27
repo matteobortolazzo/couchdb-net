@@ -4,7 +4,7 @@
 /// Options relevant to getting a document (supported by GET HTTP-method).
 /// Check https://docs.couchdb.org/en/stable/api/document/common.html#get--db-docid
 /// </summary>
-public class FindDocumentRequestOptions
+public class ReadItemOptions
 {
     /// <summary>
     /// Includes attachments bodies in response. Default is <c>False</c>

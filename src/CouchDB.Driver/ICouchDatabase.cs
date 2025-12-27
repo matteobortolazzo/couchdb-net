@@ -22,11 +22,11 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <summary>
     /// Finds the document with the given ID. If no document is found, then null is returned.
     /// </summary>
-    /// <param name="docId">The document ID.</param>
+    /// <param name="id">The document ID.</param>
     /// <param name="options">Set of options available for GET /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null</returns>
-    Task<FindResponse<TSource>?> ReadItemAsync(string docId, FindDocumentRequestOptions? options = null,
+    Task<ReadItemResponse<TSource>?> ReadItemAsync(string id, ReadItemOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -48,11 +48,11 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <summary>
     /// Finds all documents with given IDs.
     /// </summary>
-    /// <param name="docIds">The collection of documents IDs.</param>
+    /// <param name="ids">The collection of documents IDs.</param>
     /// <param name="includeDeleted"></param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/> that contains elements from the database.</retuns>
-    Task<List<TSource>> ReadItemsAsync(IReadOnlyCollection<string> docIds,
+    Task<List<TSource>> ReadItemsAsync(IList<string> ids,
         bool includeDeleted = false,
         CancellationToken cancellationToken = default);
 
@@ -63,7 +63,8 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for both PUT /{db}/{docid} and POST /{db}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-    Task<DocumentRequestResponse> CreateItemAsync(TSource document, DocumentRequestOptions? options = null,
+    Task<WriteItemResponse> CreateItemAsync(TSource document, 
+        ItemRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -75,7 +76,8 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for PUT /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-    Task<DocumentRequestResponse> UpdateItemAsync(TSource document, string id, string rev, DocumentRequestOptions? options = null,
+    Task<WriteItemResponse> UpdateItemAsync(TSource document, string id, string rev,
+        ItemRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -86,7 +88,8 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for DELETE /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteItemAsync(string id, string rev, DocumentRequestOptions? options = null,
+    Task DeleteItemAsync(string id, string rev, 
+        ItemRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -95,7 +98,8 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="operations">List of operations to perform</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task<DocumentBulkRequestResponse[]> ExecuteBulkOperationsAsync(IList<BulkOperation> operations,
+    Task<BulkWriteItemResponse[]> ExecuteBulkItemOperationsAsync(
+        IList<BulkOperation> operations,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -126,7 +130,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
 
     /// <summary>
     /// Executes the specified view function from the specified design document using
-    /// the queries endpoint. This returns one result for each query option in the provided sequence.
+    /// the queries' endpoint. This returns one result for each query option in the provided sequence.
     /// </summary>
     /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <typeparam name="TValue">The type of the value.</typeparam>
@@ -140,7 +144,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
 
     /// <summary>
     /// Executes the specified view function from the specified design document using
-    /// the queries endpoint. This returns one result for each query option in the provided sequence.
+    /// the queries' endpoint. This returns one result for each query option in the provided sequence.
     /// </summary>
     /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <typeparam name="TValue">The type of the value.</typeparam>
@@ -218,22 +222,26 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <summary>
     /// Asynchronously downloads a specific attachment.
     /// </summary>
-    /// <param name="attachment">The attachment to download.</param>
+    /// <param name="name">Name of the attachment</param>
+    /// <param name="id">ID of the document</param>
+    /// <param name="rev">Revision of the document</param>
     /// <param name="localFolderPath">Path of local folder where file is to be downloaded.</param>
     /// <param name="localFileName">Name of local file. If not specified, the source filename (from Content-Dispostion header, or last segment of the URL) is used.</param>
     /// <param name="bufferSize">Buffer size in bytes. Default is 4096.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the path of the download file.</returns>
-    Task<string> DownloadAttachmentAsync(CouchAttachment attachment, string localFolderPath,
+    Task<string> DownloadAttachmentAsync(string name, string id, string rev, string localFolderPath,
         string? localFileName = null, int bufferSize = 4096, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously downloads a specific attachment as stream.
     /// </summary>
-    /// <param name="attachment">The attachment to download.</param>
+    /// <param name="name">Name of the attachment</param>
+    /// <param name="id">ID of the document</param>
+    /// <param name="rev">Revision of the document</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains of the file stream.</returns>
-    Task<Stream> DownloadAttachmentAsStreamAsync(CouchAttachment attachment,
+    Task<Stream> DownloadAttachmentAsStreamAsync(string name, string id, string rev,
         CancellationToken cancellationToken = default);
 
     /// <summary>

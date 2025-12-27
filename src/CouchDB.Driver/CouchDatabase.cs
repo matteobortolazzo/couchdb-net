@@ -41,6 +41,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     private readonly CouchOptions? _options;
     private readonly QueryContext _queryContext;
     private const string IfMatchHeader = "If-Match";
+    private const string ContentTypeHeader = "Content-Type";
 
     /// <inheritdoc />
     public string Database => _queryContext.DatabaseName;
@@ -51,8 +52,11 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     /// <inheritdoc />
     public ILocalDocuments LocalDocuments { get; }
 
-    internal CouchDatabase(IFlurlClient flurlClient,
-        JsonSerializerOptions jsonSerializerOptions, CouchOptions? options, QueryContext queryContext)
+    internal CouchDatabase(
+        IFlurlClient flurlClient,
+        JsonSerializerOptions jsonSerializerOptions,
+        CouchOptions? options,
+        QueryContext queryContext)
     {
         _feedChangeLineStartPattern = FeedChangeStartLinePattern();
         _flurlClient = flurlClient;
@@ -73,12 +77,12 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Find
 
     /// <inheritdoc />
-    public async Task<FindResponse<TSource>?> ReadItemAsync(string docId, FindDocumentRequestOptions? options = null,
+    public async Task<ReadItemResponse<TSource>?> ReadItemAsync(string id, ReadItemOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         IFlurlRequest request = NewRequest()
             .WithHeader("Accept", "application/json")
-            .AppendPathSegment(Uri.EscapeDataString(docId));
+            .AppendPathSegment(Uri.EscapeDataString(id));
 
         IFlurlResponse? response = await SetFindOptions(request, options)
             .AllowHttpStatus((int)HttpStatusCode.NotFound)
@@ -91,7 +95,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
 
         var json = await response.GetStringAsync().ConfigureAwait(false);
-        return JsonSerializer.Deserialize<FindResponse<TSource>>(json, _jsonSerializerOptions);
+        return JsonSerializer.Deserialize<ReadItemResponse<TSource>>(json, _jsonSerializerOptions);
     }
 
     /// <inheritdoc />
@@ -110,14 +114,14 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     /// <inheritdoc />
-    public async Task<List<TSource>> ReadItemsAsync(IReadOnlyCollection<string> docIds,
+    public async Task<List<TSource>> ReadItemsAsync(IList<string> ids,
         bool includeDeleted = false,
         CancellationToken cancellationToken = default)
     {
-        BulkGetResult<FindResponse<TSource>> bulkGetResult = await NewRequest()
+        BulkGetResult<ReadItemResponse<TSource>> bulkGetResult = await NewRequest()
             .AppendPathSegment("_bulk_get")
-            .PostJsonAsync(new { docs = docIds.Select(id => new { id }) }, cancellationToken: cancellationToken)
-            .ReceiveJson<BulkGetResult<FindResponse<TSource>>>()
+            .PostJsonAsync(new { docs = ids.Select(id => new { id }) }, cancellationToken: cancellationToken)
+            .ReceiveJson<BulkGetResult<ReadItemResponse<TSource>>>()
             .SendRequestAsync()
             .ConfigureAwait(false);
 
@@ -128,12 +132,6 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .Where(i => i != null)
             .Cast<TSource>()
             .ToList();
-
-        foreach (TSource document in documents.OfType<TSource>())
-        {
-            InitAttachments(document);
-        }
-
         return documents;
     }
 
@@ -154,33 +152,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             throw new CouchQueryWarningException(findResult.Warning);
         }
 
-        var documents = findResult.Docs.ToList();
-
-        foreach (TSource document in documents)
-        {
-            InitAttachments(document);
-        }
-
-        return documents;
-    }
-
-    private void InitAttachments(TSource document)
-    {
-        return;
-        // TODO: Real value
-        /*
-        string id = "asdasda";
-        ArgumentNullException.ThrowIfNull(id);
-        ArgumentNullException.ThrowIfNull(document.Rev);
-
-        foreach (CouchAttachment attachment in document.Attachments)
-        {
-            attachment.DocumentId = id;
-            attachment.DocumentRev = document.Rev;
-            var path = $"{_queryContext.EscapedDatabaseName}/{id}/{Uri.EscapeDataString(attachment.Name)}";
-            attachment.Uri = new Uri(_queryContext.Endpoint, path);
-        }
-        */
+        return findResult.Docs.ToList();
     }
 
     #endregion
@@ -188,7 +160,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Writing
 
     /// <inheritdoc />
-    public async Task<DocumentRequestResponse> CreateItemAsync(TSource document, DocumentRequestOptions? options = null,
+    public async Task<WriteItemResponse> CreateItemAsync(TSource document, ItemRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
@@ -202,25 +174,16 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
         JsonObject jsonObject = GetTransformedJsonObject(document);
         var jsonContent = JsonContent.Create(jsonObject, options: _jsonSerializerOptions);
-        DocumentSaveResponse response = await request
+        return await request
             .PostJsonAsync(jsonContent, cancellationToken: cancellationToken)
-            .ReceiveJson<DocumentSaveResponse>()
+            .ReceiveJson<WriteItemResponse>()
             .SendRequestAsync()
             .ConfigureAwait(false);
-
-        if (!response.Ok)
-        {
-            throw new CouchException(response.Error, null, response.Reason);
-        }
-
-        await UpdateAttachments(document, response.Id, response.Rev!, cancellationToken)
-            .ConfigureAwait(false);
-        return new DocumentRequestResponse(response.Id, response.Rev!);
     }
 
     /// <inheritdoc />
-    public async Task<DocumentRequestResponse> UpdateItemAsync(TSource document, string id, string rev,
-        DocumentRequestOptions? options = null,
+    public async Task<WriteItemResponse> UpdateItemAsync(TSource document, string id, string rev,
+        ItemRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -236,25 +199,16 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
         JsonObject jsonObject = GetTransformedJsonObject(document);
         var jsonContent = JsonContent.Create(jsonObject, options: _jsonSerializerOptions);
-        DocumentSaveResponse response = await request
+        return await request
             .WithHeader(IfMatchHeader, rev)
             .PutJsonAsync(jsonContent, cancellationToken: cancellationToken)
-            .ReceiveJson<DocumentSaveResponse>()
+            .ReceiveJson<WriteItemResponse>()
             .SendRequestAsync()
             .ConfigureAwait(false);
-
-        if (!response.Ok)
-        {
-            throw new CouchException(response.Error, null, response.Reason);
-        }
-
-        await UpdateAttachments(document, id, rev, cancellationToken)
-            .ConfigureAwait(false);
-        return new DocumentRequestResponse(response.Id, response.Rev!);
     }
 
     /// <inheritdoc />
-    public async Task DeleteItemAsync(string id, string rev, DocumentRequestOptions? options = null,
+    public async Task DeleteItemAsync(string id, string rev, ItemRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -280,7 +234,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
     }
 
-    public async Task<DocumentBulkRequestResponse[]> ExecuteBulkOperationsAsync(IList<BulkOperation> operations,
+    public async Task<BulkWriteItemResponse[]> ExecuteBulkItemOperationsAsync(IList<BulkOperation> operations,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(operations);
@@ -317,21 +271,12 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             }
         }
 
-        DocumentSaveResponse[] responses = await NewRequest()
+        return await NewRequest()
             .AppendPathSegment("_bulk_docs")
             .PostJsonAsync(new { docs }, cancellationToken: cancellationToken)
-            .ReceiveJson<DocumentSaveResponse[]>()
+            .ReceiveJson<BulkWriteItemResponse[]>()
             .SendRequestAsync()
             .ConfigureAwait(false);
-
-        return responses
-            .Select(response => new DocumentBulkRequestResponse(
-                response.Ok,
-                response.Id,
-                response.Rev,
-                response.Error,
-                response.Reason))
-            .ToArray();
     }
 
     private JsonObject GetTransformedJsonObject(TSource document)
@@ -352,55 +297,62 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         return jsonObject;
     }
 
-    private async Task UpdateAttachments(TSource document, string id, string rev,
-        CancellationToken cancellationToken = default)
-    {
-        foreach (CouchAttachment attachment in document.Attachments.GetAddedAttachments())
-        {
-            if (attachment.FileInfo == null)
-            {
-                continue;
-            }
+    #endregion
 
-            using var stream = new StreamContent(
-                new FileStream(attachment.FileInfo.FullName, FileMode.Open));
+    #region Attachments
+
+    public async Task<WriteItemResponse> UpsertAttachmentAsync(string name, string id, string rev,
+        string filePath,
+        string? contentType = null, CancellationToken cancellationToken = default)
+    {
+        FileStream? fileStream = null;
+        try
+        {
+            contentType ??= ExtensionsHelper.GetContentTypeFromExtension(filePath);
+            fileStream = new FileStream(filePath, FileMode.Open);
+            using var stream = new StreamContent(fileStream);
 
             AttachmentResult response = await NewRequest()
                 .AppendPathSegment(Uri.EscapeDataString(id))
-                .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
-                .WithHeader("Content-Type", attachment.ContentType)
-                .WithHeader("If-Match", rev)
+                .AppendPathSegment(Uri.EscapeDataString(name))
+                .WithHeader(ContentTypeHeader, contentType)
+                .WithHeader(IfMatchHeader, rev)
                 .PutAsync(stream, cancellationToken: cancellationToken)
                 .ReceiveJson<AttachmentResult>()
                 .ConfigureAwait(false);
-
-            if (!response.Ok)
-            {
-                continue;
-            }
-
-            // document.Rev = response.Rev;
-            attachment.FileInfo = null;
+            return new WriteItemResponse(response.Id, response.Rev);
         }
+        finally
+        {
+            if (fileStream != null)
+            {
+                await fileStream.DisposeAsync();
+            }
+        }
+    }
 
-        foreach (CouchAttachment attachment in document.Attachments.GetDeletedAttachments())
+    public async Task<WriteItemResponse> DeleteAttachmentAsync(string name, string id, string rev,
+        CancellationToken cancellationToken = default)
+    {
+        FileStream? fileStream = null;
+        try
         {
             AttachmentResult response = await NewRequest()
                 .AppendPathSegment(Uri.EscapeDataString(id))
-                .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
-                .WithHeader("If-Match", rev)
+                .AppendPathSegment(Uri.EscapeDataString(name))
+                .WithHeader(IfMatchHeader, rev)
                 .DeleteAsync(cancellationToken: cancellationToken)
                 .ReceiveJson<AttachmentResult>()
                 .ConfigureAwait(false);
-
-            if (response.Ok)
+            return new WriteItemResponse(response.Id, response.Rev);
+        }
+        finally
+        {
+            if (fileStream != null)
             {
-                // document.Rev = response.Rev;
-                document.Attachments.RemoveAttachment(attachment);
+                await fileStream.DisposeAsync();
             }
         }
-
-        InitAttachments(document);
     }
 
     #endregion
@@ -639,40 +591,26 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Utils
 
     /// <inheritdoc />
-    public async Task<string> DownloadAttachmentAsync(CouchAttachment attachment, string localFolderPath,
+    public async Task<string> DownloadAttachmentAsync(string name, string id, string rev, string localFolderPath,
         string? localFileName = null, int bufferSize = 4096,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(attachment);
-
-        if (attachment.Uri == null)
-        {
-            throw new InvalidOperationException("The attachment is not uploaded yet.");
-        }
-
         return await NewRequest()
-            .AppendPathSegment(attachment.DocumentId)
-            .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
-            .WithHeader("If-Match", attachment.DocumentRev)
+            .AppendPathSegment(id)
+            .AppendPathSegment(Uri.EscapeDataString(name))
+            .WithHeader(IfMatchHeader, rev)
             .DownloadFileAsync(localFolderPath, localFileName, bufferSize, cancellationToken: cancellationToken)
             .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async Task<Stream> DownloadAttachmentAsStreamAsync(CouchAttachment attachment,
+    public async Task<Stream> DownloadAttachmentAsStreamAsync(string name, string id, string rev,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(attachment);
-
-        if (attachment.Uri == null)
-        {
-            throw new InvalidOperationException("The attachment is not uploaded yet.");
-        }
-
         return await NewRequest()
-            .AppendPathSegment(Uri.EscapeDataString(attachment.DocumentId))
-            .AppendPathSegment(Uri.EscapeDataString(attachment.Name))
-            .WithHeader("If-Match", attachment.DocumentRev)
+            .AppendPathSegment(id)
+            .AppendPathSegment(Uri.EscapeDataString(name))
+            .WithHeader(IfMatchHeader, rev)
             .GetStreamAsync(cancellationToken: cancellationToken)
             .ConfigureAwait(false);
     }
@@ -758,12 +696,6 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .Where(r => r.Doc != null)
             .Select(r => r.Doc!)
             .ToList();
-
-        foreach (TSource document in documents)
-        {
-            InitAttachments(document);
-        }
-
         return documents;
     }
 
@@ -782,14 +714,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .SendRequestAsync()
             .ConfigureAwait(false);
 
-        var documents = findResult.Docs.ToList();
-
-        foreach (TSource document in documents)
-        {
-            InitAttachments(document);
-        }
-
-        return documents;
+        return findResult.Docs.ToList();
     }
 
     public async Task<int> GetRevisionLimitAsync(CancellationToken cancellationToken = default)
@@ -885,7 +810,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     private static IFlurlRequest SetFindOptions(IFlurlRequest request,
-        FindDocumentRequestOptions? options)
+        ReadItemOptions? options)
     {
         if (options == null)
         {
