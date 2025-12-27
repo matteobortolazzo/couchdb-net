@@ -11,7 +11,7 @@ namespace CouchDB.Driver.UnitTests.Find
 
         public Find_Sort()
         {
-            var client = new CouchClient("http://localhost");
+            var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
             _rebels = client.GetDatabase<Rebel>();
         }
 

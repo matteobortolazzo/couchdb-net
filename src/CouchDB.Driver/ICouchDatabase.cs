@@ -46,6 +46,32 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     Task<List<TSource>> QueryAsync(object mangoQuery, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Create or updates an attachment to a document.
+    /// </summary>
+    /// <param name="id">ID of the document</param>
+    /// <param name="rev">Revision of the document</param>
+    /// <param name="filePath">Path to the file to upload</param>
+    /// <param name="contentType">MIME content-type. If not provided, it tries to map it from a list</param>
+    /// <param name="name">Name of the attachment. If not provided, the filename is used</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<WriteItemResponse> UpsertAttachmentAsync(
+        string id, string rev,
+        string filePath, string? contentType = null, string? name = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Delete an attachment from a document.
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="id"></param>
+    /// <param name="rev"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<WriteItemResponse> DeleteAttachmentAsync(string name, string id, string rev,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
     /// Finds all documents with given IDs.
     /// </summary>
     /// <param name="ids">The collection of documents IDs.</param>
@@ -99,7 +125,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task<BulkWriteItemResponse[]> ExecuteBulkItemOperationsAsync(
-        IList<BulkOperation> operations,
+        IList<BulkItemOperation> operations,
         CancellationToken cancellationToken = default);
 
     /// <summary>

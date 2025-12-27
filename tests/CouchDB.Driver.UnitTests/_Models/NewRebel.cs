@@ -1,5 +1,5 @@
 ﻿namespace CouchDB.UnitTests.Models;
 
-public class NewRebel : Rebel
+public record NewRebel : Rebel
 {
 }

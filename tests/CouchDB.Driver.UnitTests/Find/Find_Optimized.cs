@@ -15,7 +15,7 @@ namespace CouchDB.Driver.UnitTests.Find
 
         public Find_Optimized()
         {
-            var client = new CouchClient("http://localhost");
+            var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
             _rebels = client.GetDatabase<Rebel>(_databaseName);
 
             var mainRebel = new Rebel

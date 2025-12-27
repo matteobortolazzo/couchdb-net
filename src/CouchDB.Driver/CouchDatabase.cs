@@ -251,24 +251,24 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
     }
 
-    public async Task<BulkWriteItemResponse[]> ExecuteBulkItemOperationsAsync(IList<BulkOperation> operations,
+    public async Task<BulkWriteItemResponse[]> ExecuteBulkItemOperationsAsync(IList<BulkItemOperation> operations,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(operations);
 
         List<JsonNode> docs = [];
 
-        foreach (BulkOperation operation in operations)
+        foreach (BulkItemOperation operation in operations)
         {
             switch (operation)
             {
-                case AddOperation add:
+                case AddItemOperation add:
                     {
                         JsonObject addNode = GetTransformedJsonObject((TSource)add.Document);
                         docs.Add(addNode);
                         break;
                     }
-                case UpdateOperation update:
+                case UpdateItemOperation update:
                     {
                         JsonObject updateNode = GetTransformedJsonObject((TSource)update.Document);
                         updateNode["_id"] = update.Id;
@@ -276,7 +276,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                         docs.Add(updateNode);
                         break;
                     }
-                case DeleteOperation delete:
+                case DeleteItemOperation delete:
                     {
                         var deleteNode = new JsonObject
                         {
@@ -318,13 +318,16 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
     #region Attachments
 
-    public async Task<WriteItemResponse> UpsertAttachmentAsync(string name, string id, string rev,
-        string filePath,
-        string? contentType = null, CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public async Task<WriteItemResponse> UpsertAttachmentAsync(
+        string id, string rev,
+        string filePath, string? contentType = null, string? name = null,
+        CancellationToken cancellationToken = default)
     {
         FileStream? fileStream = null;
         try
         {
+            name ??= Path.GetFileName(filePath);
             contentType ??= ExtensionsHelper.GetContentTypeFromExtension(filePath);
             fileStream = new FileStream(filePath, FileMode.Open);
             using var stream = new StreamContent(fileStream);
@@ -348,7 +351,9 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
     }
 
-    public async Task<WriteItemResponse> DeleteAttachmentAsync(string name, string id, string rev,
+    /// <inheritdoc />
+    public async Task<WriteItemResponse> DeleteAttachmentAsync(
+        string name, string id, string rev,
         CancellationToken cancellationToken = default)
     {
         FileStream? fileStream = null;

@@ -27,5 +27,5 @@ public class CreateItemRequestOptions : ItemRequestOptions
 /// </summary>
 /// <param name="FilePath">Path to the file to upload</param>
 /// <param name="ContentType">MIME content-type. If not provided, it tries to map it from a list.</param>
-/// <param name="Name">Name of the attachment</param>
+/// <param name="Name">Name of the attachment. If not provided, the filename is used</param>
 public record CreateItemAttachment(string FilePath, string? ContentType = null, string? Name = null);

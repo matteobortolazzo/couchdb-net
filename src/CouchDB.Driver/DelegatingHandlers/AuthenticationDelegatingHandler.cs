@@ -76,7 +76,7 @@ public class AuthenticationDelegatingHandler(CouchCredentials credentials) : Del
         if (authType == typeof(JwtCredentials))
         {
             var auth = (JwtCredentials)credentials;
-            var jwt = await auth.JwtTokenGenerator().ConfigureAwait(false);
+            var jwt = auth.JwtToken ?? await auth.JwtTokenGenerator!().ConfigureAwait(false);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
             return await base.SendAsync(request, cancellationToken);
         }

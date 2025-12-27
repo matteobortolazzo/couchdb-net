@@ -15,7 +15,7 @@ namespace CouchDB.Driver.UnitTests
 
         public ChangesFeed_DesignDocumentFilter_Tests()
         {
-            _client = new CouchClient("http://localhost");
+            _client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
             _rebels = _client.GetDatabase<Rebel>();
         }
 

@@ -19,7 +19,7 @@ public class GetContinuousChangesAsync_Tests
 
     public GetContinuousChangesAsync_Tests()
     {
-        var client = new CouchClient("http://localhost");
+        var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
         _rebels = client.GetDatabase<Rebel>();
     }
 
@@ -37,7 +37,7 @@ public class GetContinuousChangesAsync_Tests
         await foreach (var change in _rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
-            tokenSource.Cancel();
+            await tokenSource.CancelAsync();
         }
 
         // Assert
@@ -65,7 +65,7 @@ public class GetContinuousChangesAsync_Tests
         await foreach (var change in _rebels.GetContinuousChangesAsync(options, null, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
-            tokenSource.Cancel();
+            await tokenSource.CancelAsync();
         }
 
         // Assert
@@ -86,16 +86,15 @@ public class GetContinuousChangesAsync_Tests
         var docId = SetFeedResponse(httpTest);
         httpTest.RespondWithJson(new { ok = true });
 
-        var filter = ChangesFeedFilter.DocumentIds(new[]
-        {
+        var filter = ChangesFeedFilter.DocumentIds([
             docId
-        });
+        ]);
 
         // Act
         await foreach (var change in _rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
-            tokenSource.Cancel();
+            await tokenSource.CancelAsync();
         }
 
         // Assert
@@ -152,7 +151,7 @@ public class GetContinuousChangesAsync_Tests
         await foreach (var change in _rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
-            tokenSource.Cancel();
+            await tokenSource.CancelAsync();
         }
 
         // Assert
@@ -180,7 +179,7 @@ public class GetContinuousChangesAsync_Tests
         await foreach (var change in _rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
-            tokenSource.Cancel();
+            await tokenSource.CancelAsync();
         }
 
         // Assert
@@ -210,7 +209,7 @@ public class GetContinuousChangesAsync_Tests
         {
             changesCount++;
             Assert.Equal(docId, change.Id);
-            tokenSource.Cancel();
+            await tokenSource.CancelAsync();
         }
 
         // Assert
@@ -232,21 +231,22 @@ public class GetContinuousChangesAsync_Tests
 
     private static string GetChangesFeedResponseResultJson(string docId)
     {
-        return JsonSerializer.Serialize(new ChangesFeedResponseResult<Rebel>
-        {
-            Seq = $"{Guid.NewGuid():N}",
-            Id = docId,
-            CreatedAt = DateTime.Now,
-            CreatedBy = "",
-            RoleIds = [],
-            Document = new Rebel(),
-            Changes =
-            [
-                new ChangesFeedResponseResultChange
-                {
-                    Rev = $"{Guid.NewGuid():N}"
-                }
-            ]
-        });
+        ChangesFeedResponseResultChange[] changes =
+        [
+            new()
+            {
+                Rev = $"{Guid.NewGuid():N}"
+            }
+        ];
+        return JsonSerializer.Serialize(new ChangesFeedResponseResult<Rebel>(
+            $"{Guid.NewGuid():N}",
+            docId,
+            false,
+            changes,
+            [],
+            DateTime.Now,
+            "",
+            new Rebel())
+        );
     }
 }

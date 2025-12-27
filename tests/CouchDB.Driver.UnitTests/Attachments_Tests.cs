@@ -3,49 +3,22 @@ using Flurl.Http.Testing;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Mime;
 using System.Threading.Tasks;
+using CouchDB.Driver.Types;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Attachments_Tests: IAsyncDisposable
+public class Attachments_Tests : IAsyncDisposable
 {
     private readonly ICouchClient _client;
     private readonly ICouchDatabase<Rebel> _rebels;
 
     public Attachments_Tests()
     {
-        _client = new CouchClient("http://localhost");
+        _client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
         _rebels = _client.GetDatabase<Rebel>();
-    }
-
-    [Fact]
-    public void NewDocument_EmptyAttachmentsList()
-    {
-        var r = new Rebel { Name = "Luke" };
-        Assert.Empty(r.Attachments);
-    }
-
-    [Fact]
-    public void AddedAttachment_ShouldBeInList()
-    {
-        var r = new Rebel { Name = "Luke" };
-        var attachFile = Path.Combine("Assets", "luke.txt");
-        r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
-        Assert.NotEmpty(r.Attachments);
-    }
-
-    [Fact]
-    public void RemovedAttachment_ShouldBeNotInList()
-    {
-        var r = new Rebel { Name = "Luke" };
-        var attachFile = Path.Combine("Assets", "luke.txt");
-        r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
-        r.Attachments.Delete("luke.txt");
-        Assert.Empty(r.Attachments);
     }
 
     [Fact]
@@ -72,12 +45,16 @@ public class Attachments_Tests: IAsyncDisposable
 
         var r = new Rebel { Id = "1", Name = "Luke" };
         var attachFile = Path.Combine("Assets", "luke.txt");
-        r.Attachments.AddOrUpdate(attachFile, MediaTypeNames.Text.Plain);
 
-        r = await _rebels.UpdateItemAsync(r);
+        var addResult = await _rebels.CreateItemAsync(r, new CreateItemRequestOptions
+        {
+            Attachments =
+            [
+                new CreateItemAttachment(attachFile)
+            ]
+        });
 
-        Types.ReadItemAttachment lukeTxt = r.Attachments.First();
-        var newPath = await _rebels.DownloadAttachmentAsync(lukeTxt, "anyfolder");
+        var newPath = await _rebels.DownloadAttachmentAsync("luke.txt", addResult.Id, addResult.Rev, "anyfolder");
 
         httpTest
             .ShouldHaveCalled("http://localhost/rebels/1")

@@ -70,9 +70,9 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     {
         var luke = NewRebel("Luke_Range_CRUD");
 
-        BulkOperation[] op =
+        BulkItemOperation[] op =
         [
-            BulkOperation.Add(luke)
+            BulkItemOperation.Add(luke)
         ];
 
         var results = await fixture.Rebels.ExecuteBulkItemOperationsAsync(op);
@@ -84,7 +84,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         luke = luke with { Surname = "Skywalker" };
         op =
         [
-            BulkOperation.Update(luke, luke.Id, luke.Rev)
+            BulkItemOperation.Update(luke, luke.Id, luke.Rev)
         ];
         results = await fixture.Rebels.ExecuteBulkItemOperationsAsync(op);
 
@@ -95,7 +95,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 
         op =
         [
-            BulkOperation.Delete(luke.Id, luke.Rev)
+            BulkItemOperation.Delete(luke.Id, luke.Rev)
         ];
         await fixture.Rebels.ExecuteBulkItemOperationsAsync(op);
         rebels = await fixture.Rebels.ReadItemsAsync([luke.Id]);

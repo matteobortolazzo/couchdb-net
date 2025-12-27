@@ -6,7 +6,7 @@ using CouchDB.UnitTests.Models;
 namespace CouchDB.Driver.UnitTests._Models;
 
 [DatabaseName("custom_rebels")]
-public class OtherRebel : Rebel
+public record OtherRebel : Rebel
 {
     [JsonPropertyName("rebel_bith_date")] public DateTime BirthDate { get; set; }
 }

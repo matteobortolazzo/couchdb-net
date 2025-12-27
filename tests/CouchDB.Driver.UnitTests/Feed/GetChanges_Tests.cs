@@ -17,7 +17,7 @@ public class GetChanges_Tests
 
     public GetChanges_Tests()
     {
-        var client = new CouchClient("http://localhost");
+        var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
         _rebels = client.GetDatabase<Rebel>();
     }
 
@@ -31,7 +31,7 @@ public class GetChanges_Tests
         httpTest.RespondWithJson(new { ok = true });
 
         // Act
-        var newR = await _rebels.GetChangesAsync();
+        await _rebels.GetChangesAsync();
 
         // Assert
         httpTest
@@ -54,7 +54,7 @@ public class GetChanges_Tests
         };
 
         // Act
-        var newR = await _rebels.GetChangesAsync(options);
+        await _rebels.GetChangesAsync(options);
 
         // Assert
         httpTest
@@ -74,13 +74,12 @@ public class GetChanges_Tests
         httpTest.RespondWithJson(new { ok = true });
 
         var docId = Guid.NewGuid().ToString();
-        var filter = ChangesFeedFilter.DocumentIds(new[] 
-        {
+        var filter = ChangesFeedFilter.DocumentIds([
             docId
-        });
+        ]);
 
         // Act
-        var newR = await _rebels.GetChangesAsync(null, filter);
+        await _rebels.GetChangesAsync(null, filter);
 
         // Assert
         httpTest
@@ -103,7 +102,7 @@ public class GetChanges_Tests
         var filter = ChangesFeedFilter.Selector<Rebel>(rebel => rebel.Id == docId);
 
         // Act
-        var newR = await _rebels.GetChangesAsync(null, filter);
+        await _rebels.GetChangesAsync(null, filter);
 
         // Assert
         httpTest
@@ -126,7 +125,7 @@ public class GetChanges_Tests
         var filter = ChangesFeedFilter.Design();
 
         // Act
-        var newR = await _rebels.GetChangesAsync(null, filter);
+        await _rebels.GetChangesAsync(null, filter);
 
         // Assert
         httpTest
@@ -148,7 +147,7 @@ public class GetChanges_Tests
         var filter = ChangesFeedFilter.View(view);
 
         // Act
-        var newR = await _rebels.GetChangesAsync(null, filter);
+        await _rebels.GetChangesAsync(null, filter);
 
         // Assert
         httpTest
@@ -158,32 +157,31 @@ public class GetChanges_Tests
             .WithVerb(HttpMethod.Get);
     }
 
-    private void SetFeedResponse(HttpTest httpTest)
+    private static void SetFeedResponse(HttpTest httpTest)
     {
+        ChangesFeedResponseResultChange[] changes =
+        [
+            new()
+            {
+                Rev = "111"
+            }
+        ];
         httpTest.RespondWithJson(new ChangesFeedResponse<Rebel>
         {
             LastSequence = "",
             Pending = 0,
             Results =
             [
-                new ChangesFeedResponseResult<Rebel>
-                {
-                    Id = "111",
-                    Seq = "Seq111",
-                    CreatedAt = DateTime.Now,
-                    CreatedBy = "",
-                    RoleIds = [],
-                    Document = new Rebel(),
-                    Changes =
-                    [
-                        new ChangesFeedResponseResultChange
-                        {
-                            Rev = "111"
-                        }
-                    ]
-                }
+                new ChangesFeedResponseResult<Rebel>(
+                    "111",
+                    "Seq111",
+                    false,
+                    changes,
+                    [],
+                    DateTime.Now,
+                    "",
+                    new Rebel())
             ]
         });
     }
-
 }
