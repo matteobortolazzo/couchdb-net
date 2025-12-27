@@ -40,7 +40,7 @@ namespace CouchDB.Driver.UnitTests
             });
 
             var a = new List<Rebel>();
-            var newR = await _rebels.FindAsync("1");
+            var newR = await _rebels.ReadItemAsync("1");
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithoutQueryParam("conflicts")
@@ -64,7 +64,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             });
 
-            var newR = await _rebels.FindAsync("1", true);
+            var newR = await _rebels.ReadItemAsync("1", true);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1*")
                 .WithQueryParam("conflicts", "true")
@@ -83,7 +83,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             });
 
-            var newR = await _rebels.FindAsync("1", new FindDocumentRequestOptions { Revision = "1-xxx" });
+            var newR = await _rebels.ReadItemAsync("1", new FindDocumentRequestOptions { Revision = "1-xxx" });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1*")
                 .WithQueryParam("rev", "1-xxx")
@@ -102,7 +102,7 @@ namespace CouchDB.Driver.UnitTests
                 }
             });
 
-            var newR = await _rebels.FindAsync("1", new FindDocumentRequestOptions { Conflicts = true });
+            var newR = await _rebels.ReadItemAsync("1", new FindDocumentRequestOptions { Conflicts = true });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1*")
                 .WithQueryParam("conflicts", "true")
@@ -115,7 +115,7 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             httpTest.RespondWith(@"{""results"":[{""id"":""1"",""docs"":[{""ok"":{""_id"":""1"",""Name"":""Luke""}}]},{""id"":""2"",""docs"":[{""ok"":{""_id"":""2"",""Name"":""Leia""}}]}]}");
             var ids = new string[] { "1", "2" };
-            var result = await _rebels.FindManyAsync(ids);
+            var result = await _rebels.ReadItemsAsync(ids);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_bulk_get")
                 .WithRequestJson(new
@@ -139,7 +139,7 @@ namespace CouchDB.Driver.UnitTests
             using var httpTest = new HttpTest();
             httpTest.RespondWith(@"{""results"":[{""id"":""1"",""docs"":[{""error"":{""id"":""1"",""rev"":""undefined"",""error"":""not_found"",""reason"":""missing""}}]}]}");
             var ids = new string[] { "1" };
-            var result = await _rebels.FindManyAsync(ids);
+            var result = await _rebels.ReadItemsAsync(ids);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/_bulk_get")
                 .WithRequestJson(new
@@ -162,7 +162,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
             var r = new Rebel { Name = "Luke" };
-            var newR = await _rebels.AddAsync(r);
+            var newR = await _rebels.CreateItemAsync(r);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels")
                 .WithVerb(HttpMethod.Post);
@@ -175,7 +175,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
             var r = new Rebel { Name = "Luke" };
-            var newR = await _rebels.AddAsync(r, new AddOptions { Batch = true });
+            var newR = await _rebels.CreateItemAsync(r, new AddOptions { Batch = true });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels")
                 .WithQueryParam("batch", "ok")
@@ -189,7 +189,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
             var r = new Rebel { Name = "Luke", Id = "1" };
-            var newR = await _rebels.ReplaceAsync(r);
+            var newR = await _rebels.UpdateItemAsync(r);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithVerb(HttpMethod.Put);
@@ -202,7 +202,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "2-xxx" });
 
             var r = new Rebel { Name = "Luke", Id = "1" };
-            var newR = await _rebels.ReplaceAsync(r, new DocumentRequestOptions { Rev = "1-xxx" });
+            var newR = await _rebels.UpdateItemAsync(r, new DocumentRequestOptions { Rev = "1-xxx" });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithQueryParam("rev", "1-xxx")
@@ -216,7 +216,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "2-xxx" });
 
             var r = new Rebel { Name = "Luke", Id = "1" };
-            var newR = await _rebels.ReplaceAsync(r, new DocumentRequestOptions { Batch = true });
+            var newR = await _rebels.UpdateItemAsync(r, new DocumentRequestOptions { Batch = true });
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
                 .WithQueryParam("batch", "ok")
@@ -231,7 +231,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
             var r = new Rebel { Name = "Luke" };
-            var newR = await rebels.AddAsync(r);
+            var newR = await rebels.CreateItemAsync(r);
             Assert.Equal("myRebels", newR.SplitDiscriminator);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels")
@@ -246,7 +246,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
             var r = new Rebel { Name = "Luke", Id = "1" };
-            var newR = await rebels.ReplaceAsync(r);
+            var newR = await rebels.UpdateItemAsync(r);
             Assert.Equal("myRebels", newR.SplitDiscriminator);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1")
@@ -260,7 +260,7 @@ namespace CouchDB.Driver.UnitTests
             var exception = await Record.ExceptionAsync(async () =>
             {
                 var r = new Rebel { Name = "Luke" };
-                await _rebels.ReplaceAsync(r);
+                await _rebels.UpdateItemAsync(r);
             });
             Assert.NotNull(exception);
             Assert.IsType<InvalidOperationException>(exception);
@@ -274,7 +274,7 @@ namespace CouchDB.Driver.UnitTests
             httpTest.RespondWithJson(new { ok = true });
 
             var r = new Rebel { Name = "Luke", Id = "1", Rev = "1" };
-            await _rebels.DeleteAsync(r);
+            await _rebels.DeleteItemAsync(r);
             httpTest
                 .ShouldHaveCalled("http://localhost/rebels/1?rev=1")
                 .WithVerb(HttpMethod.Delete);

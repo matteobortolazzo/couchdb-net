@@ -11,11 +11,9 @@ public class TestFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        Client = new CouchClient("http://localhost:5984", c =>
-            c.UseBasicAuthentication("admin", "admin"));
-        // ensure the _users database exists to prevent couchdb from
-        // generating tons of errors in the logs
-        await Client.GetOrCreateUsersDatabaseAsync();
+        Client = new CouchClient(
+            endpoint: "http://localhost:5984",
+            credentials: new BasicCredentials("admin", "admin"));
         Rebels = await Client.GetOrCreateDatabaseAsync<Rebel>();
     }
 

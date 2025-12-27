@@ -73,7 +73,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Find
 
     /// <inheritdoc />
-    public async Task<FindResponse<TSource>?> FindAsync(string docId, FindDocumentRequestOptions? options = null,
+    public async Task<FindResponse<TSource>?> ReadItemAsync(string docId, FindDocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         IFlurlRequest request = NewRequest()
@@ -110,7 +110,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     /// <inheritdoc />
-    public async Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds,
+    public async Task<List<TSource>> ReadItemsAsync(IReadOnlyCollection<string> docIds,
         bool includeDeleted = false,
         CancellationToken cancellationToken = default)
     {
@@ -188,7 +188,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Writing
 
     /// <inheritdoc />
-    public async Task<DocumentRequestResponse> AddAsync(TSource document, DocumentRequestOptions? options = null,
+    public async Task<DocumentRequestResponse> CreateItemAsync(TSource document, DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
@@ -219,7 +219,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     /// <inheritdoc />
-    public async Task<DocumentRequestResponse> ReplaceAsync(TSource document, string id, string rev,
+    public async Task<DocumentRequestResponse> UpdateItemAsync(TSource document, string id, string rev,
         DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
@@ -254,7 +254,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     /// <inheritdoc />
-    public async Task DeleteAsync(string id, string rev, DocumentRequestOptions? options = null,
+    public async Task DeleteItemAsync(string id, string rev, DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -280,7 +280,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
     }
 
-    public async Task<DocumentBulkRequestResponse[]> BulkAsync(IList<BulkOperation> operations,
+    public async Task<DocumentBulkRequestResponse[]> ExecuteBulkOperationsAsync(IList<BulkOperation> operations,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(operations);

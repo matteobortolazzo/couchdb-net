@@ -14,8 +14,6 @@ using Xunit;
 
 namespace CouchDB.Driver.E2ETests;
 
-// TODO: Split DB tests
-
 [Trait("Category", "Integration")]
 public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
 {
@@ -26,7 +24,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     {
         for (var i = 1; i <= 20; i++)
         {
-            _ = await fixture.Rebels.AddAsync(NewRebel($"Luke_{i}"));
+            _ = await fixture.Rebels.CreateItemAsync(NewRebel($"Luke_{i}"));
         }
 
         var lineCount = 0;
@@ -38,8 +36,8 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
             switch (lineCount)
             {
                 case 20:
-                    _ = await fixture.Rebels.AddAsync(NewRebel("Luke_21"), cancellationToken: tokenSource.Token);
-                    _ = await fixture.Rebels.AddAsync(NewRebel("Luke_22"), cancellationToken: tokenSource.Token);
+                    _ = await fixture.Rebels.CreateItemAsync(NewRebel("Luke_21"), cancellationToken: tokenSource.Token);
+                    _ = await fixture.Rebels.CreateItemAsync(NewRebel("Luke_22"), cancellationToken: tokenSource.Token);
                     break;
                 case 22:
                     await tokenSource.CancelAsync();
@@ -52,19 +50,19 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     public async Task Crud()
     {
         var luke = NewRebel("Luke_CRUD");
-        var addResponse = await fixture.Rebels.AddAsync(luke);
+        var addResponse = await fixture.Rebels.CreateItemAsync(luke);
 
         luke = luke with { Surname = "Skywalker" };
-        addResponse = await fixture.Rebels.ReplaceAsync(luke, luke.Id, addResponse.Rev);
+        addResponse = await fixture.Rebels.UpdateItemAsync(luke, luke.Id, addResponse.Rev);
 
-        var findResponse = await fixture.Rebels.FindAsync(luke.Id);
+        var findResponse = await fixture.Rebels.ReadItemAsync(luke.Id);
         Assert.NotNull(findResponse);
 
         luke = findResponse.Document;
         Assert.Equal("Skywalker", luke.Surname);
 
-        await fixture.Rebels.DeleteAsync(luke.Id, addResponse.Rev);
-        findResponse = await fixture.Rebels.FindAsync(addResponse.Id!);
+        await fixture.Rebels.DeleteItemAsync(luke.Id, addResponse.Rev);
+        findResponse = await fixture.Rebels.ReadItemAsync(addResponse.Id);
         Assert.Null(findResponse);
     }
 
@@ -78,20 +76,20 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
             BulkOperation.Add(luke)
         ];
 
-        var results = await fixture.Rebels.BulkAsync(op);
+        var results = await fixture.Rebels.ExecuteBulkOperationsAsync(op);
         var lukeResult = results[0];
-        var rebels = await fixture.Rebels.FindManyAsync([lukeResult.Id]);
+        var rebels = await fixture.Rebels.ReadItemsAsync([lukeResult.Id]);
         Assert.NotEmpty(results);
         luke = rebels[0];
 
         luke = luke with { Surname = "Skywalker" };
         op =
         [
-            BulkOperation.Update(luke, luke.Id, luke.Rev!)
+            BulkOperation.Update(luke, luke.Id, luke.Rev)
         ];
-        results = await fixture.Rebels.BulkAsync(op);
+        results = await fixture.Rebels.ExecuteBulkOperationsAsync(op);
 
-        rebels = await fixture.Rebels.FindManyAsync([luke.Id]);
+        rebels = await fixture.Rebels.ReadItemsAsync([luke.Id]);
         Assert.NotEmpty(results);
         luke = rebels[0];
         Assert.Equal("Skywalker", luke.Surname);
@@ -100,18 +98,9 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         [
             BulkOperation.Delete(luke.Id, luke.Rev!)
         ];
-        await fixture.Rebels.BulkAsync(op);
-        rebels = await fixture.Rebels.FindManyAsync([luke.Id]);
+        await fixture.Rebels.ExecuteBulkOperationsAsync(op);
+        rebels = await fixture.Rebels.ReadItemsAsync([luke.Id]);
         Assert.Empty(rebels);
-    }
-
-    [Fact]
-    public async Task Crud_Context()
-    {
-        await using var context = new MyDeathStarContext();
-        await context.Rebels.AddAsync(NewRebel("Luke_Context"));
-        var result = await context.Rebels.ToListAsync();
-        Assert.NotEmpty(result);
     }
 
     [Fact]
@@ -145,19 +134,19 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         var rebels = await fixture.Client.GetOrCreateDatabaseAsync<Rebel>(databaseName);
 
         var luke = NewRebel("Luke_SpecialChars");
-        var writeResponse = await rebels.AddAsync(luke);
+        var writeResponse = await rebels.CreateItemAsync(luke);
 
         luke = luke with { Surname = "Skywalker" };
-        await rebels.ReplaceAsync(luke, luke.Id, writeResponse.Rev);
+        await rebels.UpdateItemAsync(luke, luke.Id, writeResponse.Rev);
 
-        var findResponse = await rebels.FindAsync(luke.Id);
+        var findResponse = await rebels.ReadItemAsync(luke.Id);
         Assert.NotNull(findResponse);
 
         luke = findResponse.Document;
         Assert.Equal("Skywalker", luke.Surname);
 
-        await rebels.DeleteAsync(luke.Id, findResponse.Rev);
-        findResponse = await rebels.FindAsync(luke.Id);
+        await rebels.DeleteItemAsync(luke.Id, findResponse.Rev);
+        findResponse = await rebels.ReadItemAsync(luke.Id);
         Assert.Null(findResponse);
 
         await fixture.Client.DeleteDatabaseAsync(databaseName);
@@ -173,7 +162,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         // Create
         var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
         luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
-        await fixture.Rebels.AddAsync(luke);
+        await fixture.Rebels.CreateItemAsync(luke);
 
         Assert.Equal("Luke", luke.Name);
         Assert.NotEmpty(luke.Attachments);
@@ -191,7 +180,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         File.Delete(downloadFilePath);
 
         // Find
-        var result = await fixture.Rebels.FindAsync(luke.Id);
+        var result = await fixture.Rebels.ReadItemAsync(luke.Id);
         Assert.NotNull(result);
 
         luke = result;
@@ -215,7 +204,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         // Create
         var attachFilePath = Path.Combine(runningPath, "Assets", "luke.txt");
         luke.Attachments.AddOrUpdate(attachFilePath, MediaTypeNames.Text.Plain);
-        await fixture.Rebels.AddAsync(luke);
+        await fixture.Rebels.CreateItemAsync(luke);
 
         Assert.Equal("Luke", luke.Name);
         Assert.NotEmpty(luke.Attachments);
@@ -285,13 +274,12 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     [Fact]
     public async Task ThrowOnQueryWarning()
     {
-        await using var context = new MyDeathStarContextWithQueryWarning();
         // There is an index for Name and Surname so it should not cause a warning
-        await context.Rebels.Where(r => r.Name == "Luke" && r.Surname == "Skywalker").ToListAsync();
+        await fixture.Rebels.Where(r => r.Name == "Luke" && r.Surname == "Skywalker").ToListAsync();
         try
         {
             // There is no index for Age so it should cause a warning
-            await context.Rebels.Where(r => r.Age == 19).ToListAsync();
+            await fixture.Rebels.Where(r => r.Age == 19).ToListAsync();
             Assert.Fail("Expected exception not thrown");
         }
         catch (CouchQueryWarningException e)
@@ -299,16 +287,12 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
             Assert.Equal("No matching index found, create an index to optimize query time.", e.Message);
         }
 
-        var client = new CouchClient("http://localhost:5984", c =>
-            c.UseBasicAuthentication("admin", "admin")
-                .ThrowOnQueryWarning());
-        var crebels = client.GetDatabase<Rebel>();
         // There is an index for Name and Surname so it should not cause a warning
-        await crebels.QueryAsync(@"{""selector"":{""$and"":[{""name"":""Luke""},{""surname"":""Skywalker""}]}}");
+        await fixture.Rebels.QueryAsync(@"{""selector"":{""$and"":[{""name"":""Luke""},{""surname"":""Skywalker""}]}}");
         try
         {
             // There is no index for Age so it should cause a warning
-            await crebels.QueryAsync(@"{""selector"":{""age"":""19""}}");
+            await fixture.Rebels.QueryAsync(@"{""selector"":{""age"":""19""}}");
             Assert.Fail("Expected exception not thrown");
         }
         catch (CouchQueryWarningException e)
@@ -320,26 +304,22 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     [Fact]
     public async Task Index()
     {
-        await using var context = new MyDeathStarContext();
-
-        var indexId = await context.Rebels.CreateIndexAsync("AgeIndex", i => i
+        var indexId = await fixture.Rebels.CreateIndexAsync("AgeIndex", i => i
             .IndexBy(rebel => rebel.Age));
         Assert.NotNull(indexId);
 
-        var indexes = await context.Rebels.GetIndexesAsync();
+        var indexes = await fixture.Rebels.GetIndexesAsync();
         Assert.NotEmpty(indexes);
         var ageIndex = indexes.FirstOrDefault(i => i.Name == "AgeIndex");
 
         Assert.NotNull(ageIndex);
-        await context.Rebels.DeleteIndexAsync(ageIndex);
+        await fixture.Rebels.DeleteIndexAsync(ageIndex);
     }
 
     [Fact]
     public async Task ExecutionStats()
     {
-        await using var context = new MyDeathStarContext();
-
-        var rebels = await context.Rebels
+        var rebels = await fixture.Rebels
             .Where(r => r.Age == 19)
             .IncludeExecutionStats()
             .ToCouchListAsync();

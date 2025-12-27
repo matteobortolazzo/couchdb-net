@@ -84,7 +84,7 @@ namespace CouchDB.Driver.UnitTests
             });
 
             await using var context = new MyDeathStarContext();
-            await context.Rebels.AddAsync(new Rebel
+            await context.Rebels.CreateItemAsync(new Rebel
             {
                 Name = "Luke"
             });
@@ -121,11 +121,11 @@ namespace CouchDB.Driver.UnitTests
             });
 
             await using var context = new MyDeathStarContext();
-            await context.SimpleRebels.AddAsync(new SimpleRebel
+            await context.SimpleRebels.CreateItemAsync(new SimpleRebel
             {
                 Name = "Leia"
             });
-            await context.OtherRebels.AddAsync(new OtherRebel
+            await context.OtherRebels.CreateItemAsync(new OtherRebel
             {
                 Name = "Luke"
             });
@@ -165,11 +165,11 @@ namespace CouchDB.Driver.UnitTests
             });
 
             await using var context = new MyDeathStarContextCustomSplit();
-            await context.SimpleRebels.AddAsync(new SimpleRebel
+            await context.SimpleRebels.CreateItemAsync(new SimpleRebel
             {
                 Name = "Leia"
             });
-            await context.OtherRebels.AddAsync(new OtherRebel
+            await context.OtherRebels.CreateItemAsync(new OtherRebel
             {
                 Name = "Luke"
             });

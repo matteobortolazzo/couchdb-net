@@ -26,7 +26,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for GET /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element found, or null</returns>
-    Task<FindResponse<TSource>?> FindAsync(string docId, FindDocumentRequestOptions? options = null,
+    Task<FindResponse<TSource>?> ReadItemAsync(string docId, FindDocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -52,7 +52,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="includeDeleted"></param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/> that contains elements from the database.</retuns>
-    Task<List<TSource>> FindManyAsync(IReadOnlyCollection<string> docIds,
+    Task<List<TSource>> ReadItemsAsync(IReadOnlyCollection<string> docIds,
         bool includeDeleted = false,
         CancellationToken cancellationToken = default);
 
@@ -63,7 +63,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for both PUT /{db}/{docid} and POST /{db}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-    Task<DocumentRequestResponse> AddAsync(TSource document, DocumentRequestOptions? options = null,
+    Task<DocumentRequestResponse> CreateItemAsync(TSource document, DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -75,7 +75,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for PUT /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created or updated.</returns>
-    Task<DocumentRequestResponse> ReplaceAsync(TSource document, string id, string rev, DocumentRequestOptions? options = null,
+    Task<DocumentRequestResponse> UpdateItemAsync(TSource document, string id, string rev, DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -86,7 +86,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for DELETE /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteAsync(string id, string rev, DocumentRequestOptions? options = null,
+    Task DeleteItemAsync(string id, string rev, DocumentRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -95,7 +95,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="operations">List of operations to perform</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task<DocumentBulkRequestResponse[]> BulkAsync(IList<BulkOperation> operations,
+    Task<DocumentBulkRequestResponse[]> ExecuteBulkOperationsAsync(IList<BulkOperation> operations,
         CancellationToken cancellationToken = default);
 
     /// <summary>

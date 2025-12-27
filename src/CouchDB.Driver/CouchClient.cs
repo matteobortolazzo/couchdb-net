@@ -38,7 +38,7 @@ public partial class CouchClient : ICouchClient
     /// <param name="endpoint">URI to the CouchDB endpoint.</param>
     /// <param name="credentials"></param>
     /// <param name="options"></param>
-    public CouchClient(string endpoint, CouchCredentials credentials, CouchOptions? options)
+    public CouchClient(string endpoint, CouchCredentials credentials, CouchOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         ArgumentNullException.ThrowIfNull(credentials);
