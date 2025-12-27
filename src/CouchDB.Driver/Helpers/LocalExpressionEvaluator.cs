@@ -1,5 +1,4 @@
-﻿
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using CouchDB.Driver.Shared;
 
 namespace CouchDB.Driver.Helpers;

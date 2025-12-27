@@ -2,7 +2,6 @@
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.Query;
 
@@ -13,10 +12,10 @@ internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
     private readonly Lock _sbLock = new();
     private readonly JsonNamingPolicy? _jsonNamePolicy;
 
-    internal QueryTranslator(CouchOptions options)
+    internal QueryTranslator(JsonSerializerOptions jsonSerializerOptions)
     {
         _sb = new StringBuilder();
-        _jsonNamePolicy = options.JsonSerializerOptions?.PropertyNamingPolicy;
+        _jsonNamePolicy = jsonSerializerOptions.PropertyNamingPolicy;
     }
 
     public string Translate(Expression e)

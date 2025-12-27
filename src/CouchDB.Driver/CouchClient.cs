@@ -27,7 +27,8 @@ public partial class CouchClient : ICouchClient
     private JsonSerializerOptions _jsonSerializerOptions = null!;
     private readonly IFlurlClient _flurlClient;
     private readonly AuthenticationDelegatingHandler _authenticationHandler;
-    private readonly CouchOptions _options;
+    private readonly CouchCredentials _credentials;
+    private readonly CouchOptions? _options;
     private readonly string[] _systemDatabases = ["_users", "_replicator", "_global_changes"];
     public Uri Endpoint { get; }
 
@@ -35,40 +36,16 @@ public partial class CouchClient : ICouchClient
     /// Creates a new CouchDB client.
     /// </summary>
     /// <param name="endpoint">URI to the CouchDB endpoint.</param>
-    /// <param name="couchSettingsFunc">A function to configure options.</param>
-    public CouchClient(string endpoint, Action<CouchOptionsBuilder>? couchSettingsFunc = null)
-        : this(new Uri(endpoint), couchSettingsFunc)
+    /// <param name="credentials"></param>
+    /// <param name="options"></param>
+    public CouchClient(string endpoint, CouchCredentials credentials, CouchOptions? options)
     {
-    }
-
-    /// <summary>
-    /// Creates a new CouchDB client.
-    /// </summary>
-    /// <param name="endpoint">URI to the CouchDB endpoint.</param>
-    /// <param name="couchSettingsFunc">A function to configure options.</param>
-    public CouchClient(Uri endpoint, Action<CouchOptionsBuilder>? couchSettingsFunc = null)
-        : this(BuildOptions(couchSettingsFunc, endpoint))
-    {
-    }
-
-    /// <summary>
-    /// Creates a new CouchDB client.
-    /// </summary>
-    /// <param name="couchSettingsFunc">A function to configure options.</param>
-    public CouchClient(Action<CouchOptionsBuilder>? couchSettingsFunc = null)
-        : this(BuildOptions(couchSettingsFunc))
-    {
-    }
-
-    internal CouchClient(CouchOptions options)
-    {
-        if (options.Endpoint == null)
-        {
-            throw new InvalidOperationException("Database endpoint must be set.");
-        }
+        ArgumentNullException.ThrowIfNull(endpoint);
+        ArgumentNullException.ThrowIfNull(credentials);
 
         _options = options;
-        Endpoint = _options.Endpoint;
+        _credentials = credentials;
+        Endpoint = new Uri(endpoint);
 
         ResiliencePipeline<HttpResponseMessage> retryPipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
             .AddRetry(new HttpRetryStrategyOptions { BackoffType = DelayBackoffType.Exponential, MaxRetryAttempts = 3 })
@@ -76,38 +53,17 @@ public partial class CouchClient : ICouchClient
 
         var socketHandler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(15) };
         var resilienceHandler = new ResilienceHandler(retryPipeline) { InnerHandler = socketHandler };
-        _authenticationHandler = new AuthenticationDelegatingHandler(_options.Authentication)
-        {
-            InnerHandler = resilienceHandler
-        };
+        _authenticationHandler = new AuthenticationDelegatingHandler(_credentials) { InnerHandler = resilienceHandler };
 
         var httpClient = new HttpClient(_authenticationHandler);
-        httpClient.BaseAddress = options.Endpoint;
 
         _flurlClient = new FlurlClient(httpClient)
             .WithSettings(s =>
             {
-                _options.JsonSerializerOptions ??= new JsonSerializerOptions();
-                _options.JsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
-                _options.JsonSerializerOptions.Converters.Add(new FindResponseConverterFactory());
-                _jsonSerializerOptions = _options.JsonSerializerOptions;
+                _jsonSerializerOptions = _options?.JsonSerializerOptions ?? new JsonSerializerOptions();
+                _jsonSerializerOptions.Converters.Add(new FindResponseConverterFactory());
                 s.JsonSerializer = new DefaultJsonSerializer(_jsonSerializerOptions);
             });
-    }
-
-    private static CouchOptions BuildOptions(Action<CouchOptionsBuilder>? couchSettingsFunc, Uri? endpoint = null)
-    {
-        var optionsBuilder = new CouchOptionsBuilder();
-        couchSettingsFunc?.Invoke(optionsBuilder);
-
-        if (endpoint != null)
-        {
-            optionsBuilder.Options.Endpoint = endpoint;
-        }
-
-        return optionsBuilder.Options.Endpoint == null
-            ? throw new InvalidOperationException("Database endpoint must be set.")
-            : optionsBuilder.Options;
     }
 
     #region Operations
@@ -119,7 +75,7 @@ public partial class CouchClient : ICouchClient
         where TSource : class
     {
         CheckDatabaseName(database);
-        var queryContext = new QueryContext(Endpoint, database, _options.ThrowOnQueryWarning);
+        var queryContext = new QueryContext(Endpoint, database, _options?.ThrowOnQueryWarning ?? true);
         return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext);
     }
 
@@ -431,7 +387,7 @@ public partial class CouchClient : ICouchClient
     private QueryContext NewQueryContext(string database)
     {
         CheckDatabaseName(database);
-        return new QueryContext(Endpoint, database, _options.ThrowOnQueryWarning);
+        return new QueryContext(Endpoint, database, _options?.ThrowOnQueryWarning ?? true);
     }
 
     private void CheckDatabaseName(string database)
@@ -459,7 +415,7 @@ public partial class CouchClient : ICouchClient
     {
         if (disposing)
         {
-            if (_options is { Authentication: CookieCouchAuthentication, LogOutOnDispose: true })
+            if (_credentials is CookieCredentials && _options?.LogOutOnDispose == true)
             {
                 await LogoutAsync().ConfigureAwait(false);
             }

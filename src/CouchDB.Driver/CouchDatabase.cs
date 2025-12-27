@@ -38,7 +38,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     private readonly IAsyncQueryProvider _queryProvider;
     private readonly IFlurlClient _flurlClient;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
-    private readonly CouchOptions _options;
+    private readonly CouchOptions? _options;
     private readonly QueryContext _queryContext;
     private const string IfMatchHeader = "If-Match";
 
@@ -52,7 +52,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     public ILocalDocuments LocalDocuments { get; }
 
     internal CouchDatabase(IFlurlClient flurlClient,
-        JsonSerializerOptions jsonSerializerOptions, CouchOptions options, QueryContext queryContext)
+        JsonSerializerOptions jsonSerializerOptions, CouchOptions? options, QueryContext queryContext)
     {
         _feedChangeLineStartPattern = FeedChangeStartLinePattern();
         _flurlClient = flurlClient;
@@ -61,7 +61,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         _queryContext = queryContext;
 
         var queryOptimizer = new QueryOptimizer();
-        var queryTranslator = new QueryTranslator(options);
+        var queryTranslator = new QueryTranslator(jsonSerializerOptions);
         var querySender = new QuerySender(flurlClient, queryContext);
         var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender);
         _queryProvider = new CouchQueryProvider(queryCompiler);
@@ -149,7 +149,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .SendRequestAsync()
             .ConfigureAwait(false);
 
-        if (this._options.ThrowOnQueryWarning && !string.IsNullOrEmpty(findResult.Warning))
+        if (_options?.ThrowOnQueryWarning != false && !string.IsNullOrEmpty(findResult.Warning))
         {
             throw new CouchQueryWarningException(findResult.Warning);
         }

@@ -2,14 +2,9 @@
 
 namespace CouchDB.Driver.Options;
 
-public abstract class CouchOptions
+public record CouchOptions
 {
-    public abstract Type ContextType { get; }
-    internal Uri? Endpoint { get; set; }
-    internal bool CheckDatabaseExists { get; set; }
-    internal bool OverrideExistingIndexes { get; set; }
-    internal ICouchAuthentication? Authentication { get; set; }
-    internal JsonSerializerOptions? JsonSerializerOptions { get; set; }
-    internal bool LogOutOnDispose { get; set; } = true;
-    internal bool ThrowOnQueryWarning { get; set; }
+    public JsonSerializerOptions? JsonSerializerOptions { get; set; }
+    public bool LogOutOnDispose { get; set; } = true;
+    public bool ThrowOnQueryWarning { get; set; } = true;
 }

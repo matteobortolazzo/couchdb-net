@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CouchDB.Driver.DelegatingHandlers;
 
-public class AuthenticationDelegatingHandler(ICouchAuthentication? authentication) : DelegatingHandler
+public class AuthenticationDelegatingHandler(CouchCredentials credentials) : DelegatingHandler
 {
     private DateTimeOffset? _cookieCreationDate;
     private string? _cookieToken;
@@ -15,11 +15,6 @@ public class AuthenticationDelegatingHandler(ICouchAuthentication? authenticatio
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        if (authentication == null)
-        {
-            return await base.SendAsync(request, cancellationToken);
-        }
-
         // If session requests no authorization needed
         if (request.RequestUri?.ToString()
                 .Contains("_session", StringComparison.InvariantCultureIgnoreCase) ==
@@ -28,18 +23,18 @@ public class AuthenticationDelegatingHandler(ICouchAuthentication? authenticatio
             return await base.SendAsync(request, cancellationToken);
         }
 
-        Type authType = authentication.GetType();
-        if (authType == typeof(BasicCouchAuthentication))
+        Type authType = credentials.GetType();
+        if (authType == typeof(BasicCredentials))
         {
-            var auth = (BasicCouchAuthentication)authentication;
+            var auth = (BasicCredentials)credentials;
             var byteArray = System.Text.Encoding.ASCII.GetBytes($"{auth.Username}:{auth.Password}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
             return await base.SendAsync(request, cancellationToken);
         }
 
-        if (authType == typeof(CookieCouchAuthentication))
+        if (authType == typeof(CookieCredentials))
         {
-            var auth = (CookieCouchAuthentication)authentication;
+            var auth = (CookieCredentials)credentials;
             var isTokenExpired =
                 !_cookieCreationDate.HasValue ||
                 _cookieCreationDate.Value.AddMinutes(auth.CookiesDuration) < DateTimeOffset.UtcNow;
@@ -65,9 +60,9 @@ public class AuthenticationDelegatingHandler(ICouchAuthentication? authenticatio
             return await base.SendAsync(request, cancellationToken);
         }
 
-        if (authType == typeof(ProxyCouchAuthentication))
+        if (authType == typeof(ProxyCredentials))
         {
-            var auth = (ProxyCouchAuthentication)authentication;
+            var auth = (ProxyCredentials)credentials;
             request.Headers.Add("X-Auth-CouchDB-UserName", auth.Username);
             request.Headers.Add("X-Auth-CouchDB-Roles", string.Join(",", auth.Roles ?? Array.Empty<string>()));
             if (auth.Token != null)
@@ -78,9 +73,9 @@ public class AuthenticationDelegatingHandler(ICouchAuthentication? authenticatio
             return await base.SendAsync(request, cancellationToken);
         }
 
-        if (authType == typeof(JwtCouchAuthentication))
+        if (authType == typeof(JwtCredentials))
         {
-            var auth = (JwtCouchAuthentication)authentication;
+            var auth = (JwtCredentials)credentials;
             var jwt = await auth.JwtTokenGenerator().ConfigureAwait(false);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
             return await base.SendAsync(request, cancellationToken);
@@ -94,8 +89,8 @@ public class AuthenticationDelegatingHandler(ICouchAuthentication? authenticatio
         _cookieCreationDate = null;
         _cookieToken = null;
     }
-    
-    private async Task LoginAsync(HttpRequestMessage originalRequest, CookieCouchAuthentication auth,
+
+    private async Task LoginAsync(HttpRequestMessage originalRequest, CookieCredentials auth,
         CancellationToken cancellationToken)
     {
         var baseUri = new Uri(originalRequest.RequestUri!.GetLeftPart(UriPartial.Authority));
