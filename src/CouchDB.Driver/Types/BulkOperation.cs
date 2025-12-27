@@ -14,18 +14,18 @@ public abstract class BulkOperation
 
 internal sealed class AddOperation(object document) : BulkOperation
 {
-    public object Document = document;
+    public readonly object Document = document;
 }
 
 internal sealed class UpdateOperation(string id, string rev, object document) : BulkOperation
 {
-    public string Id = id;
-    public string Rev = rev;
-    public object Document = document;
+    public readonly string Id = id;
+    public readonly string Rev = rev;
+    public readonly object Document = document;
 }
 
 internal sealed class DeleteOperation(string id, string rev) : BulkOperation
 {
-    public string Id = id;
-    public string Rev = rev;
+    public readonly string Id = id;
+    public readonly string Rev = rev;
 }

@@ -13,7 +13,7 @@
 /// Available if content_type is in list of compressible types when the attachment was added and the following query parameters are specified:
 /// <list type="bullet">
 ///     <item>
-///         <description><code><see creGetItemOptionsons.AttachmentsEncodingInfo"/>=<c>True</c></code> when querying a document</description>
+///         <description><code><see cref="ReadItemOptions.AttachmentsEncodingInfo"/>=<c>True</c></code> when querying a document</description>
 ///     </item>
 ///     <item>
 ///         <description>att_encoding_info=true&amp;include_docs=true when querying a changes feed or a view</description>
@@ -25,7 +25,7 @@
 /// Available if content_type is in list of compressible types when the attachment was added and the following query parameters are specified:
 /// <list type="bullet">
 ///     <item>
-///         <description><code><see creGetItemOptionsons.AttachmentsEncodingInfo"/>=<c>True</c></code> when querying a document</description>
+///         <description><code><see cref="ReadItemOptions.AttachmentsEncodingInfo"/>=<c>True</c></code> when querying a document</description>
 ///     </item>
 ///     <item>
 ///         <description>att_encoding_info=true&amp;include_docs=true when querying a changes feed or a view</description>
@@ -37,7 +37,7 @@
 /// Available if attachment content is requested by using the following query parameters:
 /// <list type="bullet">
 ///     <item>
-///         <description><code><see creGetItemOptionsons.Attachments"/>=<c>True</c></code> when querying a document</description>
+///         <description><code><see cref="ReadItemOptions.Attachments"/>=<c>True</c></code> when querying a document</description>
 ///     </item>
 ///     <item>
 ///         <description>attachments=true&amp;include_docs=true when querying a changes feed or a view</description>

@@ -66,7 +66,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     Task<WriteItemResponse> CreateItemAsync(TSource document, 
         CreateItemRequestOptions? options = null,
         CancellationToken cancellationToken = default);
-
+    
     /// <summary>
     /// Updates the document with the given ID.
     /// </summary>

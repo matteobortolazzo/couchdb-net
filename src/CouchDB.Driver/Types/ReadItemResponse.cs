@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-namespace CouchDB.Driver.Types;
+﻿namespace CouchDB.Driver.Types;
 
 /// <summary>
 /// Represents a CouchDB document.
@@ -10,26 +8,23 @@ namespace CouchDB.Driver.Types;
 /// </param>
 /// <param name="DeletedConflicts">
 /// List of deleted conflicted revisions.
-/// Available if requested with <see creGetItemOptionsons.DeleteConflicts"/> set to <c>True</c>
+/// Available if requested with <see cref="ReadItemOptions.DeleteConflicts"/> set to <c>True</c>
 /// </param>
 /// <param name="LocalSequence">
 /// Document’s update sequence in current database.
-/// Available if requested with <see creGetItemOptionsons.LocalSequence"/> set to <c>True</c>
+/// Available if requested with <see cref="ReadItemOptions.LocalSequence"/> set to <c>True</c>
 /// </param>
 /// <param name="RevisionsInfo">
 /// List of objects with information about local revisions and their status.
-/// Available if requested with <see creGetItemOptionsons.OpenRevisions"/>
+/// Available if requested with <see cref="ReadItemOptions.OpenRevisions"/>
 /// </param>
 /// <param name="Revisions">
 /// List of local revision tokens without.
-/// Available if requested with <see creGetItemOptionsons.Revisions"/> set to <c>True</c>
+/// Available if requested with <see cref="ReadItemOptions.Revisions"/> set to <c>True</c>
 /// </param>
-/// <param name="Revisions">
-/// Marks whether the document has been deleted.
-/// </param>
-/// <param name="Attachments">
-/// Attachment's stubs. Available if document has any attachments.
-/// </param>
+/// <param name="Revisions">Marks whether the document has been deleted. </param>
+/// <param name="Attachments">Attachment's stubs. Available if document has any attachments.</param>
+/// <param name="Deleted">Marks whether the document has been deleted. </param>
 /// </summary>
 [Serializable]
 public record ReadItemResponse<TSource>(
