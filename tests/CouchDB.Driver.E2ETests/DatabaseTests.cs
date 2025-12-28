@@ -237,7 +237,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
     {
         var local = fixture.Rebels.LocalDocuments;
 
-        var docId = "传";
+        const string docId = "传";
         var settings = new RebelSettings
         {
             Id = docId,

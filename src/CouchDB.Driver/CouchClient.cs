@@ -59,11 +59,12 @@ public partial class CouchClient : ICouchClient
         var httpClient = new HttpClient(_authenticationHandler);
 
         _flurlClient = new FlurlClient(httpClient)
-            .WithSettings(s =>
+            .WithSettings(flurlSettings =>
             {
                 _jsonSerializerOptions = _options?.JsonSerializerOptions ?? new JsonSerializerOptions();
+                _jsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
                 _jsonSerializerOptions.Converters.Add(new FindResponseConverterFactory());
-                s.JsonSerializer = new DefaultJsonSerializer(_jsonSerializerOptions);
+                flurlSettings.JsonSerializer = new DefaultJsonSerializer(_jsonSerializerOptions);
             });
     }
 

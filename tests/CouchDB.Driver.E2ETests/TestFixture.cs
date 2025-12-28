@@ -15,6 +15,10 @@ public class TestFixture : IAsyncLifetime
             endpoint: "http://localhost:5984",
             credentials: new BasicCredentials("admin", "admin"));
         Rebels = await Client.GetOrCreateDatabaseAsync<Rebel>();
+
+        await Rebels.CreateIndexAsync("surname_index", builder => builder
+            .IndexBy(r => r.Surname)
+            .ThenBy(r => r.Name));
     }
 
     public async Task DisposeAsync()
