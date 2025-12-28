@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
+using CouchDB.Driver.Converters;
 using CouchDB.Driver.DelegatingHandlers;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;

@@ -5,7 +5,7 @@ namespace CouchDB.Driver.E2ETests.Models;
 
 [DatabaseName("rebels")]
 public record Rebel(
-    // [property: JsonPropertyName("_id")] 
+    [property: JsonPropertyName("_id")] 
     string Id,
     string Name,
     string Surname,

@@ -21,7 +21,6 @@ public class CouchList<TSource>(
     public ExecutionStats? ExecutionStats { get; } = executionStats;
 
     public int Count => source.Count;
-    public bool IsReadOnly => true;
     public TSource this[int index] => source[index];
 
     public IEnumerator<TSource> GetEnumerator()

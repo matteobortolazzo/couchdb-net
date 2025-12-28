@@ -1,8 +1,7 @@
-using System.Collections.ObjectModel;
 using System.Text.Json;
 using CouchDB.Driver.Types;
 
-namespace CouchDB.Driver.Helpers;
+namespace CouchDB.Driver.Converters;
 
 public class FindResponseConverterFactory : JsonConverterFactory
 {
@@ -20,13 +19,13 @@ public class FindResponseConverterFactory : JsonConverterFactory
     {
         Type sourceType = typeToConvert.GetGenericArguments()[0];
 
-        Type converterType = typeof(FindResponseConverter<>).MakeGenericType(sourceType);
+        Type converterType = typeof(ReadItemResponseConverter<>).MakeGenericType(sourceType);
 
-        return (JsonConverter)Activator.CreateInstance(converterType, options)!;
+        return (JsonConverter)Activator.CreateInstance(converterType)!;
     }
 }
 
-public class FindResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSource>>
+public class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSource>>
     where TSource : class
 {
     public override ReadItemResponse<TSource> Read(ref Utf8JsonReader reader,
@@ -57,9 +56,11 @@ public class FindResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSo
         Revisions? revisions = root.TryGetProperty("_revisions", out JsonElement revisionsElement)
             ? revisionsElement.Deserialize<Revisions>(jsonSerializerOptions)
             : null;
-        ReadOnlyDictionary<string, ReadItemAttachment>? attachments =
+        var deleted = root.TryGetProperty("_deleted", out JsonElement deletedElement) &&
+                      deletedElement.Deserialize<bool>(jsonSerializerOptions);
+        Dictionary<string, ReadItemAttachment>? attachments =
             root.TryGetProperty("_attachments", out JsonElement attachmentElement)
-                ? attachmentElement.Deserialize<ReadOnlyDictionary<string, ReadItemAttachment>>(jsonSerializerOptions)
+                ? attachmentElement.Deserialize<Dictionary<string, ReadItemAttachment>>(jsonSerializerOptions)
                 : null;
         if (attachments != null)
         {
@@ -68,11 +69,9 @@ public class FindResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSo
                 value.Name = name;
             }
         }
-        
-        var deleted = root.TryGetProperty("deleted", out JsonElement deletedElement) &&
-                      deletedElement.Deserialize<bool>(jsonSerializerOptions);
-        TSource? document = root.Deserialize<TSource>(jsonSerializerOptions);
 
+
+        TSource? document = root.Deserialize<TSource>(jsonSerializerOptions);
         return new ReadItemResponse<TSource>(
             document!,
             rev!,
@@ -85,7 +84,8 @@ public class FindResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSo
             deleted);
     }
 
-    public override void Write(Utf8JsonWriter writer, ReadItemResponse<TSource> value, JsonSerializerOptions jsonSerializerOptions)
+    public override void Write(Utf8JsonWriter writer, ReadItemResponse<TSource> value,
+        JsonSerializerOptions jsonSerializerOptions)
     {
         throw new NotImplementedException("Writing FindResponse is not supported");
     }

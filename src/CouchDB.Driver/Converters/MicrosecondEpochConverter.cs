@@ -1,8 +1,6 @@
-﻿using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 
-namespace CouchDB.Driver.Helpers;
+namespace CouchDB.Driver.Converters;
 
 internal class MicrosecondEpochConverter : JsonConverter<DateTimeOffset>
 {

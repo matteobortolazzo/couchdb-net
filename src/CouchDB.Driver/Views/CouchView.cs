@@ -7,7 +7,7 @@
 /// <typeparam name="TValue">The type of the value</typeparam>
 /// <typeparam name="TDoc">The type of the document.</typeparam>
 [Serializable]
-public sealed class CouchView<TKey, TValue, TDoc>
+public class CouchView<TKey, TValue, TDoc>
 {
     /// <summary>
     /// The document ID.

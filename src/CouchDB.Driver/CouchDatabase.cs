@@ -126,11 +126,10 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .ConfigureAwait(false);
 
         var documents = bulkGetResult.Results
-            .SelectMany(r => r.Docs)
-            .Select(d => d.Item)
-            .Where(i => i != null && (includeDeleted || !i.Deleted))
-            .Where(i => i != null)
-            .Cast<TSource>()
+            .SelectMany(result => result.Docs)
+            .Select(item => item.Item)
+            .Where(response => response != null && (includeDeleted || !response.Deleted))
+            .Select(response => response!.Document)
             .ToList();
         return documents;
     }
@@ -192,7 +191,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
         var jsonContent = JsonContent.Create(jsonObject, options: _jsonSerializerOptions);
         return await request
-            .PostJsonAsync(jsonContent, cancellationToken: cancellationToken)
+            .PostAsync(jsonContent, cancellationToken: cancellationToken)
             .ReceiveJson<WriteItemResponse>()
             .SendRequestAsync()
             .ConfigureAwait(false);
@@ -218,7 +217,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         var jsonContent = JsonContent.Create(jsonObject, options: _jsonSerializerOptions);
         return await request
             .WithHeader(IfMatchHeader, rev)
-            .PutJsonAsync(jsonContent, cancellationToken: cancellationToken)
+            .PutAsync(jsonContent, cancellationToken: cancellationToken)
             .ReceiveJson<WriteItemResponse>()
             .SendRequestAsync()
             .ConfigureAwait(false);
@@ -302,6 +301,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
         // Remove rev
         jsonObject.Remove("rev");
+        jsonObject.Remove("_rev");
 
         // Transform id to _id for writes
         var currentId = jsonObject["id"]?.GetValue<string>();
@@ -309,6 +309,13 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         {
             jsonObject["_id"] = currentId;
             jsonObject.Remove("id");
+        }
+
+        var currentIdPascal = jsonObject["Id"]?.GetValue<string>();
+        if (currentIdPascal != null)
+        {
+            jsonObject["_id"] = currentIdPascal;
+            jsonObject.Remove("Id");
         }
 
         return jsonObject;

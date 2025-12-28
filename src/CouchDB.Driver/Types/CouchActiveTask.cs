@@ -1,4 +1,5 @@
-﻿using CouchDB.Driver.Helpers;
+﻿using CouchDB.Driver.Converters;
+using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Types;
 
