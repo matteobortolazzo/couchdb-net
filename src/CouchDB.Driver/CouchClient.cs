@@ -45,7 +45,7 @@ public partial class CouchClient : ICouchClient
 
         JsonSerializerOptions jsonSerializerOptions = options?.JsonSerializerOptions ?? new JsonSerializerOptions();
         jsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
-        jsonSerializerOptions.Converters.Add(new FindResponseConverterFactory());
+        jsonSerializerOptions.Converters.Add(new ReadItemResponseConverterFactory());
         _options = new CouchInternalOptions(
             jsonSerializerOptions,
             options?.LogOutOnDispose ?? true,

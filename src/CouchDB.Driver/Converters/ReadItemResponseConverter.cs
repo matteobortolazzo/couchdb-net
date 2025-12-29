@@ -1,9 +1,10 @@
+using System.Buffers;
 using System.Text.Json;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Converters;
 
-public class FindResponseConverterFactory : JsonConverterFactory
+public class ReadItemResponseConverterFactory : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert)
     {
@@ -36,42 +37,92 @@ public class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemResponse
             throw new JsonException("Expected start of object");
         }
 
-        using var jsonDoc = JsonDocument.ParseValue(ref reader);
-        JsonElement root = jsonDoc.RootElement;
+        var bufferWriter = new ArrayBufferWriter<byte>();
+        using var writer = new Utf8JsonWriter(bufferWriter);
 
-        // Extract metadata
-        var rev = root.GetProperty("_rev").GetString();
-        var conflicts = root.TryGetProperty("_conflicts", out JsonElement conflictsElement)
-            ? conflictsElement.Deserialize<string[]>(jsonSerializerOptions)
-            : null;
-        var deletedConflicts = root.TryGetProperty("_deleted_conflicts", out JsonElement deletedConflictsElement)
-            ? deletedConflictsElement.Deserialize<string[]>(jsonSerializerOptions)
-            : null;
-        var localSeq = root.TryGetProperty("_local_seq", out JsonElement localSeqElement)
-            ? localSeqElement.GetInt32()
-            : (int?)null;
-        RevisionInfo[]? revsInfo = root.TryGetProperty("_revs_info", out JsonElement revisionInfoElement)
-            ? revisionInfoElement.Deserialize<RevisionInfo[]>(jsonSerializerOptions)
-            : null;
-        Revisions? revisions = root.TryGetProperty("_revisions", out JsonElement revisionsElement)
-            ? revisionsElement.Deserialize<Revisions>(jsonSerializerOptions)
-            : null;
-        var deleted = root.TryGetProperty("_deleted", out JsonElement deletedElement) &&
-                      deletedElement.Deserialize<bool>(jsonSerializerOptions);
-        Dictionary<string, ReadItemAttachment>? attachments =
-            root.TryGetProperty("_attachments", out JsonElement attachmentElement)
-                ? attachmentElement.Deserialize<Dictionary<string, ReadItemAttachment>>(jsonSerializerOptions)
-                : null;
-        if (attachments != null)
+        string? rev = null;
+        string[]? conflicts = null;
+        string[]? deletedConflicts = null;
+        int? localSeq = null;
+        RevisionInfo[]? revsInfo = null;
+        Revisions? revisions = null;
+        var deleted = false;
+        Dictionary<string, ReadItemAttachment>? attachments = null;
+
+        writer.WriteStartObject();
+
+        while (reader.Read())
         {
-            foreach ((var name, ReadItemAttachment value) in attachments)
+            if (reader.TokenType == JsonTokenType.EndObject)
             {
-                value.Name = name;
+                break;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                throw new JsonException("Expected property name");
+            }
+
+            var propertyName = reader.GetString()!;
+            reader.Read();
+
+            switch (propertyName)
+            {
+                case "_rev":
+                    rev = reader.GetString();
+                    writer.WritePropertyName(GetPropertyName("rev", jsonSerializerOptions));
+                    writer.WriteStringValue(rev);
+                    break;
+                case "_id":
+                    writer.WritePropertyName(GetPropertyName("id", jsonSerializerOptions));
+                    JsonSerializer.Serialize(writer, JsonSerializer.Deserialize<JsonElement>(ref reader),
+                        jsonSerializerOptions);
+                    break;
+                case "_conflicts":
+                    conflicts = JsonSerializer.Deserialize<string[]>(ref reader, jsonSerializerOptions);
+                    break;
+                case "_deleted_conflicts":
+                    deletedConflicts = JsonSerializer.Deserialize<string[]>(ref reader, jsonSerializerOptions);
+                    break;
+                case "_local_seq":
+                    localSeq = reader.GetInt32();
+                    break;
+                case "_revs_info":
+                    revsInfo = JsonSerializer.Deserialize<RevisionInfo[]>(ref reader, jsonSerializerOptions);
+                    break;
+                case "_revisions":
+                    revisions = JsonSerializer.Deserialize<Revisions>(ref reader, jsonSerializerOptions);
+                    break;
+                case "_deleted":
+                    deleted = reader.GetBoolean();
+                    break;
+                case "_attachments":
+                    attachments =
+                        JsonSerializer.Deserialize<Dictionary<string, ReadItemAttachment>>(ref reader,
+                            jsonSerializerOptions);
+                    if (attachments != null)
+                    {
+                        foreach ((var name, ReadItemAttachment value) in attachments)
+                        {
+                            value.Name = name;
+                        }
+                    }
+
+                    break;
+                default:
+                    writer.WritePropertyName(propertyName);
+                    JsonSerializer.Serialize(writer, JsonSerializer.Deserialize<JsonElement>(ref reader),
+                        jsonSerializerOptions);
+                    break;
             }
         }
 
+        writer.WriteEndObject();
+        writer.Flush();
 
-        TSource? document = root.Deserialize<TSource>(jsonSerializerOptions);
+        var jsonReader = new Utf8JsonReader(bufferWriter.WrittenSpan);
+        TSource? document = JsonSerializer.Deserialize<TSource>(ref jsonReader, jsonSerializerOptions);
+
         return new ReadItemResponse<TSource>(
             document!,
             rev!,
@@ -88,5 +139,10 @@ public class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemResponse
         JsonSerializerOptions jsonSerializerOptions)
     {
         throw new NotImplementedException("Writing FindResponse is not supported");
+    }
+
+    private static string GetPropertyName(string name, JsonSerializerOptions options)
+    {
+        return options.PropertyNamingPolicy?.ConvertName(name) ?? name;
     }
 }
