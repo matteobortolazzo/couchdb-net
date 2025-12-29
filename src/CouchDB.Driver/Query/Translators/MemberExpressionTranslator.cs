@@ -7,7 +7,7 @@ internal partial class QueryTranslator
 {
     protected override Expression VisitMember(MemberExpression m)
     {
-        var propName = m.GetPropertyName(_jsonNamePolicy);
+        var propName = m.GetPropertyName(_options.JsonSerializerOptions.PropertyNamingPolicy);
         _sb.Append($"\"{propName}\"");
         return m;
     }

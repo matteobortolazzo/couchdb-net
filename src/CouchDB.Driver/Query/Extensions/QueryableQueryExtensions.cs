@@ -178,5 +178,33 @@ public static class QueryableQueryExtensions
                     null,
                     GetMethodInfo(Convert<TSource, TResult>, source), source.Expression));
         }
+
+        /// <summary>
+        /// Enable exception throwing on query warnings when requesting elements from the sequence.
+        /// </summary>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the request to ask for execution stats when requesting elements from the sequence.</return>
+        public IQueryable<TSource> WithQueryWarningException()
+        {
+            ArgumentNullException.ThrowIfNull(source);
+
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(WithQueryWarningException, source), source.Expression));
+        }
+
+        /// <summary>
+        /// Disable exception throwing on query warnings when requesting elements from the sequence.
+        /// </summary>
+        /// <return>An <see cref="IQueryable{TSource}"/> that contains the request to ask for execution stats when requesting elements from the sequence.</return>
+        public IQueryable<TSource> WithoutQueryWarningException()
+        {
+            ArgumentNullException.ThrowIfNull(source);
+
+            return source.Provider.CreateQuery<TSource>(
+                Expression.Call(
+                    null,
+                    GetMethodInfo(WithoutQueryWarningException, source), source.Expression));
+        }
     }
 }

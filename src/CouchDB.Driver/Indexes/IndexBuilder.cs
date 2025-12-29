@@ -1,14 +1,15 @@
 ﻿using System.Linq.Expressions;
-using System.Text.Json;
 using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Indexes;
 
-internal class IndexBuilder<TSource>(JsonNamingPolicy? jsonNamePolicy, IAsyncQueryProvider queryProvider)
-    : IIndexBuilder<TSource>,
-        IOrderedIndexBuilder<TSource>, IOrderedDescendingIndexBuilder<TSource>
+internal class IndexBuilder<TSource>(
+    CouchInternalOptions options,
+    IAsyncQueryProvider queryProvider)
+    : IIndexBuilder<TSource>, IOrderedIndexBuilder<TSource>, IOrderedDescendingIndexBuilder<TSource>
     where TSource : class
 {
     private bool _ascending = true;
@@ -52,7 +53,7 @@ internal class IndexBuilder<TSource>(JsonNamingPolicy? jsonNamePolicy, IAsyncQue
     private void AddField<TSelector>(Expression<Func<TSource, TSelector>> selector)
     {
         var memberExpression = selector.ToMemberExpression();
-        _fields.Add(memberExpression.GetPropertyName(jsonNamePolicy));
+        _fields.Add(memberExpression.GetPropertyName(options.JsonSerializerOptions.PropertyNamingPolicy));
     }
 
     public IndexDefinition Build()

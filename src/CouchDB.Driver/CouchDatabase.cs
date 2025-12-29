@@ -37,8 +37,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     private readonly Regex _feedChangeLineStartPattern;
     private readonly IAsyncQueryProvider _queryProvider;
     private readonly IFlurlClient _flurlClient;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
-    private readonly CouchOptions? _options;
+    private readonly CouchInternalOptions _options;
     private readonly QueryContext _queryContext;
     private const string IfMatchHeader = "If-Match";
     private const string ContentTypeHeader = "Content-Type";
@@ -54,18 +53,16 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
     internal CouchDatabase(
         IFlurlClient flurlClient,
-        JsonSerializerOptions jsonSerializerOptions,
-        CouchOptions? options,
+        CouchInternalOptions options,
         QueryContext queryContext)
     {
         _feedChangeLineStartPattern = FeedChangeStartLinePattern();
         _flurlClient = flurlClient;
-        _jsonSerializerOptions = jsonSerializerOptions;
         _options = options;
         _queryContext = queryContext;
 
         var queryOptimizer = new QueryOptimizer();
-        var queryTranslator = new QueryTranslator(jsonSerializerOptions);
+        var queryTranslator = new QueryTranslator(_options);
         var querySender = new QuerySender(flurlClient, queryContext);
         var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender);
         _queryProvider = new CouchQueryProvider(queryCompiler);
@@ -95,22 +92,24 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
 
         var json = await response.GetStringAsync().ConfigureAwait(false);
-        return JsonSerializer.Deserialize<ReadItemResponse<TSource>>(json, _jsonSerializerOptions);
+        return JsonSerializer.Deserialize<ReadItemResponse<TSource>>(json, _options.JsonSerializerOptions);
     }
 
     /// <inheritdoc />
-    public Task<List<TSource>> QueryAsync(string mangoQueryJson, CancellationToken cancellationToken = default)
+    public Task<List<TSource>> QueryAsync(string mangoQueryJson, bool? throwExceptionOnWarning = null,
+        CancellationToken cancellationToken = default)
     {
         return SendQueryAsync(r => r
             .WithHeader("Content-Type", "application/json")
-            .PostStringAsync(mangoQueryJson, cancellationToken: cancellationToken));
+            .PostStringAsync(mangoQueryJson, cancellationToken: cancellationToken), throwExceptionOnWarning);
     }
 
     /// <inheritdoc />
-    public Task<List<TSource>> QueryAsync(object mangoQuery, CancellationToken cancellationToken = default)
+    public Task<List<TSource>> QueryAsync(object mangoQuery, bool? throwExceptionOnWarning = null,
+        CancellationToken cancellationToken = default)
     {
         return SendQueryAsync(r => r
-            .PostJsonAsync(mangoQuery, cancellationToken: cancellationToken));
+            .PostJsonAsync(mangoQuery, cancellationToken: cancellationToken), throwExceptionOnWarning);
     }
 
     /// <inheritdoc />
@@ -134,7 +133,9 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         return documents;
     }
 
-    private async Task<List<TSource>> SendQueryAsync(Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc)
+    private async Task<List<TSource>> SendQueryAsync(
+        Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc,
+        bool? throwExceptionOnWarning)
     {
         IFlurlRequest request = NewRequest()
             .AppendPathSegment("_find");
@@ -146,7 +147,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .SendRequestAsync()
             .ConfigureAwait(false);
 
-        if (_options?.ThrowOnQueryWarning != false && !string.IsNullOrEmpty(findResult.Warning))
+        if ((throwExceptionOnWarning ?? _options.ThrowOnQueryWarning) && !string.IsNullOrEmpty(findResult.Warning))
         {
             throw new CouchQueryWarningException(findResult.Warning);
         }
@@ -186,10 +187,11 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                 requestAttachments[fileName] = new CreateAttachmentRequest(contentType, base64Content);
             }
 
-            jsonObject["_attachments"] = JsonSerializer.SerializeToNode(requestAttachments, _jsonSerializerOptions);
+            jsonObject["_attachments"] =
+                JsonSerializer.SerializeToNode(requestAttachments, _options.JsonSerializerOptions);
         }
 
-        var jsonContent = JsonContent.Create(jsonObject, options: _jsonSerializerOptions);
+        var jsonContent = JsonContent.Create(jsonObject, options: _options.JsonSerializerOptions);
         return await request
             .PostAsync(jsonContent, cancellationToken: cancellationToken)
             .ReceiveJson<WriteItemResponse>()
@@ -214,7 +216,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
 
         JsonObject jsonObject = GetTransformedJsonObject(document);
-        var jsonContent = JsonContent.Create(jsonObject, options: _jsonSerializerOptions);
+        var jsonContent = JsonContent.Create(jsonObject, options: _options.JsonSerializerOptions);
         return await request
             .WithHeader(IfMatchHeader, rev)
             .PutAsync(jsonContent, cancellationToken: cancellationToken)
@@ -297,7 +299,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
     private JsonObject GetTransformedJsonObject(TSource document)
     {
-        var jsonObject = (JsonSerializer.SerializeToNode(document, _jsonSerializerOptions) as JsonObject)!;
+        var jsonObject = (JsonSerializer.SerializeToNode(document, _options.JsonSerializerOptions) as JsonObject)!;
 
         // Remove rev
         jsonObject.Remove("rev");
@@ -812,7 +814,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     internal IndexBuilder<TSource> NewIndexBuilder(
         Action<IIndexBuilder<TSource>> indexBuilderAction)
     {
-        var builder = new IndexBuilder<TSource>(_jsonSerializerOptions.PropertyNamingPolicy, _queryProvider);
+        var builder = new IndexBuilder<TSource>(_options, _queryProvider);
         indexBuilderAction(builder);
         return builder;
     }

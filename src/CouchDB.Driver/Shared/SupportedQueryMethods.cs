@@ -17,6 +17,8 @@ internal static class SupportedQueryMethods
     public static MethodInfo IncludeConflicts { get; }
     public static MethodInfo Select { get; }
     public static MethodInfo Convert { get; }
+    public static MethodInfo WithQueryWarningException { get; }
+    public static MethodInfo WithoutQueryWarningException { get; }
     public static MethodInfo EnumerableContains { get; }
     public static MethodInfo FieldExists { get; }
     public static MethodInfo IsCouchType { get; }
@@ -51,6 +53,8 @@ internal static class SupportedQueryMethods
             queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.IncludeConflicts));
         Select = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.Select));
         Convert = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.Convert));
+        WithQueryWarningException = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.WithQueryWarningException));
+        WithoutQueryWarningException = queryableExtensionsMethods.Single(mi => mi.Name == nameof(QueryableQueryExtensions.WithoutQueryWarningException));
 
         EnumerableContains = typeof(EnumerableQueryExtensions)
             .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)

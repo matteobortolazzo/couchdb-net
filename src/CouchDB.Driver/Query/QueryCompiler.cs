@@ -70,7 +70,7 @@ internal class QueryCompiler(
     {
         Expression optimizedQuery = queryOptimizer.Optimize(query);
         var body = queryTranslator.Translate(optimizedQuery);
-        return requestSender.Send<TResult>(body, async, cancellationToken);
+        return requestSender.Send<TResult>(body, async, queryTranslator.ThrowOnQueryWarning, cancellationToken);
     }
 
     private TResult SendRequestWithFilter<TResult>(MethodCallExpression methodCallExpression, Expression query,
@@ -88,7 +88,7 @@ internal class QueryCompiler(
         // If no operation must be done on the list return
         if (!methodCallExpression.Method.IsSupportedByComposition())
         {
-            return requestSender.Send<TResult>(body, async, cancellationToken);
+            return requestSender.Send<TResult>(body, async, queryTranslator.ThrowOnQueryWarning, cancellationToken);
         }
 
         Type documentType = GetDocumentType(methodCallExpression);

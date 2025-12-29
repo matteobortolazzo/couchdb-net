@@ -5,4 +5,5 @@ namespace CouchDB.Driver.Query;
 internal interface IQueryTranslator
 {
     string Translate(Expression e);
+    bool ThrowOnQueryWarning { get; }
 }

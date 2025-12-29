@@ -1,9 +1,8 @@
-﻿namespace CouchDB.Driver.Query;
+﻿using CouchDB.Driver.Options;
 
-public class QueryContext(Uri endpoint, string databaseName, bool throwOnQueryWarning)
+namespace CouchDB.Driver.Query;
+
+internal record QueryContext(Uri Endpoint, CouchInternalOptions Options, string DatabaseName)
 {
-    public Uri Endpoint { get; } = endpoint;
-    public string DatabaseName { get; } = databaseName;
-    public string EscapedDatabaseName { get; } = Uri.EscapeDataString(databaseName);
-    public bool ThrowOnQueryWarning { get; } = throwOnQueryWarning;
+    public string EscapedDatabaseName => Uri.EscapeDataString(DatabaseName);
 }

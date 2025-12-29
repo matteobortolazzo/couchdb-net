@@ -315,6 +315,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         var rebels = await fixture.Rebels
             .Where(r => r.Age == 19)
             .IncludeExecutionStats()
+            .WithoutQueryWarningException()
             .ToCouchListAsync();
 
         Assert.NotNull(rebels.ExecutionStats);

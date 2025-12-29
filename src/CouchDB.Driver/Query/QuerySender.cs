@@ -19,7 +19,8 @@ internal class QuerySender(IFlurlClient client, QueryContext queryContext) : IQu
         = typeof(QuerySender).GetRuntimeMethods()
             .Single(m => m is { Name: nameof(ToListAsync), IsGenericMethod: true });
 
-    public TResult Send<TResult>(string body, bool async, CancellationToken cancellationToken)
+    public TResult Send<TResult>(string body, bool async, bool throwExceptionOnWarning,
+        CancellationToken cancellationToken)
     {
         Type resultType = typeof(TResult);
         if (async)
@@ -33,22 +34,27 @@ internal class QuerySender(IFlurlClient client, QueryContext queryContext) : IQu
 
         return (TResult)toListMethodInfo
             .MakeGenericMethod(itemType)
-            .Invoke(this, [body, cancellationToken])!;
+            .Invoke(this, [body, throwExceptionOnWarning, cancellationToken])!;
     }
 
-    private CouchList<TItem> ToList<TItem>(string body, CancellationToken cancellationToken)
+    private CouchList<TItem> ToList<TItem>(string body, bool throwExceptionOnWarning,
+        CancellationToken cancellationToken)
     {
-        FindResult<TItem> result = SendAsync<TItem>(body, cancellationToken).GetAwaiter().GetResult();
+        FindResult<TItem> result = SendAsync<TItem>(body, throwExceptionOnWarning, cancellationToken).GetAwaiter()
+            .GetResult();
         return new CouchList<TItem>(result.Docs.ToList(), result.Bookmark, result.ExecutionStats);
     }
 
-    private async Task<CouchList<TItem>> ToListAsync<TItem>(string body, CancellationToken cancellationToken)
+    private async Task<CouchList<TItem>> ToListAsync<TItem>(string body, bool throwExceptionOnWarning,
+        CancellationToken cancellationToken)
     {
-        FindResult<TItem> result = await SendAsync<TItem>(body, cancellationToken).ConfigureAwait(false);
+        FindResult<TItem> result =
+            await SendAsync<TItem>(body, throwExceptionOnWarning, cancellationToken).ConfigureAwait(false);
         return new CouchList<TItem>(result.Docs.ToList(), result.Bookmark, result.ExecutionStats);
     }
 
-    private async Task<FindResult<TItem>> SendAsync<TItem>(string body, CancellationToken cancellationToken)
+    private async Task<FindResult<TItem>> SendAsync<TItem>(string body, bool throwExceptionOnWarning,
+        CancellationToken cancellationToken)
     {
         FindResult<TItem>? findResult = await client
             .Request(queryContext.Endpoint)
@@ -58,7 +64,7 @@ internal class QuerySender(IFlurlClient client, QueryContext queryContext) : IQu
             .ReceiveJson<FindResult<TItem>>()
             .SendRequestAsync();
 
-        if (queryContext.ThrowOnQueryWarning && !string.IsNullOrEmpty(findResult.Warning))
+        if (throwExceptionOnWarning && !string.IsNullOrEmpty(findResult.Warning))
         {
             throw new CouchQueryWarningException(findResult.Warning);
         }

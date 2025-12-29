@@ -62,7 +62,9 @@ internal static class SupportedMethodsProvider
             SupportedQueryMethods.IsCouchType,
             SupportedQueryMethods.In,
             SupportedQueryMethods.IsMatch,
-            SupportedQueryMethods.Contains
+            SupportedQueryMethods.Contains,
+            SupportedQueryMethods.WithQueryWarningException,
+            SupportedQueryMethods.WithoutQueryWarningException
         ];
 
         Composite =

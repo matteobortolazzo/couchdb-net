@@ -9,7 +9,7 @@ using Flurl.Http;
 namespace CouchDB.Driver.Local;
 
 /// <inheritdoc />
-public class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext) : ILocalDocuments
+internal class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext) : ILocalDocuments
 {
     /// <inheritdoc />
     public async Task<IList<CouchDocumentInfo>> GetAsync(LocalDocumentsOptions? options = null,

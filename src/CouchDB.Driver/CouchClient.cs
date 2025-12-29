@@ -25,11 +25,10 @@ namespace CouchDB.Driver;
 /// </summary>
 public partial class CouchClient : ICouchClient
 {
-    private JsonSerializerOptions _jsonSerializerOptions = null!;
     private readonly IFlurlClient _flurlClient;
     private readonly AuthenticationDelegatingHandler _authenticationHandler;
     private readonly CouchCredentials _credentials;
-    private readonly CouchOptions? _options;
+    private readonly CouchInternalOptions _options;
     private readonly string[] _systemDatabases = ["_users", "_replicator", "_global_changes"];
     public Uri Endpoint { get; }
 
@@ -44,7 +43,14 @@ public partial class CouchClient : ICouchClient
         ArgumentNullException.ThrowIfNull(endpoint);
         ArgumentNullException.ThrowIfNull(credentials);
 
-        _options = options;
+        JsonSerializerOptions jsonSerializerOptions = options?.JsonSerializerOptions ?? new JsonSerializerOptions();
+        jsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
+        jsonSerializerOptions.Converters.Add(new FindResponseConverterFactory());
+        _options = new CouchInternalOptions(
+            jsonSerializerOptions,
+            options?.LogOutOnDispose ?? true,
+            options?.ThrowOnQueryWarning ?? true);
+
         _credentials = credentials;
         Endpoint = new Uri(endpoint);
 
@@ -61,10 +67,7 @@ public partial class CouchClient : ICouchClient
         _flurlClient = new FlurlClient(httpClient)
             .WithSettings(flurlSettings =>
             {
-                _jsonSerializerOptions = _options?.JsonSerializerOptions ?? new JsonSerializerOptions();
-                _jsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
-                _jsonSerializerOptions.Converters.Add(new FindResponseConverterFactory());
-                flurlSettings.JsonSerializer = new DefaultJsonSerializer(_jsonSerializerOptions);
+                flurlSettings.JsonSerializer = new DefaultJsonSerializer(_options.JsonSerializerOptions);
             });
     }
 
@@ -77,8 +80,8 @@ public partial class CouchClient : ICouchClient
         where TSource : class
     {
         CheckDatabaseName(database);
-        var queryContext = new QueryContext(Endpoint, database, _options?.ThrowOnQueryWarning ?? true);
-        return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext);
+        var queryContext = new QueryContext(Endpoint, _options, database);
+        return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
     }
 
     /// <inheritdoc />
@@ -94,7 +97,7 @@ public partial class CouchClient : ICouchClient
 
         if (response.IsSuccessful())
         {
-            return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext);
+            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
         }
 
         if (response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
@@ -118,7 +121,7 @@ public partial class CouchClient : ICouchClient
 
         if (response.IsSuccessful() || response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
         {
-            return new CouchDatabase<TSource>(_flurlClient, _jsonSerializerOptions, _options, queryContext);
+            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
         }
 
         throw new CouchException($"Something wrong happened while creating database {database}.");
@@ -389,7 +392,7 @@ public partial class CouchClient : ICouchClient
     private QueryContext NewQueryContext(string database)
     {
         CheckDatabaseName(database);
-        return new QueryContext(Endpoint, database, _options?.ThrowOnQueryWarning ?? true);
+        return new QueryContext(Endpoint, _options, database);
     }
 
     private void CheckDatabaseName(string database)
@@ -417,7 +420,7 @@ public partial class CouchClient : ICouchClient
     {
         if (disposing)
         {
-            if (_credentials is CookieCredentials && _options?.LogOutOnDispose == true)
+            if (_credentials is CookieCredentials && _options.LogOutOnDispose)
             {
                 await LogoutAsync().ConfigureAwait(false);
             }

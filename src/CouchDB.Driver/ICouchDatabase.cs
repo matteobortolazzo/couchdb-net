@@ -33,17 +33,21 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// Finds all documents matching the MangoQuery.
     /// </summary>
     /// <param name="mangoQueryJson">The JSON representing the Mango query.</param>
+    /// <param name="throwExceptionOnWarning">If provided, overrides the global options to throw exception on query warning</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/> that contains elements from the database.</retuns>
-    Task<List<TSource>> QueryAsync(string mangoQueryJson, CancellationToken cancellationToken = default);
+    Task<List<TSource>> QueryAsync(string mangoQueryJson, bool? throwExceptionOnWarning = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Finds all documents matching the MangoQuery.
     /// </summary>
     /// <param name="mangoQuery">The object representing the Mango query.</param>
+    /// <param name="throwExceptionOnWarning">If provided, overrides the global options to throw exception on query warning</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <retuns>A task that represents the asynchronous operation. The task result contains a <see cref="List{TSource}"/> that contains elements from the database.</retuns>
-    Task<List<TSource>> QueryAsync(object mangoQuery, CancellationToken cancellationToken = default);
+    Task<List<TSource>> QueryAsync(object mangoQuery, bool? throwExceptionOnWarning = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Create or updates an attachment to a document.
@@ -70,7 +74,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <returns></returns>
     Task<WriteItemResponse> DeleteAttachmentAsync(string name, string id, string rev,
         CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Finds all documents with given IDs.
     /// </summary>
@@ -89,10 +93,10 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for both PUT /{db}/{docid} and POST /{db}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the element created.</returns>
-    Task<WriteItemResponse> CreateItemAsync(TSource document, 
+    Task<WriteItemResponse> CreateItemAsync(TSource document,
         CreateItemRequestOptions? options = null,
         CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Updates the document with the given ID.
     /// </summary>
@@ -114,7 +118,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Set of options available for DELETE /{db}/{docid}</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteItemAsync(string id, string rev, 
+    Task DeleteItemAsync(string id, string rev,
         ItemRequestOptions? options = null,
         CancellationToken cancellationToken = default);
 

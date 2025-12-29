@@ -1,27 +1,30 @@
 ﻿using System.Linq.Expressions;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
+using CouchDB.Driver.Options;
 
 namespace CouchDB.Driver.Query;
 
 internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
 {
+    public bool ThrowOnQueryWarning { get; private set; }
+    
+    private readonly CouchInternalOptions _options;
     private readonly StringBuilder _sb;
     private bool _isSelectorSet;
     private readonly Lock _sbLock = new();
-    private readonly JsonNamingPolicy? _jsonNamePolicy;
 
-    internal QueryTranslator(JsonSerializerOptions jsonSerializerOptions)
+    internal QueryTranslator(CouchInternalOptions options)
     {
+        _options = options;
         _sb = new StringBuilder();
-        _jsonNamePolicy = jsonSerializerOptions.PropertyNamingPolicy;
     }
 
     public string Translate(Expression e)
     {
         lock (_sbLock)
         {
+            ThrowOnQueryWarning = _options.ThrowOnQueryWarning;
             _isSelectorSet = false;
             _sb.Clear();
             _sb.Append('{');

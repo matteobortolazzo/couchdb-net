@@ -4,5 +4,5 @@ namespace CouchDB.Driver.Query;
 
 internal interface IQuerySender
 {
-    TResult Send<TResult>(string body, bool async, CancellationToken cancellationToken);
+    TResult Send<TResult>(string body, bool async, bool throwExceptionOnWarning, CancellationToken cancellationToken);
 }

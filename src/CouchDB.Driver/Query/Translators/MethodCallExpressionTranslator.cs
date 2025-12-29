@@ -128,6 +128,16 @@ internal partial class QueryTranslator
             return VisitConvertMethod(m);
         }
 
+        if (genericDefinition == SupportedQueryMethods.WithQueryWarningException)
+        {
+            return VisitWithQueryWarningExceptionMethod(m);
+        }
+
+        if (genericDefinition == SupportedQueryMethods.WithoutQueryWarningException)
+        {
+            return VisitWithoutQueryWarningExceptionMethod(m);
+        }
+
         // IEnumerable extensions
 
         if (genericDefinition == SupportedQueryMethods.EnumerableContains)
@@ -364,12 +374,7 @@ internal partial class QueryTranslator
     {
         Visit(m.Arguments[0]);
         _sb.Append("\"use_index\":");
-        if (m.Arguments[1] is not ConstantExpression indexArgsExpression)
-        {
-            throw new ArgumentException("UseIndex requires an IList<string> argument");
-        }
-
-        if (indexArgsExpression.Value is not IList<string> indexArgs)
+        if (m.Arguments[1] is not ConstantExpression { Value: IList<string> indexArgs } indexArgsExpression)
         {
             throw new ArgumentException("UseIndex requires an IList<string> argument");
         }
@@ -391,7 +396,7 @@ internal partial class QueryTranslator
         return m;
     }
 
-    public Expression VisitIncludeExecutionStatsMethod(MethodCallExpression m)
+    private MethodCallExpression VisitIncludeExecutionStatsMethod(MethodCallExpression m)
     {
         Visit(m.Arguments[0]);
         _sb.Append("\"execution_stats\":true");
@@ -399,7 +404,7 @@ internal partial class QueryTranslator
         return m;
     }
 
-    public Expression VisitIncludeConflictsMethod(MethodCallExpression m)
+    private MethodCallExpression VisitIncludeConflictsMethod(MethodCallExpression m)
     {
         Visit(m.Arguments[0]);
         _sb.Append("\"conflicts\":true");
@@ -407,7 +412,7 @@ internal partial class QueryTranslator
         return m;
     }
 
-    public Expression VisitSelectFieldMethod(MethodCallExpression m)
+    private MethodCallExpression VisitSelectFieldMethod(MethodCallExpression m)
     {
         Visit(m.Arguments[0]);
         _sb.Append("\"fields\":[");
@@ -428,7 +433,7 @@ internal partial class QueryTranslator
         return m;
     }
 
-    public Expression VisitConvertMethod(MethodCallExpression m)
+    private MethodCallExpression VisitConvertMethod(MethodCallExpression m)
     {
         Visit(m.Arguments[0]);
         _sb.Append("\"fields\":[");
@@ -441,12 +446,26 @@ internal partial class QueryTranslator
 
         foreach (PropertyInfo property in properties)
         {
-            var field = property.GetCouchPropertyName(_jsonNamePolicy);
+            var field = property.GetCouchPropertyName(_options.JsonSerializerOptions.PropertyNamingPolicy);
             _sb.Append($"\"{field}\",");
         }
 
         _sb.Length--;
         _sb.Append("],");
+        return m;
+    }
+
+    private MethodCallExpression VisitWithQueryWarningExceptionMethod(MethodCallExpression m)
+    {
+        Visit(m.Arguments[0]);
+        ThrowOnQueryWarning = true;
+        return m;
+    }
+
+    private MethodCallExpression VisitWithoutQueryWarningExceptionMethod(MethodCallExpression m)
+    {
+        Visit(m.Arguments[0]);
+        ThrowOnQueryWarning = false;
         return m;
     }
 
