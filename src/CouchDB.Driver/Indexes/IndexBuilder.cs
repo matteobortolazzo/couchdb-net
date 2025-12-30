@@ -7,7 +7,7 @@ using CouchDB.Driver.Types;
 namespace CouchDB.Driver.Indexes;
 
 internal class IndexBuilder<TSource>(
-    CouchInternalOptions options,
+    InternalCouchClientOptions options,
     IAsyncQueryProvider queryProvider)
     : IIndexBuilder<TSource>, IOrderedIndexBuilder<TSource>, IOrderedDescendingIndexBuilder<TSource>
     where TSource : class

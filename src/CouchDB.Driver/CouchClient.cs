@@ -8,6 +8,7 @@ using CouchDB.Driver.Exceptions;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using CouchDB.Driver.Converters;
 using CouchDB.Driver.DelegatingHandlers;
@@ -28,7 +29,7 @@ public partial class CouchClient : ICouchClient
     private readonly IFlurlClient _flurlClient;
     private readonly AuthenticationDelegatingHandler _authenticationHandler;
     private readonly CouchCredentials _credentials;
-    private readonly CouchInternalOptions _options;
+    private readonly InternalCouchClientOptions _options;
     private readonly string[] _systemDatabases = ["_users", "_replicator", "_global_changes"];
     public Uri Endpoint { get; }
 
@@ -38,7 +39,7 @@ public partial class CouchClient : ICouchClient
     /// <param name="endpoint">URI to the CouchDB endpoint.</param>
     /// <param name="credentials"></param>
     /// <param name="options"></param>
-    public CouchClient(string endpoint, CouchCredentials credentials, CouchOptions? options = null)
+    public CouchClient(string endpoint, CouchCredentials credentials, CouchClientOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         ArgumentNullException.ThrowIfNull(credentials);
@@ -46,7 +47,15 @@ public partial class CouchClient : ICouchClient
         JsonSerializerOptions jsonSerializerOptions = options?.JsonSerializerOptions ?? new JsonSerializerOptions();
         jsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
         jsonSerializerOptions.Converters.Add(new ReadItemResponseConverterFactory());
-        _options = new CouchInternalOptions(
+        if (options?.JsonSerializerOptions?.TypeInfoResolver != null)
+        {
+            jsonSerializerOptions.TypeInfoResolver = JsonTypeInfoResolver.Combine(
+                options.JsonSerializerOptions.TypeInfoResolver,
+                new DefaultJsonTypeInfoResolver()
+            );
+        }
+        
+        _options = new InternalCouchClientOptions(
             jsonSerializerOptions,
             options?.LogOutOnDispose ?? true,
             options?.ThrowOnQueryWarning ?? true);

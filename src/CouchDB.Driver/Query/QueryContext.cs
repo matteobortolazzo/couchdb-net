@@ -2,7 +2,7 @@
 
 namespace CouchDB.Driver.Query;
 
-internal record QueryContext(Uri Endpoint, CouchInternalOptions Options, string DatabaseName)
+internal record QueryContext(Uri Endpoint, InternalCouchClientOptions Options, string DatabaseName)
 {
     public string EscapedDatabaseName => Uri.EscapeDataString(DatabaseName);
 }

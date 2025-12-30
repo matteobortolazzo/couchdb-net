@@ -2,14 +2,14 @@
 
 namespace CouchDB.Driver.Options;
 
-public record CouchOptions
+public record CouchClientOptions
 {
     public JsonSerializerOptions? JsonSerializerOptions { get; set; }
     public bool LogOutOnDispose { get; set; } = true;
     public bool ThrowOnQueryWarning { get; set; } = true;
 }
 
-internal record CouchInternalOptions(
+internal record InternalCouchClientOptions(
     JsonSerializerOptions JsonSerializerOptions,
     bool LogOutOnDispose,
     bool ThrowOnQueryWarning);

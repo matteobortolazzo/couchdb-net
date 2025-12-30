@@ -8,7 +8,7 @@ public static class ServiceCollectionExtensions
     public static CouchRegistration AddCouchDb(this IServiceCollection services,
         string endpoint,
         CouchCredentials credentials,
-        CouchOptions? options)
+        CouchClientOptions? options)
     {
         CouchClient client = new(endpoint, credentials, options);
         services.AddSingleton(client);

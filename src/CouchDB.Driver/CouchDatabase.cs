@@ -37,7 +37,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     private readonly Regex _feedChangeLineStartPattern;
     private readonly IAsyncQueryProvider _queryProvider;
     private readonly IFlurlClient _flurlClient;
-    private readonly CouchInternalOptions _options;
+    private readonly InternalCouchClientOptions _options;
     private readonly QueryContext _queryContext;
     private const string IfMatchHeader = "If-Match";
     private const string ContentTypeHeader = "Content-Type";
@@ -53,7 +53,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
     internal CouchDatabase(
         IFlurlClient flurlClient,
-        CouchInternalOptions options,
+        InternalCouchClientOptions options,
         QueryContext queryContext)
     {
         _feedChangeLineStartPattern = FeedChangeStartLinePattern();

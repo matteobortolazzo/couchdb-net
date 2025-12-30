@@ -9,12 +9,12 @@ internal partial class QueryTranslator : ExpressionVisitor, IQueryTranslator
 {
     public bool ThrowOnQueryWarning { get; private set; }
     
-    private readonly CouchInternalOptions _options;
+    private readonly InternalCouchClientOptions _options;
     private readonly StringBuilder _sb;
     private bool _isSelectorSet;
     private readonly Lock _sbLock = new();
 
-    internal QueryTranslator(CouchInternalOptions options)
+    internal QueryTranslator(InternalCouchClientOptions options)
     {
         _options = options;
         _sb = new StringBuilder();
