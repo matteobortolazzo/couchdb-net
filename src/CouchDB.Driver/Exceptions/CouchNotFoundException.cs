@@ -1,4 +1,5 @@
 ﻿using CouchDB.Driver.DTOs;
+
 namespace CouchDB.Driver.Exceptions;
 
 /// <summary>
@@ -6,11 +7,5 @@ namespace CouchDB.Driver.Exceptions;
 /// </summary>
 public class CouchNotFoundException : CouchException
 {
-    internal CouchNotFoundException(CouchError couchError, Exception innerException) : base(couchError, innerException) { }
-
-    public CouchNotFoundException() { }
-
-    public CouchNotFoundException(string message) : base(message) { }
-
-    public CouchNotFoundException(string message, Exception innerException) : base(message, innerException) { }
+    internal CouchNotFoundException(CouchError couchError) : base(couchError, null) { }
 }

@@ -84,12 +84,6 @@ public class AuthenticationDelegatingHandler(CouchCredentials credentials) : Del
         throw new NotSupportedException($"Authentication of type {authType.Name} is not supported.");
     }
 
-    public void ClearCookie()
-    {
-        _cookieCreationDate = null;
-        _cookieToken = null;
-    }
-
     private async Task LoginAsync(HttpRequestMessage originalRequest, CookieCredentials auth,
         CancellationToken cancellationToken)
     {

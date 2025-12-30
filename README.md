@@ -722,7 +722,7 @@ var settings = new RebelSettings
 await _rebels.LocalDocuments.CreateOrUpdateAsync(settings);
 
 // Get by ID
-settings = await _rebels.LocalDocuments.GetAsync<RebelSettings>(docId);
+settings = await _rebels.LocalDocuments.GetJsonAsync<RebelSettings>(docId);
 
 // Get all
 var docs = await local.GetAsync();

@@ -1,30 +1,31 @@
 ﻿using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
-using Flurl.Http;
 
 namespace CouchDB.Driver.Helpers;
 
 internal static class RequestsHelper
 {
-    public static async Task<TResult> SendRequestAsync<TResult>(this Task<TResult> asyncRequest)
+    public static async Task<T> SendRequestAsync<T>(this Task<T> asyncRequest)
     {
         try
         {
             return await asyncRequest.ConfigureAwait(false);
         }
-        catch (FlurlHttpException ex)
+        catch (CouchHttpResponseException ex)
         {
-            CouchError couchError =
-                await ex.GetResponseJsonAsync<CouchError>().ConfigureAwait(false) ?? new CouchError(null, null);
+            CouchError couchError = ex.ResponseContent != null
+                ? JsonSerializer.Deserialize<CouchError>(ex.ResponseContent)!
+                : new CouchError(null, null);
 
-            throw (HttpStatusCode?)ex.StatusCode switch
+            throw ex.StatusCode switch
             {
-                HttpStatusCode.Conflict => new CouchConflictException(couchError, ex),
-                HttpStatusCode.NotFound => new CouchNotFoundException(couchError, ex),
+                HttpStatusCode.Conflict => new CouchConflictException(couchError),
+                HttpStatusCode.NotFound => new CouchNotFoundException(couchError),
                 HttpStatusCode.BadRequest when couchError.Error == "no_usable_index" => new CouchNoIndexException(
-                    couchError, ex),
+                    couchError),
                 _ => new CouchException(couchError, ex)
             };
         }

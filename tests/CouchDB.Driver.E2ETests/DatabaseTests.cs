@@ -245,12 +245,12 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         };
         await local.CreateOrUpdateAsync(settings, settings.Id);
 
-        settings = await local.GetAsync<RebelSettings>(docId);
+        settings = await local.GetJsonAsync<RebelSettings>(docId);
         Assert.True(settings.IsActive);
 
         settings.IsActive = false;
         await local.CreateOrUpdateAsync(settings, settings.Id);
-        settings = await local.GetAsync<RebelSettings>(docId);
+        settings = await local.GetJsonAsync<RebelSettings>(docId);
         Assert.False(settings.IsActive);
 
         var searchOpt = new LocalDocumentsOptions
@@ -281,7 +281,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         }
 
         // There is an index for Name and Surname so it should not cause a warning
-        await fixture.Rebels.QueryAsync(@"{""selector"":{""$and"":[{""name"":""Luke""},{""surname"":""Skywalker""}]}}");
+        await fixture.Rebels.QueryAsync(@"{""selector"":{""$and"":[{"name"":""Luke""},{""surname"":""Skywalker""}]}}");
         try
         {
             // There is no index for Age so it should cause a warning

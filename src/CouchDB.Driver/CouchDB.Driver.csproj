@@ -26,11 +26,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Flurl.Http" Version="4.*"/>
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.0.0" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Folder Include="License\"/>
     </ItemGroup>
 

@@ -1,6 +1,4 @@
 ﻿using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Helpers;
-using Flurl.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
@@ -12,12 +10,10 @@ using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using CouchDB.Driver.Converters;
 using CouchDB.Driver.DelegatingHandlers;
+using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
 using CouchDB.Driver.Types;
-using Flurl.Http.Configuration;
-using Microsoft.Extensions.Http.Resilience;
-using Polly;
 
 namespace CouchDB.Driver;
 
@@ -26,8 +22,7 @@ namespace CouchDB.Driver;
 /// </summary>
 public partial class CouchClient : ICouchClient
 {
-    private readonly IFlurlClient _flurlClient;
-    private readonly AuthenticationDelegatingHandler _authenticationHandler;
+    private readonly HttpClient _httpClient;
     private readonly CouchCredentials _credentials;
     private readonly InternalCouchClientOptions _options;
     private readonly string[] _systemDatabases = ["_users", "_replicator", "_global_changes"];
@@ -39,7 +34,10 @@ public partial class CouchClient : ICouchClient
     /// <param name="endpoint">URI to the CouchDB endpoint.</param>
     /// <param name="credentials"></param>
     /// <param name="options"></param>
-    public CouchClient(string endpoint, CouchCredentials credentials, CouchClientOptions? options = null)
+    public CouchClient(
+        string endpoint,
+        CouchCredentials credentials,
+        CouchClientOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         ArgumentNullException.ThrowIfNull(credentials);
@@ -54,7 +52,8 @@ public partial class CouchClient : ICouchClient
                 new DefaultJsonTypeInfoResolver()
             );
         }
-        
+
+        _httpClient = options?.HttpClient ?? CreateDefaultHttpClient();
         _options = new InternalCouchClientOptions(
             jsonSerializerOptions,
             options?.LogOutOnDispose ?? true,
@@ -63,21 +62,14 @@ public partial class CouchClient : ICouchClient
         _credentials = credentials;
         Endpoint = new Uri(endpoint);
 
-        ResiliencePipeline<HttpResponseMessage> retryPipeline = new ResiliencePipelineBuilder<HttpResponseMessage>()
-            .AddRetry(new HttpRetryStrategyOptions { BackoffType = DelayBackoffType.Exponential, MaxRetryAttempts = 3 })
-            .Build();
+        _httpClient = options?.HttpClient ?? CreateDefaultHttpClient();
+    }
 
+    private HttpClient CreateDefaultHttpClient()
+    {
         var socketHandler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(15) };
-        var resilienceHandler = new ResilienceHandler(retryPipeline) { InnerHandler = socketHandler };
-        _authenticationHandler = new AuthenticationDelegatingHandler(_credentials) { InnerHandler = resilienceHandler };
-
-        var httpClient = new HttpClient(_authenticationHandler);
-
-        _flurlClient = new FlurlClient(httpClient)
-            .WithSettings(flurlSettings =>
-            {
-                flurlSettings.JsonSerializer = new DefaultJsonSerializer(_options.JsonSerializerOptions);
-            });
+        var authenticationHandler = new AuthenticationDelegatingHandler(_credentials) { InnerHandler = socketHandler };
+        return new HttpClient(authenticationHandler);
     }
 
     #region Operations
@@ -90,7 +82,7 @@ public partial class CouchClient : ICouchClient
     {
         CheckDatabaseName(database);
         var queryContext = new QueryContext(Endpoint, _options, database);
-        return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
+        return new CouchDatabase<TSource>(_httpClient, _options, queryContext);
     }
 
     /// <inheritdoc />
@@ -100,16 +92,16 @@ public partial class CouchClient : ICouchClient
         where TSource : class
     {
         QueryContext queryContext = NewQueryContext(database);
-        IFlurlResponse response =
+        HttpResponseMessage response =
             await CreateDatabaseAsync(queryContext, shards, replicas, partitioned, cancellationToken)
                 .ConfigureAwait(false);
 
         if (response.IsSuccessful())
         {
-            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
+            return new CouchDatabase<TSource>(_httpClient, _options, queryContext);
         }
 
-        if (response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
+        if (response.StatusCode == HttpStatusCode.PreconditionFailed)
         {
             throw new CouchException($"Database with name {database} already exists.");
         }
@@ -124,13 +116,13 @@ public partial class CouchClient : ICouchClient
         where TSource : class
     {
         QueryContext queryContext = NewQueryContext(database);
-        IFlurlResponse response =
+        HttpResponseMessage response =
             await CreateDatabaseAsync(queryContext, shards, replicas, partitioned, cancellationToken)
                 .ConfigureAwait(false);
 
-        if (response.IsSuccessful() || response.StatusCode == (int)HttpStatusCode.PreconditionFailed)
+        if (response.IsSuccessful() || response.StatusCode == HttpStatusCode.PreconditionFailed)
         {
-            return new CouchDatabase<TSource>(_flurlClient, _options, queryContext);
+            return new CouchDatabase<TSource>(_httpClient, _options, queryContext);
         }
 
         throw new CouchException($"Something wrong happened while creating database {database}.");
@@ -154,11 +146,11 @@ public partial class CouchClient : ICouchClient
         }
     }
 
-    private Task<IFlurlResponse> CreateDatabaseAsync(QueryContext queryContext,
+    private Task<HttpResponseMessage> CreateDatabaseAsync(QueryContext queryContext,
         int? shards = null, int? replicas = null, bool? partitioned = null,
         CancellationToken cancellationToken = default)
     {
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .AppendPathSegment(queryContext.EscapedDatabaseName);
 
         if (shards.HasValue && shards.Value != 8)
@@ -177,7 +169,7 @@ public partial class CouchClient : ICouchClient
         }
 
         return request
-            .AllowHttpStatus((int)HttpStatusCode.PreconditionFailed)
+            .AllowHttpStatus(HttpStatusCode.PreconditionFailed)
             .PutAsync(cancellationToken: cancellationToken)
             .SendRequestAsync();
     }
@@ -259,12 +251,12 @@ public partial class CouchClient : ICouchClient
     public async Task<bool> ExistsAsync(string database, CancellationToken cancellationToken = default)
     {
         QueryContext queryContext = NewQueryContext(database);
-        IFlurlResponse? response = await NewRequest()
-            .AllowHttpStatus((int)HttpStatusCode.NotFound)
+        HttpResponseMessage response = await NewRequest()
+            .AllowHttpStatus(HttpStatusCode.NotFound)
             .AppendPathSegment(queryContext.EscapedDatabaseName)
             .HeadAsync(cancellationToken: cancellationToken)
             .ConfigureAwait(false);
-        return response.IsSuccessful();
+        return response.IsSuccessStatusCode;
     }
 
     /// <inheritdoc />
@@ -278,7 +270,7 @@ public partial class CouchClient : ICouchClient
                 .GetJsonAsync<StatusResult>(cancellationToken: cancellationToken)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
-            return result?.Status == "ok";
+            return result.Status == "ok";
         }
         catch (CouchException)
         {
@@ -314,7 +306,7 @@ public partial class CouchClient : ICouchClient
     public async Task<bool> ReplicateAsync(string source, string target, CouchReplication? replication = null,
         bool persistent = true, CancellationToken cancellationToken = default)
     {
-        IFlurlRequest request = NewRequest();
+        HttpRequestBuilder request = NewRequest();
 
         replication ??= new CouchReplication();
 
@@ -341,8 +333,8 @@ public partial class CouchClient : ICouchClient
         OperationResult result = await request
             .AppendPathSegments(persistent ? "_replicator" : "_replicate")
             .PostJsonAsync(replication, cancellationToken: cancellationToken)
-            .SendRequestAsync()
             .ReceiveJson<OperationResult>()
+            .SendRequestAsync()
             .ConfigureAwait(false);
 
         return result.Ok;
@@ -351,7 +343,7 @@ public partial class CouchClient : ICouchClient
     public async Task<bool> RemoveReplicationAsync(string source, string target, CouchReplication? replication = null,
         bool persistent = true, CancellationToken cancellationToken = default)
     {
-        IFlurlRequest request = NewRequest();
+        HttpRequestBuilder request = NewRequest();
 
         replication ??= new CouchReplication();
 
@@ -393,9 +385,9 @@ public partial class CouchClient : ICouchClient
 
     #region Implementations
 
-    private IFlurlRequest NewRequest()
+    private HttpRequestBuilder NewRequest()
     {
-        return _flurlClient.Request(Endpoint);
+        return _httpClient.Request(Endpoint);
     }
 
     private QueryContext NewQueryContext(string database)
@@ -434,13 +426,13 @@ public partial class CouchClient : ICouchClient
                 await LogoutAsync().ConfigureAwait(false);
             }
 
-            _flurlClient.Dispose();
+            _httpClient.Dispose();
         }
     }
 
     private async Task LogoutAsync(CancellationToken cancellationToken = default)
     {
-        OperationResult? result = await _flurlClient
+        OperationResult result = await _httpClient
             .Request(Endpoint)
             .AppendPathSegment("_session")
             .DeleteAsync(cancellationToken: cancellationToken)
@@ -451,8 +443,6 @@ public partial class CouchClient : ICouchClient
         {
             throw new CouchDeleteException();
         }
-
-        _authenticationHandler.ClearCookie();
     }
 
     #endregion

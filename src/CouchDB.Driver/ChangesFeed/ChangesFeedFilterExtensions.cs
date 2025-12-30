@@ -14,7 +14,7 @@ namespace CouchDB.Driver.ChangesFeed;
 
 internal static class ChangesFeedFilterExtensions
 {
-    extension(IFlurlRequest request)
+    extension(HttpRequestBuilder request)
     {
         public async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider, ChangesFeedFilter filter,
             CancellationToken cancellationToken)
@@ -62,7 +62,7 @@ internal static class ChangesFeedFilterExtensions
 
             if (filter is DesignDocumentChangesFeedFilter designDocFilter)
             {
-                IFlurlRequest req = ApplyDesignDocumentFilterParams(request, designDocFilter);
+                HttpRequestBuilder req = ApplyDesignDocumentFilterParams(request, designDocFilter);
 
                 return await req
                     .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
@@ -115,7 +115,7 @@ internal static class ChangesFeedFilterExtensions
 
             if (filter is DesignDocumentChangesFeedFilter designDocFilter)
             {
-                IFlurlRequest req = ApplyDesignDocumentFilterParams(request, designDocFilter);
+                HttpRequestBuilder req = ApplyDesignDocumentFilterParams(request, designDocFilter);
 
                 return await req
                     .GetStreamAsync(HttpCompletionOption.ResponseHeadersRead, cancellationToken)
@@ -126,10 +126,10 @@ internal static class ChangesFeedFilterExtensions
         }
     }
 
-    private static IFlurlRequest ApplyDesignDocumentFilterParams(IFlurlRequest request,
+    private static HttpRequestBuilder ApplyDesignDocumentFilterParams(HttpRequestBuilder request,
         DesignDocumentChangesFeedFilter filter)
     {
-        IFlurlRequest? req = request.SetQueryParam("filter", filter.FilterName);
+        HttpRequestBuilder? req = request.SetQueryParam("filter", filter.FilterName);
 
         if (filter.QueryParameters == null)
         {

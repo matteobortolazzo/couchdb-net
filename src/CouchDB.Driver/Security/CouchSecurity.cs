@@ -1,17 +1,16 @@
 ﻿using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
 using CouchDB.Driver.Helpers;
-using Flurl.Http;
-using System;
 using System.Threading.Tasks;
+using CouchDB.Driver.Extensions;
 
 namespace CouchDB.Driver.Security;
 
 internal class CouchSecurity: ICouchSecurity
 {
-    private readonly Func<IFlurlRequest> _newRequest;
+    private readonly Func<HttpRequestBuilder> _newRequest;
 
-    internal CouchSecurity(Func<IFlurlRequest> newRequest)
+    internal CouchSecurity(Func<HttpRequestBuilder> newRequest)
     {
         _newRequest = newRequest;
     }

@@ -1,9 +1,7 @@
 ﻿using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
-using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Security;
-using Flurl.Http;
 using System.IO;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -22,6 +20,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Views;
 using CouchDB.Driver.Types;
 
@@ -36,7 +35,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 {
     private readonly Regex _feedChangeLineStartPattern;
     private readonly IAsyncQueryProvider _queryProvider;
-    private readonly IFlurlClient _flurlClient;
+    private readonly HttpClient _httpClient;
     private readonly InternalCouchClientOptions _options;
     private readonly QueryContext _queryContext;
     private const string IfMatchHeader = "If-Match";
@@ -52,23 +51,23 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     public ILocalDocuments LocalDocuments { get; }
 
     internal CouchDatabase(
-        IFlurlClient flurlClient,
+        HttpClient httpClient,
         InternalCouchClientOptions options,
         QueryContext queryContext)
     {
         _feedChangeLineStartPattern = FeedChangeStartLinePattern();
-        _flurlClient = flurlClient;
+        _httpClient = httpClient;
         _options = options;
         _queryContext = queryContext;
 
         var queryOptimizer = new QueryOptimizer();
         var queryTranslator = new QueryTranslator(_options);
-        var querySender = new QuerySender(flurlClient, queryContext);
+        var querySender = new QuerySender(httpClient, queryContext);
         var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender);
         _queryProvider = new CouchQueryProvider(queryCompiler);
 
         Security = new CouchSecurity(NewRequest);
-        LocalDocuments = new LocalDocuments(flurlClient, queryContext);
+        LocalDocuments = new LocalDocuments(httpClient, queryContext);
     }
 
     #region Find
@@ -77,16 +76,16 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     public async Task<ReadItemResponse<TSource>?> ReadItemAsync(string id, ReadItemOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .WithHeader("Accept", "application/json")
             .AppendPathSegment(Uri.EscapeDataString(id));
 
-        IFlurlResponse? response = await SetFindOptions(request, options)
-            .AllowHttpStatus((int)HttpStatusCode.NotFound)
+        HttpResponseMessage response = await SetFindOptions(request, options)
+            .AllowHttpStatus(HttpStatusCode.NotFound)
             .GetAsync(cancellationToken: cancellationToken)
             .ConfigureAwait(false);
 
-        if (response is not { StatusCode: (int)HttpStatusCode.OK })
+        if (response is not { StatusCode: HttpStatusCode.OK })
         {
             return null;
         }
@@ -134,13 +133,13 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     private async Task<List<TSource>> SendQueryAsync(
-        Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc,
+        Func<HttpRequestBuilder, Task<HttpResponseMessage>> requestFunc,
         bool? throwExceptionOnWarning)
     {
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .AppendPathSegment("_find");
 
-        Task<IFlurlResponse> message = requestFunc(request);
+        Task<HttpResponseMessage> message = requestFunc(request);
 
         FindResult<TSource> findResult = await message
             .ReceiveJson<FindResult<TSource>>()
@@ -166,7 +165,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     {
         ArgumentNullException.ThrowIfNull(document);
 
-        IFlurlRequest request = NewRequest();
+        HttpRequestBuilder request = NewRequest();
 
         if (options?.Batch == true)
         {
@@ -207,7 +206,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         ArgumentNullException.ThrowIfNull(id);
         ArgumentNullException.ThrowIfNull(document);
 
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .AppendPathSegment(Uri.EscapeDataString(id));
 
         if (options?.Batch == true)
@@ -231,7 +230,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .AppendPathSegment(Uri.EscapeDataString(id));
 
         if (options?.Batch == true)
@@ -394,7 +393,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     public async Task<ChangesFeedResponse<TSource>> GetChangesAsync(ChangesFeedOptions? options = null,
         ChangesFeedFilter? filter = null, CancellationToken cancellationToken = default)
     {
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .WithHeader("Accept", "application/json")
             .AppendPathSegment("_changes");
 
@@ -418,7 +417,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var infiniteTimeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .WithTimeout(infiniteTimeout)
             .WithHeader("Accept", "application/json")
             .AppendPathSegment("_changes")
@@ -571,15 +570,14 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         ArgumentNullException.ThrowIfNull(design);
         ArgumentNullException.ThrowIfNull(view);
 
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .AppendPathSegments("_design", design, "_view", view);
 
-        Task<CouchViewList<TKey, TValue, TSource>>? requestTask = options == null
+        Task<CouchViewList<TKey, TValue, TSource>> requestTask = options == null
             ? request.GetJsonAsync<CouchViewList<TKey, TValue, TSource>>(cancellationToken: cancellationToken)
             : request
                 .PostJsonAsync(options, cancellationToken: cancellationToken)
                 .ReceiveJson<CouchViewList<TKey, TValue, TSource>>();
-
         return requestTask.SendRequestAsync();
     }
 
@@ -604,7 +602,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         ArgumentNullException.ThrowIfNull(view);
         ArgumentNullException.ThrowIfNull(queries);
 
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .AppendPathSegments("_design", design, "_view", view, "queries");
 
         CouchViewQueryResult<TKey, TValue, TSource> result =
@@ -626,12 +624,23 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         string? localFileName = null, int bufferSize = 4096,
         CancellationToken cancellationToken = default)
     {
-        return await NewRequest()
+        Stream stream = await NewRequest()
             .AppendPathSegment(id)
             .AppendPathSegment(Uri.EscapeDataString(name))
             .WithHeader(IfMatchHeader, rev)
-            .DownloadFileAsync(localFolderPath, localFileName, bufferSize, cancellationToken: cancellationToken)
+            .GetStreamAsync(cancellationToken: cancellationToken)
             .ConfigureAwait(false);
+        localFileName ??= name;
+        var localFilePath = Path.Combine(localFolderPath, localFileName);
+
+        await using (stream)
+        {
+            await using var fileStream = new FileStream(localFilePath, FileMode.Create, FileAccess.Write,
+                FileShare.None, bufferSize, useAsync: true);
+            await stream.CopyToAsync(fileStream, bufferSize, cancellationToken).ConfigureAwait(false);
+        }
+
+        return localFilePath;
     }
 
     /// <inheritdoc />
@@ -651,7 +660,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     {
         OperationResult result = await NewRequest()
             .AppendPathSegment("_compact")
-            .PostJsonAsync(null, cancellationToken: cancellationToken)
+            .PostAsync(cancellationToken: cancellationToken)
             .ReceiveJson<OperationResult>()
             .SendRequestAsync()
             .ConfigureAwait(false);
@@ -714,7 +723,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     {
         ArgumentNullException.ThrowIfNull(partitionKey);
 
-        AllDocsResult<TSource>? result = await NewRequest()
+        AllDocsResult<TSource> result = await NewRequest()
             .AppendPathSegment("_partition")
             .AppendPathSegment(Uri.EscapeDataString(partitionKey))
             .AppendPathSegment("_all_docs")
@@ -731,14 +740,14 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     private async Task<List<TSource>> QueryPartitionInternalAsync(string partitionKey,
-        Func<IFlurlRequest, Task<IFlurlResponse>> requestFunc)
+        Func<HttpRequestBuilder, Task<HttpResponseMessage>> requestFunc)
     {
-        IFlurlRequest request = NewRequest()
+        HttpRequestBuilder request = NewRequest()
             .AppendPathSegment("_partition")
             .AppendPathSegment(Uri.EscapeDataString(partitionKey))
             .AppendPathSegment("_find");
 
-        Task<IFlurlResponse> message = requestFunc(request);
+        Task<HttpResponseMessage> message = requestFunc(request);
 
         FindResult<TSource> findResult = await message
             .ReceiveJson<FindResult<TSource>>()
@@ -799,9 +808,9 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region Helper
 
     /// <inheritdoc />
-    public IFlurlRequest NewRequest()
+    public HttpRequestBuilder NewRequest()
     {
-        return _flurlClient
+        return _httpClient
             .Request(_queryContext.Endpoint)
             .AppendPathSegment(_queryContext.EscapedDatabaseName);
     }
@@ -819,7 +828,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         return builder;
     }
 
-    private static IFlurlRequest ApplyChangesFeedOptions(IFlurlRequest request, ChangesFeedOptions? options)
+    private static HttpRequestBuilder ApplyChangesFeedOptions(HttpRequestBuilder request, ChangesFeedOptions? options)
     {
         if (options == null)
         {
@@ -840,7 +849,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         return request;
     }
 
-    private static IFlurlRequest SetFindOptions(IFlurlRequest request,
+    private static HttpRequestBuilder SetFindOptions(HttpRequestBuilder request,
         ReadItemOptions? options)
     {
         if (options == null)

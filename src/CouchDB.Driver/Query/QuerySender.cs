@@ -1,15 +1,14 @@
-﻿using System.Reflection;
+﻿using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
-using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
-using Flurl.Http;
 
 namespace CouchDB.Driver.Query;
 
-internal class QuerySender(IFlurlClient client, QueryContext queryContext) : IQuerySender
+internal class QuerySender(HttpClient httpClient, QueryContext queryContext) : IQuerySender
 {
     private static readonly MethodInfo GenericToListMethod
         = typeof(QuerySender).GetRuntimeMethods()
@@ -56,7 +55,7 @@ internal class QuerySender(IFlurlClient client, QueryContext queryContext) : IQu
     private async Task<FindResult<TItem>> SendAsync<TItem>(string body, bool throwExceptionOnWarning,
         CancellationToken cancellationToken)
     {
-        FindResult<TItem>? findResult = await client
+        FindResult<TItem>? findResult = await httpClient
             .Request(queryContext.Endpoint)
             .AppendPathSegments(queryContext.DatabaseName, "_find")
             .WithHeader("Content-Type", "application/json")

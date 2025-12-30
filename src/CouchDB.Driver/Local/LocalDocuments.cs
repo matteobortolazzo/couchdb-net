@@ -1,21 +1,19 @@
-﻿using System.Threading;
+﻿using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
-using CouchDB.Driver.Extensions;
-using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Query;
 using CouchDB.Driver.Types;
-using Flurl.Http;
 
 namespace CouchDB.Driver.Local;
 
 /// <inheritdoc />
-internal class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContext) : ILocalDocuments
+internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) : ILocalDocuments
 {
     /// <inheritdoc />
     public async Task<IList<CouchDocumentInfo>> GetAsync(LocalDocumentsOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        IFlurlRequest request = NewRequest();
+        HttpRequestBuilder request = NewRequest();
 
         if (options != null)
         {
@@ -34,7 +32,7 @@ internal class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContex
     public async Task<IList<CouchDocumentInfo>> GetAsync(IReadOnlyCollection<string> keys,
         LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default)
     {
-        IFlurlRequest request = NewRequest();
+        HttpRequestBuilder request = NewRequest();
 
         if (options != null)
         {
@@ -51,7 +49,7 @@ internal class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContex
     }
 
     /// <inheritdoc />
-    public Task<TSource> GetAsync<TSource>(string id, CancellationToken cancellationToken = default)
+    public Task<TSource> GetJsonAsync<TSource>(string id, CancellationToken cancellationToken = default)
         where TSource: class
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -88,7 +86,7 @@ internal class LocalDocuments(IFlurlClient flurlClient, QueryContext queryContex
             ? $"_local/{id}"
             : id;
 
-    private IFlurlRequest NewRequest()
+    private HttpRequestBuilder NewRequest()
     {
         return flurlClient
             .Request(queryContext.Endpoint)

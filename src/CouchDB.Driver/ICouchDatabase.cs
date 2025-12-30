@@ -3,12 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
+using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Security;
 using CouchDB.Driver.Types;
 using CouchDB.Driver.Views;
-using Flurl.Http;
 
 namespace CouchDB.Driver;
 
@@ -343,7 +343,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// Get an empty request that targets the current database.
     /// </summary>
     /// <returns>A Flurl request.</returns>
-    IFlurlRequest NewRequest();
+    HttpRequestBuilder NewRequest();
 
     /// <summary>
     /// The database name.

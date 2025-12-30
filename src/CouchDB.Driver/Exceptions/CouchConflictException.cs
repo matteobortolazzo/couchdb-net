@@ -6,11 +6,6 @@ namespace CouchDB.Driver.Exceptions;
 /// </summary>
 public class CouchConflictException : CouchException
 {
-    internal CouchConflictException(CouchError couchError, Exception innerException) : base(couchError, innerException) { }
+    internal CouchConflictException(CouchError couchError) : base(couchError, null) { }
 
-    public CouchConflictException() { }
-
-    public CouchConflictException(string message) : base(message) { }
-
-    public CouchConflictException(string message, Exception innerException) : base(message, innerException) { }
 }

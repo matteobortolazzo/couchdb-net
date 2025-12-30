@@ -42,7 +42,7 @@ public interface ILocalDocuments
     /// A task that represents the asynchronous operation.
     /// The task result contains the document content.
     /// </returns>
-    Task<TSource> GetAsync<TSource>(string id, CancellationToken cancellationToken = default)
+    Task<TSource> GetJsonAsync<TSource>(string id, CancellationToken cancellationToken = default)
         where TSource: class;
 
     /// <summary>

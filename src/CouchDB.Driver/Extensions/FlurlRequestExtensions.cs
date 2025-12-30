@@ -5,15 +5,13 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.Shared;
-using Flurl.Http;
-using Flurl.Http.Content;
 
 namespace CouchDB.Driver.Extensions;
 
 internal static class FlurlRequestExtensions
 {
-    /// <param name="request">The IFlurlRequest instance.</param>
-    extension(IFlurlRequest request)
+    /// <param name="request">The HttpRequestBuilder instance.</param>
+    extension(HttpRequestBuilder request)
     {
         /// <summary>Sends an asynchronous POST request.</summary>
         /// <param name="data">Data to parse.</param>
@@ -43,7 +41,7 @@ internal static class FlurlRequestExtensions
                 .ReceiveStream();
         }
 
-        public IFlurlRequest ApplyQueryParametersOptions(object options)
+        public HttpRequestBuilder ApplyQueryParametersOptions(object options)
         {
             IEnumerable<(string Name, object? Value)> queryParameters = OptionsHelper.ToQueryParameters(options);
             foreach (var (name, value) in queryParameters)
@@ -55,12 +53,12 @@ internal static class FlurlRequestExtensions
         }
     }
 
-    public static bool IsSuccessful(this IFlurlResponse response)
+    public static bool IsSuccessful(this HttpResponseMessage response)
     {
         return
-            response.StatusCode == (int)HttpStatusCode.OK ||
-            response.StatusCode == (int)HttpStatusCode.Created ||
-            response.StatusCode == (int)HttpStatusCode.Accepted ||
-            response.StatusCode == (int)HttpStatusCode.NoContent;
+            response.StatusCode == HttpStatusCode.OK ||
+            response.StatusCode == HttpStatusCode.Created ||
+            response.StatusCode == HttpStatusCode.Accepted ||
+            response.StatusCode == HttpStatusCode.NoContent;
     }
 }

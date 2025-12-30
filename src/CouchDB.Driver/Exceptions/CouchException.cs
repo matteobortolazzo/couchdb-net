@@ -8,7 +8,7 @@ public class CouchException : Exception
 {
     public string? Reason { get; }
 
-    public CouchException() { }
+    protected CouchException() { }
 
     public CouchException(string? message) : base(message) { }
 
@@ -18,8 +18,8 @@ public class CouchException : Exception
     {
         Reason = reason;
     }
-
-    internal CouchException(CouchError couchError, Exception innerException) : this(couchError.Error, innerException,
+    
+    internal CouchException(CouchError couchError, Exception? innerException) : this(couchError.Error, innerException,
         couchError.Reason)
     {
     }
