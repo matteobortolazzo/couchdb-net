@@ -1,6 +1,8 @@
 ﻿using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Query;
 using CouchDB.Driver.Types;
 
@@ -50,7 +52,7 @@ internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) 
 
     /// <inheritdoc />
     public Task<TSource> GetJsonAsync<TSource>(string id, CancellationToken cancellationToken = default)
-        where TSource: class
+        where TSource : class
     {
         ArgumentNullException.ThrowIfNull(id);
         return NewRequest()
@@ -61,7 +63,7 @@ internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) 
 
     /// <inheritdoc />
     public Task CreateOrUpdateAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
-        where TSource: class
+        where TSource : class
     {
         ArgumentNullException.ThrowIfNull(document);
         return NewRequest()
@@ -72,7 +74,7 @@ internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) 
 
     /// <inheritdoc />
     public Task DeleteAsync<TSource>(TSource document, string id, CancellationToken cancellationToken = default)
-        where TSource: class
+        where TSource : class
     {
         ArgumentNullException.ThrowIfNull(document);
         return NewRequest()
@@ -88,7 +90,7 @@ internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) 
 
     private HttpRequestBuilder NewRequest()
     {
-        return flurlClient
+        return httpClient
             .Request(queryContext.Endpoint)
             .AppendPathSegment(queryContext.EscapedDatabaseName);
     }

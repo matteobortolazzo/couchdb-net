@@ -4,6 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
 using CouchDB.Driver.Exceptions;
+using CouchDB.Driver.Extensions;
+using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Query;

@@ -1,5 +1,4 @@
-﻿
-using System.IO;
+﻿using System.IO;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
@@ -8,7 +7,6 @@ using CouchDB.Driver.ChangesFeed.Filters;
 using CouchDB.Driver.ChangesFeed.Responses;
 using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Query;
-using Flurl.Http;
 
 namespace CouchDB.Driver.ChangesFeed;
 
@@ -16,9 +14,10 @@ internal static class ChangesFeedFilterExtensions
 {
     extension(HttpRequestBuilder request)
     {
-        public async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider, ChangesFeedFilter filter,
+        public async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider,
+            ChangesFeedFilter filter,
             CancellationToken cancellationToken)
-            where TSource: class
+            where TSource : class
         {
             if (filter is DocumentIdsChangesFeedFilter documentIdsFilter)
             {
@@ -72,15 +71,18 @@ internal static class ChangesFeedFilterExtensions
             throw new InvalidOperationException($"Filter of type {filter.GetType().Name} not supported.");
         }
 
-        public async Task<Stream> QueryContinuousWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider, ChangesFeedFilter filter, CancellationToken cancellationToken)
-            where TSource: class
+        public async Task<Stream> QueryContinuousWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider,
+            ChangesFeedFilter filter, CancellationToken cancellationToken)
+            where TSource : class
         {
             if (filter is DocumentIdsChangesFeedFilter documentIdsFilter)
             {
                 return await request
                     .SetQueryParam("filter", "_doc_ids")
-                    .PostJsonStreamAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value),
-                        HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                    .PostJsonAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value),
+                        completionOption: HttpCompletionOption.ResponseHeadersRead,
+                        cancellationToken: cancellationToken)
+                    .ReceiveStream()
                     .ConfigureAwait(false);
             }
 
@@ -92,7 +94,10 @@ internal static class ChangesFeedFilterExtensions
                 return await request
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
-                    .PostStringStreamAsync(jsonSelector, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                    .PostJsonAsync(jsonSelector,
+                        completionOption: HttpCompletionOption.ResponseHeadersRead,
+                        cancellationToken: cancellationToken)
+                    .ReceiveStream()
                     .ConfigureAwait(false);
             }
 
@@ -129,7 +134,7 @@ internal static class ChangesFeedFilterExtensions
     private static HttpRequestBuilder ApplyDesignDocumentFilterParams(HttpRequestBuilder request,
         DesignDocumentChangesFeedFilter filter)
     {
-        HttpRequestBuilder? req = request.SetQueryParam("filter", filter.FilterName);
+        HttpRequestBuilder req = request.SetQueryParam("filter", filter.FilterName);
 
         if (filter.QueryParameters == null)
         {

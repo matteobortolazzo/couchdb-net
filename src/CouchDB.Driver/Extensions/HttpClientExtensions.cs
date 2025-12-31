@@ -12,12 +12,19 @@ namespace CouchDB.Driver.Extensions;
 
 public static class HttpClientExtensions
 {
-    public static async Task<T> ReceiveJson<T>(
-        this Task<HttpResponseMessage> responseTask,
-        JsonSerializerOptions? options = null)
+    extension(Task<HttpResponseMessage> responseTask)
     {
-        using HttpResponseMessage response = await responseTask.ConfigureAwait(false);
-        return await response.GetJsonAsync<T>(options).ConfigureAwait(false);
+        public async Task<T> ReceiveJson<T>(JsonSerializerOptions? options = null)
+        {
+            using HttpResponseMessage response = await responseTask.ConfigureAwait(false);
+            return await response.GetJsonAsync<T>(options).ConfigureAwait(false);
+        }
+
+        public async Task<Stream> ReceiveStream()
+        {
+            using HttpResponseMessage response = await responseTask.ConfigureAwait(false);
+            return await response.GetStream().ConfigureAwait(false);
+        }
     }
 
     extension(HttpResponseMessage response)
@@ -105,21 +112,22 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
         CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Head, _uriBuilder.Uri);
-        return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await SendAsync(request, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<HttpResponseMessage> GetAsync(
         CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, _uriBuilder.Uri);
-        return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await SendAsync(request, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<string> GetStringAsync(
         CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, _uriBuilder.Uri);
-        HttpResponseMessage response = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        HttpResponseMessage response =
+            await SendAsync(request, cancellationToken: cancellationToken).ConfigureAwait(false);
         return await response.GetStringAsync().ConfigureAwait(false);
     }
 
@@ -128,15 +136,18 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
         CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, _uriBuilder.Uri);
-        HttpResponseMessage response = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        HttpResponseMessage response =
+            await SendAsync(request, cancellationToken: cancellationToken).ConfigureAwait(false);
         return await response.GetJsonAsync<TResponse>(jsonSerializerOptions).ConfigureAwait(false);
     }
 
     public async Task<Stream> GetStreamAsync(
+        HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
         CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, _uriBuilder.Uri);
-        HttpResponseMessage response = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        HttpResponseMessage response =
+            await SendAsync(request, completionOption, cancellationToken).ConfigureAwait(false);
         return await response.GetStream().ConfigureAwait(false);
     }
 
@@ -145,26 +156,28 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
         CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, _uriBuilder.Uri) { Content = content };
-        return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await SendAsync(request, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<HttpResponseMessage> PostJsonAsync<TBody>(
         TBody body,
         JsonSerializerOptions? jsonSerializerOptions = null,
+        HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
         CancellationToken cancellationToken = default)
     {
         var content = JsonContent.Create(body, options: jsonSerializerOptions);
         var request = new HttpRequestMessage(HttpMethod.Post, _uriBuilder.Uri) { Content = content };
-        return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await SendAsync(request, completionOption, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<HttpResponseMessage> PostStringAsync(
         string body,
+        HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
         CancellationToken cancellationToken = default)
     {
         var content = new StringContent(body);
         var request = new HttpRequestMessage(HttpMethod.Post, _uriBuilder.Uri) { Content = content };
-        return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await SendAsync(request, completionOption, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<HttpResponseMessage> PutAsync(
@@ -172,7 +185,7 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
         CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Put, _uriBuilder.Uri) { Content = content };
-        return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await SendAsync(request, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<HttpResponseMessage> PutJsonAsync<TBody>(
@@ -182,16 +195,19 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
     {
         var content = JsonContent.Create(body, options: jsonSerializerOptions);
         var request = new HttpRequestMessage(HttpMethod.Put, _uriBuilder.Uri) { Content = content };
-        return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await SendAsync(request, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<HttpResponseMessage> DeleteAsync(CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Delete, _uriBuilder.Uri);
-        return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await SendAsync(request, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    private async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
+        CancellationToken cancellationToken = default)
     {
         ApplyHeaders(request);
 
@@ -202,7 +218,8 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
             cancellationToken = linkedCts.Token;
         }
 
-        HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        HttpResponseMessage response =
+            await httpClient.SendAsync(request, completionOption, cancellationToken).ConfigureAwait(false);
         await ValidateResponseAsync(response, cancellationToken).ConfigureAwait(false);
         return response;
     }
