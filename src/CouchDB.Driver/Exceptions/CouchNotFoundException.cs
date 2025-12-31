@@ -7,5 +7,5 @@ namespace CouchDB.Driver.Exceptions;
 /// </summary>
 public class CouchNotFoundException : CouchException
 {
-    internal CouchNotFoundException(CouchError couchError) : base(couchError, null) { }
+    internal CouchNotFoundException(CouchError couchError, Exception innerException) : base(couchError, innerException) { }
 }

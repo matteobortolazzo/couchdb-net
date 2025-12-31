@@ -1,22 +1,21 @@
 ﻿using System;
 using CouchDB.UnitTests.Models;
-using Flurl.Http.Testing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
+using CouchDB.Driver.UnitTests._Helpers;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Authentication_Test
+public class Authentication_Test : HttpTest
 {
     [Fact]
     public async Task None()
     {
-        using var httpTest = new HttpTest();
-        SetupListResponse(httpTest);
+        SetupListResponse();
 
         await using var client = new CouchClient("http://localhost",
             new BasicCredentials("root", "relax"));
@@ -32,8 +31,7 @@ public class Authentication_Test
     [Fact]
     public async Task Basic()
     {
-        using var httpTest = new HttpTest();
-        SetupListResponse(httpTest);
+        SetupListResponse();
 
         await using var client = new CouchClient("http://localhost",
             new BasicCredentials("root", "relax"));
@@ -51,35 +49,35 @@ public class Authentication_Test
     {
         const string token = "cm9vdDo1MEJCRkYwMjq0LO0ylOIwShrgt8y-UkhI-c6BGw";
 
-        using var httpTest = new HttpTest();
         // Cookie response
-        var headers = new
+        var headers = new Dictionary<string, string>()
         {
-            Content_Type = "application/json"
+            ["Content_Type"] = "application/json"
         };
-        var cookies = new
+        var cookies = new Dictionary<string, string>()
         {
-            AuthSession = token
+            ["AuthSession"] = token
         };
         httpTest.RespondWith(string.Empty, 200, headers, cookies);
-        SetupListResponse(httpTest);
+        SetupListResponse();
 
         await using var client = new CouchClient("http://localhost",
             new CookieCredentials("root", "relax"));
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
-        var authCookie = httpTest.CallLog
-            .Single(c => c.Request.Url.ToString().Contains("_session"))
-            .Response.Cookies.Single(c => c.Name == "AuthSession").Value;
-        Assert.Equal(token, authCookie);
+        var sessionRequest = httpTest.CallLog
+            .Single(c => c.Request.RequestUri!.ToString().Contains("_session"));
+        var authCookie = sessionRequest.Request
+            .Headers.GetValues("Cookie")
+            .FirstOrDefault();
+        Assert.Equal($"AuthSession={token}", authCookie);
     }
 
     [Fact]
     public async Task Proxy()
     {
-        using var httpTest = new HttpTest();
-        SetupListResponse(httpTest);
+        SetupListResponse();
 
         await using var client = new CouchClient("http://localhost",
             new ProxyCredentials("root", ["role1", "role2"]));
@@ -96,8 +94,7 @@ public class Authentication_Test
     [Fact]
     public async Task Jwt()
     {
-        using var httpTest = new HttpTest();
-        SetupListResponse(httpTest);
+        SetupListResponse();
 
         var jwt = Guid.NewGuid().ToString();
         await using var client = new CouchClient("http://localhost", new JwtCredentials(jwt));
@@ -113,8 +110,7 @@ public class Authentication_Test
     [Fact]
     public async Task JwtAsync()
     {
-        using var httpTest = new HttpTest();
-        SetupListResponse(httpTest);
+        SetupListResponse();
 
         var jwt = Guid.NewGuid().ToString();
         var jwtTask = Task.FromResult(jwt);
@@ -129,7 +125,7 @@ public class Authentication_Test
             .WithHeader("Authorization", jwt);
     }
 
-    private static void SetupListResponse(HttpTest httpTest)
+    private void SetupListResponse()
     {
         // ToList
         httpTest.RespondWithJson(new { Docs = new List<string>() });

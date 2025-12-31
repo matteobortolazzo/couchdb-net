@@ -1,4 +1,5 @@
 ﻿using CouchDB.Driver.DTOs;
+
 namespace CouchDB.Driver.Exceptions;
 
 /// <summary>
@@ -6,6 +7,7 @@ namespace CouchDB.Driver.Exceptions;
 /// </summary>
 public class CouchConflictException : CouchException
 {
-    internal CouchConflictException(CouchError couchError) : base(couchError, null) { }
-
+    internal CouchConflictException(CouchError couchError, Exception innerException) : base(couchError, innerException)
+    {
+    }
 }

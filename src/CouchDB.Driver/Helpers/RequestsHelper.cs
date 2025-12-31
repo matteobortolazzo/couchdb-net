@@ -22,10 +22,10 @@ internal static class RequestsHelper
 
             throw ex.StatusCode switch
             {
-                HttpStatusCode.Conflict => new CouchConflictException(couchError),
-                HttpStatusCode.NotFound => new CouchNotFoundException(couchError),
+                HttpStatusCode.Conflict => new CouchConflictException(couchError, ex),
+                HttpStatusCode.NotFound => new CouchNotFoundException(couchError, ex),
                 HttpStatusCode.BadRequest when couchError.Error == "no_usable_index" => new CouchNoIndexException(
-                    couchError),
+                    couchError, ex),
                 _ => new CouchException(couchError, ex)
             };
         }

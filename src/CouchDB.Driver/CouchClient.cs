@@ -96,7 +96,7 @@ public partial class CouchClient : ICouchClient
             await CreateDatabaseAsync(queryContext, shards, replicas, partitioned, cancellationToken)
                 .ConfigureAwait(false);
 
-        if (response.IsSuccessful())
+        if (response.IsSuccessStatusCode)
         {
             return new CouchDatabase<TSource>(_httpClient, _options, queryContext);
         }
@@ -120,7 +120,7 @@ public partial class CouchClient : ICouchClient
             await CreateDatabaseAsync(queryContext, shards, replicas, partitioned, cancellationToken)
                 .ConfigureAwait(false);
 
-        if (response.IsSuccessful() || response.StatusCode == HttpStatusCode.PreconditionFailed)
+        if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.PreconditionFailed)
         {
             return new CouchDatabase<TSource>(_httpClient, _options, queryContext);
         }

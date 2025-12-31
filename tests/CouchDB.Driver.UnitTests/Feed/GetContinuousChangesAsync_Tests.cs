@@ -1,6 +1,5 @@
 ﻿using CouchDB.Driver.UnitTests._Helpers;
 using CouchDB.UnitTests.Models;
-using Flurl.Http.Testing;
 using System;
 using System.Net.Http;
 using System.Text.Json;
@@ -13,24 +12,14 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Feed;
 
-public class GetContinuousChangesAsync_Tests
+public class GetContinuousChangesAsync_Tests : HttpTest
 {
-    private readonly ICouchDatabase<Rebel> _rebels;
-
-    public GetContinuousChangesAsync_Tests()
-    {
-        var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
-        _rebels = client.GetDatabase<Rebel>();
-    }
-
     [Fact]
     public async Task GetContinuousChangesAsync_Default()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
         var tokenSource = new CancellationTokenSource();
-        var docId = SetFeedResponse(httpTest);
+        var docId = SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         // Act
@@ -50,11 +39,9 @@ public class GetContinuousChangesAsync_Tests
     [Fact]
     public async Task GetContinuousChangesAsync_WithOptions()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
         var tokenSource = new CancellationTokenSource();
-        var docId = SetFeedResponse(httpTest);
+        var docId = SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
         var options = new ChangesFeedOptions
         {
@@ -79,11 +66,9 @@ public class GetContinuousChangesAsync_Tests
     [Fact]
     public async Task GetContinuousChangesAsync_WithIdsFilter()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
         var tokenSource = new CancellationTokenSource();
-        var docId = SetFeedResponse(httpTest);
+        var docId = SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         var filter = ChangesFeedFilter.DocumentIds([
@@ -109,11 +94,9 @@ public class GetContinuousChangesAsync_Tests
     [Fact]
     public async Task GetContinuousChangesAsync_WithSelectorFilter()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
         var tokenSource = new CancellationTokenSource();
-        var docId = SetFeedResponse(httpTest);
+        var docId = SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         var filter = ChangesFeedFilter.Selector<Rebel>(rebel => rebel.Id == docId);
@@ -138,11 +121,9 @@ public class GetContinuousChangesAsync_Tests
     [Fact]
     public async Task GetContinuousChangesAsync_WithDesignFilter()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
         var tokenSource = new CancellationTokenSource();
-        var docId = SetFeedResponse(httpTest);
+        var docId = SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         var filter = ChangesFeedFilter.Design();
@@ -165,11 +146,9 @@ public class GetContinuousChangesAsync_Tests
     [Fact]
     public async Task GetContinuousChangesAsync_WithViewFilter()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
         var tokenSource = new CancellationTokenSource();
-        var docId = SetFeedResponse(httpTest);
+        var docId = SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         var view = Guid.NewGuid().ToString();
@@ -194,8 +173,6 @@ public class GetContinuousChangesAsync_Tests
     [Fact]
     public async Task GetContinuousChangesAsync_MultiResponse()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
         var tokenSource = new CancellationTokenSource();
         var docId = Guid.NewGuid().ToString();
@@ -220,7 +197,7 @@ public class GetContinuousChangesAsync_Tests
             .WithVerb(HttpMethod.Get);
     }
 
-    private static string SetFeedResponse(HttpTestSetup httpTest)
+    private string SetFeedResponse()
     {
         var docId = Guid.NewGuid().ToString();
         var changeJson = GetChangesFeedResponseResultJson(docId);

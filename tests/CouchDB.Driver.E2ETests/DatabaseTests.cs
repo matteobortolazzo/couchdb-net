@@ -281,7 +281,7 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         }
 
         // There is an index for Name and Surname so it should not cause a warning
-        await fixture.Rebels.QueryAsync(@"{""selector"":{""$and"":[{"name"":""Luke""},{""surname"":""Skywalker""}]}}");
+        await fixture.Rebels.QueryAsync(@"{""selector"":{""$and"":[{""name"":""Luke""},{""surname"":""Skywalker""}]}}");
         try
         {
             // There is no index for Age so it should cause a warning

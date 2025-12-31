@@ -1,28 +1,19 @@
 ﻿using System;
 using System.Linq;
-using CouchDB.UnitTests.Models;
+using CouchDB.Driver.UnitTests._Helpers;
 using Xunit;
 
-namespace CouchDB.Driver.UnitTests.Find
+namespace CouchDB.Driver.UnitTests.Find;
+
+public class Find_Unsupported : HttpTest
 {
-    public class Find_Unsupported
+    [Fact]
+    public void ToList_WhereCount_Exception()
     {
-        private readonly ICouchDatabase<Rebel> _rebels;
+        void CountQuery() => _rebels
+            .Where(u => u.Battles.Count > 0)
+            .ToString();
 
-        public Find_Unsupported()
-        {
-            var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
-            _rebels = client.GetDatabase<Rebel>();
-        }
-        
-        [Fact]
-        public void ToList_WhereCount_Exception()
-        {
-            void CountQuery() => _rebels
-                    .Where(u => u.Battles.Count > 0)
-                    .ToString();
-
-            Assert.Throws<NotSupportedException>(CountQuery);
-        }
+        Assert.Throws<NotSupportedException>(CountQuery);
     }
 }

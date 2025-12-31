@@ -1,27 +1,16 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDB.Driver.Indexes;
-using CouchDB.UnitTests.Models;
-using Flurl.Http.Testing;
+using CouchDB.Driver.UnitTests._Helpers;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Index_Tests
+public class Index_Tests : HttpTest
 {
-    private readonly ICouchClient _client;
-    private readonly ICouchDatabase<Rebel> _rebels;
-
-    public Index_Tests()
-    {
-        _client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
-        _rebels = _client.GetDatabase<Rebel>();
-    }
-
     [Fact]
     public async Task CreateIndex()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             result = "created"
@@ -29,7 +18,6 @@ public class Index_Tests
 
         await _rebels.CreateIndexAsync("skywalkers", b => b
             .IndexBy(r => r.Surname));
-
 
         var expectedBody =
             "{\"index\":{\"fields\":[\"surname\"]},\"name\":\"skywalkers\",\"type\":\"json\"}";
@@ -42,7 +30,6 @@ public class Index_Tests
     [Fact]
     public async Task CreateIndex_WithOptions()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             result = "created"
@@ -69,7 +56,6 @@ public class Index_Tests
     [Fact]
     public async Task CreateIndex_Partial()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             result = "created"

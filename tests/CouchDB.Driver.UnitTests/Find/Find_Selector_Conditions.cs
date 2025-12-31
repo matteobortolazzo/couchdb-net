@@ -3,20 +3,13 @@ using System;
 using System.Linq;
 using CouchDB.Driver.Query.Extensions;
 using CouchDB.Driver.Types;
+using CouchDB.Driver.UnitTests._Helpers;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Find;
 
-public class Find_Selector_Conditions
+public class Find_Selector_Conditions : HttpTest
 {
-    private readonly ICouchDatabase<Rebel> _rebels;
-
-    public Find_Selector_Conditions()
-    {
-        var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
-        _rebels = client.GetDatabase<Rebel>();
-    }
-
     #region (In)Equality
 
     [Fact]
@@ -93,8 +86,14 @@ public class Find_Selector_Conditions
     [Fact]
     public void Array_In_Guid()
     {
-        var json = _rebels.Where(r => r.Guid.In(new[] { Guid.Parse("00000000-0000-0000-0000-000000000000"), Guid.Parse("11111111-1111-1111-1111-111111111111") })).ToString();
-        Assert.Equal(@"{""selector"":{""guid"":{""$in"":[""00000000-0000-0000-0000-000000000000"",""11111111-1111-1111-1111-111111111111""]}}}", json);
+        var json = _rebels.Where(r => r.Guid.In(new[]
+            {
+                Guid.Parse("00000000-0000-0000-0000-000000000000"), Guid.Parse("11111111-1111-1111-1111-111111111111")
+            }))
+            .ToString();
+        Assert.Equal(
+            @"{""selector"":{""guid"":{""$in"":[""00000000-0000-0000-0000-000000000000"",""11111111-1111-1111-1111-111111111111""]}}}",
+            json);
     }
 
     [Fact]
@@ -147,7 +146,9 @@ public class Find_Selector_Conditions
     public void Miscellaneous_RegexMultiLine()
     {
         var json = _rebels.Where(r => r.Skills.Any(s => s.IsMatch($"(?i)sab") || s.IsMatch($"(?)orce"))).ToString();
-        Assert.Equal(@"{""selector"":{""skills"":{""$elemMatch"":{""$or"":[{""$regex"":""(?i)sab""},{""$regex"":""(?)orce""}]}}}}", json);
+        Assert.Equal(
+            @"{""selector"":{""skills"":{""$elemMatch"":{""$or"":[{""$regex"":""(?i)sab""},{""$regex"":""(?)orce""}]}}}}",
+            json);
     }
 
     #endregion

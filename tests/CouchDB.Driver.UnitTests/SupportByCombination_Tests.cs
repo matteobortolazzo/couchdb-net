@@ -3,22 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
+using CouchDB.Driver.UnitTests._Helpers;
 using CouchDB.UnitTests.Models;
-using Flurl.Http.Testing;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class SupportByCombination_Tests
+public class SupportByCombination_Tests : HttpTest
 {
-    private readonly ICouchDatabase<Rebel> _rebels;
     private readonly Rebel _mainRebel;
     private readonly object _response;
 
     public SupportByCombination_Tests()
     {
-        var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
-        _rebels = client.GetDatabase<Rebel>();
         _mainRebel = new Rebel
         {
             Id = Guid.NewGuid().ToString(),
@@ -36,7 +33,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Max()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.Max(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
@@ -45,7 +41,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Min()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.Min(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
@@ -54,7 +49,6 @@ public class SupportByCombination_Tests
     [Fact]
     public async Task MinAsync()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = await _rebels.MinAsync(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
@@ -63,7 +57,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Sum()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.Sum(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
@@ -72,7 +65,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Average()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.Average(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
@@ -81,7 +73,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Any()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.Any(r => r.Age == 19);
         Assert.True(result);
@@ -90,7 +81,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void All()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.All(r => r.Age == 19);
         Assert.True(result);
@@ -99,7 +89,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void First()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.First();
         Assert.Equal(_mainRebel.Age, result.Age);
@@ -108,7 +97,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void First_Expr()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.First(r => r.Age == 19);
         Assert.Equal(_mainRebel.Age, result.Age);
@@ -117,7 +105,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void FirstOrDefault()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
         var result = _rebels.FirstOrDefault();
         Assert.Null(result);
@@ -126,7 +113,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void FirstOrDefault_Expr()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
         var result = _rebels.FirstOrDefault(r => r.Age == 20);
         Assert.Null(result);
@@ -135,7 +121,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Last()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.Last();
         Assert.Equal(_mainRebel.Age, result.Age);
@@ -144,7 +129,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Last_Expr()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.Last(r => r.Age == 19);
         Assert.Equal(_mainRebel.Age, result.Age);
@@ -153,7 +137,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void LastOrDefault()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
         var result = _rebels.LastOrDefault();
         Assert.Null(result);
@@ -162,7 +145,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void LastOrDefault_Expr()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
         var result = _rebels.LastOrDefault(r => r.Age == 20);
         Assert.Null(result);
@@ -171,7 +153,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Single()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.Single();
         Assert.Equal(_mainRebel.Age, result.Age);
@@ -180,7 +161,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Single_Expr()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(_response);
         var result = _rebels.Single();
         Assert.Equal(_mainRebel.Age, result.Age);
@@ -189,7 +169,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void Single_Exception()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             Docs = new List<Rebel>
@@ -205,7 +184,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void SingleOrDefault()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
         var result = _rebels.SingleOrDefault();
         Assert.Null(result);
@@ -214,7 +192,6 @@ public class SupportByCombination_Tests
     [Fact]
     public void SingleOrDefault_Expr()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
         var result = _rebels.SingleOrDefault(r => r.Age == 20);
         Assert.Null(result);

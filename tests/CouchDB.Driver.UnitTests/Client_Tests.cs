@@ -1,6 +1,5 @@
 ﻿using CouchDB.Driver.Exceptions;
 using CouchDB.UnitTests.Models;
-using Flurl.Http.Testing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +8,12 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDB.Driver.Query.Extensions;
 using CouchDB.Driver.Types;
+using CouchDB.Driver.UnitTests._Helpers;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Client_Tests
+public class Client_Tests : HttpTest
 {
     #region Get
 
@@ -22,11 +22,10 @@ public class Client_Tests
     {
         var databaseName = "rebel0_$()+/-";
 
-        using var httpTest = new HttpTest();
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         httpTest.RespondWithJson(new { ok = true });
         var rebels = client.GetDatabase<Rebel>(databaseName);
         Assert.Equal(databaseName, rebels.Database);
@@ -35,13 +34,12 @@ public class Client_Tests
     [Fact]
     public async Task GetDatabase_InvalidCharacters_ThrowsArgumentException()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWithJson(new { ok = true });
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         Action action = () => client.GetDatabase<Rebel>("rebel.");
         var ex = Assert.Throws<ArgumentException>(action);
         Assert.Contains("invalid characters", ex.Message);
@@ -54,11 +52,10 @@ public class Client_Tests
     [Fact]
     public async Task GetOrCreateDatabase_Default()
     {
-        using var httpTest = new HttpTest();
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         httpTest.RespondWithJson(new { ok = true });
         var rebels = await client.GetOrCreateDatabaseAsync<Rebel>();
         httpTest
@@ -70,11 +67,10 @@ public class Client_Tests
     [Fact]
     public async Task GetOrCreateDatabase_CustomName()
     {
-        using var httpTest = new HttpTest();
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         httpTest.RespondWithJson(new { ok = true });
         var rebels = await client.GetOrCreateDatabaseAsync<Rebel>("some_rebels");
         httpTest
@@ -88,11 +84,10 @@ public class Client_Tests
     {
         var databaseName = "rebel0_$()+/-";
 
-        using var httpTest = new HttpTest();
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         httpTest.RespondWithJson(new { ok = true });
         var rebels = await client.GetOrCreateDatabaseAsync<Rebel>(databaseName);
         httpTest
@@ -104,13 +99,12 @@ public class Client_Tests
     [Fact]
     public async Task GetOrCreateDatabase_402_ReturnDatabase()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWith(string.Empty, 412);
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var rebels = await client.GetOrCreateDatabaseAsync<Rebel>();
 
         Assert.NotNull(rebels);
@@ -124,13 +118,12 @@ public class Client_Tests
     [Fact]
     public async Task GetOrCreateDatabase_InvalidCharacters_ThrowsArgumentException()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWithJson(new { ok = true });
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         Func<Task> action = () => client.GetOrCreateDatabaseAsync<Rebel>("rebel.");
         var ex = await Assert.ThrowsAsync<ArgumentException>(action);
         Assert.Contains("invalid characters", ex.Message);
@@ -139,11 +132,10 @@ public class Client_Tests
     [Fact]
     public async Task CreateDatabaseAsync_Default()
     {
-        using var httpTest = new HttpTest();
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         httpTest.RespondWithJson(new { ok = true });
         var rebels = await client.CreateDatabaseAsync<Rebel>();
         httpTest
@@ -155,13 +147,12 @@ public class Client_Tests
     [Fact]
     public async Task CreateDatabase_402_ThrowsException()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWith((string)null, 412);
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         Func<Task> action = () => client.CreateDatabaseAsync<Rebel>();
         await Assert.ThrowsAsync<CouchException>(action);
     }
@@ -169,11 +160,10 @@ public class Client_Tests
     [Fact]
     public async Task CreateDatabaseAsync_Params()
     {
-        using var httpTest = new HttpTest();
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         httpTest.RespondWithJson(new { ok = true });
         var rebels = await client.CreateDatabaseAsync<Rebel>(9, 2, true);
         httpTest
@@ -188,11 +178,10 @@ public class Client_Tests
     [Fact]
     public async Task CreateDatabaseAsync_Params_Default()
     {
-        using var httpTest = new HttpTest();
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         httpTest.RespondWithJson(new { ok = true });
         var rebels = await client.CreateDatabaseAsync<Rebel>(8, 3, false);
         httpTest
@@ -208,13 +197,12 @@ public class Client_Tests
     [Fact]
     public async Task DeleteDatabase_Default()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWithJson(new { ok = true });
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         await client.DeleteDatabaseAsync<Rebel>();
         httpTest
             .ShouldHaveCalled("http://localhost/rebels")
@@ -224,13 +212,12 @@ public class Client_Tests
     [Fact]
     public async Task DeleteDatabase_CustomName()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWithJson(new { ok = true });
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         await client.DeleteDatabaseAsync("some_rebels");
         httpTest
             .ShouldHaveCalled("http://localhost/some_rebels")
@@ -240,13 +227,12 @@ public class Client_Tests
     [Fact]
     public async Task DeleteDatabase_CustomCharacterName()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWithJson(new { ok = true });
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         await client.DeleteDatabaseAsync("rebel0_$()+/-");
         httpTest
             .ShouldHaveCalled("http://localhost/rebel0_%24%28%29%2B%2F-")
@@ -256,13 +242,12 @@ public class Client_Tests
     [Fact]
     public async Task DeleteDatabase_InvalidCharacters_ThrowsArgumentException()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWithJson(new { ok = true });
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         Func<Task> action = () => client.DeleteDatabaseAsync("rebel.");
         var ex = await Assert.ThrowsAsync<ArgumentException>(action);
         Assert.Contains("invalid characters", ex.Message);
@@ -275,14 +260,13 @@ public class Client_Tests
     [Fact]
     public async Task Exists()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWithJson(new { status = "ok" });
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
         var db = "rebel";
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var result = await client.ExistsAsync(db);
         Assert.True(result);
 
@@ -294,13 +278,12 @@ public class Client_Tests
     [Fact]
     public async Task NotExists()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWith(string.Empty, 404);
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
         var db = "rebel";
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var result = await client.ExistsAsync(db);
         Assert.False(result);
 
@@ -312,13 +295,12 @@ public class Client_Tests
     [Fact]
     public async Task IsUp()
     {
-        using var httpTest = new HttpTest();
         // Operation result
         httpTest.RespondWithJson(new { status = "ok" });
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var result = await client.IsUpAsync();
         Assert.True(result);
 
@@ -330,12 +312,11 @@ public class Client_Tests
     [Fact]
     public async Task IsNotUp()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWith(string.Empty, 404);
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var result = await client.IsUpAsync();
         Assert.False(result);
 
@@ -347,12 +328,11 @@ public class Client_Tests
     [Fact]
     public async Task IsNotUp_Timeout()
     {
-        using var httpTest = new HttpTest();
         httpTest.SimulateTimeout();
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var result = await client.IsUpAsync();
         Assert.False(result);
 
@@ -365,31 +345,29 @@ public class Client_Tests
     [Fact]
     public async Task DatabaseNames()
     {
-        using var httpTest = new HttpTest();
         // Databases
         httpTest.RespondWithJson(new[] { "jedi", "sith" });
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var dbs = await client.GetDatabasesNamesAsync();
         httpTest
             .ShouldHaveCalled("http://localhost/_all_dbs")
             .WithVerb(HttpMethod.Get);
-        Assert.Equal(new[] { "jedi", "sith" }, dbs);
+        Assert.Equal(["jedi", "sith"], dbs);
     }
 
     [Fact]
     public async Task ActiveTasks()
     {
-        using var httpTest = new HttpTest();
         // Tasks
         httpTest.RespondWithJson(new List<CouchActiveTask>());
 
         // Logout
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var dbs = await client.GetActiveTasksAsync();
         httpTest
             .ShouldHaveCalled("http://localhost/_active_tasks")
@@ -403,66 +381,61 @@ public class Client_Tests
     [Fact]
     public async Task ConflictException()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWith(string.Empty, (int)HttpStatusCode.Conflict);
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var couchException =
             await Assert.ThrowsAsync<CouchConflictException>(() => client.CreateDatabaseAsync<Rebel>());
-        Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+        Assert.IsType<CouchHttpResponseException>(couchException.InnerException);
     }
 
     [Fact]
     public async Task NotFoundException()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWith(string.Empty, (int)HttpStatusCode.NotFound);
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var couchException =
             await Assert.ThrowsAsync<CouchNotFoundException>(() => client.DeleteDatabaseAsync<Rebel>());
-        Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+        Assert.IsType<CouchHttpResponseException>(couchException.InnerException);
     }
 
     [Fact]
     public async Task BadRequestException()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWith(@"{error: ""no_usable_index""}", (int)HttpStatusCode.BadRequest);
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var db = client.GetDatabase<Rebel>();
         var couchException = Assert.Throws<CouchNoIndexException>(() => db.UseIndex("aoeu").ToList());
-        Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+        Assert.IsType<CouchHttpResponseException>(couchException.InnerException);
     }
 
     [Fact]
     public async Task GenericExceptionWithMessage()
     {
-        using var httpTest = new HttpTest();
         string message = "message text";
         string reason = "reason text";
         httpTest.RespondWith($"{{error: \"{message}\", reason: \"{reason}\"}}",
             (int)HttpStatusCode.InternalServerError);
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var db = client.GetDatabase<Rebel>();
         var couchException = await Assert.ThrowsAsync<CouchException>(() => db.CompactAsync());
         Assert.Equal(message, couchException.Message);
         Assert.Equal(reason, couchException.Reason);
-        Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+        Assert.IsType<CouchHttpResponseException>(couchException.InnerException);
     }
 
     [Fact]
     public async Task GenericExceptionNoMessage()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWith(string.Empty, (int)HttpStatusCode.InternalServerError);
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var db = client.GetDatabase<Rebel>();
         var couchException = await Assert.ThrowsAsync<CouchException>(() => db.CompactAsync());
-        Assert.IsType<Flurl.Http.FlurlHttpException>(couchException.InnerException);
+        Assert.IsType<CouchHttpResponseException>(couchException.InnerException);
     }
 
     #endregion

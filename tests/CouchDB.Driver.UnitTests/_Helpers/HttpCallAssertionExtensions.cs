@@ -1,5 +1,4 @@
-﻿using Flurl.Http.Testing;
-using System;
+﻿using System;
 using System.Text.Json;
 
 namespace CouchDB.Driver.UnitTests._Helpers;

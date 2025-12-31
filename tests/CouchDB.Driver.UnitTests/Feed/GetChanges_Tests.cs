@@ -1,6 +1,5 @@
 ﻿using CouchDB.Driver.UnitTests._Helpers;
 using CouchDB.UnitTests.Models;
-using Flurl.Http.Testing;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -11,23 +10,13 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Feed;
 
-public class GetChanges_Tests
+public class GetChanges_Tests : HttpTest
 {
-    private readonly ICouchDatabase<Rebel> _rebels;
-
-    public GetChanges_Tests()
-    {
-        var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
-        _rebels = client.GetDatabase<Rebel>();
-    }
-
     [Fact]
     public async Task GetChangesAsync_Default()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
-        SetFeedResponse(httpTest);
+        SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         // Act
@@ -42,10 +31,8 @@ public class GetChanges_Tests
     [Fact]
     public async Task GetChangesAsync_WithOptions()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
-        SetFeedResponse(httpTest);
+        SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
         var options = new ChangesFeedOptions
         {
@@ -67,10 +54,8 @@ public class GetChanges_Tests
     [Fact]
     public async Task GetChangesAsync_WithIdsFilter()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
-        SetFeedResponse(httpTest);
+        SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         var docId = Guid.NewGuid().ToString();
@@ -92,10 +77,8 @@ public class GetChanges_Tests
     [Fact]
     public async Task GetChangesAsync_WithSelectorFilter()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
-        SetFeedResponse(httpTest);
+        SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         var docId = Guid.NewGuid().ToString();
@@ -116,10 +99,8 @@ public class GetChanges_Tests
     [Fact]
     public async Task GetChangesAsync_WithDesignFilter()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
-        SetFeedResponse(httpTest);
+        SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         var filter = ChangesFeedFilter.Design();
@@ -137,10 +118,8 @@ public class GetChanges_Tests
     [Fact]
     public async Task GetChangesAsync_WithViewFilter()
     {
-        using var httpTest = new HttpTest();
-
         // Arrange
-        SetFeedResponse(httpTest);
+        SetFeedResponse();
         httpTest.RespondWithJson(new { ok = true });
 
         var view = Guid.NewGuid().ToString();
@@ -157,7 +136,7 @@ public class GetChanges_Tests
             .WithVerb(HttpMethod.Get);
     }
 
-    private static void SetFeedResponse(HttpTest httpTest)
+    private void SetFeedResponse()
     {
         ChangesFeedResponseResultChange[] changes =
         [

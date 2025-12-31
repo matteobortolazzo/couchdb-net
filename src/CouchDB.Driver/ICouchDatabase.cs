@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed;
 using CouchDB.Driver.ChangesFeed.Responses;
-using CouchDB.Driver.Extensions;
 using CouchDB.Driver.Indexes;
 using CouchDB.Driver.Local;
 using CouchDB.Driver.Security;
@@ -342,7 +341,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <summary>
     /// Get an empty request that targets the current database.
     /// </summary>
-    /// <returns>A Flurl request.</returns>
+    /// <returns>A request builder.</returns>
     HttpRequestBuilder NewRequest();
 
     /// <summary>

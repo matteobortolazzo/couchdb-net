@@ -1,30 +1,19 @@
 ﻿using CouchDB.UnitTests.Models;
-using Flurl.Http.Testing;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDB.Driver.Types;
+using CouchDB.Driver.UnitTests._Helpers;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Attachments_Tests : IAsyncDisposable
+public class Attachments_Tests : HttpTest
 {
-    private readonly ICouchClient _client;
-    private readonly ICouchDatabase<Rebel> _rebels;
-
-    public Attachments_Tests()
-    {
-        _client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
-        _rebels = _client.GetDatabase<Rebel>();
-    }
-
     [Fact]
     public async Task DownloadAttachment()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             Id = "1",
@@ -70,10 +59,5 @@ public class Attachments_Tests : IAsyncDisposable
 
         var newAttachFile = Path.Combine("anyfolder", "luke.txt");
         Assert.Equal(newAttachFile, newPath);
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return _client.DisposeAsync();
     }
 }

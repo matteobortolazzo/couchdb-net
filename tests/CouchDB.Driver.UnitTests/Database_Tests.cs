@@ -1,6 +1,5 @@
 ﻿using CouchDB.Driver.Security;
 using CouchDB.UnitTests.Models;
-using Flurl.Http.Testing;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -10,26 +9,17 @@ using CouchDB.Driver.UnitTests._Models;
 using CouchDB.Driver.Views;
 using Xunit;
 using CouchDB.Driver.Types;
+using CouchDB.Driver.UnitTests._Helpers;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Database_Tests : IAsyncDisposable
+public class Database_Tests : HttpTest
 {
-    private readonly ICouchClient _client;
-    private readonly ICouchDatabase<Rebel> _rebels;
-
-    public Database_Tests()
-    {
-        _client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
-        _rebels = _client.GetDatabase<Rebel>();
-    }
-
     #region Crud
 
     [Fact]
     public async Task Find()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             _attachments = new Dictionary<string, object>
@@ -52,7 +42,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task FindWithConflicts()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             _attachments = new Dictionary<string, object>
@@ -74,7 +63,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task FindWithOptionsRevision()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             _attachments = new Dictionary<string, object>
@@ -93,7 +81,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task FindWithOptionsConflicts()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             _attachments = new Dictionary<string, object>
@@ -112,7 +99,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task FindMany()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWith(
             @"{""results"":[{""id"":""1"",""docs"":[{""ok"":{""_id"":""1"",""Name"":""Luke""}}]},{""id"":""2"",""docs"":[{""ok"":{""_id"":""2"",""Name"":""Leia""}}]}]}");
         var ids = new[] { "1", "2" };
@@ -137,7 +123,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task FindManyWithNotFoundError()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWith(
             @"{""results"":[{""id"":""1"",""docs"":[{""error"":{""id"":""1"",""rev"":""undefined"",""error"":""not_found"",""reason"":""missing""}}]}]}");
         var ids = new[] { "1" };
@@ -160,7 +145,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task Create()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
         var r = new Rebel { Name = "Luke" };
@@ -173,7 +157,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task CreateWithOptionsBatch()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
         var r = new Rebel { Name = "Luke" };
@@ -190,7 +173,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task CreateWithOptionsRevision()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "2-xxx" });
 
         var r = new Rebel { Name = "Luke", Id = "1" };
@@ -204,7 +186,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task Create_WithoutId()
     {
-        using var httpTest = new HttpTest();
         var exception = await Record.ExceptionAsync(async () =>
         {
             var r = new Rebel { Name = "Luke" };
@@ -217,7 +198,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task Delete()
     {
-        using var httpTest = new HttpTest();
         // Operation response
         httpTest.RespondWithJson(new { ok = true });
 
@@ -230,13 +210,12 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task CouchList()
     {
-        using var httpTest = new HttpTest();
         // ToList
         httpTest.RespondWithJson(new { Docs = new List<string>(), Bookmark = "bookmark" });
         // Operation response
         httpTest.RespondWithJson(new { ok = true });
 
-        await using var client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
+        await using var client = TestCouchClientFactory.Create(httpTest);
         var rebels = client.GetDatabase<Rebel>();
         var completeResult = await rebels.ToCouchListAsync();
 
@@ -249,7 +228,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task QueryJson()
     {
-        using var httpTest = new HttpTest();
         var expected = new List<Rebel>() { new Rebel { Id = Guid.NewGuid().ToString() } };
         httpTest.RespondWithJson(new { Docs = expected });
 
@@ -266,7 +244,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task QueryObject()
     {
-        using var httpTest = new HttpTest();
         var expected = new List<Rebel>() { new Rebel { Id = Guid.NewGuid().ToString() } };
         httpTest.RespondWithJson(new { Docs = expected });
 
@@ -287,7 +264,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task AddOrUpdateRange()
     {
-        using var httpTest = new HttpTest();
         // Response
         httpTest.RespondWithJson(new[]
         {
@@ -311,7 +287,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task DeleteRange()
     {
-        using var httpTest = new HttpTest();
         // Response
         httpTest.RespondWithJson(new[]
         {
@@ -336,12 +311,13 @@ public class Database_Tests : IAsyncDisposable
 
     #region View
 
+    private static readonly string[] ExpectedViewKey = ["Luke", "Skywalker"];
+
     [Fact]
     public async Task GetViewAsync_WithNoOptions_CallGet()
     {
         // Arrange
-        using var httpTest = new HttpTest();
-        SetupViewResponse(httpTest);
+        SetupViewResponse();
 
         // Act
         var rebels = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name");
@@ -349,7 +325,7 @@ public class Database_Tests : IAsyncDisposable
         // Assert
         var rebel = Assert.Single(rebels);
         Assert.Equal("luke", rebel.Id);
-        Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+        Assert.Equal(ExpectedViewKey, rebel.Key);
         Assert.Equal(3, rebel.Value.NumberOfBattles);
         httpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
@@ -360,11 +336,10 @@ public class Database_Tests : IAsyncDisposable
     public async Task GetViewAsync_WithOptions_CallPost()
     {
         // Arrange
-        using var httpTest = new HttpTest();
-        SetupViewResponse(httpTest);
+        SetupViewResponse();
         var options = new CouchViewOptions<string[]>
         {
-            Key = new[] { "Luke", "Skywalker" },
+            Key = ["Luke", "Skywalker"],
             Skip = 10
         };
 
@@ -374,7 +349,7 @@ public class Database_Tests : IAsyncDisposable
         // Assert
         var rebel = Assert.Single(rebels);
         Assert.Equal("luke", rebel.Id);
-        Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+        Assert.Equal(ExpectedViewKey, rebel.Key);
         Assert.Equal(3, rebel.Value.NumberOfBattles);
         httpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
@@ -386,8 +361,7 @@ public class Database_Tests : IAsyncDisposable
     public async Task GetDetailed_WithNoOptions_CallGet()
     {
         // Arrange
-        using var httpTest = new HttpTest();
-        SetupViewResponse(httpTest);
+        SetupViewResponse();
 
         // Act
         var list = await _rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name");
@@ -397,7 +371,7 @@ public class Database_Tests : IAsyncDisposable
         Assert.Equal(20, list.TotalRows);
         var rebel = Assert.Single(list.Rows);
         Assert.Equal("luke", rebel.Id);
-        Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+        Assert.Equal(ExpectedViewKey, rebel.Key);
         Assert.Equal(3, rebel.Value.NumberOfBattles);
         httpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
@@ -408,11 +382,10 @@ public class Database_Tests : IAsyncDisposable
     public async Task GetDetailedViewAsync_WithOptions_CallPost()
     {
         // Arrange
-        using var httpTest = new HttpTest();
-        SetupViewResponse(httpTest);
+        SetupViewResponse();
         var options = new CouchViewOptions<string[]>
         {
-            Key = new[] { "Luke", "Skywalker" },
+            Key = ["Luke", "Skywalker"],
             Update = UpdateStyle.Lazy
         };
 
@@ -424,7 +397,7 @@ public class Database_Tests : IAsyncDisposable
         Assert.Equal(20, list.TotalRows);
         var rebel = Assert.Single(list.Rows);
         Assert.Equal("luke", rebel.Id);
-        Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+        Assert.Equal(ExpectedViewKey, rebel.Key);
         Assert.Equal(3, rebel.Value.NumberOfBattles);
         httpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
@@ -432,7 +405,7 @@ public class Database_Tests : IAsyncDisposable
             .WithRequestBody(@"{""key"":[""Luke"",""Skywalker""],""update"":""lazy""}");
     }
 
-    private static void SetupViewResponse(HttpTest httpTest)
+    private void SetupViewResponse()
     {
         httpTest.RespondWithJson(new
         {
@@ -443,7 +416,7 @@ public class Database_Tests : IAsyncDisposable
                 new
                 {
                     Id = "luke",
-                    Key = new[] { "Luke", "Skywalker" },
+                    Key = ExpectedViewKey,
                     Value = new
                     {
                         NumberOfBattles = 3
@@ -457,11 +430,10 @@ public class Database_Tests : IAsyncDisposable
     public async Task GetViewQueryAsync()
     {
         // Arrange
-        using var httpTest = new HttpTest();
-        SetupViewQueryResponse(httpTest);
+        SetupViewQueryResponse();
         var options = new CouchViewOptions<string[]>
         {
-            Key = new[] { "Luke", "Skywalker" },
+            Key = ["Luke", "Skywalker"],
             Skip = 10
         };
         var queries = new[]
@@ -480,7 +452,7 @@ public class Database_Tests : IAsyncDisposable
         {
             var rebel = Assert.Single(result);
             Assert.Equal("luke", rebel.Id);
-            Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+            Assert.Equal(ExpectedViewKey, rebel.Key);
             Assert.Equal(3, rebel.Value.NumberOfBattles);
         });
         httpTest
@@ -494,11 +466,10 @@ public class Database_Tests : IAsyncDisposable
     public async Task GetDetailedViewQueryAsync()
     {
         // Arrange
-        using var httpTest = new HttpTest();
-        SetupViewQueryResponse(httpTest);
+        SetupViewQueryResponse();
         var options = new CouchViewOptions<string[]>
         {
-            Key = new[] { "Luke", "Skywalker" },
+            Key = ["Luke", "Skywalker"],
             Skip = 10
         };
         var queries = new[]
@@ -519,7 +490,7 @@ public class Database_Tests : IAsyncDisposable
             Assert.Equal(20, result.TotalRows);
             var rebel = Assert.Single(result.Rows);
             Assert.Equal("luke", rebel.Id);
-            Assert.Equal(new[] { "Luke", "Skywalker" }, rebel.Key);
+            Assert.Equal(ExpectedViewKey, rebel.Key);
             Assert.Equal(3, rebel.Value.NumberOfBattles);
         });
         httpTest
@@ -529,7 +500,7 @@ public class Database_Tests : IAsyncDisposable
                 @"{""queries"":[{""key"":[""Luke"",""Skywalker""],""skip"":10},{""key"":[""Luke"",""Skywalker""],""skip"":10}]}");
     }
 
-    private static void SetupViewQueryResponse(HttpTest httpTest)
+    private void SetupViewQueryResponse()
     {
         httpTest.RespondWithJson(new
         {
@@ -544,7 +515,7 @@ public class Database_Tests : IAsyncDisposable
                         new
                         {
                             Id = "luke",
-                            Key = new[] { "Luke", "Skywalker" },
+                            Key = ExpectedViewKey,
                             Value = new
                             {
                                 NumberOfBattles = 3
@@ -561,7 +532,7 @@ public class Database_Tests : IAsyncDisposable
                         new
                         {
                             Id = "luke",
-                            Key = new[] { "Luke", "Skywalker" },
+                            Key = ExpectedViewKey,
                             Value = new
                             {
                                 NumberOfBattles = 3
@@ -580,7 +551,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task Info()
     {
-        using var httpTest = new HttpTest();
         await _rebels.GetInfoAsync();
         httpTest
             .ShouldHaveCalled("http://localhost/rebels")
@@ -590,7 +560,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task Compact()
     {
-        using var httpTest = new HttpTest();
         // Operation response
         httpTest.RespondWithJson(new { ok = true });
 
@@ -603,7 +572,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task SecurityInfo_Get()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             Admins = new
@@ -627,7 +595,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task SecurityInfo_Put()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new { ok = true });
 
         var securityInfo = new CouchSecurityInfo();
@@ -644,7 +611,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task GetRevLimit()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWith("3");
         await _rebels.GetRevisionLimitAsync();
         httpTest
@@ -655,7 +621,6 @@ public class Database_Tests : IAsyncDisposable
     [Fact]
     public async Task SetRevLimit()
     {
-        using var httpTest = new HttpTest();
         // Operation response
         httpTest.RespondWithJson(new { ok = true });
 
@@ -666,9 +631,4 @@ public class Database_Tests : IAsyncDisposable
     }
 
     #endregion
-
-    public ValueTask DisposeAsync()
-    {
-        return _client.DisposeAsync();
-    }
 }

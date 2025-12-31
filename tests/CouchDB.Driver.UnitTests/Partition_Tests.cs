@@ -1,25 +1,15 @@
-using CouchDB.UnitTests.Models;
-using Flurl.Http.Testing;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CouchDB.Driver.UnitTests._Helpers;
 using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Partition_Tests
+public class Partition_Tests : HttpTest
 {
-    private readonly ICouchDatabase<Rebel> _rebels;
-
-    public Partition_Tests()
-    {
-        ICouchClient client = new CouchClient("http://localhost", new BasicCredentials("admin", "admin"));
-        _rebels = client.GetDatabase<Rebel>();
-    }
-
     [Fact]
     public async Task GetPartitionInfo()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             db_name = "rebels",
@@ -34,7 +24,7 @@ public class Partition_Tests
         });
 
         var partitionInfo = await _rebels.GetPartitionInfoAsync("skywalker");
-            
+
         httpTest
             .ShouldHaveCalled("http://localhost/rebels/_partition/skywalker")
             .WithVerb(HttpMethod.Get);
@@ -50,7 +40,6 @@ public class Partition_Tests
     [Fact]
     public async Task QueryPartitionWithJson()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             docs = new[]
@@ -77,7 +66,6 @@ public class Partition_Tests
     [Fact]
     public async Task QueryPartitionWithObject()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             docs = new[]
@@ -101,30 +89,29 @@ public class Partition_Tests
     [Fact]
     public async Task GetPartitionAllDocs()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             total_rows = 3,
             offset = 0,
             rows = new[]
             {
-                new 
-                { 
-                    id = "skywalker:luke", 
+                new
+                {
+                    id = "skywalker:luke",
                     key = "skywalker:luke",
                     value = new { rev = "1-abc" },
                     doc = new { _id = "skywalker:luke", _rev = "1-abc", name = "Luke", surname = "Skywalker" }
                 },
-                new 
-                { 
-                    id = "skywalker:anakin", 
+                new
+                {
+                    id = "skywalker:anakin",
                     key = "skywalker:anakin",
                     value = new { rev = "1-def" },
                     doc = new { _id = "skywalker:anakin", _rev = "1-def", name = "Anakin", surname = "Skywalker" }
                 },
-                new 
-                { 
-                    id = "skywalker:leia", 
+                new
+                {
+                    id = "skywalker:leia",
                     key = "skywalker:leia",
                     value = new { rev = "1-ghi" },
                     doc = new { _id = "skywalker:leia", _rev = "1-ghi", name = "Leia", surname = "Skywalker" }
@@ -146,7 +133,6 @@ public class Partition_Tests
     [Fact]
     public async Task GetPartitionInfo_WithSpecialCharacters()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             db_name = "rebels",
@@ -169,7 +155,6 @@ public class Partition_Tests
     [Fact]
     public async Task GetDatabaseInfo_WithPartitionedProperty()
     {
-        using var httpTest = new HttpTest();
         httpTest.RespondWithJson(new
         {
             db_name = "rebels",
