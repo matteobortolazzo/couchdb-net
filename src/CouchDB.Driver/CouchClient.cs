@@ -87,13 +87,13 @@ public partial class CouchClient : ICouchClient
 
     /// <inheritdoc />
     public async Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(string database,
-        int? shards = null, int? replicas = null, bool? partitioned = null,
+        CreateDatabaseOptions? options = null,
         CancellationToken cancellationToken = default)
         where TSource : class
     {
         QueryContext queryContext = NewQueryContext(database);
         HttpResponseMessage response =
-            await CreateDatabaseAsync(queryContext, shards, replicas, partitioned, cancellationToken)
+            await CreateDatabaseAsync(queryContext, options, cancellationToken)
                 .ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
@@ -111,13 +111,13 @@ public partial class CouchClient : ICouchClient
 
     /// <inheritdoc />
     public async Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(string database,
-        int? shards = null, int? replicas = null, bool? partitioned = null,
+        CreateDatabaseOptions? options = null,
         CancellationToken cancellationToken = default)
         where TSource : class
     {
         QueryContext queryContext = NewQueryContext(database);
         HttpResponseMessage response =
-            await CreateDatabaseAsync(queryContext, shards, replicas, partitioned, cancellationToken)
+            await CreateDatabaseAsync(queryContext, options, cancellationToken)
                 .ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.PreconditionFailed)
@@ -147,25 +147,28 @@ public partial class CouchClient : ICouchClient
     }
 
     private Task<HttpResponseMessage> CreateDatabaseAsync(QueryContext queryContext,
-        int? shards = null, int? replicas = null, bool? partitioned = null,
+        CreateDatabaseOptions? options,
         CancellationToken cancellationToken = default)
     {
         HttpRequestBuilder request = NewRequest()
             .AppendPathSegment(queryContext.EscapedDatabaseName);
 
-        if (shards.HasValue && shards.Value != 8)
+        if (options != null)
         {
-            request = request.SetQueryParam("q", shards.Value);
-        }
+            if (options.Shards.HasValue && options.Shards.Value != 8)
+            {
+                request = request.SetQueryParam("q", options.Shards.Value);
+            }
 
-        if (replicas.HasValue && replicas.Value != 3)
-        {
-            request = request.SetQueryParam("n", replicas.Value);
-        }
+            if (options.Replicas.HasValue && options.Replicas.Value != 3)
+            {
+                request = request.SetQueryParam("n", options.Replicas.Value);
+            }
 
-        if (partitioned.HasValue && partitioned.Value)
-        {
-            request = request.SetQueryParam("partitioned", "true");
+            if (options.Partitioned.HasValue && options.Partitioned.Value)
+            {
+                request = request.SetQueryParam("partitioned", "true");
+            }
         }
 
         return request
@@ -186,19 +189,23 @@ public partial class CouchClient : ICouchClient
     }
 
     /// <inheritdoc />
-    public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
-        bool? partitioned = null, CancellationToken cancellationToken = default) where TSource : class
+    public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(
+        CreateDatabaseOptions? options = null,
+        CancellationToken cancellationToken = default) where TSource : class
     {
-        return CreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas, partitioned,
-            cancellationToken);
+        return CreateDatabaseAsync<TSource>(
+            TypeExtensions.GetDatabaseName<TSource>(),
+            options, cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(int? shards = null, int? replicas = null,
-        bool? partitioned = null, CancellationToken cancellationToken = default) where TSource : class
+    public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(
+        CreateDatabaseOptions? options = null,
+        CancellationToken cancellationToken = default) where TSource : class
     {
-        return GetOrCreateDatabaseAsync<TSource>(TypeExtensions.GetDatabaseName<TSource>(), shards, replicas,
-            partitioned, cancellationToken);
+        return GetOrCreateDatabaseAsync<TSource>(
+            TypeExtensions.GetDatabaseName<TSource>(),
+            options, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -229,14 +236,14 @@ public partial class CouchClient : ICouchClient
     /// <inheritdoc />
     public Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
     {
-        return GetOrCreateDatabaseAsync<CouchUser>(UsersDatabaseName, null, null, null, cancellationToken);
+        return GetOrCreateDatabaseAsync<CouchUser>(UsersDatabaseName, null, cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(
         CancellationToken cancellationToken = default) where TUser : CouchUser
     {
-        return GetOrCreateDatabaseAsync<TUser>(UsersDatabaseName, null, null, null, cancellationToken);
+        return GetOrCreateDatabaseAsync<TUser>(UsersDatabaseName, null, cancellationToken);
     }
 
     #endregion

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using CouchDB.Driver.Attributes;
 
 namespace CouchDB.UnitTests.Models;
 
 public record SimpleRebel(string Name, string Age);
 
+[DatabaseName("rebels")]
 public record Rebel
 {
     public string Id { get; set; }

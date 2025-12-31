@@ -165,7 +165,14 @@ public class Client_Tests : HttpTest
 
         await using var client = TestCouchClientFactory.Create(httpTest);
         httpTest.RespondWithJson(new { ok = true });
-        var rebels = await client.CreateDatabaseAsync<Rebel>(9, 2, true);
+
+        var options = new CreateDatabaseOptions
+        {
+            Shards = 9,
+            Replicas = 2,
+            Partitioned = true
+        };
+        var rebels = await client.CreateDatabaseAsync<Rebel>(options);
         httpTest
             .ShouldHaveCalled("http://localhost/rebels*")
             .WithQueryParam("q", 9)
@@ -183,7 +190,14 @@ public class Client_Tests : HttpTest
 
         await using var client = TestCouchClientFactory.Create(httpTest);
         httpTest.RespondWithJson(new { ok = true });
-        var rebels = await client.CreateDatabaseAsync<Rebel>(8, 3, false);
+
+        var options = new CreateDatabaseOptions
+        {
+            Shards = 8,
+            Replicas = 3,
+            Partitioned = false
+        };
+        var rebels = await client.CreateDatabaseAsync<Rebel>(options);
         httpTest
             .ShouldHaveCalled("http://localhost/rebels")
             .WithVerb(HttpMethod.Put);
