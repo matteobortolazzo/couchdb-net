@@ -16,9 +16,17 @@ internal static class RequestsHelper
         }
         catch (CouchHttpResponseException ex)
         {
-            CouchError couchError = ex.ResponseContent != null
-                ? JsonSerializer.Deserialize<CouchError>(ex.ResponseContent)!
-                : new CouchError(null, null);
+            CouchError couchError;
+            try
+            {
+                couchError = ex.ResponseContent != null
+                    ? JsonSerializer.Deserialize<CouchError>(ex.ResponseContent)!
+                    : new CouchError(null, null);
+            }
+            catch (JsonException)
+            {
+                couchError = new CouchError("Unexpected response", ex.ResponseContent);
+            }
 
             throw ex.StatusCode switch
             {
@@ -28,6 +36,10 @@ internal static class RequestsHelper
                     couchError, ex),
                 _ => new CouchException(couchError, ex)
             };
+        }
+        catch (TaskCanceledException ex)
+        {
+            throw new CouchException("The request timed out.", ex);
         }
     }
 }

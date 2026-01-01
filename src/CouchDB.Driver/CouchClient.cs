@@ -42,9 +42,10 @@ public partial class CouchClient : ICouchClient
         ArgumentNullException.ThrowIfNull(endpoint);
         ArgumentNullException.ThrowIfNull(credentials);
 
-        JsonSerializerOptions jsonSerializerOptions = options?.JsonSerializerOptions ?? new JsonSerializerOptions();
-        jsonSerializerOptions.PropertyNamingPolicy ??= JsonNamingPolicy.CamelCase;
-        jsonSerializerOptions.Converters.Add(new ReadItemResponseConverterFactory());
+        JsonSerializerOptions jsonSerializerOptions = options?.JsonSerializerOptions != null
+            ? new JsonSerializerOptions(options.JsonSerializerOptions)
+            : new JsonSerializerOptions();
+
         if (options?.JsonSerializerOptions?.TypeInfoResolver != null)
         {
             jsonSerializerOptions.TypeInfoResolver = JsonTypeInfoResolver.Combine(

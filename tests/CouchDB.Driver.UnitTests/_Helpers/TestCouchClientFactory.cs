@@ -8,7 +8,8 @@ public static class TestCouchClientFactory
     {
         var options = new CouchClientOptions()
         {
-            HttpClient = testHelper.HttpClient
+            HttpClient = testHelper.HttpClient,
+            JsonSerializerOptions = HttpTestHelper.JsonSerializerOptions
         };
 
         var credentials = new BasicCredentials("admin", "admin");

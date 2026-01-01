@@ -1,4 +1,6 @@
-﻿namespace CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Converters;
+
+namespace CouchDB.Driver.Types;
 
 /// <summary>
 /// Represents a CouchDB document.
@@ -27,6 +29,7 @@
 /// <param name="Deleted">Marks whether the document has been deleted. </param>
 /// </summary>
 [Serializable]
+[JsonConverter(typeof(ReadItemResponseConverterFactory))]
 public record ReadItemResponse<TSource>(
     TSource Document,
     string Rev,

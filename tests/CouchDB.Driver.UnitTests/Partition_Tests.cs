@@ -5,12 +5,12 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Partition_Tests : HttpTest
+public class Partition_Tests : HttpTests
 {
     [Fact]
     public async Task GetPartitionInfo()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             db_name = "rebels",
             doc_count = 10,
@@ -23,9 +23,9 @@ public class Partition_Tests : HttpTest
             }
         });
 
-        var partitionInfo = await _rebels.GetPartitionInfoAsync("skywalker");
+        var partitionInfo = await Rebels.GetPartitionInfoAsync("skywalker");
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_partition/skywalker")
             .WithVerb(HttpMethod.Get);
 
@@ -40,7 +40,7 @@ public class Partition_Tests : HttpTest
     [Fact]
     public async Task QueryPartitionWithJson()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             docs = new[]
             {
@@ -52,9 +52,9 @@ public class Partition_Tests : HttpTest
         });
 
         var query = "{\"selector\": {\"surname\": \"Skywalker\"}}";
-        var results = await _rebels.QueryPartitionAsync("skywalker", query);
+        var results = await Rebels.QueryPartitionAsync("skywalker", query);
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_partition/skywalker/_find")
             .WithVerb(HttpMethod.Post)
             .WithContentType("application/json");
@@ -66,7 +66,7 @@ public class Partition_Tests : HttpTest
     [Fact]
     public async Task QueryPartitionWithObject()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             docs = new[]
             {
@@ -76,9 +76,9 @@ public class Partition_Tests : HttpTest
         });
 
         var query = new { selector = new { surname = "Skywalker" } };
-        var results = await _rebels.QueryPartitionAsync("skywalker", query);
+        var results = await Rebels.QueryPartitionAsync("skywalker", query);
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_partition/skywalker/_find")
             .WithVerb(HttpMethod.Post);
 
@@ -89,7 +89,7 @@ public class Partition_Tests : HttpTest
     [Fact]
     public async Task GetPartitionAllDocs()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             total_rows = 3,
             offset = 0,
@@ -119,10 +119,10 @@ public class Partition_Tests : HttpTest
             }
         });
 
-        var results = await _rebels.GetPartitionAllDocsAsync("skywalker");
+        var results = await Rebels.GetPartitionAllDocsAsync("skywalker");
 
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_partition/skywalker/_all_docs*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_partition/skywalker/_all_docs")
             .WithQueryParam("include_docs", "true")
             .WithVerb(HttpMethod.Get);
 
@@ -133,7 +133,7 @@ public class Partition_Tests : HttpTest
     [Fact]
     public async Task GetPartitionInfo_WithSpecialCharacters()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             db_name = "rebels",
             doc_count = 5,
@@ -142,9 +142,9 @@ public class Partition_Tests : HttpTest
             sizes = new { active = 512, external = 1024 }
         });
 
-        var partitionInfo = await _rebels.GetPartitionInfoAsync("user@email.com");
+        var partitionInfo = await Rebels.GetPartitionInfoAsync("user@email.com");
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_partition/user%40email.com")
             .WithVerb(HttpMethod.Get);
 
@@ -155,7 +155,7 @@ public class Partition_Tests : HttpTest
     [Fact]
     public async Task GetDatabaseInfo_WithPartitionedProperty()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             db_name = "rebels",
             doc_count = 100,
@@ -169,9 +169,9 @@ public class Partition_Tests : HttpTest
             props = new { partitioned = true }
         });
 
-        var dbInfo = await _rebels.GetInfoAsync();
+        var dbInfo = await Rebels.GetInfoAsync();
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels")
             .WithVerb(HttpMethod.Get);
 

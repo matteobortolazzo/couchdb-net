@@ -1,7 +1,10 @@
 ﻿using CouchDB.Driver.UnitTests._Helpers;
 using CouchDB.UnitTests.Models;
 using System;
+using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +15,7 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Feed;
 
-public class GetContinuousChangesAsync_Tests : HttpTest
+public class GetContinuousChangesAsync_Tests : HttpTests
 {
     [Fact]
     public async Task GetContinuousChangesAsync_Default()
@@ -20,18 +23,18 @@ public class GetContinuousChangesAsync_Tests : HttpTest
         // Arrange
         var tokenSource = new CancellationTokenSource();
         var docId = SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         // Act
-        await foreach (var change in _rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
+        await foreach (var change in Rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
             await tokenSource.CancelAsync();
         }
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("feed", "continuous")
             .WithVerb(HttpMethod.Get);
     }
@@ -42,22 +45,22 @@ public class GetContinuousChangesAsync_Tests : HttpTest
         // Arrange
         var tokenSource = new CancellationTokenSource();
         var docId = SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
         var options = new ChangesFeedOptions
         {
             Attachments = true
         };
 
         // Act
-        await foreach (var change in _rebels.GetContinuousChangesAsync(options, null, tokenSource.Token))
+        await foreach (var change in Rebels.GetContinuousChangesAsync(options, null, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
             await tokenSource.CancelAsync();
         }
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("feed", "continuous")
             .WithQueryParam("attachments", "true")
             .WithVerb(HttpMethod.Get);
@@ -69,22 +72,23 @@ public class GetContinuousChangesAsync_Tests : HttpTest
         // Arrange
         var tokenSource = new CancellationTokenSource();
         var docId = SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
+
 
         var filter = ChangesFeedFilter.DocumentIds([
             docId
         ]);
 
         // Act
-        await foreach (var change in _rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
+        await foreach (var change in Rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
             await tokenSource.CancelAsync();
         }
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("feed", "continuous")
             .WithQueryParam("filter", "_doc_ids")
             .WithJsonBody<ChangesFeedFilterDocuments>(f => f.DocumentIds.Contains(docId))
@@ -97,20 +101,20 @@ public class GetContinuousChangesAsync_Tests : HttpTest
         // Arrange
         var tokenSource = new CancellationTokenSource();
         var docId = SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         var filter = ChangesFeedFilter.Selector<Rebel>(rebel => rebel.Id == docId);
 
         // Act
-        await foreach (var change in _rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
+        await foreach (var change in Rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
             await tokenSource.CancelAsync();
         }
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("feed", "continuous")
             .WithQueryParam("filter", "_selector")
             .WithContentType("application/json")
@@ -124,20 +128,20 @@ public class GetContinuousChangesAsync_Tests : HttpTest
         // Arrange
         var tokenSource = new CancellationTokenSource();
         var docId = SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         var filter = ChangesFeedFilter.Design();
 
         // Act
-        await foreach (var change in _rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
+        await foreach (var change in Rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
             await tokenSource.CancelAsync();
         }
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("feed", "continuous")
             .WithQueryParam("filter", "_design")
             .WithVerb(HttpMethod.Get);
@@ -149,21 +153,21 @@ public class GetContinuousChangesAsync_Tests : HttpTest
         // Arrange
         var tokenSource = new CancellationTokenSource();
         var docId = SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         var view = Guid.NewGuid().ToString();
         var filter = ChangesFeedFilter.View(view);
 
         // Act
-        await foreach (var change in _rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
+        await foreach (var change in Rebels.GetContinuousChangesAsync(null, filter, tokenSource.Token))
         {
             Assert.Equal(docId, change.Id);
             await tokenSource.CancelAsync();
         }
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("feed", "continuous")
             .WithQueryParam("filter", "_view")
             .WithQueryParam("view", view)
@@ -177,12 +181,12 @@ public class GetContinuousChangesAsync_Tests : HttpTest
         var tokenSource = new CancellationTokenSource();
         var docId = Guid.NewGuid().ToString();
         var changeJson = GetChangesFeedResponseResultJson(docId);
-        httpTest.RespondWith(changeJson + changeJson + changeJson + "\n");
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWith(changeJson + changeJson + changeJson + "\n");
+        HttpTest.RespondWithJson(new { ok = true });
 
         // Act
         var changesCount = 0;
-        await foreach (var change in _rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
+        await foreach (var change in Rebels.GetContinuousChangesAsync(null, null, tokenSource.Token))
         {
             changesCount++;
             Assert.Equal(docId, change.Id);
@@ -191,8 +195,8 @@ public class GetContinuousChangesAsync_Tests : HttpTest
 
         // Assert
         Assert.Equal(3, changesCount);
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("feed", "continuous")
             .WithVerb(HttpMethod.Get);
     }
@@ -201,8 +205,14 @@ public class GetContinuousChangesAsync_Tests : HttpTest
     {
         var docId = Guid.NewGuid().ToString();
         var changeJson = GetChangesFeedResponseResultJson(docId);
-        changeJson += "\n";
-        httpTest.RespondWith(changeJson);
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(changeJson + "\n"));
+
+        var streamContent = new StreamContent(stream);
+        HttpTest.RespondWith(new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = streamContent
+        });
         return docId;
     }
 

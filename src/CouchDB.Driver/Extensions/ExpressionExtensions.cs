@@ -23,6 +23,12 @@ internal static class ExpressionExtensions
         }
 
         members.Reverse();
+
+        if (members.Count > 0 && string.Equals(members[^1], "id", StringComparison.OrdinalIgnoreCase))
+        {
+            members[^1] = "_id";
+        }
+
         var propName = string.Join(".", members.ToArray());
 
         return propName;

@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
@@ -198,19 +199,45 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
     {
         foreach (KeyValuePair<string, string> header in _headers)
         {
-            request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            if (request.Content != null && IsContentHeader(header.Key))
+            {
+                request.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
+            else
+            {
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            }
         }
+    }
+
+    internal static bool IsContentHeader(string headerName)
+    {
+        return headerName.Equals("Content-Type", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Length", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Encoding", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Language", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Location", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-MD5", StringComparison.OrdinalIgnoreCase) ||
+               headerName.Equals("Content-Range", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task ValidateResponseAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {
-        if (_allowedStatusCodes.Count > 0 && !_allowedStatusCodes.Contains(response.StatusCode))
+        if (response.IsSuccessStatusCode)
         {
-            var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            throw new CouchHttpResponseException(
-                response.StatusCode,
-                content,
-                $"Request failed with status code {(int)response.StatusCode} ({response.StatusCode})");
+            return;
         }
+
+        if (_allowedStatusCodes.Count > 0 &&
+            _allowedStatusCodes.Contains(response.StatusCode))
+        {
+            return;
+        }
+
+        var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        throw new CouchHttpResponseException(
+            response.StatusCode,
+            content,
+            $"Request failed with status code {(int)response.StatusCode} ({response.StatusCode})");
     }
 }

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class SupportByCombination_Tests : HttpTest
+public class SupportByCombination_Tests : HttpTests
 {
     private readonly Rebel _mainRebel;
     private readonly object _response;
@@ -33,143 +33,143 @@ public class SupportByCombination_Tests : HttpTest
     [Fact]
     public void Max()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.Max(r => r.Age);
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.Max(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
     }
 
     [Fact]
     public void Min()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.Min(r => r.Age);
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.Min(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
     }
 
     [Fact]
     public async Task MinAsync()
     {
-        httpTest.RespondWithJson(_response);
-        var result = await _rebels.MinAsync(r => r.Age);
+        HttpTest.RespondWithJson(_response);
+        var result = await Rebels.MinAsync(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
     }
 
     [Fact]
     public void Sum()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.Sum(r => r.Age);
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.Sum(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
     }
 
     [Fact]
     public void Average()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.Average(r => r.Age);
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.Average(r => r.Age);
         Assert.Equal(_mainRebel.Age, result);
     }
 
     [Fact]
     public void Any()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.Any(r => r.Age == 19);
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.Any(r => r.Age == 19);
         Assert.True(result);
     }
 
     [Fact]
     public void All()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.All(r => r.Age == 19);
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.All(r => r.Age == 19);
         Assert.True(result);
     }
 
     [Fact]
     public void First()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.First();
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.First();
         Assert.Equal(_mainRebel.Age, result.Age);
     }
 
     [Fact]
     public void First_Expr()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.First(r => r.Age == 19);
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.First(r => r.Age == 19);
         Assert.Equal(_mainRebel.Age, result.Age);
     }
 
     [Fact]
     public void FirstOrDefault()
     {
-        httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-        var result = _rebels.FirstOrDefault();
+        HttpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+        var result = Rebels.FirstOrDefault();
         Assert.Null(result);
     }
 
     [Fact]
     public void FirstOrDefault_Expr()
     {
-        httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-        var result = _rebels.FirstOrDefault(r => r.Age == 20);
+        HttpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+        var result = Rebels.FirstOrDefault(r => r.Age == 20);
         Assert.Null(result);
     }
 
     [Fact]
     public void Last()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.Last();
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.Last();
         Assert.Equal(_mainRebel.Age, result.Age);
     }
 
     [Fact]
     public void Last_Expr()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.Last(r => r.Age == 19);
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.Last(r => r.Age == 19);
         Assert.Equal(_mainRebel.Age, result.Age);
     }
 
     [Fact]
     public void LastOrDefault()
     {
-        httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-        var result = _rebels.LastOrDefault();
+        HttpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+        var result = Rebels.LastOrDefault();
         Assert.Null(result);
     }
 
     [Fact]
     public void LastOrDefault_Expr()
     {
-        httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-        var result = _rebels.LastOrDefault(r => r.Age == 20);
+        HttpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+        var result = Rebels.LastOrDefault(r => r.Age == 20);
         Assert.Null(result);
     }
 
     [Fact]
     public void Single()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.Single();
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.Single();
         Assert.Equal(_mainRebel.Age, result.Age);
     }
 
     [Fact]
     public void Single_Expr()
     {
-        httpTest.RespondWithJson(_response);
-        var result = _rebels.Single();
+        HttpTest.RespondWithJson(_response);
+        var result = Rebels.Single();
         Assert.Equal(_mainRebel.Age, result.Age);
     }
 
     [Fact]
     public void Single_Exception()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             Docs = new List<Rebel>
             {
@@ -177,23 +177,23 @@ public class SupportByCombination_Tests : HttpTest
                 new()
             }
         });
-        var ex = Assert.Throws<InvalidOperationException>(() => _rebels.Single());
+        var ex = Assert.Throws<InvalidOperationException>(() => Rebels.Single());
         Assert.Equal("Sequence contains more than one element", ex.Message);
     }
 
     [Fact]
     public void SingleOrDefault()
     {
-        httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-        var result = _rebels.SingleOrDefault();
+        HttpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+        var result = Rebels.SingleOrDefault();
         Assert.Null(result);
     }
 
     [Fact]
     public void SingleOrDefault_Expr()
     {
-        httpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
-        var result = _rebels.SingleOrDefault(r => r.Age == 20);
+        HttpTest.RespondWithJson(new { Docs = Array.Empty<Rebel>() });
+        var result = Rebels.SingleOrDefault(r => r.Age == 20);
         Assert.Null(result);
     }
 }

@@ -5,12 +5,12 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Find;
 
-public class Find_Unsupported : HttpTest
+public class Find_Unsupported : HttpTests
 {
     [Fact]
     public void ToList_WhereCount_Exception()
     {
-        void CountQuery() => _rebels
+        void CountQuery() => Rebels
             .Where(u => u.Battles.Count > 0)
             .ToString();
 

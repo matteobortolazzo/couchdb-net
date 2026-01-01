@@ -7,22 +7,22 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class ChangesFeed_DesignDocumentFilter_Tests : HttpTest
+public class ChangesFeed_DesignDocumentFilter_Tests : HttpTests
 {
     [Fact]
     public async Task GetChangesAsync_WithDesignDocumentFilter_AppliesFilterName()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             results = new object[] { },
             last_seq = "123-abc"
         });
 
         var filter = ChangesFeedFilter.DesignDocument("replication/by_partition");
-        await _rebels.GetChangesAsync(filter: filter);
+        await Rebels.GetChangesAsync(filter: filter);
 
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("filter", "replication/by_partition")
             .WithVerb(HttpMethod.Get);
     }
@@ -30,7 +30,7 @@ public class ChangesFeed_DesignDocumentFilter_Tests : HttpTest
     [Fact]
     public async Task GetChangesAsync_WithDesignDocumentFilterAndQueryParams_AppliesParameters()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             results = new object[] { },
             last_seq = "123-abc"
@@ -42,10 +42,10 @@ public class ChangesFeed_DesignDocumentFilter_Tests : HttpTest
             { "status", "active" }
         };
         var filter = ChangesFeedFilter.DesignDocument("replication/by_partition", queryParams);
-        await _rebels.GetChangesAsync(filter: filter);
+        await Rebels.GetChangesAsync(filter: filter);
 
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("filter", "replication/by_partition")
             .WithQueryParam("partition", "skywalker")
             .WithQueryParam("status", "active")
@@ -55,7 +55,7 @@ public class ChangesFeed_DesignDocumentFilter_Tests : HttpTest
     [Fact]
     public async Task GetChangesAsync_WithOptionsQueryParameters_AppliesParameters()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             results = new object[] { },
             last_seq = "123-abc"
@@ -70,10 +70,10 @@ public class ChangesFeed_DesignDocumentFilter_Tests : HttpTest
             }
         };
 
-        await _rebels.GetChangesAsync(options: options);
+        await Rebels.GetChangesAsync(options: options);
 
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("filter", "replication/by_partition")
             .WithQueryParam("partition", "skywalker")
             .WithVerb(HttpMethod.Get);

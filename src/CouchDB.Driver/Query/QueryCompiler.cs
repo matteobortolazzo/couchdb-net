@@ -98,7 +98,7 @@ internal class QueryCompiler(
         // Query database
         var couchQueryable = RequestSendMethod
             .MakeGenericMethod(couchListType)
-            .Invoke(requestSender, [body, async, cancellationToken]);
+            .Invoke(requestSender, [body, async, queryTranslator.ThrowOnQueryWarning, cancellationToken]);
 
         // Apply in-memory operations
         MethodInfo postProcessResultMethodInfo = (async

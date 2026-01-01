@@ -7,33 +7,33 @@ using CouchDB.Driver.UnitTests._Helpers;
 
 namespace CouchDB.Driver.UnitTests.Find;
 
-public class Find_Miscellaneous : HttpTest
+public class Find_Miscellaneous : HttpTests
 {
     [Fact]
     public void Limit()
     {
-        var json = _rebels.Take(20).ToString();
+        var json = Rebels.Take(20).ToString();
         Assert.Equal(@"{""limit"":20,""selector"":{}}", json);
     }
 
     [Fact]
     public void Skip()
     {
-        var json = _rebels.Skip(20).ToString();
+        var json = Rebels.Skip(20).ToString();
         Assert.Equal(@"{""skip"":20,""selector"":{}}", json);
     }
 
     [Fact]
     public void Field()
     {
-        var json = _rebels.Select(r => r.Age).ToString();
+        var json = Rebels.Select(r => r.Age).ToString();
         Assert.Equal(@"{""fields"":[""age""],""selector"":{}}", json);
     }
 
     [Fact]
     public void Fields()
     {
-        var json = _rebels.Select(
+        var json = Rebels.Select(
                 r => r.Name,
                 r => r.Age,
                 r => r.Vehicle.CanFly)
@@ -44,7 +44,7 @@ public class Find_Miscellaneous : HttpTest
     [Fact]
     public void Fields_NewObject()
     {
-        var json = _rebels.Select(r => new
+        var json = Rebels.Select(r => new
             {
                 r.Name,
                 r.Age,
@@ -57,7 +57,7 @@ public class Find_Miscellaneous : HttpTest
     [Fact]
     public void Convert()
     {
-        var json = _rebels.Convert<Rebel, SimpleRebel>()
+        var json = Rebels.Convert<Rebel, SimpleRebel>()
             .ToString();
         Assert.Equal(@"{""fields"":[""name"",""age""],""selector"":{}}", json);
     }
@@ -65,14 +65,14 @@ public class Find_Miscellaneous : HttpTest
     [Fact]
     public void Index_Partial()
     {
-        var json = _rebels.UseIndex("design_document").ToString();
+        var json = Rebels.UseIndex("design_document").ToString();
         Assert.Equal(@"{""use_index"":""design_document"",""selector"":{}}", json);
     }
 
     [Fact]
     public void Index_Complete()
     {
-        var json = _rebels.UseIndex("design_document", "index_name").ToString();
+        var json = Rebels.UseIndex("design_document", "index_name").ToString();
         Assert.Equal(@"{""use_index"":[""design_document"",""index_name""],""selector"":{}}", json);
     }
 
@@ -81,7 +81,7 @@ public class Find_Miscellaneous : HttpTest
     {
         var exception = Record.Exception(() =>
         {
-            var json = _rebels.UseIndex("arg1", "arg2", "arg3").ToString();
+            var json = Rebels.UseIndex("arg1", "arg2", "arg3").ToString();
         });
         Assert.NotNull(exception);
         Assert.IsType<ArgumentException>(exception);
@@ -90,42 +90,42 @@ public class Find_Miscellaneous : HttpTest
     [Fact]
     public void Quorum()
     {
-        var json = _rebels.WithReadQuorum(20).ToString();
+        var json = Rebels.WithReadQuorum(20).ToString();
         Assert.Equal(@"{""r"":20,""selector"":{}}", json);
     }
 
     [Fact]
     public void Bookmark()
     {
-        var json = _rebels.UseBookmark("g1AAAABweJzLY...").ToString();
+        var json = Rebels.UseBookmark("g1AAAABweJzLY...").ToString();
         Assert.Equal(@"{""bookmark"":""g1AAAABweJzLY..."",""selector"":{}}", json);
     }
 
     [Fact]
     public void Update()
     {
-        var json = _rebels.WithoutIndexUpdate().ToString();
+        var json = Rebels.WithoutIndexUpdate().ToString();
         Assert.Equal(@"{""update"":false,""selector"":{}}", json);
     }
 
     [Fact]
     public void Stable()
     {
-        var json = _rebels.FromStable().ToString();
+        var json = Rebels.FromStable().ToString();
         Assert.Equal(@"{""stable"":true,""selector"":{}}", json);
     }
 
     [Fact]
     public void ExecutionStats()
     {
-        var json = _rebels.IncludeExecutionStats().ToString();
+        var json = Rebels.IncludeExecutionStats().ToString();
         Assert.Equal(@"{""execution_stats"":true,""selector"":{}}", json);
     }
 
     [Fact]
     public void Conflicts()
     {
-        var json = _rebels.IncludeConflicts().ToString();
+        var json = Rebels.IncludeConflicts().ToString();
         Assert.Equal(@"{""conflicts"":true,""selector"":{}}", json);
     }
 
@@ -133,7 +133,7 @@ public class Find_Miscellaneous : HttpTest
     public void Boolean_ShortCircuit_Simple()
     {
         bool useFilter = true;
-        var json = _rebels.Where(_ => useFilter).ToString();
+        var json = Rebels.Where(_ => useFilter).ToString();
         Assert.Equal(@"{""selector"":{}}", json);
     }
 
@@ -141,7 +141,7 @@ public class Find_Miscellaneous : HttpTest
     public void Boolean_ShortCircuit_AndTrue()
     {
         bool useFilter = true;
-        var json = _rebels.Where(r => useFilter && r.Age == 19).Take(1).ToString();
+        var json = Rebels.Where(r => useFilter && r.Age == 19).Take(1).ToString();
         Assert.Equal(@"{""selector"":{""age"":19},""limit"":1}", json);
     }
 
@@ -149,7 +149,7 @@ public class Find_Miscellaneous : HttpTest
     public void Boolean_ShortCircuit_AndFalse()
     {
         bool useFilter = false;
-        var json = _rebels.Where(r => useFilter && r.Age == 19).Take(1).ToString();
+        var json = Rebels.Where(r => useFilter && r.Age == 19).Take(1).ToString();
         Assert.Equal(@"{""limit"":1,""selector"":{}}", json);
     }
 
@@ -157,7 +157,7 @@ public class Find_Miscellaneous : HttpTest
     public void Boolean_ShortCircuit_OrTrue()
     {
         bool useFilter = true;
-        var json = _rebels.Where(r => useFilter || r.Age == 19).ToString();
+        var json = Rebels.Where(r => useFilter || r.Age == 19).ToString();
         Assert.Equal(@"{""selector"":{}}", json);
     }
 
@@ -166,7 +166,7 @@ public class Find_Miscellaneous : HttpTest
     {
         bool useFilter1 = true;
         bool useFilter2 = false;
-        var json = _rebels.Where(r => (useFilter1 && r.Age == 19) || useFilter2).ToString();
+        var json = Rebels.Where(r => (useFilter1 && r.Age == 19) || useFilter2).ToString();
         Assert.Equal(@"{""selector"":{""age"":19}}", json);
     }
 
@@ -174,7 +174,7 @@ public class Find_Miscellaneous : HttpTest
     public void Boolean_ShortCircuit_MultiWhere1()
     {
         bool useFilter = true;
-        var json = _rebels.Where(r => r.Age == 19).Where(_ => useFilter).ToString();
+        var json = Rebels.Where(r => r.Age == 19).Where(_ => useFilter).ToString();
         Assert.Equal(@"{""selector"":{""age"":19}}", json);
     }
 
@@ -182,14 +182,14 @@ public class Find_Miscellaneous : HttpTest
     public void Boolean_ShortCircuit_MultiWhere2()
     {
         bool useFilter = true;
-        var json = _rebels.Where(_ => useFilter).Where(r => r.Age == 19).ToString();
+        var json = Rebels.Where(_ => useFilter).Where(r => r.Age == 19).ToString();
         Assert.Equal(@"{""selector"":{""age"":19}}", json);
     }
 
     [Fact]
     public void Combinations()
     {
-        var json = _rebels
+        var json = Rebels
             .Where(r =>
                 r.Surname == "Skywalker" &&
                 (

@@ -10,21 +10,21 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests.Feed;
 
-public class GetChanges_Tests : HttpTest
+public class GetChanges_Tests : HttpTests
 {
     [Fact]
     public async Task GetChangesAsync_Default()
     {
         // Arrange
         SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         // Act
-        await _rebels.GetChangesAsync();
+        await Rebels.GetChangesAsync();
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithVerb(HttpMethod.Get);
     }
 
@@ -33,7 +33,7 @@ public class GetChanges_Tests : HttpTest
     {
         // Arrange
         SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
         var options = new ChangesFeedOptions
         {
             LongPoll = true,
@@ -41,11 +41,11 @@ public class GetChanges_Tests : HttpTest
         };
 
         // Act
-        await _rebels.GetChangesAsync(options);
+        await Rebels.GetChangesAsync(options);
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("feed", "longpoll")
             .WithQueryParam("attachments", "true")
             .WithVerb(HttpMethod.Get);
@@ -56,7 +56,7 @@ public class GetChanges_Tests : HttpTest
     {
         // Arrange
         SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         var docId = Guid.NewGuid().ToString();
         var filter = ChangesFeedFilter.DocumentIds([
@@ -64,11 +64,11 @@ public class GetChanges_Tests : HttpTest
         ]);
 
         // Act
-        await _rebels.GetChangesAsync(null, filter);
+        await Rebels.GetChangesAsync(null, filter);
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes**")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("filter", "_doc_ids")
             .WithJsonBody<ChangesFeedFilterDocuments>(f => f.DocumentIds.Contains(docId))
             .WithVerb(HttpMethod.Post);
@@ -79,17 +79,17 @@ public class GetChanges_Tests : HttpTest
     {
         // Arrange
         SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         var docId = Guid.NewGuid().ToString();
         var filter = ChangesFeedFilter.Selector<Rebel>(rebel => rebel.Id == docId);
 
         // Act
-        await _rebels.GetChangesAsync(null, filter);
+        await Rebels.GetChangesAsync(null, filter);
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("filter", "_selector")
             .WithContentType("application/json")
             .With(call => call.RequestBody == $"{{\"selector\":{{\"_id\":\"{docId}\"}}}}")
@@ -101,16 +101,16 @@ public class GetChanges_Tests : HttpTest
     {
         // Arrange
         SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         var filter = ChangesFeedFilter.Design();
 
         // Act
-        await _rebels.GetChangesAsync(null, filter);
+        await Rebels.GetChangesAsync(null, filter);
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("filter", "_design")
             .WithVerb(HttpMethod.Get);
     }
@@ -120,17 +120,17 @@ public class GetChanges_Tests : HttpTest
     {
         // Arrange
         SetFeedResponse();
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         var view = Guid.NewGuid().ToString();
         var filter = ChangesFeedFilter.View(view);
 
         // Act
-        await _rebels.GetChangesAsync(null, filter);
+        await Rebels.GetChangesAsync(null, filter);
 
         // Assert
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/_changes*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_changes")
             .WithQueryParam("filter", "_view")
             .WithQueryParam("view", view)
             .WithVerb(HttpMethod.Get);
@@ -145,7 +145,7 @@ public class GetChanges_Tests : HttpTest
                 Rev = "111"
             }
         ];
-        httpTest.RespondWithJson(new ChangesFeedResponse<Rebel>
+        HttpTest.RespondWithJson(new ChangesFeedResponse<Rebel>
         {
             LastSequence = "",
             Pending = 0,

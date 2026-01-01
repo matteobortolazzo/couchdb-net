@@ -430,7 +430,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         do
         {
             await using Stream stream = filter == null
-                ? await request.GetStreamAsync(cancellationToken: cancellationToken)
+                ? await request.GetStreamAsync(HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false)
                 : await request.QueryContinuousWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
                     .ConfigureAwait(false);
@@ -695,26 +695,43 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     /// <inheritdoc />
-    public Task<List<TSource>> QueryPartitionAsync(string partitionKey, string mangoQueryJson,
+    public async Task<List<TSource>> QueryPartitionAsync(string partitionKey, string mangoQueryJson,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(partitionKey);
         ArgumentNullException.ThrowIfNull(mangoQueryJson);
 
-        return QueryPartitionInternalAsync(partitionKey, r => r
+        FindResult<TSource> findResult = await NewRequest()
+            .AppendPathSegment("_partition")
+            .AppendPathSegment(Uri.EscapeDataString(partitionKey))
+            .AppendPathSegment("_find")
             .WithHeader("Content-Type", "application/json")
-            .PostStringAsync(mangoQueryJson, cancellationToken: cancellationToken));
+            .PostStringAsync(mangoQueryJson, cancellationToken: cancellationToken)
+            .ReceiveJson<FindResult<TSource>>()
+            .SendRequestAsync()
+            .ConfigureAwait(false);
+
+        return findResult.Docs.ToList();
     }
 
     /// <inheritdoc />
-    public Task<List<TSource>> QueryPartitionAsync(string partitionKey, object mangoQuery,
+    public async Task<List<TSource>> QueryPartitionAsync(string partitionKey, object mangoQuery,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(partitionKey);
         ArgumentNullException.ThrowIfNull(mangoQuery);
 
-        return QueryPartitionInternalAsync(partitionKey, r => r
-            .PostJsonAsync(mangoQuery, cancellationToken: cancellationToken));
+        FindResult<TSource> findResult = await NewRequest()
+            .AppendPathSegment("_partition")
+            .AppendPathSegment(Uri.EscapeDataString(partitionKey))
+            .AppendPathSegment("_find")
+            .WithHeader("Content-Type", "application/json")
+            .PostJsonAsync(mangoQuery, cancellationToken: cancellationToken)
+            .ReceiveJson<FindResult<TSource>>()
+            .SendRequestAsync()
+            .ConfigureAwait(false);
+
+        return findResult.Docs.ToList();
     }
 
     /// <inheritdoc />
@@ -737,24 +754,6 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .Select(r => r.Doc!)
             .ToList();
         return documents;
-    }
-
-    private async Task<List<TSource>> QueryPartitionInternalAsync(string partitionKey,
-        Func<HttpRequestBuilder, Task<HttpResponseMessage>> requestFunc)
-    {
-        HttpRequestBuilder request = NewRequest()
-            .AppendPathSegment("_partition")
-            .AppendPathSegment(Uri.EscapeDataString(partitionKey))
-            .AppendPathSegment("_find");
-
-        Task<HttpResponseMessage> message = requestFunc(request);
-
-        FindResult<TSource> findResult = await message
-            .ReceiveJson<FindResult<TSource>>()
-            .SendRequestAsync()
-            .ConfigureAwait(false);
-
-        return findResult.Docs.ToList();
     }
 
     public async Task<int> GetRevisionLimitAsync(CancellationToken cancellationToken = default)

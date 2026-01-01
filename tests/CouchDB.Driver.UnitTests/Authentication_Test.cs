@@ -10,7 +10,7 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Authentication_Test : HttpTest
+public class Authentication_Test : HttpTests
 {
     [Fact]
     public async Task None()
@@ -23,7 +23,7 @@ public class Authentication_Test : HttpTest
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post);
     }
@@ -38,7 +38,7 @@ public class Authentication_Test : HttpTest
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post)
             .WithBasicAuth("root", "relax");
@@ -58,7 +58,7 @@ public class Authentication_Test : HttpTest
         {
             ["AuthSession"] = token
         };
-        httpTest.RespondWith(string.Empty, 200, headers, cookies);
+        HttpTest.RespondWith(string.Empty, 200, headers, cookies);
         SetupListResponse();
 
         await using var client = new CouchClient("http://localhost",
@@ -66,7 +66,7 @@ public class Authentication_Test : HttpTest
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
-        var sessionRequest = httpTest.CallLog
+        var sessionRequest = HttpTest.CallLog
             .Single(c => c.Request.RequestUri!.ToString().Contains("_session"));
         var authCookie = sessionRequest.Request
             .Headers.GetValues("Cookie")
@@ -84,7 +84,7 @@ public class Authentication_Test : HttpTest
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post)
             .WithHeader("X-Auth-CouchDB-UserName", "root")
@@ -101,7 +101,7 @@ public class Authentication_Test : HttpTest
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post)
             .WithHeader("Authorization", jwt);
@@ -119,7 +119,7 @@ public class Authentication_Test : HttpTest
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post)
             .WithHeader("Authorization", jwt);
@@ -128,9 +128,9 @@ public class Authentication_Test : HttpTest
     private void SetupListResponse()
     {
         // ToList
-        httpTest.RespondWithJson(new { Docs = new List<string>() });
+        HttpTest.RespondWithJson(new { Docs = new List<string>() });
 
         // Logout
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
     }
 }

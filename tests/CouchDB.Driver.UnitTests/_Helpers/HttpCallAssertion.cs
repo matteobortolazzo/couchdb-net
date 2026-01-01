@@ -3,37 +3,64 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using Xunit;
 
 namespace CouchDB.Driver.UnitTests._Helpers;
 
 public class HttpCallAssertion(List<LoggedCall> callLog, string expectedUrl)
 {
-    private class QueryParamShouldNotExist
-    {
-    }
-
-    private HttpMethod? _expectedMethod;
-    private readonly Dictionary<string, string> _expectedHeaders = new();
-    private readonly Dictionary<string, object> _expectedQueryParams = new();
-    private string? _expectedBody;
-    private Func<LoggedCall, bool>? _predicate;
+    private readonly List<Func<LoggedCall, (bool Success, string ErrorMessage)>> _checks = [];
 
     public HttpCallAssertion WithVerb(HttpMethod method)
     {
-        _expectedMethod = method;
+        _checks.Add(call =>
+        {
+            var success = call.Request.Method == method;
+            return (success, success ? string.Empty : $"Expected method {method}, but was {call.Request.Method}");
+        });
+        Verify();
         return this;
     }
 
     public HttpCallAssertion WithHeader(string name, string value)
     {
-        _expectedHeaders[name] = value;
+        _checks.Add(call =>
+        {
+            // Check content headers
+            if (HttpRequestBuilder.IsContentHeader(name))
+            {
+                if (call.Request.Content?.Headers.TryGetValues(name, out var contentValues) == true &&
+                    contentValues.Contains(value))
+                {
+                    return (true, string.Empty);
+                }
+            }
+            // Check request headers
+            else if (call.Request.Headers.TryGetValues(name, out var values) && values.Contains(value))
+            {
+                return (true, string.Empty);
+            }
+
+            return (false, $"Expected header '{name}' with value '{value}', but it was not found");
+        });
         Verify();
         return this;
     }
 
     public HttpCallAssertion WithQueryParam(string name, object value)
     {
-        _expectedQueryParams[name] = value;
+        _checks.Add(call =>
+        {
+            var query = call.Request.RequestUri?.Query;
+            var expected = $"{Uri.EscapeDataString(name)}={Uri.EscapeDataString(value.ToString() ?? string.Empty)}";
+
+            if (string.IsNullOrEmpty(query) || !query.Contains(expected, StringComparison.OrdinalIgnoreCase))
+            {
+                return (false, $"Expected query parameter '{name}={value}', but it was not found");
+            }
+
+            return (true, string.Empty);
+        });
         Verify();
         return this;
     }
@@ -45,8 +72,17 @@ public class HttpCallAssertion(List<LoggedCall> callLog, string expectedUrl)
 
     public HttpCallAssertion WithoutQueryParam(string name)
     {
-        // Use a special marker to indicate this param should NOT exist
-        _expectedQueryParams[name] = new QueryParamShouldNotExist();
+        _checks.Add(call =>
+        {
+            var query = call.Request.RequestUri?.Query;
+            if (!string.IsNullOrEmpty(query) &&
+                query.Contains($"{Uri.EscapeDataString(name)}=", StringComparison.OrdinalIgnoreCase))
+            {
+                return (false, $"Expected query parameter '{name}' to NOT exist, but it was found");
+            }
+
+            return (true, string.Empty);
+        });
         Verify();
         return this;
     }
@@ -59,7 +95,11 @@ public class HttpCallAssertion(List<LoggedCall> callLog, string expectedUrl)
 
     public HttpCallAssertion WithRequestBody(string body)
     {
-        _expectedBody = body;
+        _checks.Add(call =>
+        {
+            var success = call.RequestBody == body;
+            return (success, success ? string.Empty : $"Expected body '{body}', but was '{call.RequestBody}'");
+        });
         Verify();
         return this;
     }
@@ -67,73 +107,75 @@ public class HttpCallAssertion(List<LoggedCall> callLog, string expectedUrl)
     public HttpCallAssertion WithRequestJson<T>(T body)
     {
         var json = JsonSerializer.Serialize(body);
-        _expectedBody = json;
+        _checks.Add(call =>
+        {
+            var success = call.RequestBody == json;
+            return (success, success ? string.Empty : $"Expected JSON body '{json}', but was '{call.RequestBody}'");
+        });
         Verify();
         return this;
     }
 
+    public HttpCallAssertion WithJsonBody<TBody>(Func<TBody, bool> assert)
+    {
+        return With(call =>
+        {
+            if (call.RequestBody == null)
+            {
+                return false;
+            }
+
+            var body = JsonSerializer.Deserialize<TBody>(call.RequestBody, HttpTestHelper.JsonSerializerOptions)!;
+            return assert(body);
+        });
+    }
+
     public HttpCallAssertion With(Func<LoggedCall, bool> predicate)
     {
-        _predicate = predicate;
+        _checks.Add(call =>
+        {
+            var success = predicate(call);
+            return (success, success ? string.Empty : "Custom predicate check failed");
+        });
         Verify();
         return this;
     }
 
     private void Verify()
     {
-        var matchingCall = callLog.Find(call =>
+        var firstFailure = GetFirstFailure();
+
+        if (firstFailure == null)
+        {
+            return;
+        }
+
+        var errorMsg = _checks.Count > 0
+            ? $"Expected call to {expectedUrl} not found with the specified criteria. First failure: {firstFailure}"
+            : $"Expected call to {expectedUrl} not found.";
+        Assert.False(_checks.Count > 0, errorMsg);
+    }
+
+    private string? GetFirstFailure()
+    {
+        foreach (var call in callLog)
         {
             if (!UrlMatches(call.Request.RequestUri?.ToString(), expectedUrl))
-                return false;
+                continue;
 
-            if (_expectedMethod != null && call.Request.Method != _expectedMethod)
-                return false;
-
-            if (_expectedBody != null && call.RequestBody != _expectedBody)
+            foreach (var check in _checks)
             {
-                return false;
-            }
-
-            foreach (var header in _expectedHeaders)
-            {
-                if (!call.Request.Headers.TryGetValues(header.Key, out var values) ||
-                    !values.Contains(header.Value))
-                    return false;
-            }
-
-            foreach (var queryParam in _expectedQueryParams)
-            {
-                var query = call.Request.RequestUri?.Query;
-
-                if (queryParam.Value is QueryParamShouldNotExist)
+                var (success, errorMessage) = check(call);
+                if (!success)
                 {
-                    if (!string.IsNullOrEmpty(query) && query.Contains($"{queryParam.Key}="))
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (string.IsNullOrEmpty(query) || !query.Contains($"{queryParam.Key}={queryParam.Value}"))
-                    {
-                        return false;
-                    }
+                    return errorMessage;
                 }
             }
 
-            if (_predicate != null && !_predicate(call))
-            {
-                return false;
-            }
-
-            return true;
-        });
-
-        if (matchingCall == null)
-        {
-            throw new InvalidOperationException(
-                $"Expected call to {expectedUrl} not found with the specified criteria.");
+            return null;
         }
+
+        return _checks.Count > 0 ? "No matching URL found" : null;
     }
 
     private static bool UrlMatches(string? actualUrl, string expectedUrl)
@@ -143,12 +185,8 @@ public class HttpCallAssertion(List<LoggedCall> callLog, string expectedUrl)
             return false;
         }
 
-        if (!expectedUrl.Contains('*'))
-        {
-            return actualUrl == expectedUrl;
-        }
-
-        var pattern = expectedUrl.TrimEnd('*');
-        return actualUrl.StartsWith(pattern, StringComparison.Ordinal);
+        var actualBaseUrl = actualUrl.Split('?')[0];
+        var expectedBaseUrl = expectedUrl.Split('?')[0];
+        return expectedBaseUrl == actualBaseUrl;
     }
 }

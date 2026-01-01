@@ -9,12 +9,12 @@ using Xunit;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Attachments_Tests : HttpTest
+public class Attachments_Tests : HttpTests
 {
     [Fact]
     public async Task DownloadAttachment()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             Id = "1",
             Ok = true,
@@ -25,7 +25,7 @@ public class Attachments_Tests : HttpTest
             }
         });
 
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             Id = "1",
             Ok = true,
@@ -35,7 +35,7 @@ public class Attachments_Tests : HttpTest
         var r = new Rebel { Id = "1", Name = "Luke" };
         var attachFile = Path.Combine("Assets", "luke.txt");
 
-        var addResult = await _rebels.CreateItemAsync(r, new CreateItemRequestOptions
+        var addResult = await Rebels.CreateItemAsync(r, new CreateItemRequestOptions
         {
             Attachments =
             [
@@ -43,16 +43,16 @@ public class Attachments_Tests : HttpTest
             ]
         });
 
-        var newPath = await _rebels.DownloadAttachmentAsync("luke.txt", addResult.Id, addResult.Rev, "anyfolder");
+        var newPath = await Rebels.DownloadAttachmentAsync("luke.txt", addResult.Id, addResult.Rev, "anyfolder");
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/1")
             .WithVerb(HttpMethod.Put);
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
             .WithVerb(HttpMethod.Put)
             .WithHeader("If-Match", "xxx");
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
             .WithVerb(HttpMethod.Get)
             .WithHeader("If-Match", "xxx2");

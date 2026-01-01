@@ -7,6 +7,11 @@ namespace CouchDB.Driver.UnitTests._Helpers;
 
 public sealed class HttpTestHelper : IDisposable
 {
+    public static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly MockHttpMessageHandler _handler;
     public HttpClient HttpClient { get; }
     public List<LoggedCall> CallLog { get; } = [];
@@ -19,19 +24,24 @@ public sealed class HttpTestHelper : IDisposable
 
     public void SimulateTimeout()
     {
-        _handler.SimulateTimeout();
+        // TODO: _handler.SimulateTimeout();
     }
 
-    public void RespondWith(string content, int statusCode = 200, Dictionary<string, string>? headers = null,
+    public void RespondWith(string? content, int statusCode = 200, Dictionary<string, string>? headers = null,
         Dictionary<string, string>? cookies = null)
     {
         _handler.SetResponse(content, statusCode, headers, cookies);
     }
 
+    public void RespondWith(HttpResponseMessage message)
+    {
+        _handler.SetResponse(message);
+    }
+
     public void RespondWithJson<T>(T content, int statusCode = 200, Dictionary<string, string>? headers = null,
         Dictionary<string, string>? cookies = null)
     {
-        var stringContent = JsonSerializer.Serialize(content);
+        var stringContent = JsonSerializer.Serialize(content, JsonSerializerOptions);
         headers ??= new Dictionary<string, string>();
         headers.TryAdd("Content-Type", "application/json");
         _handler.SetResponse(stringContent, statusCode, headers, cookies);

@@ -13,14 +13,14 @@ using CouchDB.Driver.UnitTests._Helpers;
 
 namespace CouchDB.Driver.UnitTests;
 
-public class Database_Tests : HttpTest
+public class Database_Tests : HttpTests
 {
     #region Crud
 
     [Fact]
-    public async Task Find()
+    public async Task ReadItem()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             _attachments = new Dictionary<string, object>
             {
@@ -28,8 +28,8 @@ public class Database_Tests : HttpTest
             }
         });
 
-        var newR = await _rebels.ReadItemAsync("1");
-        httpTest
+        var newR = await Rebels.ReadItemAsync("1");
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/1")
             .WithoutQueryParam("conflicts")
             .WithVerb(HttpMethod.Get);
@@ -40,9 +40,9 @@ public class Database_Tests : HttpTest
     }
 
     [Fact]
-    public async Task FindWithConflicts()
+    public async Task ReadItemWithConflicts()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             _attachments = new Dictionary<string, object>
             {
@@ -50,20 +50,20 @@ public class Database_Tests : HttpTest
             }
         });
 
-        await _rebels.ReadItemAsync("1", new ReadItemOptions
+        await Rebels.ReadItemAsync("1", new ReadItemOptions
         {
             Conflicts = true
         });
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/1*")
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/1")
             .WithQueryParam("conflicts", "true")
             .WithVerb(HttpMethod.Get);
     }
 
     [Fact]
-    public async Task FindWithOptionsRevision()
+    public async Task ReadItemWithOptionsRevision()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             _attachments = new Dictionary<string, object>
             {
@@ -71,17 +71,17 @@ public class Database_Tests : HttpTest
             }
         });
 
-        await _rebels.ReadItemAsync("1", new ReadItemOptions { Revision = "1-xxx" });
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/1*")
+        await Rebels.ReadItemAsync("1", new ReadItemOptions { Revision = "1-xxx" });
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/1")
             .WithQueryParam("rev", "1-xxx")
             .WithVerb(HttpMethod.Get);
     }
 
     [Fact]
-    public async Task FindWithOptionsConflicts()
+    public async Task ReadItemWithOptionsConflicts()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             _attachments = new Dictionary<string, object>
             {
@@ -89,21 +89,21 @@ public class Database_Tests : HttpTest
             }
         });
 
-        await _rebels.ReadItemAsync("1", new ReadItemOptions { Conflicts = true });
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/1*")
+        await Rebels.ReadItemAsync("1", new ReadItemOptions { Conflicts = true });
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/1")
             .WithQueryParam("conflicts", "true")
             .WithVerb(HttpMethod.Get);
     }
 
     [Fact]
-    public async Task FindMany()
+    public async Task ReadItems()
     {
-        httpTest.RespondWith(
+        HttpTest.RespondWith(
             @"{""results"":[{""id"":""1"",""docs"":[{""ok"":{""_id"":""1"",""Name"":""Luke""}}]},{""id"":""2"",""docs"":[{""ok"":{""_id"":""2"",""Name"":""Leia""}}]}]}");
         var ids = new[] { "1", "2" };
-        var result = await _rebels.ReadItemsAsync(ids);
-        httpTest
+        var result = await Rebels.ReadItemsAsync(ids);
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_bulk_get")
             .WithRequestJson(new
             {
@@ -121,13 +121,13 @@ public class Database_Tests : HttpTest
     }
 
     [Fact]
-    public async Task FindManyWithNotFoundError()
+    public async Task ReadItemsWithNotFoundError()
     {
-        httpTest.RespondWith(
+        HttpTest.RespondWith(
             @"{""results"":[{""id"":""1"",""docs"":[{""error"":{""id"":""1"",""rev"":""undefined"",""error"":""not_found"",""reason"":""missing""}}]}]}");
         var ids = new[] { "1" };
-        var result = await _rebels.ReadItemsAsync(ids);
-        httpTest
+        var result = await Rebels.ReadItemsAsync(ids);
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_bulk_get")
             .WithRequestJson(new
             {
@@ -145,11 +145,11 @@ public class Database_Tests : HttpTest
     [Fact]
     public async Task Create()
     {
-        httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
+        HttpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
         var r = new Rebel { Name = "Luke" };
-        await _rebels.CreateItemAsync(r);
-        httpTest
+        await Rebels.CreateItemAsync(r);
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels")
             .WithVerb(HttpMethod.Post);
     }
@@ -157,14 +157,14 @@ public class Database_Tests : HttpTest
     [Fact]
     public async Task CreateWithOptionsBatch()
     {
-        httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
+        HttpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "xxx" });
 
         var r = new Rebel { Name = "Luke" };
-        await _rebels.CreateItemAsync(r, new CreateItemRequestOptions
+        await Rebels.CreateItemAsync(r, new CreateItemRequestOptions
         {
             Batch = true
         });
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels")
             .WithQueryParam("batch", "ok")
             .WithVerb(HttpMethod.Post);
@@ -173,37 +173,26 @@ public class Database_Tests : HttpTest
     [Fact]
     public async Task CreateWithOptionsRevision()
     {
-        httpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "2-xxx" });
+        HttpTest.RespondWithJson(new { Id = "xxx", Ok = true, Rev = "2-xxx" });
 
         var r = new Rebel { Name = "Luke", Id = "1" };
-        await _rebels.UpdateItemAsync(r, r.Id, "1-xxx");
-        httpTest
+        await Rebels.UpdateItemAsync(r, r.Id, "1-xxx");
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/1")
-            .WithQueryParam("rev", "1-xxx")
+            .WithHeader("If-Match", "1-xxx")
             .WithVerb(HttpMethod.Put);
-    }
-
-    [Fact]
-    public async Task Create_WithoutId()
-    {
-        var exception = await Record.ExceptionAsync(async () =>
-        {
-            var r = new Rebel { Name = "Luke" };
-            await _rebels.CreateItemAsync(r);
-        });
-        Assert.NotNull(exception);
-        Assert.IsType<InvalidOperationException>(exception);
     }
 
     [Fact]
     public async Task Delete()
     {
         // Operation response
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
-        await _rebels.DeleteItemAsync("Id", "1");
-        httpTest
-            .ShouldHaveCalled("http://localhost/rebels/1?rev=1")
+        await Rebels.DeleteItemAsync("1", "1");
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/1")
+            .WithHeader("If-Match", "1")
             .WithVerb(HttpMethod.Delete);
     }
 
@@ -211,15 +200,15 @@ public class Database_Tests : HttpTest
     public async Task CouchList()
     {
         // ToList
-        httpTest.RespondWithJson(new { Docs = new List<string>(), Bookmark = "bookmark" });
+        HttpTest.RespondWithJson(new { Docs = new List<string>(), Bookmark = "bookmark" });
         // Operation response
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
-        await using var client = TestCouchClientFactory.Create(httpTest);
+        await using var client = TestCouchClientFactory.Create(HttpTest);
         var rebels = client.GetDatabase<Rebel>();
         var completeResult = await rebels.ToCouchListAsync();
 
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post);
         Assert.Equal("bookmark", completeResult.Bookmark);
@@ -229,11 +218,11 @@ public class Database_Tests : HttpTest
     public async Task QueryJson()
     {
         var expected = new List<Rebel>() { new Rebel { Id = Guid.NewGuid().ToString() } };
-        httpTest.RespondWithJson(new { Docs = expected });
+        HttpTest.RespondWithJson(new { Docs = expected });
 
         var query = @"{""selector"":{""age"":19}}";
-        var result = await _rebels.QueryAsync(query);
-        httpTest
+        var result = await Rebels.QueryAsync(query);
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post)
             .WithRequestBody(@"{""selector"":{""age"":19}}");
@@ -245,11 +234,11 @@ public class Database_Tests : HttpTest
     public async Task QueryObject()
     {
         var expected = new List<Rebel>() { new Rebel { Id = Guid.NewGuid().ToString() } };
-        httpTest.RespondWithJson(new { Docs = expected });
+        HttpTest.RespondWithJson(new { Docs = expected });
 
         var query = new { selector = new { age = 19 } };
-        var result = await _rebels.QueryAsync(query);
-        httpTest
+        var result = await Rebels.QueryAsync(query);
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post)
             .WithRequestBody(@"{""selector"":{""age"":19}}");
@@ -262,47 +251,47 @@ public class Database_Tests : HttpTest
     #region Bulk
 
     [Fact]
-    public async Task AddOrUpdateRange()
+    public async Task ExecuteBulkItemOperations_Update()
     {
         // Response
-        httpTest.RespondWithJson(new[]
+        HttpTest.RespondWithJson(new[]
         {
             new { Id = "111", Ok = true, Rev = "111" },
             new { Id = "222", Ok = true, Rev = "222" },
         });
         // Logout
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         BulkItemOperation[] operations =
         [
             BulkItemOperation.Add(new Rebel { Name = "Luke", Id = "1" }),
             BulkItemOperation.Add(new Rebel { Name = "Leia", Id = "2" }),
         ];
-        await _rebels.ExecuteBulkItemOperationsAsync(operations);
-        httpTest
+        await Rebels.ExecuteBulkItemOperationsAsync(operations);
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_bulk_docs")
             .WithVerb(HttpMethod.Post);
     }
 
     [Fact]
-    public async Task DeleteRange()
+    public async Task ExecuteBulkItemOperations_Delete()
     {
         // Response
-        httpTest.RespondWithJson(new[]
+        HttpTest.RespondWithJson(new[]
         {
             new { Id = "111", Ok = true, Rev = "111" },
             new { Id = "222", Ok = true, Rev = "222" },
         });
         // Logout
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         BulkItemOperation[] operations =
         [
             BulkItemOperation.Delete("1", "1"),
             BulkItemOperation.Delete("2", "1"),
         ];
-        await _rebels.ExecuteBulkItemOperationsAsync(operations);
-        httpTest
+        await Rebels.ExecuteBulkItemOperationsAsync(operations);
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_bulk_docs")
             .WithVerb(HttpMethod.Post);
     }
@@ -320,14 +309,14 @@ public class Database_Tests : HttpTest
         SetupViewResponse();
 
         // Act
-        var rebels = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name");
+        var rebels = await Rebels.GetViewAsync<string[], RebelView>("jedi", "by_name");
 
         // Assert
         var rebel = Assert.Single(rebels);
         Assert.Equal("luke", rebel.Id);
         Assert.Equal(ExpectedViewKey, rebel.Key);
         Assert.Equal(3, rebel.Value.NumberOfBattles);
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
             .WithVerb(HttpMethod.Get);
     }
@@ -344,14 +333,14 @@ public class Database_Tests : HttpTest
         };
 
         // Act
-        var rebels = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
+        var rebels = await Rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
 
         // Assert
         var rebel = Assert.Single(rebels);
         Assert.Equal("luke", rebel.Id);
         Assert.Equal(ExpectedViewKey, rebel.Key);
         Assert.Equal(3, rebel.Value.NumberOfBattles);
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
             .WithVerb(HttpMethod.Post)
             .WithRequestBody(@"{""key"":[""Luke"",""Skywalker""],""skip"":10}");
@@ -364,7 +353,7 @@ public class Database_Tests : HttpTest
         SetupViewResponse();
 
         // Act
-        var list = await _rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name");
+        var list = await Rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name");
 
         // Assert
         Assert.Equal(10, list.Offset);
@@ -373,7 +362,7 @@ public class Database_Tests : HttpTest
         Assert.Equal("luke", rebel.Id);
         Assert.Equal(ExpectedViewKey, rebel.Key);
         Assert.Equal(3, rebel.Value.NumberOfBattles);
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
             .WithVerb(HttpMethod.Get);
     }
@@ -390,7 +379,7 @@ public class Database_Tests : HttpTest
         };
 
         // Act
-        var list = await _rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name", options);
+        var list = await Rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name", options);
 
         // Assert
         Assert.Equal(10, list.Offset);
@@ -399,7 +388,7 @@ public class Database_Tests : HttpTest
         Assert.Equal("luke", rebel.Id);
         Assert.Equal(ExpectedViewKey, rebel.Key);
         Assert.Equal(3, rebel.Value.NumberOfBattles);
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
             .WithVerb(HttpMethod.Post)
             .WithRequestBody(@"{""key"":[""Luke"",""Skywalker""],""update"":""lazy""}");
@@ -407,7 +396,7 @@ public class Database_Tests : HttpTest
 
     private void SetupViewResponse()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             Offset = 10,
             Total_Rows = 20,
@@ -443,7 +432,7 @@ public class Database_Tests : HttpTest
         };
 
         // Act
-        var results = await _rebels.GetViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
+        var results = await Rebels.GetViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
 
         // Assert
         Assert.Equal(2, results.Length);
@@ -455,7 +444,7 @@ public class Database_Tests : HttpTest
             Assert.Equal(ExpectedViewKey, rebel.Key);
             Assert.Equal(3, rebel.Value.NumberOfBattles);
         });
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name/queries")
             .WithVerb(HttpMethod.Post)
             .WithRequestBody(
@@ -479,7 +468,7 @@ public class Database_Tests : HttpTest
         };
 
         // Act
-        var results = await _rebels.GetDetailedViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
+        var results = await Rebels.GetDetailedViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
 
         // Assert
         Assert.Equal(2, results.Length);
@@ -493,7 +482,7 @@ public class Database_Tests : HttpTest
             Assert.Equal(ExpectedViewKey, rebel.Key);
             Assert.Equal(3, rebel.Value.NumberOfBattles);
         });
-        httpTest
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name/queries")
             .WithVerb(HttpMethod.Post)
             .WithRequestBody(
@@ -502,7 +491,7 @@ public class Database_Tests : HttpTest
 
     private void SetupViewQueryResponse()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
             Results = new[]
             {
@@ -551,8 +540,22 @@ public class Database_Tests : HttpTest
     [Fact]
     public async Task Info()
     {
-        await _rebels.GetInfoAsync();
-        httpTest
+        HttpTest.RespondWithJson(new
+        {
+            cluster = new { },
+            compact_running = false,
+            db_name = "test_database",
+            disk_format_version = 8,
+            doc_count = 1000,
+            doc_del_count = 50,
+            purge_seq = "0-g1AAAABteJzLYWBg4MhgTmHgS04sKU7NS8",
+            sizes = new { },
+            update_seq = "1000-g1AAAABteJzLYWBg4MhgTmHgS04sKU7NS8",
+            props = new { partitioned = false }
+        });
+
+        await Rebels.GetInfoAsync();
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels")
             .WithVerb(HttpMethod.Get);
     }
@@ -561,10 +564,10 @@ public class Database_Tests : HttpTest
     public async Task Compact()
     {
         // Operation response
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
-        await _rebels.CompactAsync();
-        httpTest
+        await Rebels.CompactAsync();
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_compact")
             .WithVerb(HttpMethod.Post);
     }
@@ -572,21 +575,21 @@ public class Database_Tests : HttpTest
     [Fact]
     public async Task SecurityInfo_Get()
     {
-        httpTest.RespondWithJson(new
+        HttpTest.RespondWithJson(new
         {
-            Admins = new
+            admins = new
             {
-                Names = new[] { "superuser" },
-                Roles = new[] { "admins" }
+                names = new[] { "superuser" },
+                roles = new[] { "admins" }
             },
-            Members = new
+            members = new
             {
-                Names = new[] { "user1", "user2" },
-                Roles = new[] { "developers" }
+                names = new[] { "user1", "user2" },
+                roles = new[] { "developers" }
             }
         });
-        var securityInfo = await _rebels.Security.GetInfoAsync();
-        httpTest
+        var securityInfo = await Rebels.Security.GetInfoAsync();
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_security")
             .WithVerb(HttpMethod.Get);
         Assert.Equal("user1", securityInfo.Members.Names[0]);
@@ -595,13 +598,13 @@ public class Database_Tests : HttpTest
     [Fact]
     public async Task SecurityInfo_Put()
     {
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
         var securityInfo = new CouchSecurityInfo();
         securityInfo.Admins.Names.Add("user1");
 
-        await _rebels.Security.SetInfoAsync(securityInfo);
-        httpTest
+        await Rebels.Security.SetInfoAsync(securityInfo);
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_security")
             .WithVerb(HttpMethod.Put)
             .WithRequestJson(securityInfo);
@@ -611,9 +614,9 @@ public class Database_Tests : HttpTest
     [Fact]
     public async Task GetRevLimit()
     {
-        httpTest.RespondWith("3");
-        await _rebels.GetRevisionLimitAsync();
-        httpTest
+        HttpTest.RespondWith("3");
+        await Rebels.GetRevisionLimitAsync();
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_revs_limit")
             .WithVerb(HttpMethod.Get);
     }
@@ -622,10 +625,10 @@ public class Database_Tests : HttpTest
     public async Task SetRevLimit()
     {
         // Operation response
-        httpTest.RespondWithJson(new { ok = true });
+        HttpTest.RespondWithJson(new { ok = true });
 
-        await _rebels.SetRevisionLimitAsync(10);
-        httpTest
+        await Rebels.SetRevisionLimitAsync(10);
+        HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_revs_limit")
             .WithVerb(HttpMethod.Put);
     }
