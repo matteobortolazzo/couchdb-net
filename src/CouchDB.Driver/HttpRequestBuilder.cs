@@ -2,7 +2,6 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
@@ -13,12 +12,23 @@ using CouchDB.Driver.Shared;
 
 namespace CouchDB.Driver;
 
-public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
+public class HttpRequestBuilder
 {
     private TimeSpan? _timeout;
-    private readonly UriBuilder _uriBuilder = new(baseUri);
+    private readonly UriBuilder _uriBuilder;
     private readonly List<HttpStatusCode> _allowedStatusCodes = [];
     private readonly Dictionary<string, string> _headers = new();
+    private readonly HttpClient _httpClient;
+    private readonly Uri _baseUri;
+    private readonly CouchCredentials _credentials;
+
+    internal HttpRequestBuilder(HttpClient httpClient, Uri baseUri, CouchCredentials credentials)
+    {
+        _httpClient = httpClient;
+        _baseUri = baseUri;
+        _credentials = credentials;
+        _uriBuilder = new UriBuilder(baseUri);
+    }
 
     public HttpRequestBuilder AppendPathSegment(string segment)
     {
@@ -180,6 +190,11 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
         HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
         CancellationToken cancellationToken = default)
     {
+        if (!IsSessionRequest(request))
+        {
+            await ApplyAuthenticationAsync(_credentials, cancellationToken);
+        }
+
         ApplyHeaders(request);
 
         if (_timeout.HasValue)
@@ -190,9 +205,47 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
         }
 
         HttpResponseMessage response =
-            await httpClient.SendAsync(request, completionOption, cancellationToken).ConfigureAwait(false);
+            await _httpClient.SendAsync(request, completionOption, cancellationToken).ConfigureAwait(false);
         await ValidateResponseAsync(response, cancellationToken).ConfigureAwait(false);
         return response;
+    }
+
+    private async Task ApplyAuthenticationAsync(
+        CouchCredentials credentials,
+        CancellationToken cancellationToken)
+    {
+        switch (credentials)
+        {
+            case BasicCredentials basic:
+                WithHeader("Authorization", $"Basic {basic.Token}");
+                return;
+            case CookieCredentials cookie:
+                {
+                    var token = await cookie.GetTokenAsync(_httpClient, _baseUri, cancellationToken);
+                    WithHeader("Cookie", $"AuthSession={token}");
+                    return;
+                }
+            case ProxyCredentials proxy:
+                {
+                    WithHeader("X-Auth-CouchDB-UserName", proxy.Username);
+                    WithHeader("X-Auth-CouchDB-Roles", string.Join(",", proxy.Roles ?? []));
+                    if (proxy.Token != null)
+                    {
+                        WithHeader("X-Auth-CouchDB-Token", proxy.Token);
+                    }
+
+                    return;
+                }
+            case JwtCredentials jwt:
+                {
+                    var token = jwt.JwtToken ?? await jwt.JwtTokenGenerator!().ConfigureAwait(false);
+                    WithHeader("Authorization", $"Bearer {token}");
+                    return;
+                }
+            default:
+                throw new NotSupportedException(
+                    $"Authentication of type {credentials.GetType().Name} is not supported.");
+        }
     }
 
     private void ApplyHeaders(HttpRequestMessage request)
@@ -240,4 +293,7 @@ public class HttpRequestBuilder(HttpClient httpClient, Uri baseUri)
             content,
             $"Request failed with status code {(int)response.StatusCode} ({response.StatusCode})");
     }
+
+    private static bool IsSessionRequest(HttpRequestMessage request) =>
+        request.RequestUri?.ToString().Contains("_session", StringComparison.InvariantCultureIgnoreCase) == true;
 }

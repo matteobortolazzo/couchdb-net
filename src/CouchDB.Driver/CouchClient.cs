@@ -8,8 +8,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading;
-using CouchDB.Driver.Converters;
-using CouchDB.Driver.DelegatingHandlers;
 using CouchDB.Driver.Helpers;
 using CouchDB.Driver.Options;
 using CouchDB.Driver.Query;
@@ -56,21 +54,19 @@ public partial class CouchClient : ICouchClient
 
         _httpClient = options?.HttpClient ?? CreateDefaultHttpClient();
         _options = new InternalCouchClientOptions(
+            credentials,
             jsonSerializerOptions,
             options?.LogOutOnDispose ?? true,
             options?.ThrowOnQueryWarning ?? true);
 
         _credentials = credentials;
         Endpoint = new Uri(endpoint);
-
-        _httpClient = options?.HttpClient ?? CreateDefaultHttpClient();
     }
 
-    private HttpClient CreateDefaultHttpClient()
+    private static HttpClient CreateDefaultHttpClient()
     {
         var socketHandler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(15) };
-        var authenticationHandler = new AuthenticationDelegatingHandler(_credentials) { InnerHandler = socketHandler };
-        return new HttpClient(authenticationHandler);
+        return new HttpClient(socketHandler);
     }
 
     #region Operations
@@ -395,7 +391,7 @@ public partial class CouchClient : ICouchClient
 
     private HttpRequestBuilder NewRequest()
     {
-        return _httpClient.Request(Endpoint);
+        return _httpClient.Request(Endpoint, _options.Credentials);
     }
 
     private QueryContext NewQueryContext(string database)
@@ -441,7 +437,7 @@ public partial class CouchClient : ICouchClient
     private async Task LogoutAsync(CancellationToken cancellationToken = default)
     {
         OperationResult result = await _httpClient
-            .Request(Endpoint)
+            .Request(Endpoint, _options.Credentials)
             .AppendPathSegment("_session")
             .DeleteAsync(cancellationToken: cancellationToken)
             .ReceiveJson<OperationResult>()

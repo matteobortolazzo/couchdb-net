@@ -52,8 +52,8 @@ public static class HttpClientExtensions
         }
     }
 
-    public static HttpRequestBuilder Request(this HttpClient client, Uri baseUri)
+    public static HttpRequestBuilder Request(this HttpClient client, Uri baseUri, CouchCredentials credentials)
     {
-        return new HttpRequestBuilder(client, baseUri);
+        return new HttpRequestBuilder(client, baseUri, credentials);
     }
 }

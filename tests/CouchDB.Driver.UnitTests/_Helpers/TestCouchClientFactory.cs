@@ -4,7 +4,9 @@ namespace CouchDB.Driver.UnitTests._Helpers;
 
 public static class TestCouchClientFactory
 {
-    public static CouchClient Create(HttpTestHelper testHelper)
+    public static CouchClient Create(
+        HttpTestHelper testHelper,
+        CouchCredentials? credentials = null)
     {
         var options = new CouchClientOptions()
         {
@@ -12,7 +14,7 @@ public static class TestCouchClientFactory
             JsonSerializerOptions = HttpTestHelper.JsonSerializerOptions
         };
 
-        var credentials = new BasicCredentials("admin", "admin");
+        credentials ??= new BasicCredentials("admin", "admin");
         return new CouchClient("http://localhost", credentials, options);
     }
 }

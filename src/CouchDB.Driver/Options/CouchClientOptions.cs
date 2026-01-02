@@ -16,6 +16,7 @@ public record CouchClientOptions
 }
 
 internal record InternalCouchClientOptions(
+    CouchCredentials Credentials,
     JsonSerializerOptions JsonSerializerOptions,
     bool LogOutOnDispose,
     bool ThrowOnQueryWarning);

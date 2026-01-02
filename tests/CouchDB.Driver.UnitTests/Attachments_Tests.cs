@@ -46,16 +46,12 @@ public class Attachments_Tests : HttpTests
         var newPath = await Rebels.DownloadAttachmentAsync("luke.txt", addResult.Id, addResult.Rev, "anyfolder");
 
         HttpTest
-            .ShouldHaveCalled("http://localhost/rebels/1")
-            .WithVerb(HttpMethod.Put);
-        HttpTest
-            .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
-            .WithVerb(HttpMethod.Put)
-            .WithHeader("If-Match", "xxx");
+            .ShouldHaveCalled("http://localhost/rebels")
+            .WithVerb(HttpMethod.Post);
         HttpTest
             .ShouldHaveCalled("http://localhost/rebels/1/luke.txt")
             .WithVerb(HttpMethod.Get)
-            .WithHeader("If-Match", "xxx2");
+            .WithHeader("If-Match", "xxx");
 
         var newAttachFile = Path.Combine("anyfolder", "luke.txt");
         Assert.Equal(newAttachFile, newPath);

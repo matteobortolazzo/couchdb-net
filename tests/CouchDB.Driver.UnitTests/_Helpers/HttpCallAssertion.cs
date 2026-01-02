@@ -158,21 +158,34 @@ public class HttpCallAssertion(List<LoggedCall> callLog, string expectedUrl)
 
     private string? GetFirstFailure()
     {
+        var matchingCalls = new List<(LoggedCall Call, string ErrorMessage)>();
+
         foreach (var call in callLog)
         {
             if (!UrlMatches(call.Request.RequestUri?.ToString(), expectedUrl))
                 continue;
 
+            var failedCheck = false;
             foreach (var check in _checks)
             {
                 var (success, errorMessage) = check(call);
                 if (!success)
                 {
-                    return errorMessage;
+                    matchingCalls.Add((call, errorMessage));
+                    failedCheck = true;
+                    break;
                 }
             }
 
-            return null;
+            if (!failedCheck)
+            {
+                return null; // Found a fully matching call
+            }
+        }
+
+        if (matchingCalls.Count > 0)
+        {
+            return matchingCalls[0].ErrorMessage;
         }
 
         return _checks.Count > 0 ? "No matching URL found" : null;

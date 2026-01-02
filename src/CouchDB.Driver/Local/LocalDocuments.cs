@@ -91,7 +91,7 @@ internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) 
     private HttpRequestBuilder NewRequest()
     {
         return httpClient
-            .Request(queryContext.Endpoint)
+            .Request(queryContext.Endpoint, queryContext.Options.Credentials)
             .AppendPathSegment(queryContext.EscapedDatabaseName);
     }
 }

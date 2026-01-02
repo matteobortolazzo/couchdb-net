@@ -788,7 +788,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     public HttpRequestBuilder NewRequest()
     {
         return _httpClient
-            .Request(_queryContext.Endpoint)
+            .Request(_queryContext.Endpoint, _options.Credentials)
             .AppendPathSegment(_queryContext.EscapedDatabaseName);
     }
 

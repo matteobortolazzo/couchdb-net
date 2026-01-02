@@ -58,7 +58,7 @@ internal class QuerySender(HttpClient httpClient, QueryContext queryContext) : I
         CancellationToken cancellationToken)
     {
         FindResult<TItem>? findResult = await httpClient
-            .Request(queryContext.Endpoint)
+            .Request(queryContext.Endpoint, queryContext.Options.Credentials)
             .AppendPathSegments(queryContext.DatabaseName, "_find")
             .WithHeader("Content-Type", "application/json")
             .PostStringAsync(body, cancellationToken: cancellationToken)

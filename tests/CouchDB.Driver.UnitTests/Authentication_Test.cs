@@ -13,28 +13,12 @@ namespace CouchDB.Driver.UnitTests;
 public class Authentication_Test : HttpTests
 {
     [Fact]
-    public async Task None()
-    {
-        SetupListResponse();
-
-        await using var client = new CouchClient("http://localhost",
-            new BasicCredentials("root", "relax"));
-
-        var rebels = client.GetDatabase<Rebel>();
-        await rebels.ToListAsync();
-
-        HttpTest
-            .ShouldHaveCalled("http://localhost/rebels/_find")
-            .WithVerb(HttpMethod.Post);
-    }
-
-    [Fact]
     public async Task Basic()
     {
         SetupListResponse();
 
-        await using var client = new CouchClient("http://localhost",
-            new BasicCredentials("root", "relax"));
+        var cred = new BasicCredentials("root", "relax");
+        var client = TestCouchClientFactory.Create(HttpTest, cred);
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
@@ -61,17 +45,15 @@ public class Authentication_Test : HttpTests
         HttpTest.RespondWith(string.Empty, 200, headers, cookies);
         SetupListResponse();
 
-        await using var client = new CouchClient("http://localhost",
-            new CookieCredentials("root", "relax"));
+        var cred = new CookieCredentials("root", "relax");
+        var client = TestCouchClientFactory.Create(HttpTest, cred);
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
-        var sessionRequest = HttpTest.CallLog
-            .Single(c => c.Request.RequestUri!.ToString().Contains("_session"));
-        var authCookie = sessionRequest.Request
-            .Headers.GetValues("Cookie")
-            .FirstOrDefault();
-        Assert.Equal($"AuthSession={token}", authCookie);
+        HttpTest
+            .ShouldHaveCalled("http://localhost/rebels/_find")
+            .WithVerb(HttpMethod.Post)
+            .WithHeader("Cookie", $"AuthSession={token}");
     }
 
     [Fact]
@@ -79,8 +61,8 @@ public class Authentication_Test : HttpTests
     {
         SetupListResponse();
 
-        await using var client = new CouchClient("http://localhost",
-            new ProxyCredentials("root", ["role1", "role2"]));
+        var cred = new ProxyCredentials("root", ["role1", "role2"]);
+        var client = TestCouchClientFactory.Create(HttpTest, cred);
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
@@ -97,14 +79,15 @@ public class Authentication_Test : HttpTests
         SetupListResponse();
 
         var jwt = Guid.NewGuid().ToString();
-        await using var client = new CouchClient("http://localhost", new JwtCredentials(jwt));
+        var cred = new JwtCredentials(jwt);
+        var client = TestCouchClientFactory.Create(HttpTest, cred);
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
         HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post)
-            .WithHeader("Authorization", jwt);
+            .WithHeader("Authorization", $"Bearer {jwt}");
     }
 
     [Fact]
@@ -115,14 +98,15 @@ public class Authentication_Test : HttpTests
         var jwt = Guid.NewGuid().ToString();
         var jwtTask = Task.FromResult(jwt);
 
-        await using var client = new CouchClient("http://localhost", new JwtCredentials(() => jwtTask));
+        var cred = new JwtCredentials(() => jwtTask);
+        var client = TestCouchClientFactory.Create(HttpTest, cred);
         var rebels = client.GetDatabase<Rebel>();
         await rebels.ToListAsync();
 
         HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")
             .WithVerb(HttpMethod.Post)
-            .WithHeader("Authorization", jwt);
+            .WithHeader("Authorization", $"Bearer {jwt}");
     }
 
     private void SetupListResponse()
