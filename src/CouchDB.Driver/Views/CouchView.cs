@@ -6,30 +6,9 @@
 /// <typeparam name="TKey">The type of the key</typeparam>
 /// <typeparam name="TValue">The type of the value</typeparam>
 /// <typeparam name="TDoc">The type of the document.</typeparam>
+/// <param name="Id">The document ID.</param>
+/// <param name="Key">The view key.</param>
+/// <param name="Value">The view value.</param>
+/// <param name="Document">The document. Returned if included.</param>
 [Serializable]
-public class CouchView<TKey, TValue, TDoc>
-{
-    /// <summary>
-    /// The document ID.
-    /// </summary>
-    [property:JsonPropertyName("id")]
-    public required string Id { get; init; }
-
-    /// <summary>
-    /// The view key.
-    /// </summary>
-    [property:JsonPropertyName("key")]
-    public required TKey Key { get; init; }
-
-    /// <summary>
-    /// The view key.
-    /// </summary>
-    [property:JsonPropertyName("value")]
-    public required TValue Value { get; init; }
-
-    /// <summary>
-    /// The document.
-    /// </summary>
-    [property:JsonPropertyName("doc")]
-    public required TDoc Document { get; init; }
-}
+public record CouchView<TKey, TValue, TDoc>(string Id, TKey Key, TValue Value, TDoc? Document);

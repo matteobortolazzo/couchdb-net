@@ -554,17 +554,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     #region View
 
     /// <inheritdoc/>
-    public async Task<List<CouchView<TKey, TValue, TSource>>> GetViewAsync<TKey, TValue>(string design, string view,
-        CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
-    {
-        CouchViewList<TKey, TValue, TSource> result =
-            await GetDetailedViewAsync<TKey, TValue>(design, view, options, cancellationToken)
-                .ConfigureAwait(false);
-        return result.Rows;
-    }
-
-    /// <inheritdoc/>
-    public Task<CouchViewList<TKey, TValue, TSource>> GetDetailedViewAsync<TKey, TValue>(string design, string view,
+    public async Task<CouchViewList<TKey, TValue, TSource>> QueryViewAsync<TKey, TValue>(string design, string view,
         CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(design);
@@ -578,23 +568,11 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             : request
                 .PostJsonAsync(options, cancellationToken: cancellationToken)
                 .ReceiveJson<CouchViewList<TKey, TValue, TSource>>();
-        return requestTask.SendRequestAsync();
+        return await requestTask.SendRequestAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
-    public async Task<List<CouchView<TKey, TValue, TSource>>[]> GetViewQueryAsync<TKey, TValue>(string design,
-        string view,
-        IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default)
-    {
-        CouchViewList<TKey, TValue, TSource>[] result =
-            await GetDetailedViewQueryAsync<TKey, TValue>(design, view, queries, cancellationToken)
-                .ConfigureAwait(false);
-
-        return result.Select(x => x.Rows).ToArray();
-    }
-
-    /// <inheritdoc/>
-    public async Task<CouchViewList<TKey, TValue, TSource>[]> GetDetailedViewQueryAsync<TKey, TValue>(string design,
+    public async Task<CouchViewList<TKey, TValue, TSource>[]> QueryViewQueryAsync<TKey, TValue>(string design,
         string view,
         IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default)
     {
@@ -605,14 +583,14 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         HttpRequestBuilder request = NewRequest()
             .AppendPathSegments("_design", design, "_view", view, "queries");
 
-        CouchViewQueryResult<TKey, TValue, TSource> result =
+        RunViewQueriesResult<TKey, TValue, TSource> results =
             await request
                 .PostJsonAsync(new { queries }, cancellationToken: cancellationToken)
-                .ReceiveJson<CouchViewQueryResult<TKey, TValue, TSource>>()
+                .ReceiveJson<RunViewQueriesResult<TKey, TValue, TSource>>()
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
-        return result.Results;
+        return results.Results;
     }
 
     #endregion

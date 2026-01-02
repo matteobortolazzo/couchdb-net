@@ -141,20 +141,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="options">Options for the request.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see cref="CouchView{TKey, TValue, TSource}"/>.</returns>
-    Task<List<CouchView<TKey, TValue, TSource>>> GetViewAsync<TKey, TValue>(string design, string view,
-        CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Executes the specified view function from the specified design document.
-    /// </summary>
-    /// <typeparam name="TKey">The type of the key.</typeparam>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="design">The design to use.</param>
-    /// <param name="view">The view to use.</param>
-    /// <param name="options">Options for the request.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CouchViewList{TKey, TSource, TView}"/>.</returns>
-    Task<CouchViewList<TKey, TValue, TSource>> GetDetailedViewAsync<TKey, TValue>(string design, string view,
+    Task<CouchViewList<TKey, TValue, TSource>> QueryViewAsync<TKey, TValue>(string design, string view,
         CouchViewOptions<TKey>? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -168,21 +155,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="queries">Multiple query options for the request.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains an array with a list of <see cref="CouchView{TKey, TValue, TSource}"/> for each query.</returns>
-    Task<List<CouchView<TKey, TValue, TSource>>[]> GetViewQueryAsync<TKey, TValue>(string design, string view,
-        IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Executes the specified view function from the specified design document using
-    /// the queries' endpoint. This returns one result for each query option in the provided sequence.
-    /// </summary>
-    /// <typeparam name="TKey">The type of the key.</typeparam>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="design">The design to use.</param>
-    /// <param name="view">The view to use.</param>
-    /// <param name="queries">Multiple query options for the request.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list with a <see cref="CouchViewList{TKey, TSource, TView}"/> for each query.</returns>
-    Task<CouchViewList<TKey, TValue, TSource>[]> GetDetailedViewQueryAsync<TKey, TValue>(string design, string view,
+    Task<CouchViewList<TKey, TValue, TSource>[]> QueryViewQueryAsync<TKey, TValue>(string design, string view,
         IList<CouchViewOptions<TKey>> queries, CancellationToken cancellationToken = default);
 
     /// <summary>

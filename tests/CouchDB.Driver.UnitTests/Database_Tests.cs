@@ -303,15 +303,17 @@ public class Database_Tests : HttpTests
     private static readonly string[] ExpectedViewKey = ["Luke", "Skywalker"];
 
     [Fact]
-    public async Task GetViewAsync_WithNoOptions_CallGet()
+    public async Task QueryViewAsync_WithNoOptions_CallGet()
     {
         // Arrange
         SetupViewResponse();
 
         // Act
-        var rebels = await Rebels.GetViewAsync<string[], RebelView>("jedi", "by_name");
+        var rebels = await Rebels.QueryViewAsync<string[], RebelView>("jedi", "by_name");
 
         // Assert
+        Assert.Equal(10, rebels.Offset);
+        Assert.Equal(20, rebels.TotalRows);
         var rebel = Assert.Single(rebels);
         Assert.Equal("luke", rebel.Id);
         Assert.Equal(ExpectedViewKey, rebel.Key);
@@ -322,7 +324,7 @@ public class Database_Tests : HttpTests
     }
 
     [Fact]
-    public async Task GetViewAsync_WithOptions_CallPost()
+    public async Task QueryViewAsync_WithOptions_CallPost()
     {
         // Arrange
         SetupViewResponse();
@@ -333,9 +335,11 @@ public class Database_Tests : HttpTests
         };
 
         // Act
-        var rebels = await Rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
+        var rebels = await Rebels.QueryViewAsync<string[], RebelView>("jedi", "by_name", options);
 
         // Assert
+        Assert.Equal(10, rebels.Offset);
+        Assert.Equal(20, rebels.TotalRows);
         var rebel = Assert.Single(rebels);
         Assert.Equal("luke", rebel.Id);
         Assert.Equal(ExpectedViewKey, rebel.Key);
@@ -346,61 +350,13 @@ public class Database_Tests : HttpTests
             .WithRequestBody(@"{""key"":[""Luke"",""Skywalker""],""skip"":10}");
     }
 
-    [Fact]
-    public async Task GetDetailed_WithNoOptions_CallGet()
-    {
-        // Arrange
-        SetupViewResponse();
-
-        // Act
-        var list = await Rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name");
-
-        // Assert
-        Assert.Equal(10, list.Offset);
-        Assert.Equal(20, list.TotalRows);
-        var rebel = Assert.Single(list.Rows);
-        Assert.Equal("luke", rebel.Id);
-        Assert.Equal(ExpectedViewKey, rebel.Key);
-        Assert.Equal(3, rebel.Value.NumberOfBattles);
-        HttpTest
-            .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
-            .WithVerb(HttpMethod.Get);
-    }
-
-    [Fact]
-    public async Task GetDetailedViewAsync_WithOptions_CallPost()
-    {
-        // Arrange
-        SetupViewResponse();
-        var options = new CouchViewOptions<string[]>
-        {
-            Key = ["Luke", "Skywalker"],
-            Update = UpdateStyle.Lazy
-        };
-
-        // Act
-        var list = await Rebels.GetDetailedViewAsync<string[], RebelView>("jedi", "by_name", options);
-
-        // Assert
-        Assert.Equal(10, list.Offset);
-        Assert.Equal(20, list.TotalRows);
-        var rebel = Assert.Single(list.Rows);
-        Assert.Equal("luke", rebel.Id);
-        Assert.Equal(ExpectedViewKey, rebel.Key);
-        Assert.Equal(3, rebel.Value.NumberOfBattles);
-        HttpTest
-            .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name")
-            .WithVerb(HttpMethod.Post)
-            .WithRequestBody(@"{""key"":[""Luke"",""Skywalker""],""update"":""lazy""}");
-    }
-
     private void SetupViewResponse()
     {
         HttpTest.RespondWithJson(new
         {
-            Offset = 10,
-            Total_Rows = 20,
-            Rows = new[]
+            offset = 10,
+            total_rows = 20,
+            rows = new[]
             {
                 new
                 {
@@ -432,43 +388,7 @@ public class Database_Tests : HttpTests
         };
 
         // Act
-        var results = await Rebels.GetViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
-
-        // Assert
-        Assert.Equal(2, results.Length);
-
-        Assert.All(results, result =>
-        {
-            var rebel = Assert.Single(result);
-            Assert.Equal("luke", rebel.Id);
-            Assert.Equal(ExpectedViewKey, rebel.Key);
-            Assert.Equal(3, rebel.Value.NumberOfBattles);
-        });
-        HttpTest
-            .ShouldHaveCalled("http://localhost/rebels/_design/jedi/_view/by_name/queries")
-            .WithVerb(HttpMethod.Post)
-            .WithRequestBody(
-                @"{""queries"":[{""key"":[""Luke"",""Skywalker""],""skip"":10},{""key"":[""Luke"",""Skywalker""],""skip"":10}]}");
-    }
-
-    [Fact]
-    public async Task GetDetailedViewQueryAsync()
-    {
-        // Arrange
-        SetupViewQueryResponse();
-        var options = new CouchViewOptions<string[]>
-        {
-            Key = ["Luke", "Skywalker"],
-            Skip = 10
-        };
-        var queries = new[]
-        {
-            options,
-            options
-        };
-
-        // Act
-        var results = await Rebels.GetDetailedViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
+        var results = await Rebels.QueryViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
 
         // Assert
         Assert.Equal(2, results.Length);
@@ -477,7 +397,7 @@ public class Database_Tests : HttpTests
         {
             Assert.Equal(10, result.Offset);
             Assert.Equal(20, result.TotalRows);
-            var rebel = Assert.Single(result.Rows);
+            var rebel = Assert.Single(result);
             Assert.Equal("luke", rebel.Id);
             Assert.Equal(ExpectedViewKey, rebel.Key);
             Assert.Equal(3, rebel.Value.NumberOfBattles);
@@ -497,9 +417,9 @@ public class Database_Tests : HttpTests
             {
                 new
                 {
-                    Offset = 10,
-                    Total_Rows = 20,
-                    Rows = new[]
+                    offset = 10,
+                    total_rows = 20,
+                    rows = new[]
                     {
                         new
                         {
@@ -514,9 +434,9 @@ public class Database_Tests : HttpTests
                 },
                 new
                 {
-                    Offset = 10,
-                    Total_Rows = 20,
-                    Rows = new[]
+                    offset = 10,
+                    total_rows = 20,
+                    rows = new[]
                     {
                         new
                         {

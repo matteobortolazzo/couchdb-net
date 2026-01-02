@@ -4,7 +4,7 @@ using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.Converters;
 
-public class ReadItemResponseConverterFactory : JsonConverterFactory
+internal class ReadItemResponseConverterFactory : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert)
     {
@@ -26,7 +26,7 @@ public class ReadItemResponseConverterFactory : JsonConverterFactory
     }
 }
 
-public class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSource>>
+internal class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemResponse<TSource>>
     where TSource : class
 {
     public override ReadItemResponse<TSource> Read(ref Utf8JsonReader reader,
