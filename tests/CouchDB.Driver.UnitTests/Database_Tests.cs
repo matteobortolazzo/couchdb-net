@@ -100,7 +100,7 @@ public class Database_Tests : HttpTests
     public async Task ReadItems()
     {
         HttpTest.RespondWith(
-            @"{""results"":[{""id"":""1"",""docs"":[{""ok"":{""_id"":""1"",""Name"":""Luke""}}]},{""id"":""2"",""docs"":[{""ok"":{""_id"":""2"",""Name"":""Leia""}}]}]}");
+            @"{""results"":[{""id"":""1"",""docs"":[{""ok"":{""_id"":""1"",""name"":""Luke""}}]},{""id"":""2"",""docs"":[{""ok"":{""_id"":""2"",""name"":""Leia""}}]}]}");
         var ids = new[] { "1", "2" };
         var result = await Rebels.ReadItemsAsync(ids);
         HttpTest

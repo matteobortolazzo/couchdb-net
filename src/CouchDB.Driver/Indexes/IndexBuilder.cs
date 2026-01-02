@@ -53,7 +53,7 @@ internal class IndexBuilder<TSource>(
     private void AddField<TSelector>(Expression<Func<TSource, TSelector>> selector)
     {
         var memberExpression = selector.ToMemberExpression();
-        _fields.Add(memberExpression.GetPropertyName(options.JsonSerializerOptions.PropertyNamingPolicy));
+        _fields.Add(memberExpression.GetPropertyName(options.DocumentJsonSerializerOptions.PropertyNamingPolicy));
     }
 
     public IndexDefinition Build()

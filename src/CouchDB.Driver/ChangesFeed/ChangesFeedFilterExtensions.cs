@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDB.Driver.ChangesFeed.Filters;
@@ -16,7 +17,8 @@ internal static class ChangesFeedFilterExtensions
     {
         public async Task<ChangesFeedResponse<TSource>> QueryWithFilterAsync<TSource>(IAsyncQueryProvider queryProvider,
             ChangesFeedFilter filter,
-            CancellationToken cancellationToken)
+            JsonSerializerOptions? jsonSerializerOptions = null,
+            CancellationToken cancellationToken = default)
             where TSource : class
         {
             if (filter is DocumentIdsChangesFeedFilter documentIdsFilter)
@@ -25,7 +27,7 @@ internal static class ChangesFeedFilterExtensions
                     .SetQueryParam("filter", "_doc_ids")
                     .PostJsonAsync(new ChangesFeedFilterDocuments(documentIdsFilter.Value),
                         cancellationToken: cancellationToken)
-                    .ReceiveJson<ChangesFeedResponse<TSource>>()
+                    .ReceiveJson<ChangesFeedResponse<TSource>>(jsonSerializerOptions)
                     .ConfigureAwait(false);
             }
 
@@ -38,7 +40,7 @@ internal static class ChangesFeedFilterExtensions
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
                     .PostStringAsync(jsonSelector, cancellationToken: cancellationToken)
-                    .ReceiveJson<ChangesFeedResponse<TSource>>()
+                    .ReceiveJson<ChangesFeedResponse<TSource>>(jsonSerializerOptions)
                     .ConfigureAwait(false);
             }
 
@@ -46,7 +48,7 @@ internal static class ChangesFeedFilterExtensions
             {
                 return await request
                     .SetQueryParam("filter", "_design")
-                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
+                    .GetJsonAsync<ChangesFeedResponse<TSource>>(jsonSerializerOptions, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -55,7 +57,7 @@ internal static class ChangesFeedFilterExtensions
                 return await request
                     .SetQueryParam("filter", "_view")
                     .SetQueryParam("view", viewFilter.Value)
-                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
+                    .GetJsonAsync<ChangesFeedResponse<TSource>>(jsonSerializerOptions, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -64,7 +66,7 @@ internal static class ChangesFeedFilterExtensions
                 HttpRequestBuilder req = ApplyDesignDocumentFilterParams(request, designDocFilter);
 
                 return await req
-                    .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
+                    .GetJsonAsync<ChangesFeedResponse<TSource>>(jsonSerializerOptions, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
             }
 

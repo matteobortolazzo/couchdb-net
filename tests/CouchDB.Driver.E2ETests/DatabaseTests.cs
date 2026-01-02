@@ -281,11 +281,11 @@ public class DatabaseTests(TestFixture fixture) : IClassFixture<TestFixture>
         }
 
         // There is an index for Name and Surname so it should not cause a warning
-        await fixture.Rebels.QueryAsync(@"{""selector"":{""$and"":[{""name"":""Luke""},{""surname"":""Skywalker""}]}}");
+        await fixture.Rebels.QueryAsync(@"{""selector"":{""$and"":[{""Name"":""Luke""},{""Surname"":""Skywalker""}]}}");
         try
         {
             // There is no index for Age so it should cause a warning
-            await fixture.Rebels.QueryAsync(@"{""selector"":{""age"":""19""}}");
+            await fixture.Rebels.QueryAsync(@"{""selector"":{""Age"":""19""}}");
             Assert.Fail("Expected exception not thrown");
         }
         catch (CouchQueryWarningException e)

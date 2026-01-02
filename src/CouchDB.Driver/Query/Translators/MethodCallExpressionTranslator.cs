@@ -446,7 +446,7 @@ internal partial class QueryTranslator
 
         foreach (PropertyInfo property in properties)
         {
-            var field = property.GetCouchPropertyName(_options.JsonSerializerOptions.PropertyNamingPolicy);
+            var field = property.GetCouchPropertyName(_options.DocumentJsonSerializerOptions.PropertyNamingPolicy);
             _sb.Append($"\"{field}\",");
         }
 

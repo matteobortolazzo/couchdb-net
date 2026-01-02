@@ -40,7 +40,7 @@ internal class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemRespon
         var bufferWriter = new ArrayBufferWriter<byte>();
         using var writer = new Utf8JsonWriter(bufferWriter);
 
-        string? rev = null;
+        string rev = null!;
         string[]? conflicts = null;
         string[]? deletedConflicts = null;
         int? localSeq = null;
@@ -69,14 +69,36 @@ internal class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemRespon
             switch (propertyName)
             {
                 case "_rev":
-                    rev = reader.GetString();
-                    writer.WritePropertyName(GetPropertyName("rev", jsonSerializerOptions));
-                    writer.WriteStringValue(rev);
+                    rev = reader.GetString()!;
+                    if (jsonSerializerOptions.PropertyNamingPolicy == null)
+                    {
+                        writer.WritePropertyName("rev");
+                        writer.WriteStringValue(rev);
+                        writer.WritePropertyName("Rev");
+                        writer.WriteStringValue(rev);
+                    }
+                    else
+                    {
+                        writer.WritePropertyName(GetPropertyName("rev", jsonSerializerOptions));
+                        writer.WriteStringValue(rev);
+                    }
+
                     break;
                 case "_id":
-                    writer.WritePropertyName(GetPropertyName("id", jsonSerializerOptions));
-                    JsonSerializer.Serialize(writer, JsonSerializer.Deserialize<JsonElement>(ref reader),
-                        jsonSerializerOptions);
+                    var id = reader.GetString()!;
+                    if (jsonSerializerOptions.PropertyNamingPolicy == null)
+                    {
+                        writer.WritePropertyName("id");
+                        writer.WriteStringValue(id);
+                        writer.WritePropertyName("Id");
+                        writer.WriteStringValue(id);
+                    }
+                    else
+                    {
+                        writer.WritePropertyName(GetPropertyName("id", jsonSerializerOptions));
+                        writer.WriteStringValue(id);
+                    }
+
                     break;
                 case "_conflicts":
                     conflicts = JsonSerializer.Deserialize<string[]>(ref reader, jsonSerializerOptions);
@@ -121,6 +143,7 @@ internal class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemRespon
         writer.Flush();
 
         var jsonReader = new Utf8JsonReader(bufferWriter.WrittenSpan);
+        var jsonString = System.Text.Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
         TSource? document = JsonSerializer.Deserialize<TSource>(ref jsonReader, jsonSerializerOptions);
 
         return new ReadItemResponse<TSource>(

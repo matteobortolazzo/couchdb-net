@@ -91,7 +91,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
 
         var json = await response.GetStringAsync().ConfigureAwait(false);
-        return JsonSerializer.Deserialize<ReadItemResponse<TSource>>(json, _options.JsonSerializerOptions);
+        return JsonSerializer.Deserialize<ReadItemResponse<TSource>>(json, _options.DocumentJsonSerializerOptions);
     }
 
     /// <inheritdoc />
@@ -119,7 +119,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         BulkGetResult<ReadItemResponse<TSource>> bulkGetResult = await NewRequest()
             .AppendPathSegment("_bulk_get")
             .PostJsonAsync(new { docs = ids.Select(id => new { id }) }, cancellationToken: cancellationToken)
-            .ReceiveJson<BulkGetResult<ReadItemResponse<TSource>>>()
+            .ReceiveJson<BulkGetResult<ReadItemResponse<TSource>>>(_options.DocumentJsonSerializerOptions)
             .SendRequestAsync()
             .ConfigureAwait(false);
 
@@ -142,7 +142,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         Task<HttpResponseMessage> message = requestFunc(request);
 
         FindResult<TSource> findResult = await message
-            .ReceiveJson<FindResult<TSource>>()
+            .ReceiveJson<FindResult<TSource>>(_options.DocumentJsonSerializerOptions)
             .SendRequestAsync()
             .ConfigureAwait(false);
 
@@ -186,11 +186,11 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                 requestAttachments[fileName] = new CreateAttachmentRequest(contentType, base64Content);
             }
 
-            jsonObject["_attachments"] =
-                JsonSerializer.SerializeToNode(requestAttachments, _options.JsonSerializerOptions);
+            jsonObject["_attachments"] = JsonSerializer.SerializeToNode(
+                requestAttachments, JsonSerializerOptions.Web);
         }
 
-        var jsonContent = JsonContent.Create(jsonObject, options: _options.JsonSerializerOptions);
+        var jsonContent = JsonContent.Create(jsonObject, options: _options.DocumentJsonSerializerOptions);
         return await request
             .PostAsync(jsonContent, cancellationToken: cancellationToken)
             .ReceiveJson<WriteItemResponse>()
@@ -215,7 +215,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         }
 
         JsonObject jsonObject = GetTransformedJsonObject(document);
-        var jsonContent = JsonContent.Create(jsonObject, options: _options.JsonSerializerOptions);
+        var jsonContent = JsonContent.Create(jsonObject, options: _options.DocumentJsonSerializerOptions);
         return await request
             .WithHeader(IfMatchHeader, rev)
             .PutAsync(jsonContent, cancellationToken: cancellationToken)
@@ -298,25 +298,21 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
 
     private JsonObject GetTransformedJsonObject(TSource document)
     {
-        var jsonObject = (JsonSerializer.SerializeToNode(document, _options.JsonSerializerOptions) as JsonObject)!;
+        var jsonObject =
+            (JsonSerializer.SerializeToNode(document, _options.DocumentJsonSerializerOptions) as JsonObject)!;
 
         // Remove rev
         jsonObject.Remove("rev");
+        jsonObject.Remove("Rev");
         jsonObject.Remove("_rev");
 
         // Transform id to _id for writes
-        var currentId = jsonObject["id"]?.GetValue<string>();
-        if (currentId != null)
+        if (jsonObject.Remove("id", out JsonNode? idNode) || jsonObject.Remove("Id", out idNode))
         {
-            jsonObject["_id"] = currentId;
-            jsonObject.Remove("id");
-        }
-
-        var currentIdPascal = jsonObject["Id"]?.GetValue<string>();
-        if (currentIdPascal != null)
-        {
-            jsonObject["_id"] = currentIdPascal;
-            jsonObject.Remove("Id");
+            if (idNode?.GetValue<string>() is { } id)
+            {
+                jsonObject["_id"] = id;
+            }
         }
 
         return jsonObject;
@@ -405,9 +401,14 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         request = ApplyChangesFeedOptions(request, options);
         return filter == null
             ? await request
-                .GetJsonAsync<ChangesFeedResponse<TSource>>(cancellationToken: cancellationToken)
+                .GetJsonAsync<ChangesFeedResponse<TSource>>(
+                    jsonSerializerOptions: _options.DocumentJsonSerializerOptions,
+                    cancellationToken: cancellationToken)
                 .ConfigureAwait(false)
-            : await request.QueryWithFilterAsync<TSource>(_queryProvider, filter, cancellationToken)
+            : await request.QueryWithFilterAsync<TSource>(
+                    _queryProvider, filter,
+                    jsonSerializerOptions: _options.DocumentJsonSerializerOptions,
+                    cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
     }
 
@@ -450,7 +451,8 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
                     var lineLength = endIndex - startIndex;
                     var substring = line.Substring(startIndex, lineLength);
                     ChangesFeedResponseResult<TSource>? result =
-                        JsonSerializer.Deserialize<ChangesFeedResponseResult<TSource>>(substring);
+                        JsonSerializer.Deserialize<ChangesFeedResponseResult<TSource>>(
+                            substring, _options.DocumentJsonSerializerOptions);
                     lastSequence = result!.Seq;
                     yield return result;
                 }
@@ -567,7 +569,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             ? request.GetJsonAsync<CouchViewList<TKey, TValue, TSource>>(cancellationToken: cancellationToken)
             : request
                 .PostJsonAsync(options, cancellationToken: cancellationToken)
-                .ReceiveJson<CouchViewList<TKey, TValue, TSource>>();
+                .ReceiveJson<CouchViewList<TKey, TValue, TSource>>(_options.DocumentJsonSerializerOptions);
         return await requestTask.SendRequestAsync().ConfigureAwait(false);
     }
 
@@ -586,7 +588,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         RunViewQueriesResult<TKey, TValue, TSource> results =
             await request
                 .PostJsonAsync(new { queries }, cancellationToken: cancellationToken)
-                .ReceiveJson<RunViewQueriesResult<TKey, TValue, TSource>>()
+                .ReceiveJson<RunViewQueriesResult<TKey, TValue, TSource>>(_options.DocumentJsonSerializerOptions)
                 .SendRequestAsync()
                 .ConfigureAwait(false);
 
