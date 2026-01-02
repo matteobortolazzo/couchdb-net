@@ -19,7 +19,16 @@ public static class HttpClientExtensions
         public async Task<Stream> ReceiveStream()
         {
             using HttpResponseMessage response = await responseTask.ConfigureAwait(false);
-            return await response.GetStream().ConfigureAwait(false);
+            Stream originalStream = await response.GetStream().ConfigureAwait(false);
+#if DEBUG
+            // Used for unit testing
+            var memoryStream = new MemoryStream();
+            await originalStream.CopyToAsync(memoryStream).ConfigureAwait(false);
+            memoryStream.Position = 0;
+            return memoryStream;
+#else
+    return originalStream;
+#endif
         }
     }
 

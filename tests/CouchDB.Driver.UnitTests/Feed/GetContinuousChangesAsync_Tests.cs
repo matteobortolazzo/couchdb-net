@@ -205,14 +205,17 @@ public class GetContinuousChangesAsync_Tests : HttpTests
     {
         var docId = Guid.NewGuid().ToString();
         var changeJson = GetChangesFeedResponseResultJson(docId);
-        var stream = new MemoryStream(Encoding.UTF8.GetBytes(changeJson + "\n"));
 
+        var stream = new MemoryStream(Encoding.UTF8.GetBytes(changeJson + "\n"));
         var streamContent = new StreamContent(stream);
+        streamContent.Headers.ContentLength = stream.Length;
+
         HttpTest.RespondWith(new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
             Content = streamContent
         });
+
         return docId;
     }
 

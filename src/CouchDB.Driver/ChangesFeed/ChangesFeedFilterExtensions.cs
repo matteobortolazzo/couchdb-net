@@ -94,7 +94,7 @@ internal static class ChangesFeedFilterExtensions
                 return await request
                     .WithHeader("Content-Type", "application/json")
                     .SetQueryParam("filter", "_selector")
-                    .PostJsonAsync(jsonSelector,
+                    .PostStringAsync(jsonSelector,
                         completionOption: HttpCompletionOption.ResponseHeadersRead,
                         cancellationToken: cancellationToken)
                     .ReceiveStream()
