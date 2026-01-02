@@ -132,7 +132,7 @@ The produced Mango JSON:
   ```csharp
   var rebels = fixture.Rebels;
   // or
-  var rebels = client.GetDatabase<Rebel>();
+  var rebels = client.GetDatabase<Rebel>("rebels");
   ```
 * Query the database
   ```csharp
@@ -249,7 +249,7 @@ Since v2.0 `IQueryable` methods that are not natively supported will throw an ex
 
 ```csharp
 // CRUD from class name (rebels)
-var rebels = client.GetDatabase<Rebel>();
+var rebels = client.GetDatabase<Rebel>("rebels");
 var rebels = await client.GetOrCreateDatabaseAsync<Rebel>();
 var rebels = await client.CreateDatabaseAsync<Rebel>();
 await client.DeleteDatabaseAsync<Rebel>();

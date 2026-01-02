@@ -54,49 +54,6 @@ public interface ICouchClient : IAsyncDisposable
     Task DeleteDatabaseAsync(string database, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
-    /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
-    /// </summary>
-    /// <typeparam name="TSource">The type of database documents.</typeparam>
-    /// <returns>The instance of the CouchDB database of the given type.</returns>
-    ICouchDatabase<TSource> GetDatabase<TSource>()
-        where TSource : class;
-
-    /// <summary>
-    /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
-    /// If a database exists with the given name, it throws an exception.
-    /// </summary>
-    /// <typeparam name="TSource">The type of database documents.</typeparam>
-    /// <param name="options">Options for database creation</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-    Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(
-        CreateDatabaseOptions? options = null, 
-        CancellationToken cancellationToken = default)
-        where TSource : class;
-
-    /// <summary>
-    /// Returns an instance of the CouchDB database with the name type <see cref="TSource"/>.
-    /// If no database exists with the given name, it creates it.
-    /// </summary>
-    /// <typeparam name="TSource">The type of database documents.</typeparam>
-    /// <param name="options">Options for database creation</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the newly created CouchDB database.</returns>
-    Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(
-        CreateDatabaseOptions? options = null, 
-        CancellationToken cancellationToken = default)
-        where TSource : class;
-
-    /// <summary>
-    /// Deletes the database with the name type <see cref="TSource"/>.
-    /// </summary>
-    /// <typeparam name="TSource">The type of database documents.</typeparam>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default) where TSource : class;
-
-    /// <summary>
     /// Returns an instance of the users database.
     /// If EnsureDatabaseExists is configured, it creates the database if it doesn't exists.
     /// </summary>
@@ -129,14 +86,6 @@ public interface ICouchClient : IAsyncDisposable
     /// <returns>A task that represents the asynchronous operation. The task result contains the CouchDB database.</returns>
     Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(CancellationToken cancellationToken = default)
         where TUser : CouchUser;
-
-    /// <summary>
-    /// Check if database exists.
-    /// </summary>
-    /// <typeparam name="TSource">The type of database documents.</typeparam>
-    /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
-    /// <returns>Return True if the database exists, False otherwise.</returns>
-    Task<bool> ExistsAsync<TSource>(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Check if database exists.

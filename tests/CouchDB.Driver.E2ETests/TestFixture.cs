@@ -24,7 +24,7 @@ public class TestFixture : IAsyncLifetime
             endpoint: "http://localhost:5984",
             credentials: new BasicCredentials("admin", "admin"),
             clientOptions);
-        Rebels = await Client.GetOrCreateDatabaseAsync<Rebel>();
+        Rebels = await Client.GetOrCreateDatabaseAsync<Rebel>("rebels");
 
         await Rebels.CreateIndexAsync("surname_index", builder => builder
             .IndexBy(r => r.Surname)
@@ -33,7 +33,7 @@ public class TestFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await Client.DeleteDatabaseAsync<Rebel>();
+        await Client.DeleteDatabaseAsync("rebels");
         await Client.DisposeAsync();
     }
 }

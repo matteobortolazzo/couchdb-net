@@ -12,7 +12,7 @@ public class HttpTests : IDisposable
     {
         HttpTest = new HttpTestHelper();
         var client = TestCouchClientFactory.Create(HttpTest);
-        Rebels = (CouchDatabase<Rebel>)client.GetDatabase<Rebel>();
+        Rebels = (CouchDatabase<Rebel>)client.GetDatabase<Rebel>("rebels");
     }
 
     public void Dispose()

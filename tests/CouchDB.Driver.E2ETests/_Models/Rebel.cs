@@ -1,8 +1,5 @@
-﻿using CouchDB.Driver.Attributes;
+﻿namespace CouchDB.Driver.E2ETests.Models;
 
-namespace CouchDB.Driver.E2ETests.Models;
-
-[DatabaseName("rebels")]
 public record Rebel(
     string Id,
     string Name,

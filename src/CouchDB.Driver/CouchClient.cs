@@ -176,44 +176,6 @@ public partial class CouchClient : ICouchClient
 
     #endregion
 
-    #region CRUD reflection
-
-    /// <inheritdoc />
-    public ICouchDatabase<TSource> GetDatabase<TSource>()
-        where TSource : class
-    {
-        return GetDatabase<TSource>(TypeExtensions.GetDatabaseName<TSource>());
-    }
-
-    /// <inheritdoc />
-    public Task<ICouchDatabase<TSource>> CreateDatabaseAsync<TSource>(
-        CreateDatabaseOptions? options = null,
-        CancellationToken cancellationToken = default) where TSource : class
-    {
-        return CreateDatabaseAsync<TSource>(
-            TypeExtensions.GetDatabaseName<TSource>(),
-            options, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public Task<ICouchDatabase<TSource>> GetOrCreateDatabaseAsync<TSource>(
-        CreateDatabaseOptions? options = null,
-        CancellationToken cancellationToken = default) where TSource : class
-    {
-        return GetOrCreateDatabaseAsync<TSource>(
-            TypeExtensions.GetDatabaseName<TSource>(),
-            options, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public Task DeleteDatabaseAsync<TSource>(CancellationToken cancellationToken = default)
-        where TSource : class
-    {
-        return DeleteDatabaseAsync(TypeExtensions.GetDatabaseName<TSource>(), cancellationToken);
-    }
-
-    #endregion
-
     #region Users
 
     private const string UsersDatabaseName = "_users";
@@ -246,10 +208,6 @@ public partial class CouchClient : ICouchClient
     #endregion
 
     #region Utils
-
-    /// <inheritdoc />
-    public Task<bool> ExistsAsync<TSource>(CancellationToken cancellationToken = default) =>
-        ExistsAsync(TypeExtensions.GetDatabaseName<TSource>(), cancellationToken);
 
     /// <inheritdoc />
     public async Task<bool> ExistsAsync(string database, CancellationToken cancellationToken = default)

@@ -205,7 +205,7 @@ public class Database_Tests : HttpTests
         HttpTest.RespondWithJson(new { ok = true });
 
         await using var client = TestCouchClientFactory.Create(HttpTest);
-        var rebels = client.GetDatabase<Rebel>();
+        var rebels = client.GetDatabase<Rebel>("rebels");
         var completeResult = await rebels.ToCouchListAsync();
 
         HttpTest

@@ -1,6 +1,4 @@
-﻿using CouchDB.Driver.Attributes;
-
-namespace CouchDB.Driver.Types;
+﻿namespace CouchDB.Driver.Types;
 
 /// <summary>
 /// Represents a CouchDB user.
@@ -8,7 +6,6 @@ namespace CouchDB.Driver.Types;
 /// <param name="Password">User’s name aka login. Immutable e.g. you cannot rename an existing user - you have to create new one.</param>
 /// </summary>
 [Serializable]
-[DatabaseName("_users")]
 public record CouchUser(
     [property: JsonPropertyName("name")]
     string Name,

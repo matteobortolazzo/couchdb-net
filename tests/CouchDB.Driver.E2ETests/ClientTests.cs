@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using CouchDB.Driver.E2ETests.Models;
 using CouchDB.Driver.Types;
 using Xunit;
 
@@ -28,13 +27,13 @@ public class ClientTests(TestFixture fixture) : IClassFixture<TestFixture>
         findResponse = await users.ReadItemAsync(luke.Id);
         Assert.Null(findResponse);
 
-        await fixture.Client.DeleteDatabaseAsync<CouchUser>();
+        await fixture.Client.DeleteDatabaseAsync("_users");
     }
 
     [Fact]
     public async Task Exists()
     {
-        var exists = await fixture.Client.ExistsAsync<Rebel>();
+        var exists = await fixture.Client.ExistsAsync("rebels");
 
         Assert.True(exists);
     }

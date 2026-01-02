@@ -1,7 +1,6 @@
 ﻿using System;
 using CouchDB.UnitTests.Models;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDB.Driver.Extensions;
@@ -19,7 +18,7 @@ public class Authentication_Test : HttpTests
 
         var cred = new BasicCredentials("root", "relax");
         var client = TestCouchClientFactory.Create(HttpTest, cred);
-        var rebels = client.GetDatabase<Rebel>();
+        var rebels = client.GetDatabase<Rebel>("rebels");
         await rebels.ToListAsync();
 
         HttpTest
@@ -47,7 +46,7 @@ public class Authentication_Test : HttpTests
 
         var cred = new CookieCredentials("root", "relax");
         var client = TestCouchClientFactory.Create(HttpTest, cred);
-        var rebels = client.GetDatabase<Rebel>();
+        var rebels = client.GetDatabase<Rebel>("rebels");
         await rebels.ToListAsync();
 
         HttpTest
@@ -63,7 +62,7 @@ public class Authentication_Test : HttpTests
 
         var cred = new ProxyCredentials("root", ["role1", "role2"]);
         var client = TestCouchClientFactory.Create(HttpTest, cred);
-        var rebels = client.GetDatabase<Rebel>();
+        var rebels = client.GetDatabase<Rebel>("rebels");
         await rebels.ToListAsync();
 
         HttpTest
@@ -81,7 +80,7 @@ public class Authentication_Test : HttpTests
         var jwt = Guid.NewGuid().ToString();
         var cred = new JwtCredentials(jwt);
         var client = TestCouchClientFactory.Create(HttpTest, cred);
-        var rebels = client.GetDatabase<Rebel>();
+        var rebels = client.GetDatabase<Rebel>("rebels");
         await rebels.ToListAsync();
 
         HttpTest
@@ -100,7 +99,7 @@ public class Authentication_Test : HttpTests
 
         var cred = new JwtCredentials(() => jwtTask);
         var client = TestCouchClientFactory.Create(HttpTest, cred);
-        var rebels = client.GetDatabase<Rebel>();
+        var rebels = client.GetDatabase<Rebel>("rebels");
         await rebels.ToListAsync();
 
         HttpTest
