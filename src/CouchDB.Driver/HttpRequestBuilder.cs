@@ -254,6 +254,7 @@ public class HttpRequestBuilder
         {
             if (request.Content != null && IsContentHeader(header.Key))
             {
+                request.Content.Headers.Remove(header.Key);
                 request.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
             }
             else

@@ -489,7 +489,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         return CreateIndexAsync(name, indexDefinition, options, cancellationToken);
     }
 
-    internal async Task<string> CreateIndexAsync(string name,
+    private async Task<string> CreateIndexAsync(string name,
         IndexDefinition indexDefinition,
         IndexOptions? options = null,
         CancellationToken cancellationToken = default)

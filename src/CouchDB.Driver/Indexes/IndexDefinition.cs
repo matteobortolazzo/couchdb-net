@@ -5,9 +5,6 @@ namespace CouchDB.Driver.Indexes;
 
 internal class IndexDefinition(Dictionary<string, IndexFieldDirection> fields, string? partialSelector)
 {
-    public Dictionary<string, IndexFieldDirection> Fields { get; } = fields;
-    public string? PartialSelector { get; } = partialSelector;
-
     public override string ToString()
     {
         var sb = new StringBuilder();
@@ -15,16 +12,16 @@ internal class IndexDefinition(Dictionary<string, IndexFieldDirection> fields, s
         sb.Append('{');
 
         // Partial Selector
-        if (PartialSelector != null)
+        if (partialSelector != null)
         {
-            sb.Append(PartialSelector);
+            sb.Append(partialSelector);
             sb.Append(',');
         }
 
         // Fields
         sb.Append("\"fields\":[");
 
-        foreach ((var fieldName, IndexFieldDirection fieldDirection) in Fields)
+        foreach ((var fieldName, IndexFieldDirection fieldDirection) in fields)
         {
             var fieldString = fieldDirection == IndexFieldDirection.Ascending
                 ? $"\"{fieldName}\","
