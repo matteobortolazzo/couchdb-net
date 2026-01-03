@@ -14,7 +14,7 @@
 /// <param name="UpdateSeq">An opaque string that describes the state of the database. Do not rely on this string for counting the number of updates.</param>
 /// <param name="Props">Database properties.</param>
 [Serializable]
-public sealed record CouchDatabaseInfo(
+public sealed record DatabaseInfo(
     [property: JsonPropertyName("cluster")]
     Cluster Cluster,
     [property: JsonPropertyName("compact_running")]

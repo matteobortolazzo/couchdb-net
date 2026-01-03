@@ -12,7 +12,7 @@ namespace CouchDB.Driver.Local;
 internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) : ILocalDocuments
 {
     /// <inheritdoc />
-    public async Task<IList<CouchDocumentInfo>> GetAsync(LocalDocumentsOptions? options = null,
+    public async Task<IList<DocumentInfo>> GetAsync(LocalDocumentsOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         HttpRequestBuilder request = NewRequest();
@@ -31,7 +31,7 @@ internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) 
     }
 
     /// <inheritdoc />
-    public async Task<IList<CouchDocumentInfo>> GetAsync(IReadOnlyCollection<string> keys,
+    public async Task<IList<DocumentInfo>> GetAsync(IReadOnlyCollection<string> keys,
         LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default)
     {
         HttpRequestBuilder request = NewRequest();

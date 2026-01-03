@@ -6,7 +6,7 @@
 /// <param name="Password">User’s name aka login. Immutable e.g. you cannot rename an existing user - you have to create new one.</param>
 /// </summary>
 [Serializable]
-public record CouchUser(
+public record DatabaseUser(
     [property: JsonPropertyName("name")]
     string Name,
     [property: JsonPropertyName("password")]

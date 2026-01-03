@@ -6,5 +6,5 @@ namespace CouchDB.Driver.Local;
 internal class LocalDocumentsResult
 {
     [property:JsonPropertyName("rows")]
-    public required IList<CouchDocumentInfo> Rows { get; init; }
+    public required IList<DocumentInfo> Rows { get; init; }
 }

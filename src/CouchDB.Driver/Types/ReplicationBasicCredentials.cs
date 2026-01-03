@@ -2,7 +2,7 @@
 
 // TODO Review
 [Serializable]
-public sealed record CouchReplicationBasicCredentials(
+public sealed record ReplicationBasicCredentials(
     [property: JsonPropertyName("username")]
     string Username,
     [property: JsonPropertyName("password")]

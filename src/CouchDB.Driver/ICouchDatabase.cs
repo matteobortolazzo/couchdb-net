@@ -258,7 +258,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// </summary>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the database information.</returns>
-    Task<CouchDatabaseInfo> GetInfoAsync(CancellationToken cancellationToken = default);
+    Task<DatabaseInfo> GetInfoAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets information about a specific partition in a partitioned database.
@@ -266,7 +266,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <param name="partitionKey">The partition key.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the partition information.</returns>
-    Task<CouchPartitionInfo> GetPartitionInfoAsync(string partitionKey, CancellationToken cancellationToken = default);
+    Task<PartitionInfo> GetPartitionInfoAsync(string partitionKey, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Queries documents in a specific partition using Mango query syntax.

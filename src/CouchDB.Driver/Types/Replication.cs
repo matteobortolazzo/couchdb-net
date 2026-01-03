@@ -2,17 +2,17 @@
 
 // TODO: Review
 [Serializable]
-public record CouchReplication 
+public record Replication 
 {
     [property:JsonPropertyName("source")]
     public object? Source { get; set; }
 
-    public CouchReplicationBasicCredentials? SourceCredentials { get; init; }
+    public ReplicationBasicCredentials? SourceCredentials { get; init; }
 
     [property:JsonPropertyName("target")]
     public object? Target { get; set; }
 
-    public CouchReplicationBasicCredentials? TargetCredentials { get; init; }
+    public ReplicationBasicCredentials? TargetCredentials { get; init; }
 
     [property:JsonPropertyName("continuous")]
     public bool Continuous { get; init; }

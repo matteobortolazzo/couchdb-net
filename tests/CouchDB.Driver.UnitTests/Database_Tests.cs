@@ -206,7 +206,7 @@ public class Database_Tests : HttpTests
 
         await using var client = TestCouchClientFactory.Create(HttpTest);
         var rebels = client.GetDatabase<Rebel>("rebels");
-        var completeResult = await rebels.ToCouchListAsync();
+        var completeResult = await rebels.ToListAsync();
 
         HttpTest
             .ShouldHaveCalled("http://localhost/rebels/_find")

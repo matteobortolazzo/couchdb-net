@@ -9,7 +9,7 @@ namespace CouchDB.Driver.Types;
 /// <param name="Partition">The partition key.</param>
 /// <param name="Sizes">Size information for the partition.</param>
 [Serializable]
-public sealed record CouchPartitionInfo(
+public sealed record PartitionInfo(
     [property: JsonPropertyName("db_name")]
     string DbName,
     [property: JsonPropertyName("doc_count")]

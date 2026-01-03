@@ -181,26 +181,26 @@ public partial class CouchClient : ICouchClient
     private const string UsersDatabaseName = "_users";
 
     /// <inheritdoc />
-    public ICouchDatabase<CouchUser> GetUsersDatabase()
+    public ICouchDatabase<DatabaseUser> GetUsersDatabase()
     {
-        return GetDatabase<CouchUser>(UsersDatabaseName);
+        return GetDatabase<DatabaseUser>(UsersDatabaseName);
     }
 
     /// <inheritdoc />
-    public ICouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : CouchUser
+    public ICouchDatabase<TUser> GetUsersDatabase<TUser>() where TUser : DatabaseUser
     {
         return GetDatabase<TUser>(UsersDatabaseName);
     }
 
     /// <inheritdoc />
-    public Task<ICouchDatabase<CouchUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
+    public Task<ICouchDatabase<DatabaseUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
     {
-        return GetOrCreateDatabaseAsync<CouchUser>(UsersDatabaseName, null, cancellationToken);
+        return GetOrCreateDatabaseAsync<DatabaseUser>(UsersDatabaseName, null, cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<ICouchDatabase<TUser>> GetOrCreateUsersDatabaseAsync<TUser>(
-        CancellationToken cancellationToken = default) where TUser : CouchUser
+        CancellationToken cancellationToken = default) where TUser : DatabaseUser
     {
         return GetOrCreateDatabaseAsync<TUser>(UsersDatabaseName, null, cancellationToken);
     }
@@ -251,12 +251,12 @@ public partial class CouchClient : ICouchClient
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyCollection<CouchActiveTask>> GetActiveTasksAsync(
+    public async Task<IReadOnlyCollection<ActiveTask>> GetActiveTasksAsync(
         CancellationToken cancellationToken = default)
     {
         return await NewRequest()
             .AppendPathSegment("_active_tasks")
-            .GetJsonAsync<CouchActiveTask[]>(cancellationToken: cancellationToken)
+            .GetJsonAsync<ActiveTask[]>(cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ConfigureAwait(false);
     }
@@ -265,12 +265,12 @@ public partial class CouchClient : ICouchClient
 
     #region Replication
 
-    public async Task<bool> ReplicateAsync(string source, string target, CouchReplication? replication = null,
+    public async Task<bool> ReplicateAsync(string source, string target, Replication? replication = null,
         bool persistent = true, CancellationToken cancellationToken = default)
     {
         HttpRequestBuilder request = NewRequest();
 
-        replication ??= new CouchReplication();
+        replication ??= new Replication();
 
         if (replication.SourceCredentials == null)
         {
@@ -278,8 +278,8 @@ public partial class CouchClient : ICouchClient
         }
         else
         {
-            replication.Source = new CouchReplicationHost(source,
-                new CouchReplicationAuth(replication.SourceCredentials));
+            replication.Source = new ReplicationHost(source,
+                new ReplicationAuth(replication.SourceCredentials));
         }
 
         if (replication.TargetCredentials == null)
@@ -288,8 +288,8 @@ public partial class CouchClient : ICouchClient
         }
         else
         {
-            replication.Target = new CouchReplicationHost(target,
-                new CouchReplicationAuth(replication.TargetCredentials));
+            replication.Target = new ReplicationHost(target,
+                new ReplicationAuth(replication.TargetCredentials));
         }
 
         OperationResult result = await request
@@ -302,12 +302,12 @@ public partial class CouchClient : ICouchClient
         return result.Ok;
     }
 
-    public async Task<bool> RemoveReplicationAsync(string source, string target, CouchReplication? replication = null,
+    public async Task<bool> RemoveReplicationAsync(string source, string target, Replication? replication = null,
         bool persistent = true, CancellationToken cancellationToken = default)
     {
         HttpRequestBuilder request = NewRequest();
 
-        replication ??= new CouchReplication();
+        replication ??= new Replication();
 
         if (replication.SourceCredentials == null)
         {
@@ -315,8 +315,8 @@ public partial class CouchClient : ICouchClient
         }
         else
         {
-            replication.Source = new CouchReplicationHost(source,
-                new CouchReplicationAuth(replication.SourceCredentials));
+            replication.Source = new ReplicationHost(source,
+                new ReplicationAuth(replication.SourceCredentials));
         }
 
         if (replication.TargetCredentials == null)
@@ -325,8 +325,8 @@ public partial class CouchClient : ICouchClient
         }
         else
         {
-            replication.Target = new CouchReplicationHost(target,
-                new CouchReplicationAuth(replication.TargetCredentials));
+            replication.Target = new ReplicationHost(target,
+                new ReplicationAuth(replication.TargetCredentials));
         }
 
         replication.Cancel = true;

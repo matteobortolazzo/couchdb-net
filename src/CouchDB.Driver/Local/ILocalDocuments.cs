@@ -18,7 +18,7 @@ public interface ILocalDocuments
     /// A task that represents the asynchronous operation.
     /// The task result contains basic info about the documents.
     /// </returns>
-    Task<IList<CouchDocumentInfo>> GetAsync(LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
+    Task<IList<DocumentInfo>> GetAsync(LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Return all documents with the supplied keys.
@@ -30,7 +30,7 @@ public interface ILocalDocuments
     /// A task that represents the asynchronous operation.
     /// The task result contains basic info about the documents.
     /// </returns>
-    Task<IList<CouchDocumentInfo>> GetAsync(IReadOnlyCollection<string> keys, LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
+    Task<IList<DocumentInfo>> GetAsync(IReadOnlyCollection<string> keys, LocalDocumentsOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the specified local document. 

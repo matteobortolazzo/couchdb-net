@@ -1272,32 +1272,11 @@ public static class QueryableAsyncExtensions
         /// <exception cref="ArgumentNullException">
         /// <paramref name="source"/> is <see langword="null" />.
         /// </exception>
-        public Task<CouchList<TSource>> ToCouchListAsync(CancellationToken cancellationToken = default)
+        public Task<CouchList<TSource>> ToListAsync(CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(source);
             return source.AsCouchQueryable().ToCouchListAsync(cancellationToken);
         }
-
-        /// <summary>
-        /// Asynchronously creates a <see cref="List{T}" /> from an <see cref="IQueryable{T}" /> by enumerating it
-        /// asynchronously.
-        /// </summary>
-        /// <remarks>
-        /// Multiple active operations on the same context instance are not supported.  Use 'await' to ensure
-        /// that any asynchronous operations have completed before calling another method on this context.
-        /// </remarks>
-        /// <param name="cancellationToken">
-        /// A <see cref="CancellationToken" /> to observe while waiting for the task to complete.
-        /// </param>
-        /// <returns>
-        /// A task that represents the asynchronous operation.
-        /// The task result contains a <see cref="List{T}" /> that contains elements from the input sequence.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="source"/> is <see langword="null" />.
-        /// </exception>
-        public async Task<List<TSource>> ToListAsync(CancellationToken cancellationToken = default) =>
-            (await source.ToCouchListAsync(cancellationToken).ConfigureAwait(false)).ToList();
 
         /// <summary>
         /// Asynchronously creates an array from an <see cref="IQueryable{T}" /> by enumerating it asynchronously.
@@ -1463,7 +1442,7 @@ public static class QueryableAsyncExtensions
             ArgumentNullException.ThrowIfNull(keySelector);
             ArgumentNullException.ThrowIfNull(elementSelector);
 
-            CouchList<TSource> list = await source.ToCouchListAsync(cancellationToken).ConfigureAwait(false);
+            CouchList<TSource> list = await source.ToListAsync(cancellationToken).ConfigureAwait(false);
 
             var d = new Dictionary<TKey, TElement>(comparer);
             foreach (TSource element in list)

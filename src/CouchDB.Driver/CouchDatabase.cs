@@ -655,16 +655,16 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     }
 
     /// <inheritdoc />
-    public async Task<CouchDatabaseInfo> GetInfoAsync(CancellationToken cancellationToken = default)
+    public async Task<DatabaseInfo> GetInfoAsync(CancellationToken cancellationToken = default)
     {
         return await NewRequest()
-            .GetJsonAsync<CouchDatabaseInfo>(cancellationToken: cancellationToken)
+            .GetJsonAsync<DatabaseInfo>(cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async Task<CouchPartitionInfo> GetPartitionInfoAsync(string partitionKey,
+    public async Task<PartitionInfo> GetPartitionInfoAsync(string partitionKey,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(partitionKey);
@@ -672,7 +672,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         return await NewRequest()
             .AppendPathSegment("_partition")
             .AppendPathSegment(Uri.EscapeDataString(partitionKey))
-            .GetJsonAsync<CouchPartitionInfo>(cancellationToken: cancellationToken)
+            .GetJsonAsync<PartitionInfo>(cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ConfigureAwait(false);
     }

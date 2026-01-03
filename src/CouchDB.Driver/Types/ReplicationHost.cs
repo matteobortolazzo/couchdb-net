@@ -1,9 +1,9 @@
 ﻿namespace CouchDB.Driver.Types;
 
 [Serializable]
-public sealed record CouchReplicationHost(
+public sealed record ReplicationHost(
     [property: JsonPropertyName("url")]
     string Url,
     [property: JsonPropertyName("auth")]
-    CouchReplicationAuth? Auth
+    ReplicationAuth? Auth
 );

@@ -17,7 +17,7 @@ namespace CouchDB.Driver.Types;
 /// <param name="Type">Operation type.</param>
 /// <param name="UpdatedOn">Last operation update.</param>
 [Serializable]
-public sealed record CouchActiveTask(
+public sealed record ActiveTask(
     [property: JsonPropertyName("changes-done")]
     int ChangesDone,
     [property: JsonPropertyName("database")]

@@ -12,7 +12,7 @@ public class ClientTests(TestFixture fixture) : IClassFixture<TestFixture>
     {
         var users = await fixture.Client.GetOrCreateUsersDatabaseAsync();
 
-        var response = await users.CreateItemAsync(new CouchUser("luke", "lasersword"));
+        var response = await users.CreateItemAsync(new DatabaseUser("luke", "lasersword"));
 
         var findResponse = await users.ReadItemAsync(response.Id);
         Assert.NotNull(findResponse);

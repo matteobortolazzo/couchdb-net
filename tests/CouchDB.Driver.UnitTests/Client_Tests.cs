@@ -346,7 +346,7 @@ public class Client_Tests : HttpTests
     public async Task ActiveTasks()
     {
         // Tasks
-        HttpTest.RespondWithJson(new List<CouchActiveTask>());
+        HttpTest.RespondWithJson(new List<ActiveTask>());
 
         // Logout
         HttpTest.RespondWithJson(new { ok = true });

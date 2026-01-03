@@ -7,7 +7,7 @@
 /// <param name="Key">The document key.</param>
 /// <param name="Value">The document value containing revision information.</param>
 [Serializable]
-public sealed record CouchDocumentInfo(
+public sealed record DocumentInfo(
     [property: JsonPropertyName("id")]
     string Id,
     [property: JsonPropertyName("key")]
