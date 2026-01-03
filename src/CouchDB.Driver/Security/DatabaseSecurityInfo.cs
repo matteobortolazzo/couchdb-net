@@ -4,9 +4,9 @@
 /// Represents two compulsory elements, admins and members, which are used to specify the list of users and/or roles that have admin and members rights to the database.
 /// </summary>
 [method: JsonConstructor]
-public sealed record CouchSecurityInfo(CouchSecurityInfoType Members, CouchSecurityInfoType Admins)
+public sealed record DatabaseSecurityInfo(DatabaseSecurityInfoType Members, DatabaseSecurityInfoType Admins)
 {
-    public CouchSecurityInfo() : this(new CouchSecurityInfoType(), new CouchSecurityInfoType())
+    public DatabaseSecurityInfo() : this(new DatabaseSecurityInfoType(), new DatabaseSecurityInfoType())
     {
     }
 
@@ -16,11 +16,11 @@ public sealed record CouchSecurityInfo(CouchSecurityInfoType Members, CouchSecur
     /// They can not create a database nor delete a database.
     /// </summary>
     [property: JsonPropertyName("admins")]
-    public CouchSecurityInfoType Admins { get; } = Admins;
+    public DatabaseSecurityInfoType Admins { get; } = Admins;
 
     /// <summary>
     /// They can read all types of documents from the DB, and they can write (and edit) documents to the DB except for design documents.
     /// </summary>
     [property: JsonPropertyName("members")]
-    public CouchSecurityInfoType Members { get; } = Members;
+    public DatabaseSecurityInfoType Members { get; } = Members;
 }

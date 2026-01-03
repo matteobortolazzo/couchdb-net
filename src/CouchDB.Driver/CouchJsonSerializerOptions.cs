@@ -39,7 +39,7 @@ namespace CouchDB.Driver;
 [JsonSerializable(typeof(BulkWriteItemResponse))]
 [JsonSerializable(typeof(BulkWriteItemResponse[]))]
 // Security
-[JsonSerializable(typeof(CouchSecurityInfo))]
+[JsonSerializable(typeof(DatabaseSecurityInfo))]
 internal partial class CouchSourceGenerationContext : JsonSerializerContext
 {
 }

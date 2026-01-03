@@ -45,7 +45,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
     public string Database => _queryContext.DatabaseName;
 
     /// <inheritdoc />
-    public ICouchSecurity Security { get; }
+    public IDatabaseSecurity Security { get; }
 
     /// <inheritdoc />
     public ILocalDocuments LocalDocuments { get; }
@@ -66,7 +66,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
         var queryCompiler = new QueryCompiler(queryOptimizer, queryTranslator, querySender);
         _queryProvider = new CouchQueryProvider(queryCompiler);
 
-        Security = new CouchSecurity(NewRequest);
+        Security = new DatabaseSecurity(NewRequest);
         LocalDocuments = new LocalDocuments(httpClient, queryContext);
     }
 

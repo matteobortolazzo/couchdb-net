@@ -6,25 +6,25 @@ using CouchDB.Driver.Extensions;
 
 namespace CouchDB.Driver.Security;
 
-internal class CouchSecurity: ICouchSecurity
+internal class DatabaseSecurity: IDatabaseSecurity
 {
     private readonly Func<HttpRequestBuilder> _newRequest;
 
-    internal CouchSecurity(Func<HttpRequestBuilder> newRequest)
+    internal DatabaseSecurity(Func<HttpRequestBuilder> newRequest)
     {
         _newRequest = newRequest;
     }
 
-    public async Task<CouchSecurityInfo> GetInfoAsync()
+    public async Task<DatabaseSecurityInfo> GetInfoAsync()
     {
         return await _newRequest()
             .AppendPathSegment("_security")
-            .GetJsonAsync<CouchSecurityInfo>()
+            .GetJsonAsync<DatabaseSecurityInfo>()
             .SendRequestAsync()
             .ConfigureAwait(false);
     }
 
-    public async Task SetInfoAsync(CouchSecurityInfo info)
+    public async Task SetInfoAsync(DatabaseSecurityInfo info)
     {
         ArgumentNullException.ThrowIfNull(info, nameof(info));
 

@@ -521,7 +521,7 @@ public class Database_Tests : HttpTests
     {
         HttpTest.RespondWithJson(new { ok = true });
 
-        var securityInfo = new CouchSecurityInfo();
+        var securityInfo = new DatabaseSecurityInfo();
         securityInfo.Admins.Names.Add("user1");
 
         await Rebels.Security.SetInfoAsync(securityInfo);

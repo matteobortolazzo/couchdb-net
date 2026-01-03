@@ -4,9 +4,9 @@
 /// Represents list of users and/or roles that have rights to the database.
 /// </summary>
 [method: JsonConstructor]
-public sealed class CouchSecurityInfoType(List<string> names, List<string> roles)
+public sealed class DatabaseSecurityInfoType(List<string> names, List<string> roles)
 {
-    public CouchSecurityInfoType() : this([], [])
+    public DatabaseSecurityInfoType() : this([], [])
     {
     }
 

@@ -325,7 +325,7 @@ public interface ICouchDatabase<TSource> : IOrderedQueryable<TSource>
     /// <summary>
     /// Section to handle security operations.
     /// </summary>
-    public ICouchSecurity Security { get; }
+    public IDatabaseSecurity Security { get; }
 
     /// <summary>
     /// Access local documents operations.
