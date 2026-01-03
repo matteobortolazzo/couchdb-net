@@ -309,7 +309,8 @@ public class Database_Tests : HttpTests
         SetupViewResponse();
 
         // Act
-        var rebels = await Rebels.QueryViewAsync<string[], RebelView>("jedi", "by_name");
+        var rebels = await Rebels.QueryViewAsync<string[], RebelView>(
+            "jedi", "by_name");
 
         // Assert
         Assert.Equal(10, rebels.Offset);

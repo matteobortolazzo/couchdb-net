@@ -352,7 +352,7 @@ public class Client_Tests : HttpTests
         HttpTest.RespondWithJson(new { ok = true });
 
         await using var client = TestCouchClientFactory.Create(HttpTest);
-        var dbs = await client.GetActiveTasksAsync();
+        await client.GetActiveTasksAsync();
         HttpTest
             .ShouldHaveCalled("http://localhost/_active_tasks")
             .WithVerb(HttpMethod.Get);

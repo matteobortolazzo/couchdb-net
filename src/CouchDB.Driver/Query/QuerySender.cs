@@ -62,7 +62,7 @@ internal class QuerySender(HttpClient httpClient, QueryContext queryContext) : I
             .AppendPathSegments(queryContext.DatabaseName, "_find")
             .WithHeader("Content-Type", "application/json")
             .PostStringAsync(body, cancellationToken: cancellationToken)
-            .ReceiveJson<FindResult<TItem>>()
+            .ReceiveJson<FindResult<TItem>>(queryContext.Options.DocumentJsonSerializerOptions)
             .SendRequestAsync();
 
         if (throwExceptionOnWarning && !string.IsNullOrEmpty(findResult.Warning))

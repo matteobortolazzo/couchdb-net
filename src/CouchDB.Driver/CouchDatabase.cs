@@ -187,7 +187,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             }
 
             jsonObject["_attachments"] = JsonSerializer.SerializeToNode(
-                requestAttachments, JsonSerializerOptions.Web);
+                requestAttachments, CouchJsonSerializerOptions.Default);
         }
 
         var jsonContent = JsonContent.Create(jsonObject, options: _options.DocumentJsonSerializerOptions);
@@ -566,10 +566,13 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .AppendPathSegments("_design", design, "_view", view);
 
         Task<CouchViewList<TKey, TValue, TSource>> requestTask = options == null
-            ? request.GetJsonAsync<CouchViewList<TKey, TValue, TSource>>(cancellationToken: cancellationToken)
+            ? request.GetJsonAsync<CouchViewList<TKey, TValue, TSource>>(
+                jsonSerializerOptions: _options.DocumentJsonSerializerOptions,
+                cancellationToken: cancellationToken)
             : request
                 .PostJsonAsync(options, cancellationToken: cancellationToken)
-                .ReceiveJson<CouchViewList<TKey, TValue, TSource>>(_options.DocumentJsonSerializerOptions);
+                .ReceiveJson<CouchViewList<TKey, TValue, TSource>>(
+                    options: _options.DocumentJsonSerializerOptions);
         return await requestTask.SendRequestAsync().ConfigureAwait(false);
     }
 
@@ -687,7 +690,7 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .AppendPathSegment("_find")
             .WithHeader("Content-Type", "application/json")
             .PostStringAsync(mangoQueryJson, cancellationToken: cancellationToken)
-            .ReceiveJson<FindResult<TSource>>()
+            .ReceiveJson<FindResult<TSource>>(options: _options.DocumentJsonSerializerOptions)
             .SendRequestAsync()
             .ConfigureAwait(false);
 
@@ -706,8 +709,8 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .AppendPathSegment(Uri.EscapeDataString(partitionKey))
             .AppendPathSegment("_find")
             .WithHeader("Content-Type", "application/json")
-            .PostJsonAsync(mangoQuery, cancellationToken: cancellationToken)
-            .ReceiveJson<FindResult<TSource>>()
+            .PostJsonAsync(mangoQuery, _options.DocumentJsonSerializerOptions, cancellationToken: cancellationToken)
+            .ReceiveJson<FindResult<TSource>>(_options.DocumentJsonSerializerOptions)
             .SendRequestAsync()
             .ConfigureAwait(false);
 
@@ -725,7 +728,8 @@ public partial class CouchDatabase<TSource> : ICouchDatabase<TSource>
             .AppendPathSegment(Uri.EscapeDataString(partitionKey))
             .AppendPathSegment("_all_docs")
             .SetQueryParam("include_docs", "true")
-            .GetJsonAsync<AllDocsResult<TSource>>(cancellationToken: cancellationToken)
+            .GetJsonAsync<AllDocsResult<TSource>>(_options.DocumentJsonSerializerOptions,
+                cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ConfigureAwait(false);
 

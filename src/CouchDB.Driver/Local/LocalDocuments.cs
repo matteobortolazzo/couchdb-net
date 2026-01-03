@@ -57,7 +57,9 @@ internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) 
         ArgumentNullException.ThrowIfNull(id);
         return NewRequest()
             .AppendPathSegments(Uri.EscapeDataString(GetLocalId(id)))
-            .GetJsonAsync<TSource>(cancellationToken: cancellationToken)
+            .GetJsonAsync<TSource>(
+                jsonSerializerOptions: queryContext.Options.DocumentJsonSerializerOptions,
+                cancellationToken: cancellationToken)
             .SendRequestAsync();
     }
 
@@ -68,7 +70,10 @@ internal class LocalDocuments(HttpClient httpClient, QueryContext queryContext) 
         ArgumentNullException.ThrowIfNull(document);
         return NewRequest()
             .AppendPathSegments(Uri.EscapeDataString(GetLocalId(id)))
-            .PutJsonAsync(document, cancellationToken: cancellationToken)
+            .PutJsonAsync(
+                document,
+                jsonSerializerOptions: queryContext.Options.DocumentJsonSerializerOptions,
+                cancellationToken: cancellationToken)
             .SendRequestAsync();
     }
 

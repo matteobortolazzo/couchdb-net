@@ -13,7 +13,7 @@ public static class HttpClientExtensions
         public async Task<T> ReceiveJson<T>(JsonSerializerOptions? options = null)
         {
             using HttpResponseMessage response = await responseTask.ConfigureAwait(false);
-            return await response.GetJsonAsync<T>(options ?? JsonSerializerOptions.Web).ConfigureAwait(false);
+            return await response.GetJsonAsync<T>(options ?? CouchJsonSerializerOptions.Default).ConfigureAwait(false);
         }
 
         public async Task<Stream> ReceiveStream()
@@ -34,9 +34,10 @@ public static class HttpClientExtensions
 
     extension(HttpResponseMessage response)
     {
-        public async Task<T> GetJsonAsync<T>(JsonSerializerOptions? options = null)
+        public async Task<T> GetJsonAsync<T>(JsonSerializerOptions? jsonSerializationOptions = null)
         {
-            T? result = await response.Content.ReadFromJsonAsync<T>(options ?? JsonSerializerOptions.Web)
+            T? result = await response.Content.ReadFromJsonAsync<T>(
+                    jsonSerializationOptions ?? CouchJsonSerializerOptions.Default)
                 .ConfigureAwait(false);
             return result ?? throw new InvalidOperationException(
                 "Failed to deserialize response content to the specified type.");
