@@ -193,7 +193,8 @@ public partial class CouchClient : ICouchClient
     }
 
     /// <inheritdoc />
-    public Task<ICouchDatabase<DatabaseUser>> GetOrCreateUsersDatabaseAsync(CancellationToken cancellationToken = default)
+    public Task<ICouchDatabase<DatabaseUser>> GetOrCreateUsersDatabaseAsync(
+        CancellationToken cancellationToken = default)
     {
         return GetOrCreateDatabaseAsync<DatabaseUser>(UsersDatabaseName, null, cancellationToken);
     }
@@ -265,36 +266,50 @@ public partial class CouchClient : ICouchClient
 
     #region Replication
 
-    public async Task<bool> ReplicateAsync(string source, string target, Replication? replication = null,
+    public async Task<bool> ConfigureReplicationAsync(string source, string target,
+        ConfigureReplicationOptions? options = null,
         bool persistent = true, CancellationToken cancellationToken = default)
     {
-        HttpRequestBuilder request = NewRequest();
+        object? internalSource;
+        object? internalTarget;
 
-        replication ??= new Replication();
-
-        if (replication.SourceCredentials == null)
+        if (options?.SourceCredentials == null)
         {
-            replication.Source = source;
+            internalSource = source;
         }
         else
         {
-            replication.Source = new ReplicationHost(source,
-                new ReplicationAuth(replication.SourceCredentials));
+            internalSource = new ReplicationHost(source,
+                new ReplicationAuth(options.SourceCredentials));
         }
 
-        if (replication.TargetCredentials == null)
+        if (options?.TargetCredentials == null)
         {
-            replication.Target = target;
+            internalTarget = target;
         }
         else
         {
-            replication.Target = new ReplicationHost(target,
-                new ReplicationAuth(replication.TargetCredentials));
+            internalTarget = new ReplicationHost(target,
+                new ReplicationAuth(options.TargetCredentials));
         }
 
-        OperationResult result = await request
+        var request = new ReplicationRequest(
+            Cancel: false,
+            options?.Continuous ?? false,
+            options?.CreateTarget ?? false,
+            options?.CreateTargetParams,
+            options?.WinningRevOnly ?? false,
+            options?.DocIds,
+            options?.Filter,
+            options?.Selector,
+            options?.SourceProxy,
+            options?.TargetProxy,
+            Source: internalSource,
+            Target: internalTarget);
+
+        OperationResult result = await NewRequest()
             .AppendPathSegments(persistent ? "_replicator" : "_replicate")
-            .PostJsonAsync(replication, cancellationToken: cancellationToken)
+            .PostJsonAsync(request, cancellationToken: cancellationToken)
             .ReceiveJson<OperationResult>()
             .SendRequestAsync()
             .ConfigureAwait(false);
@@ -302,38 +317,50 @@ public partial class CouchClient : ICouchClient
         return result.Ok;
     }
 
-    public async Task<bool> RemoveReplicationAsync(string source, string target, Replication? replication = null,
+    public async Task<bool> CancelReplicationAsync(string source, string target,
+        ReplicationOptions? options = null,
         bool persistent = true, CancellationToken cancellationToken = default)
     {
-        HttpRequestBuilder request = NewRequest();
+        object? internalSource;
+        object? internalTarget;
 
-        replication ??= new Replication();
-
-        if (replication.SourceCredentials == null)
+        if (options?.SourceCredentials == null)
         {
-            replication.Source = source;
+            internalSource = source;
         }
         else
         {
-            replication.Source = new ReplicationHost(source,
-                new ReplicationAuth(replication.SourceCredentials));
+            internalSource = new ReplicationHost(source,
+                new ReplicationAuth(options.SourceCredentials));
         }
 
-        if (replication.TargetCredentials == null)
+        if (options?.TargetCredentials == null)
         {
-            replication.Target = target;
+            internalTarget = target;
         }
         else
         {
-            replication.Target = new ReplicationHost(target,
-                new ReplicationAuth(replication.TargetCredentials));
+            internalTarget = new ReplicationHost(target,
+                new ReplicationAuth(options.TargetCredentials));
         }
 
-        replication.Cancel = true;
+        var request = new ReplicationRequest(
+            Cancel: true,
+            Continuous: false,
+            CreateTarget: false,
+            CreateTargetParams: null,
+            WinningRevOnly: false,
+            DocIds: null,
+            Filter: null,
+            Selector: null,
+            options?.SourceProxy,
+            options?.TargetProxy,
+            Source: internalSource,
+            Target: internalTarget);
 
-        OperationResult result = await request
+        OperationResult result = await NewRequest()
             .AppendPathSegments(persistent ? "_replicator" : "_replicate")
-            .PostJsonAsync(replication, cancellationToken: cancellationToken)
+            .PostJsonAsync(request, cancellationToken: cancellationToken)
             .SendRequestAsync()
             .ReceiveJson<OperationResult>()
             .ConfigureAwait(false);

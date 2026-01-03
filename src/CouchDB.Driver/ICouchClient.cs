@@ -121,11 +121,11 @@ public interface ICouchClient : IAsyncDisposable
     /// </summary>
     /// <param name="source">Fully qualified source database URL or an object which contains the full URL of the source database with additional parameters like headers.</param>
     /// <param name="target">Fully qualified target database URL or an object which contains the full URL of the target database with additional parameters like headers.</param>
-    /// <param name="replication">An instance of <see cref="Replication"/>.</param>
+    /// <param name="options">An instance of <see cref="ReplicationOptions"/>.</param>
     /// <param name="persistent">Persist the operation to the replication database.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>Returns True if the operation succeeded, False otherwise.</returns>
-    Task<bool> ReplicateAsync(string source, string target, Replication? replication = null,
+    Task<bool> ConfigureReplicationAsync(string source, string target, ConfigureReplicationOptions? options = null,
         bool persistent = true, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -133,11 +133,11 @@ public interface ICouchClient : IAsyncDisposable
     /// </summary>
     /// <param name="source">Fully qualified source database URL or an object which contains the full URL of the source database with additional parameters like headers.</param>
     /// <param name="target">Fully qualified target database URL or an object which contains the full URL of the target database with additional parameters like headers.</param>
-    /// <param name="replication">An instance of <see cref="Replication"/>.</param>
+    /// <param name="options">An instance of <see cref="ReplicationOptions"/>.</param>
     /// <param name="persistent"></param>
     /// <param name="cancellationToken">A <see cref="CancellationToken" /> to observe while waiting for the task to complete.</param>
     /// <returns>Returns True if the operation succeeded, False otherwise.</returns>
-    Task<bool> RemoveReplicationAsync(string source, string target, Replication? replication = null,
+    Task<bool> CancelReplicationAsync(string source, string target, ReplicationOptions? options = null,
         bool persistent = true, CancellationToken cancellationToken = default);
 
     /// <summary>
