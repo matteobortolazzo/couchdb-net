@@ -1,5 +1,4 @@
 ﻿using CouchDB.Driver.Converters;
-using CouchDB.Driver.Helpers;
 
 namespace CouchDB.Driver.Types;
 
@@ -27,7 +26,7 @@ public sealed record ActiveTask(
     [property: JsonPropertyName("progress")]
     int Progress,
     [property: JsonPropertyName("started_on")]
-    [property: JsonConverter(typeof(MicrosecondEpochConverter))]
+    [property: JsonConverter(typeof(UnixTimestampSecondsConverter))]
     DateTimeOffset StartedOn,
     [property: JsonPropertyName("status")]
     string? Status,
@@ -38,6 +37,6 @@ public sealed record ActiveTask(
     [property: JsonPropertyName("type")]
     string Type,
     [property: JsonPropertyName("updated_on")]
-    [property: JsonConverter(typeof(MicrosecondEpochConverter))]
+    [property: JsonConverter(typeof(UnixTimestampSecondsConverter))]
     DateTimeOffset UpdatedOn
 );
