@@ -294,6 +294,21 @@ While the SDK aims to be as close to the APIs as possible, some work has been do
 You have full control over the `HttpClient` used by the SDK. The SDK generates the correct request, serialize and deserialize. 
 Any other behavior can be customized by providing your own `HttpClient` instance in the `CouchClientOptions`.
 
+## Bulk operations
+
+You can execute multiple operations in a single request using `ExecuteBulkItemOperationsAsync`.
+
+```csharp
+BulkItemOperation[] op = 
+    [ 
+        BulkItemOperation.Add(doc),
+        BulkItemOperation.Update(doc, id, rev),
+        BulkItemOperation.Delete(id, rev)
+    ];
+
+ var results = await database.ExecuteBulkItemOperationsAsync(op);
+```
+
 ## Changes Feed
 
 The following *feed modes* are supported: `normal`, `longpool` and `continuous`.
@@ -607,12 +622,6 @@ It's possible to extend *CouchUser* for store custom info.
 ```csharp
 var users = client.GetUsersDatabase<CustomUser>();
 var luke = await users.CreateAsync(new CustomUser(name: "luke", password: "lasersword"));
-```
-
-To change password:
-
-```csharp
-luke = await users.ChangeUserPassword(luke, "r2d2");
 ```
 
 ### Replication
