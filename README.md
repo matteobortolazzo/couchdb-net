@@ -1,8 +1,10 @@
 ﻿[![Downloads](https://img.shields.io/nuget/dt/CouchDB.NET.svg)](https://www.nuget.org/packages/CouchDB.NET/)
 
-# CouchDB.NET
+# CouchDB.NET V4
 
-EF Core-like CouchDB experience for .NET!
+Query **CouchDB** with *LINQ*! Inspired by *Cosmos SDK*.
+
+For CouchDB.NET V3 docs: [README.md](README-V3.md)
 
 ## LINQ queries
 
@@ -10,23 +12,18 @@ C# query example:
 
 ```csharp
 // Setup
-public class MyDeathStarContext : CouchContext
+var clientOptions = new CouchClientOptions
 {
-    public CouchDatabase<Rebel> Rebels { get; set; }
-    public CouchDatabase<Clone> Clones { get; set; }
-
-    protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
-    {
-      optionsBuilder
-        .UseEndpoint("http://localhost:5984/")
-        .EnsureDatabaseExists()
-        .UseBasicAuthentication(username: "anakin", password: "empirerule");
-    }
-}
+    JsonSerializerOptions = JsonSerializerOptions.Web
+};
+var client = new CouchClient(
+    endpoint: "http://localhost:5984",
+    credentials: new BasicCredentials("admin", "admin"),
+    clientOptions);
+var rebels = await client.GetDatabase<Rebel>("rebels");
 
 // Usage
-await using var context = new MyDeathStarContext();
-var skywalkers = await fixture.Rebels
+var skywalkers = await rebels
     .Where(r => 
         r.Surname == "Skywalker" && 
         (
@@ -45,6 +42,7 @@ var skywalkers = await fixture.Rebels
 ```
 
 The produced Mango JSON:
+
 ```json
 {
   "selector": {
@@ -73,8 +71,12 @@ The produced Mango JSON:
     ]
   },
   "sort": [
-    { "name": "desc" },
-    { "age": "desc" }
+    {
+      "name": "desc"
+    },
+    {
+      "age": "desc"
+    }
   ],
   "limit": 2,
   "fields": [
@@ -88,50 +90,46 @@ The produced Mango JSON:
 
 * [Getting started](#getting-started)
 * [Queries](#queries)
-  * [Combinations](#combinations)
-  * [Conditions](#conditions)
-  * [Native method](#native-method)
-  * [Composite methods](#composite-methods)
-* [Client operations](#client-operations)
-* [Database operations](#database-operations)
+    * [Combinations](#combinations)
+    * [Conditions](#conditions)
+    * [Native method](#native-methods)
+    * [Composite methods](#composite-methods)
 * [Authentication](#authentication)
 * [Options](#options)
-* [Custom JSON values](#custom-json-values)
-* [Attachments](#attachments)
-* [DB Changes Feed](#db-changes-feed)
-  * [Feed Options](#feed-options)
-  * [Feed Filter](#feed-filter)
+* [Serialization behavior](#serialization-behavior)
+* [HttpClient customization](#httpclient-customization)
+* [Changes Feed](#changes-feed)
+    * [Feed Options](#feed-options)
+    * [Feed Filter](#feed-filter)
 * [Indexing](#indexing)
-  * [Index Options](#index-options)
-  * [Partial Indexes](#partial-indexes)
+    * [Index Options](#index-options)
+    * [Partial Indexes](#partial-indexes)
 * [Partitioned Databases](#partitioned-databases)
-* [Database Splitting](#database-splitting)
 * [Views](#views)
-* [Local (non-replicating) Documents](#local-(non-replicating)-documents)
+* [Local (non-replicating) Documents](#local-non-replicating-documents)
 * [Bookmark and Execution stats](#bookmark-and-execution-stats)
 * [Users](#users)
 * [Replication](#replication)
 * [Dependency Injection](#dependency-injection)
-* [Advanced](#advanced)
-* [Contributors](#contributors)
 
 ## Getting started
 
 * Install it from NuGet: [https://www.nuget.org/packages/CouchDB.NET](https://www.nuget.org/packages/CouchDB.NET)
-* Create a context or a client, where localhost will be the IP address and 5984 is CouchDB standard tcp port:
+* Create a client providing the endpoint and authentication:
   ```csharp
-  await using var context = new MyDeathStarContext(builder => {});
-  // or
-  await using(var client = new CouchClient("http://localhost:5984", builder => {})) { }
+  var client = new CouchClient(
+    endpoint: "http://localhost:5984",
+    credentials: new BasicCredentials("admin", "admin"))
   ```
-* Create a document class:
+* Create a class or record for your documents:
   ```csharp
-  public class Rebel : CouchDocument
+  public record Rebel(string Id, string Name)
+  {
+     public string Rev { get; init; } = null!;
+  }
   ```
 * Get a database reference:
   ```csharp
-  var rebels = fixture.Rebels;
-  // or
   var rebels = client.GetDatabase<Rebel>("rebels");
   ```
 * Query the database
@@ -141,10 +139,10 @@ The produced Mango JSON:
 
 ## Queries
 
-The database class exposes all the implemented LINQ methods like Where and OrderBy, 
-those methods returns an IQueryable.
+The database class exposes all the implemented *LINQ* methods like Where and OrderBy,
+those methods returns an `IQueryable`.
 
-LINQ are supported natively to the following is possible:
+*LINQ* are supported natively to the following is possible:
 
 ```csharp
 var skywalkers =
@@ -155,12 +153,12 @@ var skywalkers =
 
 ### Selector
 
-The selector is created when the method Where (IQueryable) is called.
-If the Where method is not called in the expression, it will at an empty selector.
+The selector is created when the method Where (`IQueryable`) is called.
+If the `Where` method is not called in the expression, it will at an empty selector.
 
 #### Combinations
 
-| Mango      |      C#          |
+| Mango      | C#               |
 |:-----------|:-----------------|
 | $and       | &&               |
 | $or        | \|\|             |
@@ -212,7 +210,7 @@ If the Where method is not called in the expression, it will at an empty selecto
 
 ### Composite methods
 
-Some methods that are not directly supported by CouchDB are converted to a composition of supported ones!
+Some methods that are not directly supported by *CouchDB* are converted to a composition of supported ones!
 
 | Input                           | Output                                                                   |
 |:--------------------------------|:-------------------------------------------------------------------------|
@@ -240,177 +238,68 @@ Some methods that are not directly supported by CouchDB are converted to a compo
 
 **WARN**: Since Max and Min use **sort**, an *index* must be created.
 
+### All other `IQueryable` methods
 
-### All other IQueryables methods
-
-Since v2.0 `IQueryable` methods that are not natively supported will throw an exception.
-
-## Client operations
-
-```csharp
-// CRUD from class name (rebels)
-var rebels = client.GetDatabase<Rebel>("rebels");
-var rebels = await client.GetOrCreateDatabaseAsync<Rebel>();
-var rebels = await client.CreateDatabaseAsync<Rebel>();
-await client.DeleteDatabaseAsync<Rebel>();
-// CRUD specific name
-var rebels = client.GetDatabase<Rebel>("naboo_rebels");
-var rebels = client.GetOrCreateDatabaseAsync<Rebel>("naboo_rebels");
-var rebels = await client.CreateDatabaseAsync<Rebel>("naboo_rebels");
-await client.DeleteDatabaseAsync("naboo_rebels");
-// Utils
-var isRunning = await client.IsUpAsync();
-var databases = await client.GetDatabasesNamesAsync();
-var tasks = await client.GetActiveTasksAsync();
-```
-
-## Database operations
-
-```csharp
-// CRUD
-await rebels.AddAsync(rebel);
-await rebels.AddOrUpdateAsync(rebel);
-await rebels.RemoveAsync(rebel);
-var rebel = await rebels.FindAsync(id);
-var rebel = await rebels.FindAsync(id, withConflicts: true);
-var list = await rebels.FindManyAsync(ids);
-var list = await rebels.QueryAsync(someMangoJson);
-var list = await rebels.QueryAsync(someMangoObject);
-// Bulk
-await rebels.AddOrUpdateRangeAsync(moreRebels);
-await rebels.DeleteRangeAsync(ids);
-await rebels.DeleteRangeAsync(moreRebels);
-// Utils
-await rebels.CompactAsync();
-var info = await rebels.GetInfoAsync();
-var limit = await rebels.GetRevisionLimitAsync();
-await rebels.SetRevisionLimitAsync(limit)
-// Security
-await rebels.Security.SetInfoAsync(securityInfo);
-var securityInfo = await rebels.Security.GetInfoAsync();
-```
+`IQueryable` methods that are not natively supported will throw an **exception**.
 
 ## Authentication
 
+There are four types of authentication supported: Basic, Cookie, Proxy and JWT to pass in the `CouchClient` constructor.
+
 ```csharp
 // Basic
-.UseBasicAuthentication("root", "relax")
+var cred = new BasicCredentials("root", "relax");
 
 // Cookie
-.UseCookieAuthentication("root", "relax")
-.UseCookieAuthentication("root", "relax", cookieDuration)
+var cred = new CookieCredentials("root", "relax");
+var cred = new CookieCredentials("root", "relax", cookieDuration);
 
 // Proxy
-.UseProxyAuthentication("root", new[] { "role1", "role2" })
+var cred = new ProxyCredentials("root", Roles: ["role1", "role2"])
 
 // JTW
-.UseJwtAuthentication("token")
-.UseJwtAuthentication(async () => await NewTokenAsync())
+var cred = new JwtCredentials("token")
+var cred = new JwtCredentials(async () => await NewTokenAsync())
 ```
 
-### Options
+## Options
 
-The second parameter of the client constructor is a function to configure CouchSettings fluently.
+Options can be specified when creating the `CouchClient`:
 
 ```csharp
-public class MyDeathStarContext : CouchContext
+var clientOptions = new CouchClientOptions
 {
-  /* ... */
-
-    protected override void OnConfiguring(CouchOptionsBuilder optionsBuilder)
-    {
-      optionsBuilder
-        .UseBasicAuthentication("root", "relax")
-        .DisableEntitisPluralization()
-        ...
-    }
+    // By default, if a warning is returned from CouchDB, an exception is thrown.
+    // It can be enabled/disabled per query by calling .With/WithoutQueryWarningException() in LINQ
+    ThrowOnQueryWarning = true,
+    // By default, the SDK uses `JsonSerializerOptions.Web` for documents
+    JsonSerializerOptions = myCustomJsonSerializerOptions,
+    // Custom HttpClient used by the SDK
+    HttpClient = myCustomHttpClient
 }
-
-// or
-
-var client = new CouchClient("http://localhost:5984", builder => builder
-    .UseBasicAuthentication("root", "relax")
-    .DisableEntitisPluralization()
-    ...
-)
-```
-| Method                         | Description                                   |
-|:-------------------------------|:----------------------------------------------|
-| UseBasicAuthentication         | Enables basic authentication.                 |
-| UseCookieAuthentication        | Enables cookie authentication.                |
-| IgnoreCertificateValidation    | Removes any SSL certificate validation.       |
-| ConfigureCertificateValidation | Sets a custom SSL validation rule.            |
-| DisableDocumentPluralization   | Disables documents pluralization in requests. |
-| SetDocumentCase                | Sets the format case for documents.           |
-| SetPropertyCase                | Sets the format case for properties.          |
-| SetNullValueHandling           | Sets how to handle null values.               |
-| DisableLogOutOnDispose         | Disables log out on client dispose.           | 
-
-- **DocumentCaseTypes**: None, UnderscoreCase *(default)*, DashCase, KebabCase.
-- **PropertyCaseTypes**: None, CamelCase *(default)*, PascalCase, UnderscoreCase, DashCase, KebabCase.
-
-## Custom JSON values
-
-If you need custom values for documents and properties, it's possible to use JsonObject and JsonProperty attributes.
-
-```csharp
-[JsonObject("custom-rebels")]
-public class OtherRebel : Rebel
-
-[JsonPropertyName("rebel_bith_date")]
-public DateTime BirthDate { get; set; }
 ```
 
-## Attachments
+## Serialization behavior
 
-The driver fully support attachments, you can list, create, delete and download them.
+While the SDK aims to be as close to the APIs as possible, some work has been done to improve the developer experience.
 
-```csharp
-// Get a document
-var luke = new Rebel(Guid.NewGuid().ToString(), "Luke_20", "", 19, []))
+* `Id` and `Rev` properties are mapped to `_id` and `_rev` fields automatically.
+* `ReadItemAsync` return a `ReadItemResponse<T>` to separate the document from metadata.
+* When updating a document, the `Rev` property is stripped automatically, and the method parameter is used instead.
+* The `JsonSerializerOptions` provided are only used for user documents. For *SDK* objects, different options are used.
+  They can't be changed, and they use source generators for better performance.
 
-// Add in memory
-var pathToDocument = @".\luke.txt"
-luke.Attachments.AddOrUpdate(pathToDocument, MediaTypeNames.Text.Plain);
+## HttpClient customization
 
-// Delete in memory
-luke.Attachments.Delete("yoda.txt");
+You have full control over the `HttpClient` used by the SDK. The SDK generates the correct request, serialize and deserialize. 
+Any other behavior can be customized by providing your own `HttpClient` instance in the `CouchClientOptions`.
 
-// Save
-luke = await rebels.CreateOrUpdateAsync(luke);
-
-// Get
-CouchAttachment lukeTxt = luke.Attachments["luke.txt"];
-
-// Iterate
-foreach (CouchAttachment attachment in luke.Attachments)
-{ 
-  ...
-}
-
-// Download
-string downloadFilePath = await rebels.DownloadAttachment(attachment, downloadFolderPath, "luke-downloaded.txt");
-//or
-Stream responseStream = await rebels.DownloadAttachmentAsStreamAsync(attachment);
-```
-
-## Revisions
-
-The options for `FindAsync(..)` and `AddOrUpdateAsync(..)` support passing revision:
-
-```csharp
-await _rebels.FindAsync("1", new FindOptions { Rev = "1-xxx" });
-await _rebels.AddOrUpdateAsync(r, new AddOrUpdateOptions { Rev = "1-xxx" });
-```
-
-For attachements revisions are supported by `CouchAttachment` class which is passing `DocumentRev` to `DownloadAttachmentAsync(..)` and `DownloadAttachmentAsStreamAsync(..)`.
-
-## DB Changes Feed
+## Changes Feed
 
 The following *feed modes* are supported: `normal`, `longpool` and `continuous`.
-Also all *options* and *filter types* are supported.
+Also, all *options* and *filter types* are supported.
 
-`Continuous mode` is probably the most useful and it's implemented with the new `IAsyncEnumerable`.
+`Continuous mode` is probably the most useful, and it's implemented with the new `IAsyncEnumerable`.
 
 ```csharp
 var tokenSource = new CancellationTokenSource();
@@ -519,6 +408,7 @@ await _rebels.CreateIndexAsync("rebels_index", b => b
 ```
 
 ### Partial Indexes
+
 ```csharp
 // Create an index which excludes documents at index time
 await _rebels.CreateIndexAsync("skywalkers_index", b => b
@@ -527,6 +417,7 @@ await _rebels.CreateIndexAsync("skywalkers_index", b => b
 ```
 
 ### Indexes operations
+
 ```csharp
 // Get the list of indexes
 var indexes = await _rebels.GetIndexesAsync();
@@ -537,27 +428,10 @@ await _rebels.DeleteIndexAsync(indexes[0]);
 await _rebels.DeleteIndexAsync("surnames_ddoc", name: "surnames");
 ```
 
-### CouchContext Index Configuration
-
-Finally it's possible to configure indexes on the `CouchContext`.
-```csharp
-public class MyDeathStarContext : CouchContext
-{
-    public CouchDatabase<Rebel> Rebels { get; set; }
-
-    // OnConfiguring(CouchOptionsBuilder optionsBuilder) { ... }
-
-    protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
-    {
-        databaseBuilder.Document<Rebel>()
-            .HasIndex("rebel_surnames_index", b => b.IndexBy(b => b.Surname));
-    }
-}
-```
-
 ## Partitioned Databases
 
-CouchDB partitioned databases allow you to optimize query performance by grouping related documents together using a partition key. This feature is supported in CouchDB 3.0+.
+CouchDB partitioned databases allow you to optimize query performance by grouping related documents together using a
+partition key. 
 
 ### Creating a Partitioned Database
 
@@ -635,39 +509,10 @@ await rebels.CreateIndexAsync("global_index",
     new IndexOptions { Partitioned = false });
 ```
 
-## Database Splitting
-
-It is possible to use the same database for multiple types:
-```csharp
-public class MyDeathStarContext : CouchContext
-{
-    public CouchDatabase<Rebel> Rebels { get; set; }
-    public CouchDatabase<Vehicle> Vehicles { get; set; }
-
-    // OnConfiguring(CouchOptionsBuilder optionsBuilder) { ... }
-
-    protected override void OnDatabaseCreating(CouchDatabaseBuilder databaseBuilder)
-    {
-        databaseBuilder.Document<Rebel>().ToDatabase("troops");
-        databaseBuilder.Document<Vehicle>().ToDatabase("troops");
-    }
-}
-```
-> When multiple `CouchDatabase` point to the same **database**, a `split_discriminator` field is added on document creation.
->
-> When querying, a filter by `split_discriminator` is added automatically.
-> 
-> The field name can be overriden with the `WithDatabaseSplitDiscriminator`.
-
-If you are not using `CouchContext`, you can still use the database split feature:
-```csharp
-var rebels = client.GetDatabase<Rebel>("troops", nameof(Rebel));
-var vehicles = client.GetDatabase<Vehicle>("troops", nameof(Vehicle));
-```
-
 ## Views
 
 It's possible to query a view with the following:
+
 ```csharp
 var options = new CouchViewOptions<string[]>
 {
@@ -675,11 +520,10 @@ var options = new CouchViewOptions<string[]>
     IncludeDocs = true
 };
 var viewRows = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
-// OR
-var details = await _rebels.GetDetailedViewAsync<int, BattleView>("battle", "by_name", options);
 ```
 
 You can also query a view with multiple options to get multiple results:
+
 ```csharp
 var lukeOptions = new CouchViewOptions<string[]>
 {
@@ -700,15 +544,12 @@ var queries = new[]
 var results = await _rebels.GetViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
 var lukeRows = results[0];
 var yodaRows = results[1];
-// OR
-var details = await _rebels.GetDetailedViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
-var lukeDetails = details[0];
-var yodaDetails = details[1];
 ```
 
 ## Local (non-replicating) Documents
 
-The Local (non-replicating) document interface allows you to create local documents that are not replicated to other databases.
+The Local (non-replicating) document interface allows you to create local documents that are not replicated to other
+databases.
 
 ```csharp
 var docId = "settings";
@@ -739,10 +580,10 @@ var docs = await local.GetAsync(searchOpt);
 
 ### Bookmark and Execution stats
 
-If bookmark and execution stats must be retrieved, call *ToCouchList* or *ToCouchListAsync*.
+Bookmark and execution stats can be found in the `CouchList<T>` result from `ToListAsync`.
 
 ```csharp
-var allRebels = await rebels.ToCouchListAsync();
+var allRebels = await rebels.ToListAsync();
 
 foreach(var r in allRebels) 
 {
@@ -762,12 +603,14 @@ var luke = await users.CreateAsync(new CouchUser(name: "luke", password: "lasers
 ```
 
 It's possible to extend *CouchUser* for store custom info.
+
 ```csharp
 var users = client.GetUsersDatabase<CustomUser>();
 var luke = await users.CreateAsync(new CustomUser(name: "luke", password: "lasersword"));
 ```
 
 To change password:
+
 ```csharp
 luke = await users.ChangeUserPassword(luke, "r2d2");
 ```
@@ -777,105 +620,61 @@ luke = await users.ChangeUserPassword(luke, "r2d2");
 The driver provides the ability to configure and cancel replication between databases.
 
 ```csharp
-if (await client.ReplicateAsync("anakin", "jedi", new CouchReplication() { Continuous = true}))
+var options = new ConfigureReplicationOptions 
 {
-  await client.RemoveReplicationAsync("anakin", "jedi", new CouchReplication() { Continuous = true });
+    Continuous = true
+}
+var success = await client.ConfigureReplicationAsync("anakin", "jedi", options);
+if (success)
+{ 
+    await client.CancelReplicationAsync("anakin", "jedi");
 }
 ```
 
 It is also possible to specify a selector to apply to the replication
+
 ```csharp
-await client.ReplicateAsync("stormtroopers", "deathstar", new CouchReplication() { Continuous = true, Selector = new { designation = "FN-2187" } }));
+new ConfigureReplicationOptions { Selector = new { designation = "FN-2187" } };
 ```
 
 Credentials can be specified as follows
-```csharp
-await client.ReplicateAsync("luke", "jedi", new CouchReplication() { SourceCredentials = new CouchReplicationBasicCredentials()username: "luke", password: "r2d2") }));
-```
 
+```csharp
+new ConfigureReplicationOptions 
+{
+    SourceCredentials = new CouchReplicationBasicCredentials(username: "luke", password: "r2d2")
+};
+```
 
 ## Dependency Injection
 
-As always you can leverage all the benefits of Dependency Injection.
+`CouchClient`, and `CouchDatabase<T>` must be registered as a singleton services.
 
-**Info:** The context will be registered as a `singleton`.
-
-* Create a `CouchContext` with a constructor like the following:
+There is no built-in extension method, but you can create your own:
 
 ```csharp
-public class MyDeathStarContext : CouchContext
+public static class ServiceCollectionExtensions
 {
-    public CouchDatabase<Rebel> Rebels { get; set; }
-
-    public MyDeathStarContext(CouchOptions<MyDeathStarContext> options)
-        : base(options) { }
-}
-```
-
-* Register the context via any of supported containers (see appropriate section section below)
-
-* Inject the context:
-
-```csharp
-// RebelsController
-public class RebelsController : Controller
-{
-    private readonly MyDeathStarContext _context;
-
-    public RebelsController(MyDeathStarContext context)
+    public static IServiceCollection AddCouchClient(
+      this IServiceCollection services,
+      string endpoint,
+      CouchCredentials credentials,
+      CouchClientOptions? options = null)
     {
-        _context = context;
+        var client = new CouchClient(endpoint, credentials, options);
+        services.AddSingleton(client);
+        return services;
+    }
+    
+    public static IServiceCollection AddCouchDatabase<T>(
+      this IServiceCollection services,
+      string databaseName)
+    {
+        services.AddSingleton(provider =>
+        {
+            var client = provider.GetRequiredService<CouchClient>();
+            return client.GetDatabase<T>(databaseName);
+        });
+        return services;
     }
 }
-```
-
-### Microsoft container
-* Install the DI package from NuGet: [https://www.nuget.org/packages/CouchDB.NET.DependencyInjection](https://www.nuget.org/packages/CouchDB.NET.DependencyInjection)
-
-* In the `Startup` class register the context:
-
-```csharp
-// ConfigureServices
-services.AddCouchContext<MyDeathStarContext>(builder => builder
-    .UseEndpoint("http://localhost:5984")
-    .UseBasicAuthentication(username: "admin", password: "admin"));
-```
-
-### Autofac container
-* Install the DI package from NuGet: [https://www.nuget.org/packages/CouchDB.NET.DependencyInjection.Autofac](https://www.nuget.org/packages/CouchDB.NET.DependencyInjection.Autofac)
-
-* In the `Startup` class register the context:
-
-```csharp
-// ConfigureServices
-var containerBuilder = new ContainerBuilder();
-containerBuilder.AddCouchContext<MyDeathStarContext>(optionsBuilder => optionsBuilder
-    .UseEndpoint("http://localhost:5984")
-    .UseBasicAuthentication(username: "admin", password: "admin"));
-```
-
-## Advanced
-
-If requests have to be modified before each call, it's possible to override OnBeforeCallAsync.
-
-```csharp
-protected virtual Task OnBeforeCallAsync(HttpCall call)
-```
-
-Also, the configurator has `ConfigureFlurlClient` to set custom HTTP client options.
-
-## Contributors
-
-[Ben Origas](https://github.com/borigas): Features, ideas and tests like SSL custom validation, multi queryable, async deadlock, cookie authentication and many others.
-
-[n9](https://github.com/n9): Proxy authentication, some bug fixes, suggestions and the great feedback on the changes feed feature!
-
-[Marc](https://github.com/bender-ristone): NullValueHandling, bug fixes and suggestions!
-
-[Panos](https://github.com/panoukos41): Help with Views and Table splitting.
-
-[Benjamin Höglinger-Stelzer](https://github.com/nefarius), [mwasson74](https://github.com/mwasson74), [Emre ÇAĞLAR](https://github.com/emrecaglar): Attachments improvements and fixes.
-
-[Dhiren Sham](https://github.com/dhirensham): Implementing replication.
-
-[Dmitriy Larionov](https://github.com/dmlarionov): Revisions improvements.
