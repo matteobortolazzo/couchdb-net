@@ -15,10 +15,7 @@ public class TestFixture : IAsyncLifetime
     {
         var clientOptions = new CouchClientOptions
         {
-            JsonSerializerOptions = new JsonSerializerOptions
-            {
-                TypeInfoResolver = SourceGenerationContext.Default
-            }
+            JsonSerializerOptions = JsonSerializerOptions.Web
         };
         Client = new CouchClient(
             endpoint: "http://localhost:5984",

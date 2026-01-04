@@ -125,7 +125,7 @@ public class HttpCallAssertion(List<LoggedCall> callLog, string expectedUrl)
                 return false;
             }
 
-            var body = JsonSerializer.Deserialize<TBody>(call.RequestBody, HttpTestHelper.JsonSerializerOptions)!;
+            var body = JsonSerializer.Deserialize<TBody>(call.RequestBody, JsonSerializerOptions.Web)!;
             return assert(body);
         });
     }

@@ -42,7 +42,7 @@ public partial class CouchClient : ICouchClient
 
         JsonSerializerOptions jsonSerializerOptions = options?.JsonSerializerOptions != null
             ? new JsonSerializerOptions(options.JsonSerializerOptions)
-            : new JsonSerializerOptions();
+            : JsonSerializerOptions.Web;
 
         if (options?.JsonSerializerOptions?.TypeInfoResolver != null)
         {
