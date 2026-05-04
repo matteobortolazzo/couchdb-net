@@ -123,8 +123,9 @@ The produced Mango JSON:
   ```
 * Create a class or record for your documents:
   ```csharp
-  public record Rebel(string Id, string Name)
-  {
+  public record Rebel(string Name, string Surname)
+  { 
+     public string Id { get; init; } = null!;
      public string Rev { get; init; } = null!;
   }
   ```
