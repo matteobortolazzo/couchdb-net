@@ -24,6 +24,7 @@ public class Find_IdRevMapping_Tests : HttpTests
 
         Assert.Single(result);
         Assert.Equal("abc123", result[0].Id);
+        Assert.Equal("1-xyz", result[0].Rev);
     }
 
     [Fact]
@@ -35,7 +36,9 @@ public class Find_IdRevMapping_Tests : HttpTests
 
         Assert.Equal(2, result.Count);
         Assert.Equal("id1", result[0].Id);
+        Assert.Equal("1-aaa", result[0].Rev);
         Assert.Equal("id2", result[1].Id);
+        Assert.Equal("2-bbb", result[1].Rev);
     }
 
     [Fact]
@@ -47,6 +50,7 @@ public class Find_IdRevMapping_Tests : HttpTests
 
         Assert.NotNull(result);
         Assert.Equal("abc123", result.Id);
+        Assert.Equal("1-xyz", result.Rev);
     }
 
     [Fact]

@@ -70,35 +70,11 @@ internal class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemRespon
             {
                 case "_rev":
                     rev = reader.GetString()!;
-                    if (jsonSerializerOptions.PropertyNamingPolicy == null)
-                    {
-                        writer.WritePropertyName("rev");
-                        writer.WriteStringValue(rev);
-                        writer.WritePropertyName("Rev");
-                        writer.WriteStringValue(rev);
-                    }
-                    else
-                    {
-                        writer.WritePropertyName(GetPropertyName("rev", jsonSerializerOptions));
-                        writer.WriteStringValue(rev);
-                    }
-
+                    DocumentRewriter.WriteTransformedProperty(writer, "rev", rev, jsonSerializerOptions);
                     break;
                 case "_id":
                     var id = reader.GetString()!;
-                    if (jsonSerializerOptions.PropertyNamingPolicy == null)
-                    {
-                        writer.WritePropertyName("id");
-                        writer.WriteStringValue(id);
-                        writer.WritePropertyName("Id");
-                        writer.WriteStringValue(id);
-                    }
-                    else
-                    {
-                        writer.WritePropertyName(GetPropertyName("id", jsonSerializerOptions));
-                        writer.WriteStringValue(id);
-                    }
-
+                    DocumentRewriter.WriteTransformedProperty(writer, "id", id, jsonSerializerOptions);
                     break;
                 case "_conflicts":
                     conflicts = JsonSerializer.Deserialize<string[]>(ref reader, jsonSerializerOptions);
@@ -143,7 +119,6 @@ internal class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemRespon
         writer.Flush();
 
         var jsonReader = new Utf8JsonReader(bufferWriter.WrittenSpan);
-        var jsonString = System.Text.Encoding.UTF8.GetString(bufferWriter.WrittenSpan);
         TSource? document = JsonSerializer.Deserialize<TSource>(ref jsonReader, jsonSerializerOptions);
 
         return new ReadItemResponse<TSource>(
@@ -164,8 +139,4 @@ internal class ReadItemResponseConverter<TSource> : JsonConverter<ReadItemRespon
         throw new NotImplementedException("Writing FindResponse is not supported");
     }
 
-    private static string GetPropertyName(string name, JsonSerializerOptions options)
-    {
-        return options.PropertyNamingPolicy?.ConvertName(name) ?? name;
-    }
 }

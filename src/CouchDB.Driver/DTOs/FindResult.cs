@@ -1,8 +1,10 @@
-﻿using CouchDB.Driver.Types;
+﻿using CouchDB.Driver.Converters;
+using CouchDB.Driver.Types;
 
 namespace CouchDB.Driver.DTOs;
 
 [Serializable]
+[JsonConverter(typeof(FindResultConverterFactory))]
 internal sealed record FindResult<T>(
     [property: JsonPropertyName("docs")]
     T[] Docs,

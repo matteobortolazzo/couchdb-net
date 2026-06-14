@@ -1,5 +1,4 @@
-﻿using CouchDB.Driver.Converters;
-using CouchDB.Driver.Extensions;
+﻿using CouchDB.Driver.Extensions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CouchDB.Driver.DTOs;
@@ -43,7 +42,7 @@ public partial class CouchClient : ICouchClient
 
         JsonSerializerOptions jsonSerializerOptions = options?.JsonSerializerOptions != null
             ? new JsonSerializerOptions(options.JsonSerializerOptions)
-            : new JsonSerializerOptions(JsonSerializerOptions.Web);
+            : JsonSerializerOptions.Web;
 
         if (options?.JsonSerializerOptions?.TypeInfoResolver != null)
         {
@@ -52,8 +51,6 @@ public partial class CouchClient : ICouchClient
                 new DefaultJsonTypeInfoResolver()
             );
         }
-
-        jsonSerializerOptions.Converters.Add(new FindResultConverterFactory());
 
         _httpClient = options?.HttpClient ?? CreateDefaultHttpClient();
         _options = new InternalCouchClientOptions(
