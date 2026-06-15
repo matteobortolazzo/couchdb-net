@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
     paths-ignore:
       - 'README.md'
       - 'CHANGELOG.md'
@@ -16,16 +18,30 @@ on:
 
 env:
   BuildConfiguration: Release
-  PackageVersion: '4.1.0'
 
 jobs:
   build:
     name: Build Package
     runs-on: ubuntu-latest
-    
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_release: ${{ steps.version.outputs.is_release }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-dev" >> "$GITHUB_OUTPUT"
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+        shell: bash
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -42,20 +58,20 @@ jobs:
         run: dotnet test **/**/*UnitTests*.csproj --configuration ${{ env.BuildConfiguration }} --no-build
 
       - name: Create NuGet packages
-        if: github.event_name != 'pull_request'
+        if: steps.version.outputs.is_release == 'true'
         run: |
           for project in src/**/*.csproj; do
             dotnet pack "$project" \
               --configuration ${{ env.BuildConfiguration }} \
               --no-build \
               --output ./artifacts \
-              -p:PackageVersion=${{ env.PackageVersion }} \
+              -p:PackageVersion=${{ steps.version.outputs.version }} \
               --include-symbols
           done
         shell: bash
 
       - name: Copy release notes
-        if: github.event_name != 'pull_request'
+        if: steps.version.outputs.is_release == 'true'
         run: |
           if [ -f "LATEST_CHANGE.md" ]; then
             cp LATEST_CHANGE.md ./artifacts/
@@ -63,7 +79,7 @@ jobs:
         shell: bash
 
       - name: Upload artifacts
-        if: github.event_name != 'pull_request'
+        if: steps.version.outputs.is_release == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: packages
@@ -72,10 +88,10 @@ jobs:
   release:
     name: Release Package
     needs: build
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    if: needs.build.outputs.is_release == 'true'
     runs-on: ubuntu-latest
     environment: NuGet
-    
+
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -98,11 +114,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ env.PackageVersion }}
-          name: v${{ env.PackageVersion }}
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           body_path: ./artifacts/LATEST_CHANGE.md
           files: ./artifacts/*.nupkg
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
