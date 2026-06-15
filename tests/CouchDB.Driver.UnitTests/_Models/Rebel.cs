@@ -8,6 +8,7 @@ public record SimpleRebel(string Name, string Age);
 public record Rebel
 {
     public string Id { get; set; }
+    public string? Rev { get; set; }
     public string Name { get; set; }
     public string? Surname { get; set; }
     public int Age { get; set; }
