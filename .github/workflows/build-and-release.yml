@@ -16,7 +16,7 @@ on:
 
 env:
   BuildConfiguration: Release
-  PackageVersion: '3.7.0'
+  PackageVersion: '4.1.0'
 
 jobs:
   build:

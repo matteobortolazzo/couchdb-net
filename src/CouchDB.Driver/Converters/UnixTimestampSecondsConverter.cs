@@ -2,17 +2,17 @@ using System.Text.Json;
 
 namespace CouchDB.Driver.Converters;
 
-internal class UnixTimestampSecondsConverter : JsonConverter<DateTime>
+internal class UnixTimestampSecondsConverter : JsonConverter<DateTimeOffset>
 {
-    private static readonly DateTime Epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTimeOffset Epoch = new(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-    public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
     {
         var seconds = (long)(value.ToUniversalTime() - Epoch).TotalSeconds;
         writer.WriteNumberValue(seconds);
     }
 
-    public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         switch (reader.TokenType)
         {
