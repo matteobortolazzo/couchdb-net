@@ -1,0 +1,55 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "excludedCommands": ["docker", "podman"],
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "nuget.org",
+        "api.nuget.org",
+        "www.nuget.org"
+      ],
+      "allowLocalBinding": true
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Write",
+      "Edit",
+      "Bash(dotnet:*)",
+      "Bash(npm:*)",
+      "Bash(ng:*)",
+      "Bash(go:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "mcp__claude_ai_Context7__resolve-library-id",
+      "mcp__claude_ai_Context7__query-docs",
+      "mcp__plugin_ccflow_context7__resolve-library-id",
+      "mcp__plugin_ccflow_context7__query-docs"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Read(~/.ssh/)",
+      "Read(~/.aws/)",
+      "Read(.env)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/check-pending-plans.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

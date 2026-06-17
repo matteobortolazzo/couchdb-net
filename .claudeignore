@@ -1,0 +1,43 @@
+# .claudeignore — Files tracked by git but not useful for Claude's context.
+# Claude already respects .gitignore, so only list tracked files here.
+
+# ── Binary & media assets ──
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.webp
+*.avif
+*.bmp
+*.tiff
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.otf
+*.mp4
+*.webm
+*.ogg
+*.mp3
+*.wav
+*.flac
+*.pdf
+*.zip
+*.tar.gz
+*.gz
+*.rar
+*.7z
+
+# ── Minified / generated bundles ──
+*.min.js
+*.min.css
+*.chunk.js
+*.bundle.js
+*.map
+
+# ── .NET generated files ──
+*.Designer.cs
+*.g.cs
+**/wwwroot/lib/

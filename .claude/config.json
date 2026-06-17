@@ -1,0 +1,17 @@
+{
+  "branchPattern": "feature/<id>-<description>",
+  "stack": {
+    "backend": "dotnet10",
+    "testing": ["xunit", "moq"]
+  },
+  "sandboxEnabled": true,
+  "claudeMdLocation": ".claude/CLAUDE.md",
+  "mcpServers": {
+    "context7": true
+  },
+  "lspServers": {
+    "csharp-ls": true
+  },
+  "autoCompactDisabled": true,
+  "pinSubagents200K": true
+}

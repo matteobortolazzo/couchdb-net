@@ -331,3 +331,8 @@ ASALocalRun/
 
 # VsCode
 .vscode
+
+# Claude Code / ccflow
+.worktrees/
+.plans/
+.claude/settings.local.json
