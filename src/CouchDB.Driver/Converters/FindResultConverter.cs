@@ -25,7 +25,6 @@ internal class FindResultConverterFactory : JsonConverterFactory
 }
 
 internal class FindResultConverter<TItem> : JsonConverter<FindResult<TItem>>
-    where TItem : class
 {
     public override FindResult<TItem> Read(ref Utf8JsonReader reader, Type typeToConvert,
         JsonSerializerOptions options)
@@ -90,6 +89,8 @@ internal class FindResultConverter<TItem> : JsonConverter<FindResult<TItem>>
             throw new JsonException("Expected start of array");
         }
 
+        var isScalarProjection = IsScalarProjection(typeof(TItem));
+
         var items = new List<TItem>();
         while (reader.Read())
         {
@@ -98,9 +99,67 @@ internal class FindResultConverter<TItem> : JsonConverter<FindResult<TItem>>
                 break;
             }
 
-            items.Add(DocumentRewriter.RewriteDocument<TItem>(ref reader, options));
+            items.Add(isScalarProjection
+                ? ReadScalarDocument(ref reader, options)
+                : DocumentRewriter.RewriteDocument<TItem>(ref reader, options));
         }
 
         return items.ToArray();
+    }
+
+    /// <summary>
+    /// Reads a scalar projection such as <c>Select(x =&gt; x.Id)</c>. The server returns each
+    /// document as an object with a single field (e.g. <c>{"_id":"abc"}</c>); the value of that
+    /// field is deserialized into <typeparamref name="TItem"/>, ignoring the property name so
+    /// that <c>_id</c>, <c>_rev</c> and any other selected field are handled uniformly.
+    /// </summary>
+    private static TItem ReadScalarDocument(ref Utf8JsonReader reader, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new JsonException("Expected start of object");
+        }
+
+        TItem result = default!;
+        var found = false;
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                break;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                throw new JsonException("Expected property name");
+            }
+
+            reader.Read();
+
+            if (found)
+            {
+                reader.Skip();
+                continue;
+            }
+
+            result = JsonSerializer.Deserialize<TItem>(ref reader, options)!;
+            found = true;
+        }
+
+        return result;
+    }
+
+    private static bool IsScalarProjection(Type type)
+    {
+        type = Nullable.GetUnderlyingType(type) ?? type;
+        return type == typeof(string)
+               || type.IsPrimitive
+               || type.IsEnum
+               || type == typeof(Guid)
+               || type == typeof(DateTime)
+               || type == typeof(DateTimeOffset)
+               || type == typeof(decimal)
+               || type == typeof(TimeSpan);
     }
 }
