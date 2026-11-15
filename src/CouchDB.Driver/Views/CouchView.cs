@@ -11,4 +11,4 @@
 /// <param name="Value">The view value.</param>
 /// <param name="Document">The document. Returned if included.</param>
 [Serializable]
-public record CouchView<TKey, TValue, TDoc>(string Id, TKey Key, TValue Value, TDoc? Document);
+public record CouchView<TKey, TValue, TDoc>(string Id, TKey Key, TValue Value, [property: JsonPropertyName("doc")] TDoc? Document);
