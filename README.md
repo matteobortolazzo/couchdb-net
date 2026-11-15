@@ -534,7 +534,7 @@ var options = new CouchViewOptions<string[]>
     StartKey = new[] {"Luke", "Skywalker"},
     IncludeDocs = true
 };
-var viewRows = await _rebels.GetViewAsync<string[], RebelView>("jedi", "by_name", options);
+var viewRows = await _rebels.QueryViewAsync<string[], RebelView>("jedi", "by_name", options);
 ```
 
 You can also query a view with multiple options to get multiple results:
@@ -556,7 +556,7 @@ var queries = new[]
     yodaOptions
 };
 
-var results = await _rebels.GetViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
+var results = await _rebels.QueryViewQueryAsync<string[], RebelView>("jedi", "by_name", queries);
 var lukeRows = results[0];
 var yodaRows = results[1];
 ```
